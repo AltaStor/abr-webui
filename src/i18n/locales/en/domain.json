@@ -1,0 +1,69 @@
+{
+  "protection": {
+    "protected": "Protected",
+    "warning": "At risk",
+    "unprotected": "Unprotected"
+  },
+  "session": {
+    "success": "Success",
+    "warning": "Warning",
+    "failed": "Failed",
+    "running": "Running",
+    "queued": "Queued"
+  },
+  "sourceType": {
+    "vm": { "noun": "VM", "nounPlural": "VMs", "jobLabel": "VM backup" },
+    "disk": { "noun": "disk", "nounPlural": "disks", "jobLabel": "Disk backup" },
+    "files": { "noun": "server", "nounPlural": "servers", "jobLabel": "File backup" },
+    "physicalHost": { "noun": "server", "nounPlural": "servers", "jobLabel": "Physical server backup" }
+  },
+  "objectCount": {
+    "vm_one": "{{count}} VM",
+    "vm_other": "{{count}} VMs",
+    "disk_one": "{{count}} disk",
+    "disk_other": "{{count}} disks",
+    "files_one": "{{count}} server",
+    "files_other": "{{count}} servers",
+    "physicalHost_one": "{{count}} server",
+    "physicalHost_other": "{{count}} servers"
+  },
+  "platform": {
+    "vmware": { "label": "VMware vSphere", "short": "vSphere", "hostTerm": "host", "hostTermPlural": "hosts" },
+    "proxmox": { "label": "Proxmox VE", "short": "Proxmox", "hostTerm": "node", "hostTermPlural": "nodes" },
+    "hyperv": { "label": "Microsoft Hyper-V", "short": "Hyper-V", "hostTerm": "host", "hostTermPlural": "hosts" }
+  },
+  "raid": {
+    "hint": {
+      "raid1": "Mirror — half the raw capacity, survives 1 disk",
+      "raid5": "Single parity — survives 1 disk",
+      "raid6": "Double parity — survives 2 disks",
+      "raid10": "Striped mirrors — fast, survives 1 disk"
+    },
+    "error": {
+      "minMembers": "{{level}} needs at least {{min}} member disks",
+      "evenMembers": "RAID10 requires an even number of member disks",
+      "sameMedia": "All members and spares must be the same media class"
+    }
+  },
+  "restorePoint": {
+    "tooltip": {
+      "full": "Full — this run read the whole disk. It restores on its own.",
+      "incremental": "Incremental — this run only read the blocks that changed since the last one. It still restores on its own; it doesn't depend on the full."
+    },
+    "selfContainedNote": "Every point is independently restorable — “full” vs “incremental” is about how much data was ingested, not a restore dependency."
+  },
+  "worldMode": {
+    "live": {
+      "title": "Connected to the live appliance",
+      "description": "You're looking at the real backend now."
+    },
+    "sim": {
+      "title": "Switched to the demo simulation",
+      "description": "Self-contained demo data — the appliance is untouched."
+    },
+    "error": {
+      "title": "Couldn't reach the appliance",
+      "description": "Is the backend (server/) running on :4980?"
+    }
+  }
+}

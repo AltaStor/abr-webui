@@ -1,0 +1,318 @@
+{
+  "page": {
+    "title": "Replikation",
+    "description": "Startbereite Replikate für eine schnelle Notfallwiederherstellung. Verwalten Sie Replikations-Jobs und sehen Sie genau, auf welchen Host jede VM umschaltet.",
+    "newJob": "Neuer Replikations-Job",
+    "empty": {
+      "title": "Noch keine Replikation",
+      "description": "Erstellen Sie einen Replikations-Job, um eine startbereite Kopie einer VM auf einem Zielhost vorzuhalten — in Sekunden umschalten und zurückschalten, sobald die Quelle wieder fehlerfrei ist."
+    },
+    "kpi": {
+      "replicas": "Replikate",
+      "inSync": "Synchron",
+      "failedOver": "Umgeschaltet",
+      "outOfRpo": "RPO überschritten",
+      "acrossJobs_one": "Über {{count}} Replikations-Job",
+      "acrossJobs_other": "Über {{count}} Replikations-Jobs",
+      "withinRpo": "Innerhalb des RPO · durchschn. Verzögerung {{lag}}",
+      "servingDr": "Replikate im DR-Einsatz",
+      "noActiveFailovers": "Keine aktiven Umschaltungen",
+      "lagPastTarget": "Verzögerung über Zielwert — driftet oder überschritten",
+      "allWithinTarget": "Alle Replikate innerhalb des Zielwerts"
+    },
+    "tabs": {
+      "jobs": "Jobs",
+      "replicatedVms": "Replizierte VMs"
+    }
+  },
+  "state": {
+    "seeding": "Erstbefüllung",
+    "ready": "Synchron",
+    "syncing": "Synchronisierung",
+    "failover": "Umschaltung — aktiv",
+    "failback": "Zurückschaltung läuft",
+    "error": "Fehler"
+  },
+  "health": {
+    "error": "Fehler",
+    "breach": "RPO-Verletzung",
+    "failover": "Umschaltung",
+    "drifting": "Driftet",
+    "syncing": "Synchronisierung",
+    "inSync": "Synchron"
+  },
+  "jobs": {
+    "columns": {
+      "job": "Job",
+      "status": "Status",
+      "targetSite": "Zielstandort",
+      "schedule": "Zeitplan",
+      "replicas": "Replikate",
+      "health": "Zustand",
+      "lastRun": "Letzter Lauf",
+      "success": "Erfolg"
+    },
+    "status": {
+      "paused": "Pausiert"
+    },
+    "filters": {
+      "all": "Alle Status",
+      "running": "Läuft",
+      "healthy": "Fehlerfrei",
+      "warning": "Aufmerksamkeit erforderlich",
+      "paused": "Pausiert"
+    },
+    "toolbar": {
+      "searchPlaceholder": "Replikations-Jobs nach Name oder Geltungsbereich suchen…",
+      "searchAria": "Replikations-Jobs suchen",
+      "filterByStatus": "Nach Status filtern"
+    },
+    "selectAllAria": "Alle Jobs auswählen",
+    "selectRowAria": "{{name}} auswählen",
+    "selection": {
+      "count_one": "{{count}} ausgewählt",
+      "count_other": "{{count}} ausgewählt",
+      "clearAria": "Auswahl aufheben"
+    },
+    "actions": {
+      "run": "Ausführen",
+      "pause": "Pausieren"
+    },
+    "empty": {
+      "noJobsTitle": "Noch keine Replikations-Jobs",
+      "noJobsDescription": "Erstellen Sie einen Replikations-Job, um startbereite Kopien Ihrer VMs für eine schnelle Umschaltung auf einem Zielhost vorzuhalten.",
+      "noMatchTitle": "Keine Jobs entsprechen Ihren Filtern",
+      "noMatchDescription": "Versuchen Sie einen anderen Suchbegriff oder Statusfilter."
+    },
+    "toast": {
+      "started": {
+        "title": "{{name}} gestartet",
+        "description": "Verfolgen Sie den Synchronisierungs-Stream live in der Aktivität.",
+        "watch": "Ansehen"
+      },
+      "paused": {
+        "title": "{{name}} ist pausiert",
+        "description": "Aktivieren Sie den Job, um ihn auszuführen."
+      },
+      "alreadyRunning": {
+        "title": "{{name}} läuft bereits",
+        "description": "Lassen Sie zunächst die aktuelle Synchronisierung abschließen."
+      },
+      "enabled": {
+        "title": "{{name}} aktiviert",
+        "description": "Die erneute Synchronisierung erfolgt im nächsten geplanten Zeitfenster."
+      },
+      "pausedToggle": {
+        "title": "{{name}} pausiert",
+        "description": "Es findet keine erneute Synchronisierung statt, bis Sie den Job wieder aktivieren."
+      },
+      "deleted": {
+        "title": "{{name}} gelöscht",
+        "description": "Standby-Replikate wurden entfernt; eine aktive Umschaltung bleibt erhalten."
+      },
+      "deleteFailed": {
+        "title": "{{name}} konnte nicht gelöscht werden",
+        "description": "Die Appliance hat nicht bestätigt — der Job bleibt unverändert."
+      },
+      "bulkStarted": {
+        "title_one": "{{count}} Job gestartet",
+        "title_other": "{{count}} Jobs gestartet",
+        "someSkipped": "Einige waren pausiert oder liefen bereits.",
+        "syncing": "Synchronisierung läuft jetzt."
+      },
+      "bulkPaused": {
+        "title_one": "{{count}} Job pausiert",
+        "title_other": "{{count}} Jobs pausiert"
+      },
+      "bulkDeleted": {
+        "title_one": "{{count}} Job gelöscht",
+        "title_other": "{{count}} Jobs gelöscht",
+        "description": "Standby-Replikate entfernt; aktive Umschaltungen bleiben erhalten."
+      },
+      "bulkDeletedPartial": {
+        "title": "{{deleted}} von {{total}} Jobs gelöscht",
+        "description": "Die Appliance hat die übrigen nicht bestätigt — sie bleiben unverändert."
+      }
+    }
+  },
+  "map": {
+    "searchPlaceholder": "VM oder Host finden…",
+    "searchAria": "Replizierte VMs und Hosts suchen",
+    "groupBy": "Topologie gruppieren nach",
+    "grouping": {
+      "hosts": "Hosts",
+      "sites": "Standorte"
+    },
+    "legendHint": "· Dicke = VMs · animiert = Synchronisierung",
+    "scopedCount": "<1>{{scoped}}</1> von {{total}} replizierten VMs",
+    "totalReplicasRoutes_one": "<1>{{total}}</1> replizierte VMs · {{routes}} Route",
+    "totalReplicasRoutes_other": "<1>{{total}}</1> replizierte VMs · {{routes}} Routen",
+    "replicatedVmsCount_one": "{{count}} replizierte VM",
+    "replicatedVmsCount_other": "{{count}} replizierte VMs",
+    "routesCount_one": "{{count}} Route",
+    "routesCount_other": "{{count}} Routen",
+    "selection": "Auswahl",
+    "showing": "{{filter}} wird angezeigt",
+    "replicasHeading": "Replikate",
+    "clearFilter": "Filter zurücksetzen",
+    "viewModeAria": "Replikat-Ansichtsmodus",
+    "view": {
+      "list": "Liste",
+      "cards": "Karten"
+    },
+    "empty": {
+      "noReplicatedTitle": "Noch keine replizierten VMs",
+      "noReplicatedDescription": "Erstellen Sie einen Replikations-Job, um eine startbereite Kopie einer VM auf einem Zielhost vorzuhalten, und beobachten Sie, wie die Topologie hier aufleuchtet.",
+      "noMatchTitle": "Keine passenden Replikate",
+      "noMatchDescription": "Versuchen Sie einen anderen Suchbegriff oder setzen Sie den Filter zurück, um die gesamte Topologie zu sehen."
+    },
+    "role": {
+      "source": "Repliziert von",
+      "both": "Quelle & Ziel",
+      "target": "Repliziert nach"
+    },
+    "direction": {
+      "both": "sendet {{out}}, empfängt {{in}}",
+      "target": "empfängt {{in}}",
+      "source": "repliziert nach außen {{out}}"
+    },
+    "term": {
+      "site": "Standort"
+    },
+    "node": {
+      "aria": "{{label}} — {{site}}, {{direction}}, {{health}}. {{state}}.",
+      "selected": "Ausgewählt",
+      "showOnly": "Nur die Replikate dieses {{term}} anzeigen"
+    },
+    "job": {
+      "title": "Topologie Quelle → Replikat"
+    },
+    "fallback": {
+      "source": "Quelle",
+      "unplaced": "nicht platziert",
+      "target": "{{platform}}-Ziel"
+    }
+  },
+  "list": {
+    "replicatedVm": "Replizierte VM",
+    "route": "Route",
+    "state": "Zustand",
+    "rpoLag": "RPO-Verzögerung",
+    "lastSync": "Letzte Synchronisierung",
+    "size": "Größe",
+    "crossPlatform": "plattformübergreifend"
+  },
+  "card": {
+    "from": "aus {{job}}",
+    "poweredOn": "Eingeschaltet · bedient Datenverkehr",
+    "source": "{{platform}}-Quelle",
+    "target": "{{platform}}-Ziel",
+    "crossPlatform": "Plattformübergreifend · {{source}} → {{target}} (bei Umschaltung konvertiert)",
+    "lagLabel": "Replikationsverzögerung (RPO)",
+    "targetLag": "Ziel {{duration}}",
+    "within": "Innerhalb des RPO",
+    "drifting": "Driftet",
+    "breached": "Überschritten",
+    "lastSync": "Letzte Synchronisierung",
+    "recoveryPoints": "Wiederherstellungspunkte",
+    "replicaSize": "Replikatgröße",
+    "failBack": "Zurückschalten",
+    "undo": "Rückgängig",
+    "seeding": "Erstbefüllung…",
+    "failOver": "Umschalten"
+  },
+  "menu": {
+    "manage": "{{name}} verwalten",
+    "failbackToSource": "Auf Quelle zurückschalten",
+    "undoFailover": "Umschaltung rückgängig machen",
+    "failover": "Umschalten…",
+    "seedingCantFailover": "Erstbefüllung — Umschalten nicht möglich",
+    "undoToDelete": "Umschaltung rückgängig machen, um zu löschen",
+    "deleteReplica": "Replikat löschen…"
+  },
+  "delete": {
+    "title": "Replikat löschen?",
+    "pointsPhrase_one": "seinen {{count}} Wiederherstellungspunkt",
+    "pointsPhrase_other": "alle {{count}} Wiederherstellungspunkte",
+    "targetFallback": "der Zielhost",
+    "confirm": "Replikat löschen",
+    "pending": "Wird gelöscht…",
+    "desc": {
+      "failover": "<1>{{name}}</1> ist derzeit umgeschaltet und kann noch nicht gelöscht werden.",
+      "hasVm": "Dadurch wird das Standby-Replikat <1>{{name}}</1> für {{source}} auf {{target}} dauerhaft gelöscht. Die Replikat-VM und {{points}} werden vom Zielhost entfernt. Dies kann nicht rückgängig gemacht werden.",
+      "noVm": "Dadurch wird das Standby-Replikat <1>{{name}}</1> für {{source}} dauerhaft gelöscht. Seine Erstbefüllung hat nie eine VM auf {{target}} vollständig erstellt, sodass beim Löschen der Eintrag und {{points}} entfernt werden — es gibt keine VM auf dem Host, die entfernt werden müsste. Dies kann nicht rückgängig gemacht werden."
+    },
+    "banner": {
+      "failoverTitle": "Dieses Replikat ist derzeit umgeschaltet",
+      "failoverBody": "Es ist eingeschaltet und dient als aktive Arbeitslast. Schalten Sie auf die Quelle zurück oder machen Sie die Umschaltung rückgängig, bevor Sie es löschen.",
+      "reseedTitle": "Der Job führt eine erneute Erstbefüllung durch",
+      "reseedBody": "<1>{{job}}</1> erstellt bei seinem nächsten Lauf ein neues Replikat — ein vollständiges Lesen und Übertragen der Quelle. Ihre Quell-VM und der Replikations-Job sind nicht betroffen."
+    },
+    "toast": {
+      "successTitle": "Replikat für {{name}} gelöscht",
+      "successRemoved": "Von {{target}} entfernt. „{{job}}“ befüllt bei seinem nächsten Lauf ein vollständiges Replikat neu.",
+      "successCleared": "Der Replikat-Eintrag wurde entfernt. „{{job}}“ befüllt bei seinem nächsten Lauf ein neues Replikat.",
+      "errorTitle": "Replikat konnte nicht gelöscht werden",
+      "errorBody": "Die Appliance hat das Löschen nicht bestätigt. Es wurde nichts entfernt — versuchen Sie es erneut."
+    }
+  },
+  "confirm": {
+    "failback": {
+      "title": "Auf {{name}} zurückschalten?",
+      "description": "AltaStor synchronisiert die auf dem Replikat vorgenommenen Änderungen zurück zur ursprünglichen Quelle, fährt das Replikat herunter und gibt <1>{{name}}</1> in die Produktion zurück. Das Replikat kehrt in den Standby-Zustand zurück und schützt die Quelle weiter.",
+      "confirm": "Zurückschalten",
+      "pending": "Zurückschaltung läuft…",
+      "toastTitle": "{{name}} ist wieder in Produktion",
+      "toastBody": "Steuerung an die Quelle zurückgegeben · {{replica}} ist wieder im Standby-Zustand."
+    },
+    "undo": {
+      "title": "Umschaltung von {{name}} rückgängig machen?",
+      "description": "Dadurch werden <1>alle vom Replikat geschriebenen Änderungen verworfen</1>, während es aktiv war, es wird heruntergefahren und in den Standby-Zustand zurückversetzt — als wäre die Umschaltung nie erfolgt. Verwenden Sie dies, wenn die Quelle fehlerfrei ist und Sie die Änderungen des Replikats nicht behalten möchten.",
+      "confirm": "Verwerfen & rückgängig machen",
+      "pending": "Wird rückgängig gemacht…",
+      "toastTitle": "Umschaltung von {{name}} rückgängig gemacht",
+      "toastBody": "Umschaltungs-Schreibvorgänge verworfen · das Replikat ist wieder im Standby-Zustand."
+    },
+    "errorTitle": "Das wurde nicht abgeschlossen",
+    "errorBody": "Überprüfen Sie die Verbindung zum Zielhost und versuchen Sie es erneut."
+  },
+  "failover": {
+    "title": "Auf {{name}} umschalten?",
+    "description": "Das Replikat schaltet sich ein und beginnt, auf <1>{{env}}</1>{{hostSuffix}} zu bedienen. Die Quelle <3>{{source}}</3> wird aus der Rotation genommen, bis Sie zurückschalten.",
+    "kindLabel": "Wie führen Sie die Umschaltung durch?",
+    "planned": {
+      "title": "Geplant",
+      "description": "Kontrolliert. Führen Sie eine abschließende Synchronisierung durch, damit nichts verloren geht, und schalten Sie dann um."
+    },
+    "unplanned": {
+      "title": "Ungeplant",
+      "description": "Notfall. Die Quelle ist verloren — starten Sie das Replikat jetzt von einem Wiederherstellungspunkt."
+    },
+    "recoveryPoint": "Wiederherstellungspunkt",
+    "noPoints": "Noch keine Wiederherstellungspunkte verfügbar — dieses Replikat hat keine Grundlage zum Starten.",
+    "choosePoint": "Wiederherstellungspunkt auswählen…",
+    "pointType": {
+      "full": "Vollständig",
+      "incremental": "Inkrementell"
+    },
+    "latest": "neuester",
+    "hint": {
+      "unplanned": "Wählen Sie den letzten Punkt, dem Sie vertrauen — alles, was danach in die Quelle geschrieben wurde, ist nicht auf dem Replikat.",
+      "planned": "Zunächst wird eine abschließende Synchronisierung ausgeführt, sodass der neueste Punkt die Quelle bis zur Umschaltung erfasst."
+    },
+    "banner": {
+      "unplanned": "<1>Keine abschließende Synchronisierung.</1> Schreibvorgänge in {{source}} nach dem gewählten Punkt gehen verloren. Verwenden Sie dies nur, wenn die Quelle nicht erreichbar ist.",
+      "planned": "AltaStor führt eine letzte inkrementelle Synchronisierung durch, fährt die Quelle herunter und startet dann das Replikat auf {{platform}}. Eine spätere Zurückschaltung gibt die Steuerung an die Quelle zurück."
+    },
+    "pending": "Umschaltung läuft…",
+    "confirmUnplanned": "Jetzt umschalten",
+    "confirmPlanned": "Kontrolliert umschalten",
+    "toast": {
+      "title": "{{name}} bedient jetzt",
+      "unplanned": "Ungeplante Umschaltung abgeschlossen — das Replikat ist auf {{env}} eingeschaltet.",
+      "planned": "Geplante Umschaltung abgeschlossen — eine abschließende Synchronisierung wurde ausgeführt und das Replikat ist auf {{env}} aktiv.",
+      "errorTitle": "Umschaltung nicht abgeschlossen",
+      "errorBody": "Das Replikat wurde nicht online geschaltet. Überprüfen Sie die Verbindung zum Zielhost und versuchen Sie es erneut."
+    }
+  }
+}

@@ -1,0 +1,51 @@
+{
+  "actions": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "close": "Close",
+    "confirm": "Confirm",
+    "delete": "Delete",
+    "remove": "Remove",
+    "edit": "Edit",
+    "add": "Add",
+    "create": "Create",
+    "apply": "Apply",
+    "discard": "Discard",
+    "retry": "Retry",
+    "refresh": "Refresh",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous",
+    "done": "Done",
+    "search": "Search",
+    "clear": "Clear",
+    "copy": "Copy",
+    "download": "Download",
+    "view": "View",
+    "select": "Select",
+    "selectAll": "Select all",
+    "dismiss": "Dismiss",
+    "enable": "Enable",
+    "disable": "Disable",
+    "reset": "Reset"
+  },
+  "generic": {
+    "loading": "Loading…",
+    "none": "None",
+    "all": "All",
+    "yes": "Yes",
+    "no": "No",
+    "enabled": "Enabled",
+    "disabled": "Disabled",
+    "unknown": "Unknown",
+    "na": "—"
+  },
+  "time": {
+    "never": "Never"
+  },
+  "calendar": {
+    "today": "Today",
+    "prevMonth": "Previous month",
+    "nextMonth": "Next month"
+  }
+}

@@ -1,0 +1,250 @@
+{
+  "page": {
+    "title": "Backup-Infrastruktur",
+    "description": "Ihre AltaStor Appliances und der Speicher, in dem Ihre Backups liegen — die Nodes, Arrays und Pools der Flotte sowie die Repositorys, auf die Ihre Backups zielen.",
+    "navAria": "Abschnitte der Backup-Infrastruktur"
+  },
+  "sections": {
+    "repositories": {
+      "label": "Repositorys",
+      "blurb": "Backup-Ziele & unveränderlicher Speicher"
+    },
+    "appliances": {
+      "label": "Appliances",
+      "blurb": "AltaStor Nodes, Speicher & Tiers"
+    }
+  },
+  "fleet": {
+    "count_one": "{{count}} Appliance",
+    "count_other": "{{count}} Appliances",
+    "addAppliance": "Appliance hinzufügen",
+    "thisConsole": "Diese Konsole",
+    "healthy": "Fehlerfrei",
+    "unreachable": "Nicht erreichbar",
+    "localStorage": "Lokaler Speicher",
+    "pools_one": "{{count}} Pool",
+    "pools_other": "{{count}} Pools",
+    "removedToast": "{{name}} entfernt",
+    "removedToastDescription": "Die Appliance läuft weiter — sie wird hier nur nicht mehr angezeigt.",
+    "removeDialog": {
+      "title": "{{name}} entfernen?",
+      "body": "Die Appliance unter <1>{{endpoint}}</1> läuft weiter und behält alle ihre Daten — sie verschwindet lediglich aus dieser Konsole. Sie können sie jederzeit über ihre Adresse erneut hinzufügen."
+    },
+    "archiveTier": {
+      "label": "Archiv-Tier",
+      "on": "ein — Punkte, die älter als {{days}} Tage sind, wandern in den Kaltspeicher",
+      "off": "aus — alle Punkte bleiben im Primärspeicher",
+      "configure": "Konfigurieren"
+    }
+  },
+  "detail": {
+    "lastSeen": "zuletzt gesehen {{time}}",
+    "unreachableLastSeen": "nicht erreichbar — zuletzt gesehen {{time}}",
+    "never": "nie",
+    "registered": "registriert {{time}}",
+    "openConsole": "Konsole öffnen",
+    "probeFailed": "Diese Appliance hat auf die letzte Prüfung nicht geantwortet — es wird ihr letzter bekannter Zustand angezeigt.",
+    "probeFailedSince": "Diese Appliance hat auf die letzte Prüfung nicht geantwortet — es wird ihr letzter bekannter Zustand von {{time}} angezeigt.",
+    "noStorage": "Noch kein Speicher gemeldet — aktualisieren Sie, sobald die Appliance die Bereitstellung abgeschlossen hat, oder öffnen Sie ihre Konsole, um Speicher einzurichten."
+  },
+  "legacy": {
+    "localStorage": "Lokaler Speicher",
+    "allRepositories": "Alle Repositorys",
+    "noLocalPools": "Diese Appliance hat keine lokalen Speicher-Pools — ihre Repositorys liegen auf externen Zielen.",
+    "unsupported": "Die Datenträger- und RAID-Verwaltung erfordert eine neuere Appliance-Version — stattdessen wird die Repository-Übersicht angezeigt."
+  },
+  "repos": {
+    "toolbar": "Unveränderliche Repositorys versiegeln jeden Wiederherstellungspunkt für ein festes Zeitfenster, sodass ein kompromittiertes Konto ihn nicht ändern oder löschen kann.",
+    "kpi": {
+      "totalCapacity": "Gesamtkapazität",
+      "totalCapacityHint_one": "Über {{count}} Repository",
+      "totalCapacityHint_other": "Über {{count}} Repositorys",
+      "used": "Belegt",
+      "usedHint": "{{pct}} % der Gesamtkapazität",
+      "immutableShare": "Unveränderlicher Anteil",
+      "immutableShareHint_one": "{{count}} gehärtetes, unveränderliches Repository",
+      "immutableShareHint_other": "{{count}} gehärtete, unveränderliche Repositorys",
+      "avgDedup": "Durchschn. Dedup-Rate",
+      "avgDedupHint": "Deduplizierung & Komprimierung über alle Repositorys"
+    },
+    "health": {
+      "title": "Speicherzustand",
+      "reclaimable": "Rückgewinnbar",
+      "reclaimableHint": "ausstehende Garbage Collection",
+      "inMaintenance": "In Wartung",
+      "integrityIssues": "Integritätsprobleme",
+      "threatLocked": "Bedrohungsgesperrt",
+      "threatLockedHint": "durch Bedrohungsreaktion versiegelt"
+    },
+    "empty": {
+      "title": "Noch keine Repositorys",
+      "description": "Richten Sie AltaStor auf Speicher, den Sie bereits besitzen. Unveränderliche Ziele halten jeden Wiederherstellungspunkt schreibgeschützt, bis sein Sperrfenster abläuft."
+    }
+  },
+  "addAppliance": {
+    "title": "Appliance hinzufügen",
+    "description": "Stellen Sie AltaStor zuerst auf dem neuen Node bereit und registrieren Sie dann hier seine Adresse. Die Appliance verwaltet sich weiterhin selbst — diese Konsole zeigt ihren Zustand und Speicher neben diesem an.",
+    "addressLabel": "Adresse",
+    "addressHint": "Host oder host:port — die Steuerungsebene verwendet standardmäßig Port 4980.",
+    "nameLabel": "Name (optional)",
+    "namePlaceholder": "Standardmäßig der Hostname der Appliance",
+    "probing": "Prüfung läuft…",
+    "registeredToast": "{{name}} registriert"
+  },
+  "createArray": {
+    "title": "RAID-Array erstellen",
+    "description": "Erstellen Sie ein neues Array aus nicht zugewiesenen Datenträgern. Es wird als Pool-Speicher verfügbar, sobald ein Dateisystem darauf bereitgestellt wurde.",
+    "nameLabel": "Name",
+    "levelLabel": "RAID-Level",
+    "membersLabel": "Mitglieds-Datenträger",
+    "noUnassigned": "Keine nicht zugewiesenen Datenträger — jeder erkannte Datenträger gehört bereits zu einem Array.",
+    "useAsMember": "{{slot}} als Mitglied verwenden",
+    "spareLabel": "Hot Spare (optional)",
+    "noSpare": "Kein Hot Spare",
+    "usableAfter": "≈ <1>{{size}}</1> nutzbar nach {{level}} {{mode}}",
+    "mirroring": "Spiegelung",
+    "parity": "Parität",
+    "creating": "Wird erstellt…",
+    "createButton": "Array erstellen",
+    "createdToast": "Array „{{name}}“ erstellt",
+    "createdToastDescription": "{{level}} · {{size}} nutzbar. Es erscheint auf der Karte als „noch nicht gepoolt“.",
+    "buildStartedToast": "Array-Aufbau auf der Appliance gestartet",
+    "buildStartedToastDescription": "mdadm setzt es gerade zusammen — es erscheint innerhalb weniger Sekunden auf der Karte. Falls nicht, prüfen Sie die Warnungen."
+  },
+  "diskAction": {
+    "requestFailed": "Anfrage fehlgeschlagen",
+    "replace": {
+      "title": "Datenträger ersetzen",
+      "bodyArray": "Tauschen Sie {{slot}} ({{model}}) gegen einen neuen Datenträger im selben Slot. Das Array {{array}} synchronisiert auf den neuen Datenträger neu — die Redundanz ist wiederhergestellt, wenn der Rebuild abgeschlossen ist.",
+      "bodyLoose": "Tauschen Sie {{slot}} ({{model}}) gegen einen neuen Datenträger im selben Slot. Der neue Datenträger wird für Arrays verfügbar.",
+      "confirm": "Datenträger ersetzen",
+      "pending": "Wird ersetzt…",
+      "toast": "Ersatz angefordert",
+      "toastArray": "{{array}} synchronisiert auf den neuen Datenträger in {{slot}} neu.",
+      "toastLoose": "{{slot}} ist wieder im Einsatz."
+    },
+    "fail": {
+      "title": "Datenträger als fehlerhaft markieren",
+      "bodyArray": "Nehmen Sie {{slot}} ({{model}}) außer Betrieb (mdadm --fail). Das Array {{array}} wird herabgestuft und baut auf einem Hot Spare neu auf, sofern einer verfügbar ist — tun Sie dies, um den Datenträger für die Entnahme vorzubereiten.",
+      "bodyLoose": "Nehmen Sie {{slot}} ({{model}}) außer Betrieb (mdadm --fail).",
+      "confirm": "Als fehlerhaft markieren",
+      "pending": "Wird markiert…",
+      "toast": "Datenträger als fehlerhaft markiert",
+      "toastDescription": "{{slot}} ist außer Betrieb."
+    }
+  },
+  "section": {
+    "storage": "Speicher",
+    "allRepositories": "Alle Repositorys",
+    "createArray": "Array erstellen",
+    "createArrayHint": "Benötigt mindestens 2 nicht zugewiesene Datenträger",
+    "manageOnConsole": "Auf ihrer Konsole verwalten",
+    "locateOnMap": "Auf der Karte finden",
+    "replaceDisk": "Datenträger ersetzen",
+    "notInAnyArray": "In keinem Array:",
+    "looseAvailableNew": "{{count}} verfügbar für ein neues Array",
+    "looseAvailableConsole": "{{count}} verfügbar — von ihrer eigenen Konsole bereitstellen",
+    "looseSparesStandby": "Hot Spares stehen für ihre Arrays bereit"
+  },
+  "storage": {
+    "arrayState": {
+      "optimal": "Optimal",
+      "degraded": "Herabgestuft",
+      "rebuilding": "Wird neu aufgebaut",
+      "failed": "Ausgefallen"
+    },
+    "diskStatus": {
+      "healthy": "Im Array",
+      "failing": "Fällt aus",
+      "failed": "Ausgefallen",
+      "spare": "Hot Spare",
+      "unassigned": "Verfügbar"
+    },
+    "summary": {
+      "healthy": "Fehlerfrei",
+      "degraded": "Herabgestuft",
+      "attention": "Achtung",
+      "rebuilding": "Wird neu aufgebaut",
+      "arraysOptimal_one": "{{count}} Array optimal",
+      "arraysOptimal_other": "{{count}} Arrays optimal",
+      "arraysOptimalOf_one": "{{optimal}} von {{count}} Array optimal",
+      "arraysOptimalOf_other": "{{optimal}} von {{count}} Arrays optimal",
+      "disksHealthy_one": "{{count}} Datenträger fehlerfrei",
+      "disksHealthy_other": "{{count}} Datenträger fehlerfrei",
+      "disksAttention_one": "{{count}} Datenträger benötigt Aufmerksamkeit",
+      "disksAttention_other": "{{count}} Datenträger benötigen Aufmerksamkeit",
+      "hotSpares_one": "{{count}} Hot Spare",
+      "hotSpares_other": "{{count}} Hot Spares"
+    },
+    "issues": {
+      "arrayFailed": "Array {{name}} ({{id}}) ist ausgefallen — seine Daten sind offline",
+      "arrayDegraded": "Array {{name}} ({{id}}) ist herabgestuft — kein Spare verfügbar, Redundanz reduziert",
+      "arrayRebuilding": "Array {{name}} ({{id}}) wird neu aufgebaut — {{percent}} % bei {{speed}} MB/s",
+      "diskFailingIn": "{{slot}} fällt aus (SMART) in {{array}}",
+      "diskFailing": "{{slot}} fällt aus (SMART)",
+      "diskFailedIn": "{{slot}} ist in {{array}} ausgefallen",
+      "diskFailed": "{{slot}} ist ausgefallen — ersetzen Sie ihn, um den Slot wieder in Betrieb zu nehmen"
+    }
+  },
+  "map": {
+    "columns": {
+      "arrays": {
+        "title": "RAID-Arrays",
+        "sub": "physische Datenträger"
+      },
+      "pools": {
+        "title": "Pools",
+        "sub": "Dateisystem & Tiers"
+      },
+      "repos": {
+        "title": "Repositorys",
+        "sub": "Backup-Ziele"
+      }
+    },
+    "rebuilding": "Wird neu aufgebaut",
+    "array": {
+      "osHint": "OS-Spiegel — enthält die Appliance selbst, niemals Backups",
+      "unpooledHint": "Noch nicht gepoolt — kein Dateisystem nutzt dieses Array",
+      "usable": "{{device}} · {{size}} nutzbar",
+      "rebuildLabel": "Rebuild {{percent}} %",
+      "rebuildEta": "{{percent}} % · ETA {{eta}} · {{speed}} MB/s",
+      "aria_one": "Array {{name}} ({{id}}) — {{level}}, {{state}}, {{count}} Datenträger",
+      "aria_other": "Array {{name}} ({{id}}) — {{level}}, {{state}}, {{count}} Datenträger",
+      "spotlightAria": "Array {{name}} ({{id}}) hervorheben"
+    },
+    "disk": {
+      "notReportedAria": "Mitglieds-Datenträger (nicht von der Appliance gemeldet)",
+      "ariaIn": "Datenträger {{slot}} — {{status}} in {{array}}",
+      "aria": "Datenträger {{slot}} — {{status}}",
+      "title": "{{slot}} · {{model}} · {{status}}",
+      "serial": "Seriennummer",
+      "capacity": "Kapazität",
+      "media": "Medium",
+      "arrayFact": "Array",
+      "temperature": "Temperatur",
+      "temperatureValue": "{{value}} °C",
+      "powerOn": "Betriebsstunden",
+      "days_one": "{{count}} Tag",
+      "days_other": "{{count}} Tage",
+      "smartErrors": "SMART-Fehler",
+      "smartNotCollected": "SMART-Telemetrie wird von dieser Appliance noch nicht erfasst.",
+      "replaceDisk": "Datenträger ersetzen",
+      "markFailed": "Als fehlerhaft markieren",
+      "markFailedHint": "Bereitet den Datenträger für die Entnahme vor — das Array wird herabgestuft und baut auf einem Hot Spare neu auf, sofern einer verfügbar ist."
+    },
+    "pool": {
+      "aria_one": "Pool {{name}} — {{count}} Tier, {{used}} von {{capacity}} belegt",
+      "aria_other": "Pool {{name}} — {{count}} Tiers, {{used}} von {{capacity}} belegt",
+      "dedup": "Dedup {{ratio}}×"
+    },
+    "tier": {
+      "noArray": "kein Array angehängt",
+      "s3": "S3",
+      "nfs": "NFS",
+      "smbShare": "SMB-Freigabe"
+    },
+    "repo": {
+      "aria": "Repository {{name}} — {{used}} von {{capacity}} belegt"
+    }
+  }
+}

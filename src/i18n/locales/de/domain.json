@@ -1,0 +1,69 @@
+{
+  "protection": {
+    "protected": "Geschützt",
+    "warning": "Außerhalb der RPO",
+    "unprotected": "Ungeschützt"
+  },
+  "session": {
+    "success": "Erfolgreich",
+    "warning": "Warnung",
+    "failed": "Fehlgeschlagen",
+    "running": "Läuft",
+    "queued": "In Warteschlange"
+  },
+  "sourceType": {
+    "vm": { "noun": "VM", "nounPlural": "VMs", "jobLabel": "VM-Backup" },
+    "disk": { "noun": "Datenträger", "nounPlural": "Datenträger", "jobLabel": "Datenträger-Backup" },
+    "files": { "noun": "Server", "nounPlural": "Server", "jobLabel": "Datei-Backup" },
+    "physicalHost": { "noun": "Server", "nounPlural": "Server", "jobLabel": "Backup physischer Server" }
+  },
+  "objectCount": {
+    "vm_one": "{{count}} VM",
+    "vm_other": "{{count}} VMs",
+    "disk_one": "{{count}} Datenträger",
+    "disk_other": "{{count}} Datenträger",
+    "files_one": "{{count}} Server",
+    "files_other": "{{count}} Server",
+    "physicalHost_one": "{{count}} Server",
+    "physicalHost_other": "{{count}} Server"
+  },
+  "platform": {
+    "vmware": { "label": "VMware vSphere", "short": "vSphere", "hostTerm": "Host", "hostTermPlural": "Hosts" },
+    "proxmox": { "label": "Proxmox VE", "short": "Proxmox", "hostTerm": "Node", "hostTermPlural": "Nodes" },
+    "hyperv": { "label": "Microsoft Hyper-V", "short": "Hyper-V", "hostTerm": "Host", "hostTermPlural": "Hosts" }
+  },
+  "raid": {
+    "hint": {
+      "raid1": "Spiegelung — halbe Rohkapazität, verkraftet 1 Datenträgerausfall",
+      "raid5": "Einfache Parität — verkraftet 1 Datenträgerausfall",
+      "raid6": "Doppelte Parität — verkraftet 2 Datenträgerausfälle",
+      "raid10": "Gespiegelte Stripes — schnell, verkraftet 1 Datenträgerausfall"
+    },
+    "error": {
+      "minMembers": "{{level}} benötigt mindestens {{min}} Mitgliedsdatenträger",
+      "evenMembers": "RAID10 erfordert eine gerade Anzahl an Mitgliedsdatenträgern",
+      "sameMedia": "Alle Mitglieder und Reserven müssen derselben Medienklasse angehören"
+    }
+  },
+  "restorePoint": {
+    "tooltip": {
+      "full": "Vollständig — bei diesem Lauf wurde der gesamte Datenträger gelesen. Er lässt sich eigenständig wiederherstellen.",
+      "incremental": "Inkrementell — bei diesem Lauf wurden nur die seit dem letzten Lauf geänderten Blöcke gelesen. Er lässt sich dennoch eigenständig wiederherstellen und ist nicht vom vollständigen Backup abhängig."
+    },
+    "selfContainedNote": "Jeder Punkt ist eigenständig wiederherstellbar — „vollständig“ vs. „inkrementell“ bezieht sich auf die eingelesene Datenmenge, nicht auf eine Wiederherstellungsabhängigkeit."
+  },
+  "worldMode": {
+    "live": {
+      "title": "Mit der Live-Appliance verbunden",
+      "description": "Sie sehen jetzt das echte Backend."
+    },
+    "sim": {
+      "title": "Zur Demo-Simulation gewechselt",
+      "description": "In sich abgeschlossene Demodaten — die Appliance bleibt unberührt."
+    },
+    "error": {
+      "title": "Appliance konnte nicht erreicht werden",
+      "description": "Läuft das Backend (server/) auf :4980?"
+    }
+  }
+}

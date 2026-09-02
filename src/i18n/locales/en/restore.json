@@ -1,0 +1,392 @@
+{
+  "page": {
+    "title": "Restore",
+    "description": "Recover a whole machine from a restore point."
+  },
+  "actions": {
+    "continue": "Continue",
+    "startOver": "Start over",
+    "viewInActivity": "View in Activity",
+    "startAnother": "Start another restore"
+  },
+  "steps": {
+    "source": {
+      "label": "Choose source",
+      "hint": "What to recover"
+    },
+    "point": {
+      "label": "Restore point",
+      "hint": "Point in time"
+    },
+    "recover": {
+      "label": "Recover",
+      "hint": "Mode & confirm"
+    }
+  },
+  "stepper": {
+    "aria": "Restore progress"
+  },
+  "tabs": {
+    "aria": "What to restore",
+    "vm": "Virtual machines",
+    "physicalHost": "Physical servers",
+    "disk": "Disks"
+  },
+  "noun": {
+    "vm": "VM",
+    "server": "server",
+    "disk": "disk"
+  },
+  "cta": {
+    "downloadSelected": "Download {{count}} selected",
+    "recoverSelected": "Recover {{count}} selected",
+    "bootFromBackup": "Boot from backup",
+    "recoverServer": "Recover server",
+    "exportDisk": "Export disk",
+    "restoreDisk": "Restore disk",
+    "startRestore": "Start restore"
+  },
+  "toast": {
+    "downloading_one": "Downloading {{count}} file",
+    "downloading_other": "Downloading {{count}} files",
+    "downloadingDesc": "Recovered from {{name}} · {{id}}.",
+    "instantStarted": {
+      "title": "Instant restore started",
+      "desc": "Booting {{name}} directly off the backup…"
+    },
+    "unreachable": {
+      "title": "Couldn't reach the appliance"
+    },
+    "instantUnreachableDesc": "The instant restore was not started. Check the backend and try again.",
+    "restoreUnreachableDesc": "The restore was not started. Check the backend and try again.",
+    "refused": {
+      "title": "The appliance refused the restore",
+      "desc": "The restore point may have been pruned — pick another point and retry."
+    },
+    "started": {
+      "title": "Restore started",
+      "desc": "Recovering {{name}}. Watch it run live in Activity.",
+      "descFiles_one": "Recovering {{count}} file from {{name}}. Watch it run live in Activity.",
+      "descFiles_other": "Recovering {{count}} files from {{name}}. Watch it run live in Activity."
+    },
+    "insufficientSpace": {
+      "title": "Not enough datastore space",
+      "desc": "The target datastore doesn't have enough free space for this restore."
+    },
+    "originalVmGone": {
+      "title": "The original VM is gone",
+      "desc": "It was removed after this wizard loaded, so there's nothing left to restore in place. Start over to restore it as a new VM instead."
+    }
+  },
+  "confirm": {
+    "host": {
+      "title": "Recover {{name}} from bare metal?",
+      "confirmLabel": "Recover {{name}}"
+    },
+    "disk": {
+      "title": "Overwrite {{name}}?",
+      "confirmLabel": "Overwrite {{name}}"
+    }
+  },
+  "points_one": "{{count}} point",
+  "points_other": "{{count}} points",
+  "lastBackup": "Last backup {{time}}",
+  "filesSelected_one": "{{count}} file selected",
+  "filesSelected_other": "{{count}} files selected",
+  "chooseVm": {
+    "title": "Which VM would you like to recover?",
+    "subtitle": "Pick any protected machine. We'll show its restore points next — nothing changes until you confirm.",
+    "searchPlaceholder": "Search by name or OS…",
+    "searchAria": "Search protected VMs",
+    "noMatch": {
+      "title": "No machines match that search",
+      "desc": "Try a different name, OS, IP address or tag."
+    },
+    "empty": {
+      "desc": "Run a backup job first — protected VMs with restore points will appear here, ready to recover."
+    },
+    "unknownEnv": "Unknown env"
+  },
+  "chooseHost": {
+    "title": "Which server would you like to recover?",
+    "subtitle": "Pick any protected physical server. We'll show its restore points next — nothing changes until you confirm.",
+    "searchPlaceholder": "Search by name or OS…",
+    "searchAria": "Search protected physical servers",
+    "noMatch": {
+      "title": "No servers match that search",
+      "desc": "Try a different name, OS, IP address or tag."
+    },
+    "empty": {
+      "desc": "Run a server or file backup job first — protected servers with restore points will appear here, ready to recover."
+    },
+    "agentLabel": "agent {{status}}"
+  },
+  "chooseDisk": {
+    "title": "Which disk would you like to recover?",
+    "subtitle": "Pick any protected disk — virtual or physical. We'll show its restore points next — nothing changes until you confirm.",
+    "searchPlaceholder": "Search by disk, device, VM or server…",
+    "searchAria": "Search protected disks",
+    "noMatch": {
+      "title": "No disks match that search",
+      "desc": "Try a different disk, device, VM or server name."
+    },
+    "empty": {
+      "desc": "Run a disk backup job first — protected disks with restore points will appear here, ready to recover."
+    },
+    "ownerKind": {
+      "physicalServer": "physical server",
+      "vm": "VM"
+    },
+    "used": "{{size}} used"
+  },
+  "emptyPointsTitle": "No restore points yet",
+  "point": {
+    "title": "Pick a point in time to recover from",
+    "countFor_one": "{{count}} restore point for <1>{{name}}</1>.",
+    "countFor_other": "{{count}} restore points for <1>{{name}}</1>.",
+    "allUnreachable": "None can be selected while their repository is offline.",
+    "mostRecentSelected": "The most recent is selected for you.",
+    "unreachableCallout_one": "<1>{{count}} restore point</1> can't be reached — its repository is offline. The backups still exist, but can't be restored until the repository comes back online.",
+    "unreachableCallout_other": "<1>{{count}} restore points</1> can't be reached — their repository is offline. The backups still exist, but can't be restored until the repository comes back online.",
+    "blockedCallout_one": "<1>{{count}} restore point</1> failed a file health check or is not fully written, so it's visible here but cannot be restored.",
+    "blockedCallout_other": "<1>{{count}} restore points</1> failed a file health check or are not fully written, so they're visible here but cannot be restored.",
+    "empty": {
+      "title": "This {{noun}} has no restore points yet",
+      "desc": "Once a backup job protects this machine, recovery points will line up here on a timeline."
+    },
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "full": "Full",
+    "incremental": "Incremental",
+    "badge": {
+      "bareMetal": "Bare-metal image",
+      "files": "Files",
+      "unavailable": "Unavailable"
+    },
+    "selected": "Selected",
+    "encrypted": "Encrypted",
+    "encryptedTip": "This backup's data is encrypted at rest",
+    "compression": "Compression level {{level}}",
+    "offlineTip": "This restore point's repository is offline — it can't be read until the repository comes back online.",
+    "block": {
+      "corrupt": "This restore point failed its backup-file health check and is blocked from restore.",
+      "checking": "A health check is currently reading this restore point.",
+      "failed": "The backup files could not be written completely.",
+      "pending": "Backup files are still being written."
+    },
+    "health": {
+      "verified": "Verified",
+      "checking": "Checking",
+      "metadataUnverified": "Metadata unverified",
+      "metadataUnverifiedTitle": "This older manifest has no integrity checksum; its metadata could not be verified.",
+      "corrupt": "Corrupt — blocked",
+      "unavailable": "Check unavailable",
+      "notVerified": "Not verified"
+    },
+    "fromLogical": "from {{size}}",
+    "storedTitle": "{{logical}} of data stored as {{stored}}"
+  },
+  "howToRecover": "How would you like to recover?",
+  "whereLand": "Where should it land?",
+  "review": {
+    "title": "Review & confirm",
+    "subtitle": "One last look. Nothing has changed yet."
+  },
+  "summary": {
+    "machine": "Machine",
+    "server": "Server",
+    "disk": "Disk",
+    "restorePoint": "Restore point",
+    "recoveryMode": "Recovery mode",
+    "destination": "Destination",
+    "placement": "Placement",
+    "placementSub": "Datastore: {{datastore}}",
+    "powerState": "Power state"
+  },
+  "restorePointSub": "{{type}} · {{size}}",
+  "cleanSource": {
+    "body": "We read the backup without ever touching it, so the source you're recovering from stays intact."
+  },
+  "mode": {
+    "subtitle": "Choose whether to bring back the whole machine or just a few files. You'll confirm before anything runs.",
+    "entireVm": {
+      "title": "Entire VM",
+      "desc": "Recover the full machine — every disk, exactly as it was at this point."
+    },
+    "fileLevel": {
+      "title": "File-level recovery",
+      "desc": "Browse the snapshot and pull back just the files or folders you need."
+    },
+    "instant": {
+      "title": "Instant boot",
+      "desc": "Power the VM on directly off the backup in seconds — nothing is copied. Blocks stream in on demand; ideal for a quick check or DR failover."
+    },
+    "original": {
+      "title": "Original location",
+      "desc": "Restore under the VM's original name, host and datastore. If that VM still exists, it's overwritten in place once the restore finishes writing — you'll confirm before anything runs."
+    },
+    "newLocation": {
+      "title": "New location",
+      "desc": "Restore as a copy to another host — safe for testing or side-by-side checks."
+    },
+    "instantCallout": "The guest boots on its own host straight from the repository over iSCSI — blocks fault in as it reads them, so it's running in seconds with no full copy. Writes land in a scratch overlay, so the backup itself is never touched. Discard it when you're done to release the disk.",
+    "targetEnv": "Target environment",
+    "targetPlaceholder": "Choose where to restore…",
+    "crossPlatform": "Cross-platform restore",
+    "sub": {
+      "instant": "Runs off the backup over iSCSI — no copy",
+      "original": "Same name, host & datastore as the original",
+      "newLocation": "As a copy to a new location"
+    },
+    "dest": {
+      "fileLevel": "Original guest paths",
+      "instant": "{{name}} (instant)",
+      "selectTarget": "Select a target…",
+      "pickTarget": "Pick a target environment above",
+      "converted": "Converted {{from}} → {{to}}",
+      "bootsOn": "Boots on {{name}}'s host"
+    },
+    "originalOverwriteWarning": "This restores <1>{{name}}</1> in place, at its current host and datastore. Once every disk is fully written, the VM currently running there is destroyed and replaced — this can't be undone.",
+    "originalOverwriteConfirmLabel": "Type <1>{{name}}</1> to confirm the overwrite",
+    "restoredVmName": "Restored VM name",
+    "restoredVmNameHint": "Leave blank to use <1>{{name}}</1>.",
+    "restoredVmNameError": {
+      "whitespace": "Can't start or end with a space.",
+      "tooLong": "Must be 80 characters or fewer.",
+      "forbiddenChars": "Can't contain / \\ : * ? \" < > or |.",
+      "nonAscii": "Use Latin letters, numbers, and standard keyboard symbols only — no Cyrillic or other non-Latin characters.",
+      "duplicate": "A VM with this name already exists in the target environment. Choose another name."
+    },
+    "targetHost": "Target host",
+    "targetHostAuto": "Automatic",
+    "targetHostAutoWithValue": "{{name}} (auto)",
+    "datastore": "Datastore",
+    "datastoreAuto": "Automatic — use the host's default",
+    "datastoreAutoWithValue": "{{name}} (auto)",
+    "datastoreFree": "{{free}} free",
+    "datastoreLowSpace": "Only {{free}} free — the source VM is provisioned up to {{needed}}. The restore may run out of space if it doesn't fit thin.",
+    "networkMap": "Network mapping",
+    "networkMapSource": "Source network",
+    "networkMapTarget": "Target network",
+    "networkMapTargetPlaceholder": "Choose a network…",
+    "networkMapNone": "This VM has no network adapters to map.",
+    "networkMapHostNone": "No virtual switches were discovered on the selected host. Pick another host, or rescan the inventory.",
+    "networkMapEnvNone": "No virtual switches were discovered in this environment. Rescan the inventory and try again.",
+    "networkMapHint": "Source networks come from the VM's own network adapters; the target list shows only the virtual switches on the selected host, and a same-named one is auto-selected — pick another from the list if needed.",
+    "powerOn": "Power on after restore",
+    "powerOnHint": "Start the restored VM as soon as the restore completes.",
+    "powerOnYes": "Powers on after restore",
+    "powerOnNo": "Stays powered off"
+  },
+  "bareMetal": {
+    "subtitle": "This is a full-server image — it comes back as one piece. You'll confirm before anything runs.",
+    "mode": {
+      "title": "Bare-metal recovery",
+      "desc": "Boots recovery media on the server, then restores every volume and the system state exactly as they were at this point."
+    },
+    "lockedDest": "A bare-metal image goes back to <1>{{name}}</1> — the original server, its original disks. Restoring it to different hardware isn't supported, so the destination is locked.",
+    "summarySub": "Every volume + system state",
+    "dest": {
+      "value": "Original server",
+      "sub": "Back onto {{name}}'s own disks"
+    },
+    "overwriteWarning": "This restores in place and <1>overwrites everything on</1> <2>{{name}}</2> — every volume and the system state are replaced by this restore point. You'll confirm before anything runs."
+  },
+  "files": {
+    "title": "Pick the files to recover",
+    "subtitle": "Browse the backed-up folders from <1>{{name}}</1> and tick what you need. They download straight from the backup — nothing on the server changes.",
+    "dest": {
+      "value": "Downloaded to you",
+      "sub": "The server is left untouched"
+    }
+  },
+  "disk": {
+    "title": "How would you like to recover this disk?",
+    "subtitle": "Put the disk back where it was, or export it as a file to attach elsewhere. You'll confirm before anything runs.",
+    "original": {
+      "title": "Restore in place",
+      "desc": "Writes the disk back to its original device on {{name}}. Fast, but the disk's current contents are overwritten."
+    },
+    "export": {
+      "title": "Export as a file",
+      "desc": "Materialize the disk as a virtual-disk file you can attach to any machine — safe for inspection or side-by-side recovery."
+    },
+    "exportCallout": "The disk is reconstructed into a <1>{{format}}</1> file on the appliance — nothing on {{owner}} is touched. Download it when it's ready.",
+    "rawImage": "raw disk image",
+    "sub": {
+      "exportOnAppliance": "{{format}} on the appliance",
+      "overwrites": "Overwrites the original device"
+    },
+    "dest": {
+      "downloadable": "Downloadable file",
+      "on": "On {{name}}"
+    },
+    "overwriteWarning": "This overwrites <1>{{name}}</1> ({{device}}) on <2>{{owner}}</2> — the {{noun}}'s other disks are left alone, but this one's current contents are replaced. You'll confirm before anything runs."
+  },
+  "fileBrowser": {
+    "searchPlaceholder": "Search this snapshot…",
+    "searchAria": "Search files in restore point",
+    "folderPathAria": "Folder path",
+    "selectAllAria": "Select all visible files",
+    "resultsFor": "Results for “{{query}}”",
+    "name": "Name",
+    "modified": "Modified",
+    "size": "Size",
+    "loading": "Opening the backup…",
+    "error": {
+      "title": "Couldn't read this folder",
+      "desc": "The backup may still be mounting — try again."
+    },
+    "noMatch": {
+      "title": "Nothing matches that search",
+      "desc": "Try a different file or folder name."
+    },
+    "empty": {
+      "title": "This folder is empty"
+    },
+    "selectFile": "Select {{name}}",
+    "downloadFile": "Download {{name}}"
+  },
+  "conversion": {
+    "title": "Cross-platform conversion",
+    "subtitle": "{{name}} runs a different hypervisor than this VM. AltaStor converts the disk and adapts the guest so it boots there.",
+    "noFormatChange": "No format change",
+    "firmware": "Firmware",
+    "bootConfidence": "Boot confidence",
+    "guestAdaptation": "Guest adaptation",
+    "planLabel": "Conversion plan",
+    "noCaveats": "No special caveats — the guest should boot on {{platform}} with its drivers adapted automatically.",
+    "confidence": {
+      "high": "High confidence",
+      "medium": "Medium confidence",
+      "low": "Low confidence"
+    }
+  },
+  "instant": {
+    "title": "Instant restore",
+    "namedInstant": "{{name}} (instant)",
+    "fallbackName": "instant VM",
+    "toast": {
+      "discarded": {
+        "title": "Instant VM discarded",
+        "desc": "The on-demand disk was released."
+      },
+      "discardError": {
+        "title": "Couldn't discard the instant VM",
+        "desc": "The appliance refused the request."
+      }
+    },
+    "subtitle": {
+      "failed": "The instant restore couldn't start.",
+      "discarded": "\"{{name}}\" was discarded and the on-demand disk released.",
+      "running": "\"{{name}}\" is running directly off the backup.",
+      "booting": "Publishing the backup and powering \"{{name}}\" on…"
+    },
+    "runningCallout": "Blocks stream in on demand as the guest reads them; writes land in a scratch overlay, so the backup itself is never touched. Discard the VM when you're done to release the disk.",
+    "discardBtn": "Discard instant VM",
+    "status": {
+      "discarded": "Discarded",
+      "booting": "Booting"
+    }
+  }
+}

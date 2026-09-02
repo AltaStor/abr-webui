@@ -1,0 +1,78 @@
+{
+  "greeting": {
+    "morning": "Bonjour",
+    "afternoon": "Bon après-midi",
+    "evening": "Bonsoir"
+  },
+  "header": {
+    "loading": "Chargement de l'état de protection…",
+    "unavailable": "État de protection indisponible",
+    "descriptionVmOnly": "Protection de {{protected}} VM sur {{total}} dans {{env}} environnements · {{points}} points de restauration",
+    "descriptionWithPhysical": "Protection de {{protected}} VM sur {{total}} et de {{physicalProtected}} serveurs physiques sur {{physicalTotal}} dans {{env}} environnements · {{points}} points de restauration"
+  },
+  "error": {
+    "title": "Impossible de charger le résumé du tableau de bord",
+    "body": "L'appliance n'a pas répondu : ces valeurs sont inconnues, elles ne sont pas nulles.",
+    "retry": "Réessayer"
+  },
+  "kpi": {
+    "coverage": {
+      "label": "Couverture de protection",
+      "hint": "{{protected}} VM sur {{total}} protégées",
+      "drill": "{{count}} non protégées →"
+    },
+    "rpo": {
+      "label": "Conformité RPO",
+      "hint": "{{count}} VM hors de leur fenêtre RPO",
+      "drill": "Examiner les VM obsolètes →"
+    },
+    "success": {
+      "label": "Taux de réussite sur 24 h",
+      "hint": "{{runs}} exécutions · {{failed}} en échec",
+      "drill": "Voir l'activité →"
+    },
+    "immutable": {
+      "label": "Stockage immuable",
+      "hint": "{{count}} référentiels renforcés",
+      "drill": "Gérer les référentiels →"
+    }
+  },
+  "activity": {
+    "title": "Activité de sauvegarde",
+    "subtitle": "14 derniers jours · {{count}} exécutions",
+    "successRate": "taux de réussite sur la période",
+    "noRuns": "aucune exécution sur la période",
+    "totalRuns": "Exécutions totales",
+    "ariaLabel": "Activité de sauvegarde : {{rate}} % de réussite sur {{days}} jours, {{runs}} exécutions au total, {{failed}} en échec.",
+    "ariaLabelNoRuns": "Activité de sauvegarde : aucune exécution enregistrée sur {{days}} jours, il n'y a donc aucun taux de réussite."
+  },
+  "donut": {
+    "title": "État de protection",
+    "center": "{{protected}} sur {{total}} protégées",
+    "ariaLabel": "Protection : {{coverage}} % des {{total}} VM protégées, {{warning}} hors RPO, {{unprotected}} non protégées."
+  },
+  "live": {
+    "title": "Activité en direct",
+    "allActivity": "Toute l'activité",
+    "statusNone": "Aucune exécution de sauvegarde active.",
+    "statusOne": "{{name}} en cours.",
+    "statusMany": "{{count}} exécutions de sauvegarde en cours.",
+    "emptyNoRuns": "Aucune exécution active pour le moment.",
+    "emptyNextScheduled": "Prochaine planifiée {{when}}.",
+    "progressLabel": "Progression {{kind}} de {{name}}",
+    "staging": "Lecture et préparation de la source",
+    "processing": "Traitement de {{name}}",
+    "stagingShort": "préparation…",
+    "recentCompletions": "Achèvements récents"
+  },
+  "storage": {
+    "title": "Stockage et immuabilité",
+    "repositories": "Référentiels",
+    "ofFree": "sur {{total}} · {{free}} libres",
+    "usedAcross_one": "{{percent}} % utilisés sur {{count}} référentiel",
+    "usedAcross_other": "{{percent}} % utilisés sur {{count}} référentiels",
+    "immutablePercent": "{{percent}} % des VM protégées sont immuables",
+    "hardened_one": "{{count}} référentiel renforcé appliquant des fenêtres de verrouillage d'objet. 0 tentative d'altération en 24 h.",
+    "hardened_other": "{{count}} référentiels renforcés appliquant des fenêtres de verrouillage d'objet. 0 tentative d'altération en 24 h."
+  }
+}

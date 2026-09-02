@@ -1,0 +1,291 @@
+{
+  "saved": {
+    "title": "Paramètres enregistrés"
+  },
+  "page": {
+    "title": "Paramètres",
+    "description": "Configurez l’apparence, les notifications et la sécurité de la console.",
+    "unreachable": {
+      "title": "Impossible de lire la configuration de cette appliance",
+      "description": "L’appliance n’a pas pu charger ses paramètres. Les valeurs ci-dessous peuvent être des valeurs par défaut ou être obsolètes. Les modifications ne peuvent pas être enregistrées tant que les paramètres n’ont pas été rechargés."
+    }
+  },
+  "rail": {
+    "sectionLabel": "Section des paramètres",
+    "sectionsNav": "Sections des paramètres",
+    "sectionAnnounce": "Paramètres {{section}}"
+  },
+  "sections": {
+    "appearance": {
+      "label": "Apparence",
+      "blurb": "Thème, langue et accentuation"
+    },
+    "notifications": {
+      "label": "Notifications",
+      "blurb": "Choisissez quels événements vous notifient"
+    },
+    "security": {
+      "label": "Sécurité",
+      "blurb": "Accès, immuabilité et utilisateurs"
+    },
+    "about": {
+      "label": "À propos",
+      "blurb": "Version, licence et liens"
+    }
+  },
+  "controls": {
+    "unsavedChanges": "Modifications non enregistrées",
+    "saveChanges": "Enregistrer les modifications",
+    "removeItem": "Supprimer {{value}}",
+    "saveUnavailable": "Appliance injoignable — enregistrement désactivé"
+  },
+  "units": {
+    "cores": "cœurs"
+  },
+  "toast": {
+    "connectLive": "Connectez-vous à une appliance active pour utiliser cette fonction.",
+    "copyFailed": "Impossible de copier dans le presse-papiers"
+  },
+  "appearance": {
+    "title": "Apparence",
+    "description": "Adaptez la console à vos goûts. Le thème s’applique instantanément ; le reste est enregistré avec la section.",
+    "savedDescription": "Préférences d’apparence mises à jour.",
+    "language": {
+      "label": "Langue",
+      "description": "La langue d’affichage de la console."
+    },
+    "theme": {
+      "label": "Thème",
+      "description": "Sombre par défaut — l’appliance se sent mieux la nuit.",
+      "dark": "Sombre",
+      "light": "Clair"
+    },
+    "accent": {
+      "label": "Accentuation",
+      "description": "La couleur de mise en évidence des états sélectionnés et du focus."
+    },
+    "swatch": {
+      "emerald": "Émeraude",
+      "cyan": "Glace",
+      "blue": "Bleu",
+      "violet": "Violet",
+      "amber": "Ambre"
+    }
+  },
+  "notifications": {
+    "savedDescription": "Préférences de notification mises à jour.",
+    "events": {
+      "title": "Événements",
+      "description": "Choisissez quels événements vous notifient.",
+      "jobFailure": {
+        "label": "Échec de tâche",
+        "blurb": "Une exécution de sauvegarde échoue ou génère des erreurs"
+      },
+      "jobSuccess": {
+        "label": "Réussite de tâche",
+        "blurb": "Une exécution se termine proprement"
+      },
+      "immutabilityViolation": {
+        "label": "Violation d’immuabilité",
+        "blurb": "La suppression d’un point scellé est refusée"
+      },
+      "capacityWarning": {
+        "label": "Avertissement de capacité",
+        "blurb": "Un référentiel approche de sa limite"
+      },
+      "restoreCompleted": {
+        "label": "Restauration terminée",
+        "blurb": "Une récupération se termine"
+      }
+    }
+  },
+  "security": {
+    "access": {
+      "title": "Accès et politique",
+      "description": "Modifiez le mot de passe de votre compte."
+    },
+    "session": {
+      "title": "Durée de session",
+      "description": "Durée pendant laquelle une connexion reste active avant de devoir vous reconnecter.",
+      "label": "Rester connecté pendant",
+      "hint": "S’applique immédiatement à cette session, et aux futures connexions sur ce navigateur.",
+      "savedDescription": "Durée de session mise à jour.",
+      "applyFailed": {
+        "title": "Durée de session non appliquée",
+        "description": "Enregistrée localement, mais l'appliance était injoignable — elle s'appliquera à la prochaine connexion."
+      },
+      "hours_one": "{{count}} heure",
+      "hours_other": "{{count}} heures",
+      "minutes_one": "{{count}} minute",
+      "minutes_other": "{{count}} minutes"
+    },
+    "changePassword": {
+      "currentLabel": "Mot de passe actuel",
+      "newLabel": "Nouveau mot de passe",
+      "confirmLabel": "Confirmer le nouveau mot de passe",
+      "requirements": "Au moins {{count}} caractères.",
+      "currentRequired": "Saisissez votre mot de passe actuel.",
+      "tooShort": "Doit contenir au moins {{count}} caractères.",
+      "mismatch": "Les mots de passe ne correspondent pas.",
+      "submit": "Changer le mot de passe",
+      "submitting": "Modification…",
+      "success": "Mot de passe modifié."
+    },
+    "roles": {
+      "admin": {
+        "label": "Administrateur",
+        "blurb": "Contrôle total, y compris la sécurité et les utilisateurs"
+      },
+      "operator": {
+        "label": "Opérateur",
+        "blurb": "Exécuter les tâches et restaurations ; aucun changement de politique"
+      },
+      "viewer": {
+        "label": "Observateur",
+        "blurb": "Lecture seule sur toute l’appliance"
+      }
+    },
+    "userStatus": {
+      "active": "Actif",
+      "invited": "Invité",
+      "disabled": "Désactivé"
+    },
+    "users": {
+      "title": "Utilisateurs",
+      "description": "Les personnes qui peuvent se connecter à cette appliance et ce qu’elles peuvent faire.",
+      "invite": "Inviter un utilisateur",
+      "columns": {
+        "user": "Utilisateur",
+        "role": "Rôle",
+        "status": "Statut",
+        "mfa": "MFA",
+        "lastActive": "Dernière activité"
+      },
+      "mfaOn": "Activé",
+      "mfaOff": "Désactivé",
+      "empty": {
+        "title": "Aucun utilisateur",
+        "description": "Invitez quelqu’un pour commencer."
+      },
+      "removeUserAction": "Supprimer l’utilisateur",
+      "menu": {
+        "actionsAria": "Actions pour {{name}}",
+        "changeRole": "Changer de rôle",
+        "enableAccount": "Activer le compte",
+        "disableAccount": "Désactiver le compte"
+      }
+    },
+    "removeUser": {
+      "title": "Supprimer {{name}} ?",
+      "description": "L’accès à cette appliance sera immédiatement perdu. L’historique d’audit est conservé. Cette action est irréversible."
+    },
+    "tokens": {
+      "title": "Jetons API",
+      "description": "Identifiants pour l’API AltaStor, la CLI et les intégrations.",
+      "create": "Créer un jeton",
+      "empty": {
+        "title": "Aucun jeton API",
+        "description": "Créez un jeton pour authentifier l’API, la CLI ou le fournisseur Terraform."
+      },
+      "fullAccess": "Accès complet",
+      "readOnly": "Lecture seule",
+      "created": "Créé le {{date}}",
+      "lastUsed": "Dernière utilisation {{value}}",
+      "never": "jamais",
+      "revokeAria": "Révoquer {{name}}",
+      "hidePrefix": "Masquer le préfixe du jeton",
+      "revealPrefix": "Afficher le préfixe du jeton",
+      "copyPrefix": "Copier le préfixe du jeton"
+    },
+    "revokeToken": {
+      "title": "Révoquer {{name}} ?",
+      "description": "Tout client utilisant ce jeton perdra immédiatement l’accès. Cette action est irréversible.",
+      "confirm": "Révoquer le jeton"
+    },
+    "toast": {
+      "roleUpdated": "Rôle mis à jour",
+      "roleUpdatedDesc": "{{name}} → {{role}}",
+      "userDisabled": "Utilisateur désactivé",
+      "userEnabled": "Utilisateur activé",
+      "invitationSent": "Invitation envoyée",
+      "invitationSentDesc": "{{name}} ({{role}})",
+      "userRemoved": "Utilisateur supprimé",
+      "tokenPrefixCopied": "Préfixe du jeton copié",
+      "tokenRevoked": "Jeton révoqué"
+    }
+  },
+  "about": {
+    "brand": {
+      "tagline": "Des sauvegardes gravées dans la pierre.",
+      "openSource": "Libre et open source · immuable par conception"
+    },
+    "appliance": {
+      "title": "Appliance",
+      "description": "Identité et matériel de ce nœud.",
+      "applianceName": "Nom de l’appliance",
+      "hostname": "Nom d’hôte",
+      "version": "Version",
+      "build": "Build",
+      "os": "Système d’exploitation",
+      "kernel": "Noyau",
+      "uptime": "Temps de fonctionnement",
+      "cpu": "CPU",
+      "memory": "Mémoire",
+      "noAppliance": "Les détails matériels sont rapportés par une appliance connectée.",
+      "probeFailed": "Impossible de lire les détails matériels depuis l'appliance. Les champs qu'elle rapporte s'affichent en « — »."
+    },
+    "license": {
+      "title": "Licence et ressources",
+      "description": "AltaStor est un logiciel libre et open source.",
+      "openSourceTitle": "Libre et open source",
+      "openSourceBlurb": "Aucune licence par siège, aucun frais par VM. Auto-hébergé et libre d’inspection."
+    },
+    "links": {
+      "documentation": {
+        "label": "Documentation",
+        "blurb": "Guides, référence API et tutoriels"
+      },
+      "github": {
+        "label": "GitHub",
+        "blurb": "Sources, tickets et versions"
+      },
+      "community": {
+        "label": "Communauté",
+        "blurb": "Posez des questions et partagez vos configurations"
+      }
+    },
+    "releaseNotes": "Notes de version"
+  },
+  "createToken": {
+    "copyTitle": "Copiez votre jeton",
+    "createTitle": "Créer un jeton API",
+    "copyDescription": "C’est la seule fois où le jeton complet est affiché. Conservez-le en lieu sûr.",
+    "createDescription": "Les jetons authentifient l’API et la CLI AltaStor. Limitez-les au strict nécessaire.",
+    "copyAria": "Copier le jeton",
+    "treatLikePassword": "Traitez-le comme un mot de passe. Quiconque possède ce jeton peut agir en tant que client <0>{{scope}}</0>.",
+    "scopeFull": "à accès complet",
+    "scopeReadOnly": "en lecture seule",
+    "nameLabel": "Nom",
+    "scopesLabel": "Portées",
+    "readOnly": {
+      "title": "Lecture seule",
+      "blurb": "Interroger l’état ; aucune modification"
+    },
+    "fullAccess": {
+      "title": "Accès complet",
+      "blurb": "Exécuter les tâches et restaurations"
+    },
+    "create": "Créer un jeton",
+    "toast": {
+      "created": "Jeton créé"
+    }
+  },
+  "inviteUser": {
+    "title": "Inviter un utilisateur",
+    "description": "La personne recevra une invitation pour définir un mot de passe et enregistrer la MFA.",
+    "name": "Nom complet",
+    "email": "E-mail",
+    "role": "Rôle",
+    "send": "Envoyer l’invitation"
+  }
+}

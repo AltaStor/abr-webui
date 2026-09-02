@@ -1,0 +1,187 @@
+{
+  "header": {
+    "initialConfiguration": "Erstkonfiguration"
+  },
+  "nav": {
+    "skip": "Assistent überspringen – Konsole trotzdem öffnen",
+    "begin": "Einrichtung starten",
+    "applyConfiguration": "Konfiguration anwenden",
+    "continue": "Weiter",
+    "stepsAria": "Einrichtungsschritte"
+  },
+  "steps": {
+    "welcome": "Willkommen",
+    "appliance": "Appliance",
+    "storage": "Speicher",
+    "repository": "Repository",
+    "hypervisors": "Hypervisoren",
+    "review": "Prüfung",
+    "apply": "Anwenden"
+  },
+  "hypervisorTypes": {
+    "vcenter": "VMware vCenter",
+    "esxi-standalone": "ESXi (eigenständig)",
+    "hyperv": "Microsoft Hyper-V",
+    "proxmox": "Proxmox VE"
+  },
+  "errors": {
+    "disksUnreadable": "Die Datenträger der Appliance konnten nicht gelesen werden – ist die Control Plane erreichbar?"
+  },
+  "welcome": {
+    "state": {
+      "checking": "Appliance-Status wird geprüft…",
+      "unconfigured": "Werkszustand – nicht konfiguriert",
+      "complete": "Bereits bereitgestellt",
+      "inProgress": "Bereitstellung läuft"
+    },
+    "facts": {
+      "hostname": "Hostname",
+      "os": "Betriebssystem",
+      "kernel": "Kernel",
+      "mgmtIp": "Management-IP",
+      "cpu": "CPU",
+      "memory": "Arbeitsspeicher"
+    },
+    "cores_one": "{{count}} Kern",
+    "cores_other": "{{count}} Kerne",
+    "title": "Appliance einrichten",
+    "description": "In wenigen Minuten von Bare Metal zu gehärteten Backups: Appliance benennen, Speicher einrichten und Ihr erstes unveränderliches Repository versiegeln. Bis Sie anwenden, wird nichts auf die Datenträger geschrieben.",
+    "completeNote": "Diese Appliance ist bereits konfiguriert – das Anwenden eines neuen Manifests erfordert zunächst ein Zurücksetzen auf Werkseinstellungen über die Appliance-Konsole."
+  },
+  "appliance": {
+    "title": "Appliance",
+    "description": "Wie sich diese Appliance in Ihrem Netzwerk identifiziert.",
+    "hostnameLabel": "Hostname",
+    "hostnameError": "Nur Buchstaben, Ziffern und Bindestriche – bis zu 63 Zeichen.",
+    "hostnameHint": "Buchstaben, Ziffern und Bindestriche – bis zu 63 Zeichen.",
+    "networkLabel": "Netzwerk",
+    "networkValue": "DHCP · <1>{{ip}}</1> – Änderung über die Appliance-Konsole (F2)"
+  },
+  "storage": {
+    "title": "Speicher",
+    "description": "Die von dieser Appliance erkannten Datenträger und das RAID-Layout, das daraus aufgebaut wird.",
+    "columns": {
+      "slot": "Steckplatz",
+      "model": "Modell",
+      "media": "Medium",
+      "size": "Größe",
+      "status": "Status"
+    },
+    "diskStatus": {
+      "available": "Verfügbar",
+      "hotSpare": "Hot-Spare",
+      "failing": "Fehlerhaft",
+      "failed": "Ausgefallen",
+      "inArray": "Im Array",
+      "healthy": "Fehlerfrei"
+    },
+    "plannedLayout": "Geplantes Layout",
+    "noLayout": "Kein tragfähiges Layout – mindestens zwei nicht zugewiesene Datenträger einer Medienklasse sind erforderlich.",
+    "hotSpares_one": " + {{count}} Hot-Spare",
+    "hotSpares_other": " + {{count}} Hot-Spares",
+    "purpose": {
+      "system": "Betriebssystem-Spiegel – enthält die Appliance selbst, niemals Backups",
+      "perf": "Performance-Tier – eingehende Backups landen hier zuerst",
+      "staging": "Staging-Tier – schnelle Landezone vor dem Tiering",
+      "bulk": "Kapazitäts-Tier – Langzeitaufbewahrung auf drehenden Datenträgern",
+      "default": "Daten-Tier"
+    },
+    "usable": "≈ {{size}} nutzbar",
+    "leftover_one": "{{count}} Datenträger bleibt nicht zugewiesen – später unter Backup-Infrastruktur → Appliances zuweisen.",
+    "leftover_other": "{{count}} Datenträger bleiben nicht zugewiesen – später unter Backup-Infrastruktur → Appliances zuweisen.",
+    "appliedAsShown": "Das Layout wird genau wie angezeigt angewendet. Benutzerdefinierte Layouts folgen später.",
+    "leftoverInventory_one": "{{count}} Festplatte bleibt nicht zugewiesen — später über Inventar zuweisen.",
+    "leftoverInventory_other": "{{count}} Festplatten bleiben nicht zugewiesen — später über Inventar zuweisen."
+  },
+  "repository": {
+    "title": "Repository",
+    "description": "Ihr erstes Backup-Ziel – standardmäßig gehärtet. Sperren werden durch die Appliance-Uhr durchgesetzt, nicht durch guten Willen.",
+    "nameLabel": "Repository-Name",
+    "namePlaceholder": "Gehärtetes Repository",
+    "nameError": "Vergeben Sie einen Namen für das Repository.",
+    "immutability": {
+      "label": "Unveränderlichkeit",
+      "description": "Jeder Wiederherstellungspunkt wird sofort beim Eintreffen versiegelt – keine Änderungen, keine Löschungen, bis seine Sperre abläuft. Ransomware, die die Appliance erreicht, findet nichts zum Überschreiben.",
+      "daysLabel": "Sperrfenster (Tage)",
+      "daysHint": "Jeder Wiederherstellungspunkt bleibt nach dem Eintreffen so viele Tage versiegelt (1–3650).",
+      "modeLabel": "Modus",
+      "modeAria": "Unveränderlichkeitsmodus",
+      "compliance": {
+        "title": "Compliance",
+        "description": "Niemand kann vorzeitig entsperren – auch keine Administratoren. Die Sperre überdauert gestohlene Anmeldedaten."
+      },
+      "governance": {
+        "title": "Governance",
+        "description": "Administratoren können das Entsperren erzwingen; jede Übersteuerung wird protokolliert."
+      }
+    },
+    "encryption": {
+      "label": "Verschlüsselung (AES-256)",
+      "description": "Wiederherstellungspunkte werden im Ruhezustand verschlüsselt. Ein gestohlener Datenträger ist ein Ziegelstein, kein Datenleck."
+    }
+  },
+  "hypervisors": {
+    "title": "Hypervisoren",
+    "description": "Verbinden Sie die Umgebungen, die AltaStor schützen soll. Optional – Sie können Umgebungen auch später über das Inventar verbinden.",
+    "environmentN": "Umgebung {{n}}",
+    "removeEnvironment": "Umgebung {{n}} entfernen",
+    "typeLabel": "Typ",
+    "typeAria": "Hypervisor-Typ",
+    "endpointLabel": "Endpunkt",
+    "usernameLabel": "Benutzername",
+    "credentialLabel": "Anmeldedaten-Referenz",
+    "credentialHint": "z. B. vault:secret/hv-lab – Geheimnisse landen niemals im Manifest.",
+    "partialWarning": "Füllen Sie jedes Feld aus oder leeren Sie die Zeile – unvollständige Zeilen werden nicht angewendet.",
+    "addAnother": "Weitere hinzufügen"
+  },
+  "review": {
+    "title": "Prüfung",
+    "description": "Alles, was die Appliance werden wird. Prüfen Sie es – und wenden Sie es dann an.",
+    "groups": {
+      "appliance": "Appliance",
+      "storage": "Speicher",
+      "repository": "Repository",
+      "hypervisors": "Hypervisoren"
+    },
+    "hostname": "Hostname",
+    "network": "Netzwerk",
+    "networkValue": "DHCP · {{ip}}",
+    "spares_one": " + {{count}} Spare",
+    "spares_other": " + {{count}} Spares",
+    "layout": "Layout",
+    "layoutAutomatic": "Automatisch (zur Anwendungszeit geplant)",
+    "name": "Name",
+    "immutability": "Unveränderlichkeit",
+    "immutabilityValue": "{{days}}-Tage-Sperren · {{mode}}",
+    "off": "Aus",
+    "encryption": "Verschlüsselung",
+    "encryptionValue": "AES-256 im Ruhezustand",
+    "hypervisorValue": "{{endpoint}} als {{username}}",
+    "hypervisorsEmpty": "Umgebungen später über das Inventar verbinden",
+    "destructiveNote": "Das Anwenden schreibt diese Konfiguration auf die Appliance. Der Aufbau des Speicher-Layouts ist für die beteiligten Datenträger destruktiv."
+  },
+  "apply": {
+    "title": "Konfiguration wird angewendet",
+    "description": "Die Appliance führt das Manifest aus – Netzwerk, RAID-Arrays, XFS-Pool, Repository, Verbindungen.",
+    "stages": {
+      "network": "Netzwerk & Identität",
+      "storage-layout": "Speicher-Layout",
+      "pool": "Speicher-Pool",
+      "repository": "Repository",
+      "hypervisors": "Hypervisoren",
+      "policies": "Richtlinien",
+      "complete": "Abschließen"
+    },
+    "stagesAria": "Bereitstellungsphasen",
+    "errorRejected": "Die Appliance hat die Anfrage abgelehnt (HTTP {{status}}).",
+    "errorUnreachable": "Die Control Plane der Appliance konnte nicht erreicht werden.",
+    "ready": "Appliance bereit",
+    "repoSealed": "versiegelt",
+    "repoCreated": "erstellt",
+    "doneBody": "{{hostname}} ist bereitgestellt – Speicher online, Repository {{state}}. Zeit, etwas zu schützen.",
+    "enterConsole": "Konsole öffnen",
+    "backToReview": "Zurück zur Prüfung",
+    "tryAgain": "Erneut versuchen",
+    "progress": "Bereitstellungsfortschritt"
+  }
+}

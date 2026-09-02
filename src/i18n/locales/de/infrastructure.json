@@ -1,0 +1,187 @@
+{
+  "vmCount_one": "{{count}} VM",
+  "vmCount_other": "{{count}} VMs",
+  "hostCount_one": "{{count}} Host",
+  "hostCount_other": "{{count}} Hosts",
+  "rescanVms": "VMs erneut scannen",
+  "connected": "Verbunden",
+  "disconnected": "Getrennt",
+  "error": {
+    "rejected": "Die Appliance hat die Anfrage abgelehnt (HTTP {{status}}).",
+    "unreachable": "Die Appliance ist nicht erreichbar."
+  },
+  "deploy": {
+    "stages": {
+      "connect": "Über SSH verbinden",
+      "push": "Agent-Binärdatei übertragen",
+      "install": "Dienst installieren",
+      "firewall": "Firewall öffnen",
+      "verify": "Agent-API überprüfen",
+      "discover": "VMs erkennen",
+      "done": "Fertig"
+    }
+  },
+  "topology": {
+    "physicalServers": "Physische Server",
+    "agentManaged_one": "{{count}} agentenverwaltet",
+    "agentManaged_other": "{{count}} agentenverwaltet",
+    "unknownPlatform": "Unbekannte Plattform"
+  },
+  "environment": {
+    "typeLabel": {
+      "vcenter": "vCenter Server",
+      "esxiStandalone": "Eigenständiger ESXi-Host",
+      "proxmox": "Proxmox VE-Cluster",
+      "hyperv": "Hyper-V-Host"
+    },
+    "clusterNoun_one": "Cluster",
+    "clusterNoun_other": "Cluster",
+    "vmNoun_one": "VM",
+    "vmNoun_other": "VMs",
+    "toast": {
+      "rescanned": "Inventar erneut gescannt",
+      "rescannedDesc": "{{name}}: {{vms}} auf {{hosts}}.",
+      "rescanFailed": "Quelle konnte nicht erneut gescannt werden",
+      "removed": "{{name}} entfernt",
+      "removedDesc": "Die Quelle wurde getrennt. Vorhandene Wiederherstellungspunkte bleiben erhalten.",
+      "removeFailed": "Quelle konnte nicht entfernt werden"
+    },
+    "remove": {
+      "title": "{{name}} entfernen?",
+      "description": "AltaStor trennt diese Quelle und entfernt ihre <1>{{hostPart}}</1> und <2>{{vmPart}}</2> aus dem Inventar. Backup-Jobs schützen sie nicht mehr; vorhandene Wiederherstellungspunkte bleiben erhalten.",
+      "confirm": "Quelle entfernen"
+    }
+  },
+  "addEnv": {
+    "typeMeta": {
+      "vcenter": {
+        "title": "Einen vCenter Server verbinden",
+        "endpointLabel": "vCenter-Adresse",
+        "blurb": "AltaStor verbindet sich mit vCenter und erfasst dessen Cluster, Hosts und VMs. Backups nutzen das VADP-Changed-Block-Tracking – in den Gastsystemen wird nichts installiert."
+      },
+      "esxiStandalone": {
+        "title": "Einen eigenständigen ESXi-Host verbinden",
+        "endpointLabel": "ESXi-Host-Adresse",
+        "blurb": "AltaStor verbindet sich direkt mit dem ESXi-Host und erkennt dessen VMs. Backups nutzen das VADP-Changed-Block-Tracking – kein vCenter erforderlich."
+      },
+      "proxmox": {
+        "title": "Einen Proxmox VE-Cluster verbinden",
+        "endpointLabel": "Proxmox-API-Adresse",
+        "blurb": "AltaStor verbindet sich mit der Proxmox-API und erfasst deren Nodes und Gastsysteme. Hinweis: Proxmox-Dirty-Bitmaps werden bei einem Neustart zurückgesetzt, sodass das erste Backup nach einem Neustart die gesamte Festplatte erneut liest.",
+        "demoNoun": "Nodes"
+      },
+      "hyperv": {
+        "title": "Einen Hyper-V-Host oder -Cluster verbinden",
+        "endpointLabel": "Host- oder Cluster-Adresse",
+        "blurb": "AltaStor registriert den Hyper-V-Host und erkennt dessen VMs. In der Live-Appliance wird ein Host durch das Bereitstellen des RCT-Backup-Agents über SSH eingebunden."
+      }
+    },
+    "titleFallback": "Eine Quelle verbinden",
+    "displayName": "Anzeigename",
+    "username": "Benutzername",
+    "password": "Passwort",
+    "advanced": "Erweitert",
+    "verifyTls": "TLS-Zertifikat überprüfen",
+    "verifyTlsHelp": "Empfohlen. Weist nicht vertrauenswürdige, abgelaufene oder in der Hostname-Prüfung fehlgeschlagene Zertifikate ab.",
+    "insecureWarning": "Die Zertifikatsüberprüfung ist deaktiviert. Verwenden Sie dies nur für einen vertrauenswürdigen Lab-Endpunkt, während Sie ein gültiges Zertifikat installieren.",
+    "demoMembers": "Demo-Mitglied {{noun}}",
+    "hostCountHelp": "Legt die Größe des simulierten Clusters fest. Die Live-Erkennung ermittelt dies automatisch.",
+    "hostCountError": "Geben Sie eine Host-Anzahl zwischen 1 und 16 ein.",
+    "credentialsNote": "Die Anmeldedaten werden zur Authentifizierung bei {{platform}} verwendet. Erkannte VMs bleiben ungeschützt, bis ein Backup-Job sie einbezieht.",
+    "connecting": "Verbindung mit <1>{{endpoint}}</1> wird hergestellt und VMs werden erkannt…",
+    "doneTitle": "{{name}} verbunden – {{hosts}}, {{vms}} erkannt",
+    "doneDesc": "Sie befinden sich jetzt in Ihrem Inventar, alle ungeschützt – wählen Sie die Quelle im Estate-Baum aus, um ihre VMs zu sehen, und erstellen Sie dann einen Backup-Job, um sie zu schützen.",
+    "errorTitle": "Verbindung fehlgeschlagen",
+    "errorDefault": "Die Appliance konnte keine Verbindung zu diesem Endpunkt herstellen.",
+    "errorUnreachable": "Die Appliance konnte diesen Endpunkt nicht erreichen. Überprüfen Sie Adresse und Anmeldedaten und versuchen Sie es erneut.",
+    "connect": "Verbinden & erkennen",
+    "connectingButton": "Verbindung wird hergestellt…",
+    "toastConnected": "{{name}} verbunden",
+    "toastConnectedDesc": "{{hosts}} · {{vms}} erkannt – noch keine geschützt."
+  },
+  "hyperv": {
+    "dialog": {
+      "title": "Einen Hyper-V-Host hinzufügen",
+      "description": "Der Agent läuft auf dem Hyper-V-Host und führt VSS-konsistente Changed-Block-Backups durch. AltaStor installiert ihn über SSH – kein Neustart, kein Konsolenzugriff erforderlich.",
+      "host": "Host",
+      "username": "Benutzername",
+      "password": "Passwort",
+      "advanced": "Erweitert",
+      "port": "Agent-API-Port",
+      "portHelp": "Der Port, auf dem der Agent lauscht. AltaStor öffnet ihn in der Host-Firewall, beschränkt auf die Appliance. Standard {{port}}.",
+      "portError": "Geben Sie einen Port zwischen 1 und 65535 ein.",
+      "credentialsNote": "Die Anmeldedaten werden einmalig über SSH zur Installation des Dienstes verwendet. Danach authentifiziert sich AltaStor mit einem pro Host erstellten, an diese Appliance gebundenen Schlüssel – dieses Passwort wird nicht mehr benötigt.",
+      "credentialsNoteOndemand": " SSH wird anschließend auf dem Host gesperrt; aktivieren Sie es vor einem künftigen Update oder Entfernen erneut.",
+      "deploying": "Der Agent wird auf <1>{{host}}</1> bereitgestellt…",
+      "deployedHealthy": "Der Agent ist installiert und meldet einen fehlerfreien Status.",
+      "deployFailed": "Bereitstellung fehlgeschlagen",
+      "submit": "Agent bereitstellen & verbinden",
+      "deployingButton": "Wird bereitgestellt…"
+    },
+    "progress": {
+      "stagesLabel": "Bereitstellungsphasen"
+    },
+    "toastConnected": "Hyper-V-Host verbunden",
+    "startError": {
+      "inProgress": "Für diesen Host läuft bereits eine Bereitstellung.",
+      "rejected": "Die Appliance hat die Bereitstellung abgelehnt (HTTP {{status}}).",
+      "unreachable": "Die Appliance konnte für den Start der Bereitstellung nicht erreicht werden."
+    },
+    "successFallback": "Host verbunden – VMs erkannt.",
+    "ssh": {
+      "authTitle": "SSH hat geantwortet – die Anmeldung wurde abgelehnt",
+      "authBody": "Verwenden Sie ein lokales Administratorkonto auf <1>{{host}}</1>. Überprüfen Sie Benutzername und Passwort und versuchen Sie es erneut.",
+      "enableTitle": "SSH auf dem Hyper-V-Host aktivieren",
+      "enableBody": "AltaStor konnte OpenSSH auf <1>{{host}}</1> nicht erreichen. Unter Windows ist es standardmäßig deaktiviert – fügen Sie dies in eine erhöhte PowerShell auf dem Host ein und klicken Sie dann auf „Erneut versuchen“.",
+      "terminalHeader": "PowerShell · als Administrator ausführen",
+      "copyAria": "Das SSH-Aktivierungsskript kopieren",
+      "copied": "Kopiert",
+      "keyOnlyNote": "Nach der Registrierung authentifiziert sich AltaStor mit einem pro Host erstellten Schlüssel – Sie können dann nur schlüsselbasiertes SSH erzwingen:",
+      "copyFailed": "Kopieren in die Zwischenablage fehlgeschlagen"
+    },
+    "agent": {
+      "name": "AltaStor-Agent",
+      "updateBadge": "Update → v{{version}}",
+      "healthy": "Fehlerfrei",
+      "notResponding": "Reagiert nicht",
+      "seen": "gesehen {{when}}",
+      "updateAgent": "Agent aktualisieren",
+      "redeploy": "Erneut bereitstellen",
+      "ondemandNote": "On-Demand-SSH – sshd ist auf diesem Host zwischen Vorgängen gesperrt. Aktivieren Sie SSH auf <1>{{host}}</1> erneut, bevor Sie aktualisieren, erneut bereitstellen oder entfernen; ein Vorgang, der keine Verbindung herstellen kann, zeigt das Ein-Klick-Aktivierungsskript an."
+    },
+    "run": {
+      "updated": "Agent aktualisiert",
+      "redeployed": "Agent erneut bereitgestellt",
+      "nowVersion": "jetzt v{{version}}",
+      "upToDate": "aktuell",
+      "updateFailed": "Update fehlgeschlagen",
+      "redeployFailed": "Erneute Bereitstellung fehlgeschlagen",
+      "updating": "Agent wird aktualisiert…",
+      "redeploying": "Agent wird erneut bereitgestellt…"
+    },
+    "rescan": {
+      "toast": "Inventar erneut gescannt",
+      "toastDesc": "{{name}}: {{vms}} ({{delta}}).",
+      "noChanges": "keine Änderungen",
+      "added": "{{count}} hinzugefügt",
+      "removed": ", {{count}} entfernt",
+      "failed": "Host konnte nicht erneut gescannt werden"
+    },
+    "startActionError": {
+      "update": "Update konnte nicht gestartet werden",
+      "redeploy": "Erneute Bereitstellung konnte nicht gestartet werden"
+    },
+    "remove": {
+      "toast": "Hyper-V-Host entfernt",
+      "toastUninstalled": "Der Agent-Dienst wurde von {{host}} deinstalliert.",
+      "toastKept": "{{name}} wurde getrennt. Der Agent ist weiterhin auf dem Host installiert.",
+      "failed": "Host konnte nicht entfernt werden",
+      "title": "{{name}} entfernen?",
+      "description": "AltaStor trennt diese Verbindung und schützt die VMs des Hosts nicht mehr. Vorhandene Wiederherstellungspunkte bleiben erhalten.",
+      "uninstallAria": "Den Agent-Dienst auch vom Host deinstallieren",
+      "uninstallLabel": "Den Agent-Dienst auch vom Host deinstallieren",
+      "uninstallHelp": "Stoppt und entfernt den BasaltHyperVAgent-Dienst auf {{host}}. Lassen Sie das Kontrollkästchen deaktiviert, um ihn installiert zu lassen (z. B. um ihn später ohne erneute Bereitstellung wieder hinzuzufügen).",
+      "removeUninstall": "Entfernen & deinstallieren"
+    }
+  }
+}

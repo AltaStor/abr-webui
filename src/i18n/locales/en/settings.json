@@ -1,0 +1,287 @@
+{
+  "saved": {
+    "title": "Settings saved"
+  },
+  "page": {
+    "title": "Settings",
+    "description": "Configure the console's appearance, notifications and security.",
+    "unreachable": {
+      "title": "Couldn't read this appliance's configuration",
+      "description": "The appliance could not load its settings. The values below may be defaults or outdated. You cannot save changes until the settings load again."
+    }
+  },
+  "rail": {
+    "sectionLabel": "Settings section",
+    "sectionsNav": "Settings sections",
+    "sectionAnnounce": "{{section}} settings"
+  },
+  "sections": {
+    "appearance": {
+      "label": "Appearance",
+      "blurb": "Theme, language & accent"
+    },
+    "notifications": {
+      "label": "Notifications",
+      "blurb": "Choose which events notify you"
+    },
+    "security": {
+      "label": "Security",
+      "blurb": "Access & users"
+    },
+    "about": {
+      "label": "About",
+      "blurb": "Version, license & links"
+    }
+  },
+  "controls": {
+    "unsavedChanges": "Unsaved changes",
+    "saveChanges": "Save changes",
+    "removeItem": "Remove {{value}}",
+    "saveUnavailable": "Appliance unreachable — saving disabled"
+  },
+  "units": {
+    "cores": "cores"
+  },
+  "toast": {
+    "connectLive": "Connect to a live appliance to use this.",
+    "copyFailed": "Couldn't copy to clipboard"
+  },
+  "appearance": {
+    "title": "Appearance",
+    "description": "Tune the console to your taste. Theme applies instantly; the rest saves with the section.",
+    "savedDescription": "Appearance preferences updated.",
+    "language": {
+      "label": "Language",
+      "description": "The display language for the console."
+    },
+    "theme": {
+      "label": "Theme",
+      "description": "Dark by default — the appliance is happiest at night.",
+      "dark": "Dark",
+      "light": "Light"
+    },
+    "accent": {
+      "label": "Accent",
+      "description": "The highlight colour for selected states and focus."
+    },
+    "swatch": {
+      "emerald": "Emerald",
+      "cyan": "Ice",
+      "blue": "Blue",
+      "violet": "Violet",
+      "amber": "Amber"
+    }
+  },
+  "notifications": {
+    "savedDescription": "Notification preferences updated.",
+    "events": {
+      "title": "Events",
+      "description": "Choose which events notify you.",
+      "jobFailure": {
+        "label": "Job failure",
+        "blurb": "A backup run fails or errors"
+      },
+      "jobSuccess": {
+        "label": "Job success",
+        "blurb": "A run completes cleanly"
+      },
+      "capacityWarning": {
+        "label": "Capacity warning",
+        "blurb": "A repository nears its limit"
+      },
+      "restoreCompleted": {
+        "label": "Restore completed",
+        "blurb": "A recovery finishes"
+      }
+    }
+  },
+  "security": {
+    "access": {
+      "title": "Access & policy",
+      "description": "Change the password for your account."
+    },
+    "session": {
+      "title": "Session duration",
+      "description": "How long a sign-in stays active before you're asked to sign in again.",
+      "label": "Stay signed in for",
+      "hint": "Applies immediately to this session, and to future sign-ins on this browser.",
+      "savedDescription": "Session duration updated.",
+      "applyFailed": {
+        "title": "Session duration not applied",
+        "description": "Saved locally, but the appliance couldn't be reached — it'll apply next time you sign in."
+      },
+      "hours_one": "{{count}} hour",
+      "hours_other": "{{count}} hours",
+      "minutes_one": "{{count}} minute",
+      "minutes_other": "{{count}} minutes"
+    },
+    "changePassword": {
+      "currentLabel": "Current password",
+      "newLabel": "New password",
+      "confirmLabel": "Confirm new password",
+      "requirements": "At least {{count}} characters.",
+      "currentRequired": "Enter your current password.",
+      "tooShort": "Must be at least {{count}} characters.",
+      "mismatch": "Passwords don't match.",
+      "submit": "Change password",
+      "submitting": "Changing…",
+      "success": "Password changed."
+    },
+    "roles": {
+      "admin": {
+        "label": "Admin",
+        "blurb": "Full control, including security & users"
+      },
+      "operator": {
+        "label": "Operator",
+        "blurb": "Run jobs & restores; no policy changes"
+      },
+      "viewer": {
+        "label": "Viewer",
+        "blurb": "Read-only across the appliance"
+      }
+    },
+    "userStatus": {
+      "active": "Active",
+      "invited": "Invited",
+      "disabled": "Disabled"
+    },
+    "users": {
+      "title": "Users",
+      "description": "People who can sign in to this appliance and what they may do.",
+      "invite": "Invite user",
+      "columns": {
+        "user": "User",
+        "role": "Role",
+        "status": "Status",
+        "mfa": "MFA",
+        "lastActive": "Last active"
+      },
+      "mfaOn": "On",
+      "mfaOff": "Off",
+      "empty": {
+        "title": "No users",
+        "description": "Invite someone to get started."
+      },
+      "removeUserAction": "Remove user",
+      "menu": {
+        "actionsAria": "Actions for {{name}}",
+        "changeRole": "Change role",
+        "enableAccount": "Enable account",
+        "disableAccount": "Disable account"
+      }
+    },
+    "removeUser": {
+      "title": "Remove {{name}}?",
+      "description": "They'll immediately lose access to this appliance. Their audit history is retained. This can't be undone."
+    },
+    "tokens": {
+      "title": "API tokens",
+      "description": "Credentials for the AltaStor API, CLI and integrations.",
+      "create": "Create token",
+      "empty": {
+        "title": "No API tokens",
+        "description": "Create a token to authenticate the API, CLI or Terraform provider."
+      },
+      "fullAccess": "Full access",
+      "readOnly": "Read-only",
+      "created": "Created {{date}}",
+      "lastUsed": "Last used {{value}}",
+      "never": "never",
+      "revokeAria": "Revoke {{name}}",
+      "hidePrefix": "Hide token prefix",
+      "revealPrefix": "Reveal token prefix",
+      "copyPrefix": "Copy token prefix"
+    },
+    "revokeToken": {
+      "title": "Revoke {{name}}?",
+      "description": "Any client using this token will immediately lose access. This can't be undone.",
+      "confirm": "Revoke token"
+    },
+    "toast": {
+      "roleUpdated": "Role updated",
+      "roleUpdatedDesc": "{{name}} → {{role}}",
+      "userDisabled": "User disabled",
+      "userEnabled": "User enabled",
+      "invitationSent": "Invitation sent",
+      "invitationSentDesc": "{{name}} ({{role}})",
+      "userRemoved": "User removed",
+      "tokenPrefixCopied": "Token prefix copied",
+      "tokenRevoked": "Token revoked"
+    }
+  },
+  "about": {
+    "brand": {
+      "tagline": "Backup & replication, done right.",
+      "openSource": "Free & open-source"
+    },
+    "appliance": {
+      "title": "Appliance",
+      "description": "Identity and hardware of this node.",
+      "applianceName": "Appliance name",
+      "hostname": "Hostname",
+      "version": "Version",
+      "build": "Build",
+      "os": "Operating system",
+      "kernel": "Kernel",
+      "uptime": "Uptime",
+      "cpu": "CPU",
+      "memory": "Memory",
+      "noAppliance": "Hardware details are reported by a connected appliance.",
+      "probeFailed": "Couldn't read hardware details from the appliance. Fields it reports are shown as “—”."
+    },
+    "license": {
+      "title": "License & resources",
+      "description": "AltaStor is free and open-source software.",
+      "openSourceTitle": "Free & open-source",
+      "openSourceBlurb": "No seats, no per-VM fees. Self-hosted, and yours to inspect."
+    },
+    "links": {
+      "documentation": {
+        "label": "Documentation",
+        "blurb": "Guides, API reference & how-tos"
+      },
+      "github": {
+        "label": "GitHub",
+        "blurb": "Source, issues & releases"
+      },
+      "community": {
+        "label": "Community",
+        "blurb": "Ask questions & share setups"
+      }
+    },
+    "releaseNotes": "Release notes"
+  },
+  "createToken": {
+    "copyTitle": "Copy your token",
+    "createTitle": "Create API token",
+    "copyDescription": "This is the only time the full token is shown. Store it somewhere safe.",
+    "createDescription": "Tokens authenticate the AltaStor API and CLI. Scope them to the minimum needed.",
+    "copyAria": "Copy token",
+    "treatLikePassword": "Treat it like a password. Anyone with this token can act as <0>{{scope}}</0> client.",
+    "scopeFull": "a full-access",
+    "scopeReadOnly": "a read-only",
+    "nameLabel": "Name",
+    "scopesLabel": "Scopes",
+    "readOnly": {
+      "title": "Read-only",
+      "blurb": "Query state; no changes"
+    },
+    "fullAccess": {
+      "title": "Full access",
+      "blurb": "Run jobs & restores"
+    },
+    "create": "Create token",
+    "toast": {
+      "created": "Token created"
+    }
+  },
+  "inviteUser": {
+    "title": "Invite user",
+    "description": "They'll receive an invitation to set a password and enrol MFA.",
+    "name": "Full name",
+    "email": "Email",
+    "role": "Role",
+    "send": "Send invite"
+  }
+}

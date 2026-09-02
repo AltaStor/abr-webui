@@ -1,0 +1,133 @@
+{
+  "page": {
+    "title": "Actividad",
+    "live": "En vivo",
+    "description": "Vista en vivo de cada ejecución de copia de seguridad, replicación y restauración."
+  },
+  "runKind": {
+    "restore": "Restauración",
+    "replication": "Replicación",
+    "backupCopy": "Copia de seguridad",
+    "diskBackup": "Copia de seguridad de disco",
+    "fileBackup": "Copia de seguridad de archivos",
+    "serverBackup": "Copia de seguridad de servidor",
+    "backup": "Copia de seguridad"
+  },
+  "objectNouns": {
+    "disk": {
+      "singular": "Disco",
+      "plural": "Discos",
+      "compact": "Discos"
+    },
+    "server": {
+      "singular": "Servidor",
+      "plural": "Servidores",
+      "compact": "Servidores"
+    },
+    "vm": {
+      "singular": "Máquina virtual",
+      "plural": "Máquinas virtuales",
+      "compact": "VMs"
+    }
+  },
+  "trigger": {
+    "schedule": "Programación",
+    "manual": "Manual"
+  },
+  "filters": {
+    "statusGroupLabel": "Filtrar ejecuciones por estado",
+    "jobLabel": "Filtrar por trabajo",
+    "allJobs": "Todos los trabajos",
+    "searchPlaceholder": "Buscar ejecuciones…",
+    "searchLabel": "Buscar ejecuciones",
+    "clearSearch": "Borrar búsqueda"
+  },
+  "summary": {
+    "running": {
+      "label": "En ejecución ahora",
+      "hintNone": "nada en ejecución ahora",
+      "hint_one": "ejecución en curso",
+      "hint_other": "ejecuciones en curso"
+    },
+    "runs24": {
+      "label": "Ejecuciones · últimas 24 h",
+      "hint": "{{count}} completadas"
+    },
+    "successRate": {
+      "label": "Tasa de éxito de 24 h",
+      "hint": "{{ok}} de {{total}} correctas",
+      "hintNone": "ninguna ejecución finalizada en el periodo"
+    },
+    "transferred": {
+      "label": "Transferido · 24 h",
+      "hint": "en todas las ejecuciones"
+    }
+  },
+  "feed": {
+    "columns": {
+      "status": "Estado",
+      "run": "Ejecución",
+      "started": "Iniciado",
+      "duration": "Duración",
+      "objects": "Objetos",
+      "read": "Leído",
+      "sent": "Enviado"
+    },
+    "listLabel": "Ejecuciones de copia de seguridad y restauración",
+    "showing": "Mostrando {{visible}} de {{total}}",
+    "showMore": "Mostrar más",
+    "empty": {
+      "filteredTitle": "Ninguna ejecución coincide con estos filtros",
+      "filteredDescription": "Pruebe con otro estado, trabajo o término de búsqueda.",
+      "title": "Aún no hay actividad",
+      "description": "Las ejecuciones de copia de seguridad y restauración aparecerán aquí en cuanto se inicie un trabajo.",
+      "clearFilters": "Borrar filtros"
+    }
+  },
+  "row": {
+    "progressLabel": "Progreso de {{kind}} de {{job}}",
+    "aria": {
+      "started": "iniciado {{time}}",
+      "percentComplete": "{{percent}} por ciento completado",
+      "ranIn": "ejecutado en {{duration}}",
+      "objects_one": "{{count}} objeto",
+      "objects_other": "{{count}} objetos",
+      "transferred": "{{size}} transferido"
+    }
+  },
+  "drawer": {
+    "unavailableTitle": "Ejecución no disponible",
+    "unavailableDescription": "Esta ejecución ya no está en el feed.",
+    "emptyTitle": "Nada que mostrar",
+    "emptyDescription": "Es posible que la ejecución haya salido de la ventana de actividad.",
+    "progressLabel": "Progreso de {{job}}",
+    "rate": {
+      "staging": "Preparando origen",
+      "transfer": "Velocidad de transferencia",
+      "repoWrite": "Escritura en repositorio · física",
+      "guestRead": "Velocidad de lectura del invitado"
+    },
+    "stat": {
+      "type": "Tipo",
+      "duration": "Duración",
+      "read": "Leído",
+      "transferred": "Transferido",
+      "guestRead": "Vel. lectura invitado",
+      "throughput": "Rendimiento"
+    },
+    "table": {
+      "result": "Resultado",
+      "read": "Leído",
+      "sent": "Enviado",
+      "duration": "Duración"
+    },
+    "log": "Registro",
+    "footer": {
+      "restore": "Operación de restauración",
+      "jobLabel": "Trabajo de {{kind}}",
+      "deleted": "Trabajo eliminado — historial conservado",
+      "openRestore": "Abrir restauración",
+      "openJob": "Abrir trabajo"
+    }
+  }
+}

@@ -1,0 +1,380 @@
+{
+  "page": {
+    "title": "Inventory"
+  },
+  "header": {
+    "description": "{{vms}} virtual machines across {{envs}} environments · {{running}} powered on",
+    "physicalSuffix_one": " · {{count}} physical server",
+    "physicalSuffix_other": " · {{count}} physical servers"
+  },
+  "view": {
+    "groupLabel": "View mode",
+    "estate": "Estate",
+    "list": "List"
+  },
+  "add": {
+    "source": "Add source",
+    "vmwareGroup": "VMware vSphere",
+    "vcenter": "vCenter Server",
+    "esxi": "Standalone ESXi host",
+    "physicalGroup": "Physical servers",
+    "physicalServer": "Windows / Linux server (agent)"
+  },
+  "filters": {
+    "byProtection": "Filter by protection status",
+    "title": "Filters",
+    "active": "Filters, {{count}} active",
+    "clear": "Clear filters",
+    "environment": "Environment",
+    "os": "Operating system",
+    "power": "Power state",
+    "placeholderEnvironment": "Environment",
+    "placeholderOs": "OS",
+    "placeholderPower": "Power",
+    "allEnvironments": "All environments",
+    "allOs": "All OS",
+    "windows": "Windows",
+    "linux": "Linux",
+    "macos": "macOS",
+    "unknown": "Unknown",
+    "anyPower": "Any power"
+  },
+  "search": {
+    "vmsPlaceholder": "Search VMs…",
+    "serversPlaceholder": "Search servers…",
+    "vmsAria": "Search virtual machines",
+    "serversAria": "Search physical servers"
+  },
+  "bulk": {
+    "selected": "{{count}} selected",
+    "restorePoints_one": "· {{count}} restore point",
+    "restorePoints_other": "· {{count}} restore points",
+    "deletePoints": "Delete restore points",
+    "clearSelection": "Clear selection"
+  },
+  "table": {
+    "selectAllVms": "Select all VMs",
+    "selectRow": "Select {{name}}",
+    "vm": "Virtual machine",
+    "guestOs": "Guest OS",
+    "host": "Host",
+    "vmSize": "VM size",
+    "backupSize": "Backup size",
+    "protection": "Protection",
+    "lastBackup": "Last backup",
+    "points": "Points",
+    "server": "Server",
+    "agentStatus": "agent {{status}}"
+  },
+  "actions": {
+    "restore": "Restore",
+    "protect": "Protect",
+    "protectNow": "Protect now",
+    "backUp": "Back up",
+    "backUpNow": "Back up now",
+    "running": "Running…",
+    "deleteAll": "Delete all",
+    "removeServer": "Remove server",
+    "removing": "Removing…",
+    "addEnvironment": "Add environment",
+    "rescanAll": "Rescan"
+  },
+  "empty": {
+    "vmsFilteredTitle": "No VMs match these filters",
+    "vmsTitle": "No virtual machines found",
+    "vmsFilteredDesc": "Try widening your search, clearing a filter, or picking a broader scope.",
+    "vmsDesc": "Use “Add source” to connect a vCenter or ESXi platform.",
+    "serversFilteredTitle": "No servers match these filters",
+    "serversTitle": "No physical servers",
+    "serversFilteredDesc": "Try widening your search or clearing a filter.",
+    "serversDesc": "Use “Add source” to register a Windows or Linux server — AltaStor deploys its agent and inventories the disks.",
+    "clearFilters": "Clear filters"
+  },
+  "scope": {
+    "allVms": "All VMs",
+    "showingVms": "Showing <1>{{shown}}</1> of <2>{{total}}</2> VMs",
+    "showingServers": "Showing <1>{{shown}}</1> of <2>{{total}}</2> servers",
+    "inScopeVms_one": "<1>{{count}}</1> VM in scope",
+    "inScopeVms_other": "<1>{{count}}</1> VMs in scope",
+    "inScopeServers_one": "<1>{{count}}</1> server in scope",
+    "inScopeServers_other": "<1>{{count}}</1> servers in scope"
+  },
+  "scopeKind": {
+    "datacenter": "Datacenter",
+    "cluster": "Cluster",
+    "host": "Host",
+    "physicalGroup": "Physical servers",
+    "physicalHost": "Physical server"
+  },
+  "coverage": {
+    "protected": "protected",
+    "vms": "VMs",
+    "sources": "sources",
+    "running": "running",
+    "vmsRunning": "VMs running",
+    "summary": "<b>{{protected}}</b> of <n>{{total}}</n> {{noun}} · <n>{{running}}</n> {{runningLabel}}"
+  },
+  "estate": {
+    "navigator": "Estate navigator",
+    "agentConnected": "Agent connected",
+    "agentPrefix": "Agent ",
+    "disconnected": "Disconnected",
+    "sourceSettings": "Source settings — rescan, remove, agent",
+    "settingsFor": "Settings for {{name}}",
+    "empty": "empty",
+    "protectedSr": "protected",
+    "description": "Your virtual estate — platforms, datacenters, clusters and hosts. See capacity, connectivity, and exactly where every VM runs."
+  },
+  "agent": {
+    "connected": "Connected",
+    "degraded": "Degraded",
+    "disconnected": "Disconnected"
+  },
+  "power": {
+    "running": "Running",
+    "stopped": "Powered off",
+    "suspended": "Suspended"
+  },
+  "os": {
+    "windows": "Windows",
+    "linux": "Linux",
+    "macos": "macOS"
+  },
+  "size": {
+    "storageUsedAria": "Storage {{pct}}% used"
+  },
+  "summary": {
+    "headlineProtected": "This {{noun}} is protected.",
+    "headlineWarning": "Backups exist, but the latest is stale.",
+    "headlineUnprotected": "This {{noun}} has no backups yet.",
+    "nounVm": "VM",
+    "nounServer": "server",
+    "sublineUnreachable_one": "{{count}} restore point sits on offline storage and can’t be restored right now — it isn’t lost, and becomes available again once the repository is back online.",
+    "sublineUnreachable_other": "{{count}} restore points sit on offline storage and can’t be restored right now — they aren’t lost, and become available again once the repository is back online.",
+    "sublineHealthy": "Restore points are healthy.",
+    "sublineProtect": "Add it to a backup job to start protecting it.",
+    "lastBackup": "Last backup",
+    "restorePoints": "Restore points"
+  },
+  "detail": {
+    "backToInventory": "Back to inventory",
+    "noPointsTitle": "No restore points",
+    "unreachableTitle_one": "{{unreachable}} of {{count}} restore point unreachable",
+    "unreachableTitle_other": "{{unreachable}} of {{count}} restore points unreachable",
+    "unreachableBody": "Their repository is offline. The backups still exist and aren’t lost — they can’t be restored or deleted until the repository comes back online."
+  },
+  "rpToggle": {
+    "list": "List",
+    "calendar": "Calendar",
+    "aria": "Restore point view"
+  },
+  "vmDetail": {
+    "notFoundTitle": "VM not found",
+    "notFoundDesc": "This virtual machine may have been removed from inventory.",
+    "backupToast": "Backing up {{name}}",
+    "backupToastDesc": "Started “{{job}}”. Watch it stream on the activity page.",
+    "alreadyRunning": "{{job}} is already running",
+    "alreadyRunningDesc": "This VM is being backed up right now.",
+    "location": "Location",
+    "topology": "Topology",
+    "specs": "Specs",
+    "powerState": "Power state",
+    "vcpus": "vCPUs",
+    "memory": "Memory",
+    "provisioned": "Provisioned",
+    "used": "Used",
+    "ipAddress": "IP address",
+    "guestOs": "Guest OS",
+    "jobsCovering": "Jobs covering this VM",
+    "noJob": "No backup job protects this VM yet. It is currently exposed.",
+    "restorePoints": "Restore points",
+    "noPointsDesc": "Run a backup to create the first recoverable point for this VM.",
+    "recentActivity": "Recent activity"
+  },
+  "hostDetail": {
+    "notFoundTitle": "Server not found",
+    "notFoundDesc": "This physical server may have been removed from inventory. Its restore points, if any, are kept.",
+    "backupToast": "Backing up {{name}}",
+    "backupToastDesc": "Started “{{job}}”. Watch it stream on the activity page.",
+    "alreadyRunning": "{{job}} is already running",
+    "alreadyRunningDesc": "This server is being backed up right now.",
+    "agentLine": "Agent {{status}} · v{{version}}",
+    "specs": "Specs",
+    "operatingSystem": "Operating system",
+    "osFamily": "OS family",
+    "ipAddress": "IP address",
+    "agent": "Agent",
+    "cpuCores": "CPU cores",
+    "memory": "Memory",
+    "usedStorage": "Used storage",
+    "tags": "Tags",
+    "disks": "Disks",
+    "diskCol": "Disk",
+    "deviceCol": "Device",
+    "mediaCol": "Media",
+    "usedCapacity": "Used / capacity",
+    "boot": "Boot",
+    "volumes": "Volumes",
+    "mountCol": "Mount",
+    "filesystemCol": "Filesystem",
+    "jobsCovering": "Jobs covering this server",
+    "noJob": "No backup job protects this server yet. It is currently exposed.",
+    "recoveryPoints": "Recovery points",
+    "recoveryPointsSuffix": "— server & its disks",
+    "noPointsDesc": "Run a backup to create the first recoverable point for this server.",
+    "recentActivity": "Recent activity",
+    "removeTitle": "Remove this server",
+    "removeDesc": "Unregisters the agent and removes {{name}} from Inventory. Its restore points are kept and stay restorable.",
+    "removedToast": "Removed {{name}}",
+    "removedDesc": "Its restore points are kept and remain restorable.",
+    "removeErrorToast": "Couldn't remove the server",
+    "removeErrorDesc": "The appliance didn't confirm the removal. Nothing changed — try again.",
+    "removeConfirmTitle": "Remove {{name}}?",
+    "removeConfirmDesc": "This unregisters the AltaStor agent and removes the server from Inventory. Jobs that scoped it stop covering it.",
+    "removeKeptBold": "Its restore points are kept.",
+    "removeKeptRest": "You can still restore from them, and re-registering the server later picks them back up."
+  },
+  "pointKind": {
+    "physicalHost": "Bare-metal image",
+    "disk": "Disk",
+    "files": "Files",
+    "vm": "VM"
+  },
+  "point": {
+    "offlineTip": "This restore point’s repository is offline — it can’t be read until the repository comes back online.",
+    "blockedCorrupt": "This restore point failed its backup-file health check and is blocked from restore.",
+    "blockedWriteFailed": "The backup files could not be written completely, so this point can't be restored.",
+    "blockedWritePending": "Backup files are still being written. Wait for the restore point to complete.",
+    "blockedHealthCheck": "A health check is currently reading this restore point. Wait for it to finish before restoring.",
+    "unavailable": "Unavailable",
+    "encrypted": "Encrypted",
+    "encryptedTip": "This backup's data is encrypted at rest",
+    "compression": "Compression level {{level}}",
+    "writingFiles": "Writing files",
+    "fileWriteFailed": "File write failed",
+    "fileWriteFailedTip": "The restore-point files were not written completely.",
+    "sizeFullTitle": "Complete logical recovery image captured by this restore point, before data reduction",
+    "sizeIncrTitle": "Logical change data captured by this restore point, before data reduction",
+    "logicalImage": "logical image",
+    "logicalChange": "logical change",
+    "noNewData": "no new repository data reported",
+    "noNewDataTip": "No new repository data was reported for this point. It can still be fully restorable through chunks already stored by earlier backups.",
+    "newData": "+{{size}} new repository data",
+    "newDataTip": "New data this restore point added to the repository after deduplication and compression. This is not the restore point’s total physical footprint.",
+    "deleteAria": "Delete backup",
+    "deleteTip": "Delete this full backup and its incremental restore points",
+    "incrementalCount_one": "+{{count}} incremental",
+    "incrementalCount_other": "+{{count}} incrementals",
+    "manifestTip": "{{path}}\n\nThis is the restore point's manifest — the file that defines this backup and lists the deduplicated, compressed chunks that make it up. The backup data itself lives in the repository's chunk storage alongside it, shared with other points. Copying the manifest alone does not copy the backup — to move backups, copy (or import) the whole store folder.\n\nClick to copy the path.",
+    "health": {
+      "verified": "Verified",
+      "verifiedTip": "Backup files verified {{date}}",
+      "checking": "Checking files",
+      "metadataUnverified": "Metadata unverified",
+      "metadataUnverifiedTip": "This older manifest has no integrity checksum; its metadata could not be verified.",
+      "corrupt": "Corrupt — restore blocked",
+      "corruptTip": "This restore point failed its backup-file health check and is blocked from restore.",
+      "unavailable": "Check unavailable",
+      "unavailableTip": "The backup-file health check could not read this restore point.",
+      "notVerified": "Not verified"
+    },
+    "fromLogical": "from {{size}}",
+    "storedTitle": "{{logical}} of data stored as {{stored}}"
+  },
+  "calendar": {
+    "pointsCount_one": "{{count}} restore point",
+    "pointsCount_other": "{{count}} restore points",
+    "includesFullSuffix": " · includes a full",
+    "noPointDay": "No restore point on this day",
+    "legendFull": "Includes full",
+    "legendIncremental": "Incremental only",
+    "legendGap": "Gap",
+    "noPoints": "No points",
+    "noPointsDay": "No restore points were created on this day. Pick a highlighted day to see its points."
+  },
+  "deleteOne": {
+    "deletedTitle": "Backup deleted",
+    "deletedDesc_one": "The backup for {{name}} was removed. Its storage is reclaimed on the next cleanup.",
+    "deletedDesc_other": "The backup for {{name}} — {{count}} restore points — was removed. Its storage is reclaimed on the next cleanup.",
+    "alreadyTitle": "Already removed",
+    "alreadyDesc": "That backup no longer exists.",
+    "errorTitle": "Couldn't delete backup",
+    "errorDesc": "The backup could not be removed. Try again in a moment.",
+    "title": "Delete this backup?",
+    "desc": "This permanently removes every restore point in this backup — full and incremental together. It can't be undone. There is no way to delete a single point on its own.",
+    "pointCount_one": "{{count}} restore point",
+    "pointCount_other": "{{count}} restore points",
+    "range": "{{from}} – {{to}}",
+    "recoverWarn": "Once removed, you won't be able to recover <1>{{name}}</1> to any point in this backup.",
+    "confirm": "Delete backup",
+    "deleting": "Deleting…"
+  },
+  "addPhysical": {
+    "registeredToast": "Registered {{name}}",
+    "registeredDesc": "The agent is inventorying its disks and volumes. Add it to a backup job to start protecting it.",
+    "errorToast": "Couldn't register the server",
+    "errorDesc": "The appliance couldn't reach that address or deploy the agent. Check the name and IP, then try again.",
+    "title": "Register a physical server",
+    "description": "AltaStor deploys its backup agent to the server and inventories its disks and volumes. Back it up bare-metal, per disk, or file-level — same as a VM, no hypervisor needed.",
+    "nameLabel": "Server name / FQDN",
+    "ipLabel": "IP address",
+    "osLabel": "Operating system",
+    "osWindows": "Windows Server",
+    "osLinux": "Linux",
+    "osHint": "Picks the enrollment path — the agent reports the exact OS once it’s up.",
+    "note": "The server stays unprotected until a backup job includes it. Removing it later keeps its restore points.",
+    "registering": "Registering…",
+    "register": "Register server"
+  },
+  "sourceSettings": {
+    "fallbackTitle": "Source",
+    "description": "Rescan its inventory, remove it, or update its agent.",
+    "rescan": "Rescan",
+    "edit": "Edit",
+    "remove": "Remove environment"
+  },
+  "removeEnvironment": {
+    "title": "Remove {{name}}?",
+    "description": "Stops discovery and removes <1>{{hosts}} hosts and {{vms}} VMs</1> from Inventory. Existing restore points are kept and stay restorable.",
+    "jobsBlock_one": "<1>{{count}}</1> job still targets this environment — repoint or remove it first.",
+    "jobsBlock_other": "<1>{{count}}</1> jobs still target this environment — repoint or remove them first.",
+    "jobsWarning_one": "<1>{{count}}</1> job currently targets this environment. It will fail on the next run until re-pointed at another environment.",
+    "jobsWarning_other": "<1>{{count}}</1> jobs currently target this environment. They will fail on the next run until re-pointed at another environment.",
+    "confirm": "Remove environment",
+    "removing": "Removing…",
+    "toast": {
+      "removed": {
+        "title": "Environment removed",
+        "description": "{{name}} was removed from Inventory."
+      },
+      "failed": {
+        "description": "The environment could not be removed. Try again in a moment."
+      }
+    }
+  },
+  "editEnvironment": {
+    "title": "Edit {{name}}",
+    "description": "Update the connection details AltaStor uses to reach this environment.",
+    "nameLabel": "Name",
+    "addressLabel": "Address",
+    "addressInvalid": "Enter a valid FQDN or IP address — no protocol, path, or spaces.",
+    "portLabel": "Port",
+    "usernameLabel": "Username",
+    "usernamePlaceholder": "Leave blank to keep the current username",
+    "passwordLabel": "Password",
+    "passwordPlaceholder": "Leave blank to keep the current password",
+    "skipTlsLabel": "Skip TLS verification",
+    "skipTlsHint": "Accept self-signed certificates (typical in labs).",
+    "save": "Save changes",
+    "saving": "Saving…",
+    "toast": {
+      "saved": {
+        "title": "Environment updated",
+        "description": "{{name}} was updated."
+      },
+      "failed": {
+        "description": "The environment could not be updated. Try again in a moment."
+      }
+    }
+  }
+}

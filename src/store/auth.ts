@@ -1,0 +1,147 @@
+// SPDX-License-Identifier: Apache-2.0
+// Copyright © 2026 Norvitex OÜ
+
+/**
+ * Console sign-in session — the operator logging into the AltaStor Web UI
+ * itself (distinct from the per-environment vCenter/Hyper-V credentials stored
+ * elsewhere). Only meaningful in "live" mode: the demo simulation has no
+ * backend to authenticate against, so AppShell's auth gate skips it entirely.
+ *
+ * The bearer token lives in sessionStorage (cleared when the tab closes) plus
+ * an in-memory copy handed to the API layer for the Authorization header —
+ * deliberately not localStorage, so a synced/shared browser profile doesn't
+ * carry a live session forever. A 401 on any authenticated request
+ * (`setUnauthorizedHandler` in api.http.ts) forces this store back to
+ * signed-out so stale UI can't keep acting on a session the appliance already
+ * dropped.
+ */
+import { create } from "zustand";
+import {
+  apiErrorMessage,
+  changePassword as changePasswordHttp,
+  login as loginHttp,
+  logout as logoutHttp,
+  setAuthToken,
+  setUnauthorizedHandler,
+  type AuthUser,
+} from "@/services/api.http";
+import { refreshWorld } from "@/store/world";
+
+const STORAGE_KEY = "basalt.session";
+
+interface StoredSession {
+  token: string;
+  expiresAt: string;
+  user: AuthUser;
+}
+
+function readStoredSession(): StoredSession | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = window.sessionStorage.getItem(STORAGE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as Partial<StoredSession> | null;
+    if (!parsed?.token || !parsed.expiresAt || !parsed.user) return null;
+    if (new Date(parsed.expiresAt).getTime() <= Date.now()) return null;
+    return parsed as StoredSession;
+  } catch {
+    return null;
+  }
+}
+
+function writeStoredSession(session: StoredSession | null): void {
+  if (typeof window === "undefined") return;
+  try {
+    if (session) window.sessionStorage.setItem(STORAGE_KEY, JSON.stringify(session));
+    else window.sessionStorage.removeItem(STORAGE_KEY);
+  } catch {
+    /* storage full / disabled — the session just won't survive a reload */
+  }
+}
+
+export type AuthStatus = "signed-out" | "signed-in";
+
+interface AuthState {
+  status: AuthStatus;
+  user: AuthUser | null;
+  /** Set right after a successful sign-in when the account's password fails
+   * policy (the bootstrap admin) — every route but /change-password redirects
+   * here until it's cleared. */
+  mustChangePassword: boolean;
+  pending: boolean;
+  error: string | null;
+  login: (name: string, password: string, durationSeconds?: number) => Promise<boolean>;
+  logout: () => Promise<void>;
+  changePassword: (currentPassword: string, newPassword: string) => Promise<boolean>;
+  clearError: () => void;
+}
+
+const restored = readStoredSession();
+if (restored) setAuthToken(restored.token);
+
+export const useAuthStore = create<AuthState>((set) => ({
+  status: restored ? "signed-in" : "signed-out",
+  user: restored?.user ?? null,
+  mustChangePassword: restored?.user.passwordPolicyExempt ?? false,
+  pending: false,
+  error: null,
+
+  login: async (name, password, durationSeconds) => {
+    set({ pending: true, error: null });
+    try {
+      const result = await loginHttp(name.trim(), password, durationSeconds);
+      setAuthToken(result.token);
+      writeStoredSession({ token: result.token, expiresAt: result.expiresAt, user: result.user });
+      set({
+        status: "signed-in",
+        user: result.user,
+        mustChangePassword: result.user.passwordPolicyExempt,
+        pending: false,
+        error: null,
+      });
+      // The live driver may already be sitting on the empty/unauthenticated
+      // world (see world.live.ts) — don't wait for its next poll tick.
+      refreshWorld();
+      return true;
+    } catch (err) {
+      set({ pending: false, error: apiErrorMessage(err) ?? "Couldn't reach the appliance. Try again." });
+      return false;
+    }
+  },
+
+  logout: async () => {
+    try {
+      await logoutHttp();
+    } catch {
+      /* best-effort — the client-side session is dropped either way */
+    }
+    setAuthToken(null);
+    writeStoredSession(null);
+    set({ status: "signed-out", user: null, mustChangePassword: false, error: null });
+    // Drop whatever the previous session's data was — the live driver
+    // re-hydrates into the empty/unauthenticated world (see world.live.ts).
+    refreshWorld();
+  },
+
+  changePassword: async (currentPassword, newPassword) => {
+    set({ pending: true, error: null });
+    try {
+      const user = await changePasswordHttp(currentPassword, newPassword);
+      const stored = readStoredSession();
+      if (stored) writeStoredSession({ ...stored, user });
+      set({ user, mustChangePassword: false, pending: false, error: null });
+      return true;
+    } catch (err) {
+      set({ pending: false, error: apiErrorMessage(err) ?? "Couldn't change the password. Try again." });
+      return false;
+    }
+  },
+
+  clearError: () => set({ error: null }),
+}));
+
+setUnauthorizedHandler(() => {
+  writeStoredSession(null);
+  useAuthStore.setState({ status: "signed-out", user: null, mustChangePassword: false });
+  refreshWorld();
+});

@@ -1,0 +1,41 @@
+{
+  "page": {
+    "title": "Protokolle",
+    "description": "Systemereignisse auf der Appliance, einschließlich der von den Backup-Agenten gemeldeten Aktivität."
+  },
+  "actions": {
+    "export": "Exportieren"
+  },
+  "export": {
+    "menuLabel": "Protokolle exportieren",
+    "supportBundle": "Support-Paket",
+    "systemLog": "Systemprotokoll (.log)"
+  },
+  "toast": {
+    "exportedSystem_one": "{{count}} Systemprotokollzeile exportiert",
+    "exportedSystem_other": "{{count}} Systemprotokollzeilen exportiert",
+    "exportedSupportBundle": "Support-Paket heruntergeladen",
+    "exportSupportBundleFailed": "Support-Paket konnte nicht erstellt werden"
+  },
+  "stats": {
+    "systemWarnings": "Systemwarnungen · 24h",
+    "agentEvents": "Agent-Ereignisse · 24h"
+  },
+  "filters": {
+    "clearSearch": "Suche zurücksetzen"
+  },
+  "system": {
+    "sources": "Quellen",
+    "searchLabel": "Systemprotokollmeldungen durchsuchen",
+    "searchPlaceholder": "Meldungen durchsuchen…",
+    "liveTail": "Live-Verfolgung",
+    "toggleLiveTail": "Live-Verfolgung umschalten",
+    "downloadLog": ".log herunterladen",
+    "lineCount_one": "{{formatted}} Zeile",
+    "lineCount_other": "{{formatted}} Zeilen",
+    "filteredToSources_one": " · gefiltert nach {{count}} Quelle",
+    "filteredToSources_other": " · gefiltert nach {{count}} Quellen",
+    "streaming": " · streamt",
+    "following": " · folgt dem Protokoll der Appliance"
+  }
+}

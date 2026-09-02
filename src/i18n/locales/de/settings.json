@@ -1,0 +1,291 @@
+{
+  "saved": {
+    "title": "Einstellungen gespeichert"
+  },
+  "page": {
+    "title": "Einstellungen",
+    "description": "Konfigurieren Sie die Darstellung, Benachrichtigungen und Sicherheit der Konsole.",
+    "unreachable": {
+      "title": "Konfiguration dieser Appliance konnte nicht gelesen werden",
+      "description": "Die Appliance konnte ihre Einstellungen nicht laden. Die unten angezeigten Werte können Standardwerte oder veraltet sein. Änderungen können erst gespeichert werden, wenn die Einstellungen wieder geladen wurden."
+    }
+  },
+  "rail": {
+    "sectionLabel": "Einstellungsbereich",
+    "sectionsNav": "Einstellungsbereiche",
+    "sectionAnnounce": "Einstellungen: {{section}}"
+  },
+  "sections": {
+    "appearance": {
+      "label": "Darstellung",
+      "blurb": "Design, Sprache & Akzent"
+    },
+    "notifications": {
+      "label": "Benachrichtigungen",
+      "blurb": "Wählen Sie, welche Ereignisse Sie benachrichtigen"
+    },
+    "security": {
+      "label": "Sicherheit",
+      "blurb": "Zugriff, Unveränderlichkeit & Benutzer"
+    },
+    "about": {
+      "label": "Über",
+      "blurb": "Version, Lizenz & Links"
+    }
+  },
+  "controls": {
+    "unsavedChanges": "Nicht gespeicherte Änderungen",
+    "saveChanges": "Änderungen speichern",
+    "removeItem": "{{value}} entfernen",
+    "saveUnavailable": "Appliance nicht erreichbar — Speichern deaktiviert"
+  },
+  "units": {
+    "cores": "Kerne"
+  },
+  "toast": {
+    "connectLive": "Verbinden Sie sich mit einer Live-Appliance, um dies zu nutzen.",
+    "copyFailed": "In die Zwischenablage kopieren fehlgeschlagen"
+  },
+  "appearance": {
+    "title": "Darstellung",
+    "description": "Passen Sie die Konsole nach Ihrem Geschmack an. Das Design wird sofort übernommen; der Rest wird mit dem Abschnitt gespeichert.",
+    "savedDescription": "Darstellungseinstellungen aktualisiert.",
+    "language": {
+      "label": "Sprache",
+      "description": "Die Anzeigesprache der Konsole."
+    },
+    "theme": {
+      "label": "Design",
+      "description": "Standardmäßig dunkel — die Appliance mag es nachts am liebsten.",
+      "dark": "Dunkel",
+      "light": "Hell"
+    },
+    "accent": {
+      "label": "Akzent",
+      "description": "Die Hervorhebungsfarbe für ausgewählte Zustände und den Fokus."
+    },
+    "swatch": {
+      "emerald": "Smaragd",
+      "cyan": "Eis",
+      "blue": "Blau",
+      "violet": "Violett",
+      "amber": "Bernstein"
+    }
+  },
+  "notifications": {
+    "savedDescription": "Benachrichtigungseinstellungen aktualisiert.",
+    "events": {
+      "title": "Ereignisse",
+      "description": "Wählen Sie, welche Ereignisse Sie benachrichtigen.",
+      "jobFailure": {
+        "label": "Job-Fehler",
+        "blurb": "Ein Backup-Lauf schlägt fehl oder verursacht Fehler"
+      },
+      "jobSuccess": {
+        "label": "Job erfolgreich",
+        "blurb": "Ein Lauf wird sauber abgeschlossen"
+      },
+      "immutabilityViolation": {
+        "label": "Unveränderlichkeitsverletzung",
+        "blurb": "Das Löschen eines versiegelten Punkts wird verweigert"
+      },
+      "capacityWarning": {
+        "label": "Kapazitätswarnung",
+        "blurb": "Ein Repository nähert sich seinem Limit"
+      },
+      "restoreCompleted": {
+        "label": "Wiederherstellung abgeschlossen",
+        "blurb": "Eine Wiederherstellung ist beendet"
+      }
+    }
+  },
+  "security": {
+    "access": {
+      "title": "Zugriff & Richtlinie",
+      "description": "Ändern Sie das Passwort für Ihr Konto."
+    },
+    "session": {
+      "title": "Sitzungsdauer",
+      "description": "Wie lange eine Anmeldung aktiv bleibt, bevor Sie sich erneut anmelden müssen.",
+      "label": "Angemeldet bleiben für",
+      "hint": "Gilt sofort für diese Sitzung und für künftige Anmeldungen in diesem Browser.",
+      "savedDescription": "Sitzungsdauer aktualisiert.",
+      "applyFailed": {
+        "title": "Sitzungsdauer nicht angewendet",
+        "description": "Lokal gespeichert, aber das Gerät war nicht erreichbar — wird bei der nächsten Anmeldung angewendet."
+      },
+      "hours_one": "{{count}} Stunde",
+      "hours_other": "{{count}} Stunden",
+      "minutes_one": "{{count}} Minute",
+      "minutes_other": "{{count}} Minuten"
+    },
+    "changePassword": {
+      "currentLabel": "Aktuelles Passwort",
+      "newLabel": "Neues Passwort",
+      "confirmLabel": "Neues Passwort bestätigen",
+      "requirements": "Mindestens {{count}} Zeichen.",
+      "currentRequired": "Geben Sie Ihr aktuelles Passwort ein.",
+      "tooShort": "Muss mindestens {{count}} Zeichen lang sein.",
+      "mismatch": "Die Passwörter stimmen nicht überein.",
+      "submit": "Passwort ändern",
+      "submitting": "Wird geändert…",
+      "success": "Passwort geändert."
+    },
+    "roles": {
+      "admin": {
+        "label": "Administrator",
+        "blurb": "Volle Kontrolle, einschließlich Sicherheit & Benutzer"
+      },
+      "operator": {
+        "label": "Operator",
+        "blurb": "Jobs & Wiederherstellungen ausführen; keine Richtlinienänderungen"
+      },
+      "viewer": {
+        "label": "Betrachter",
+        "blurb": "Nur-Lese-Zugriff auf die gesamte Appliance"
+      }
+    },
+    "userStatus": {
+      "active": "Aktiv",
+      "invited": "Eingeladen",
+      "disabled": "Deaktiviert"
+    },
+    "users": {
+      "title": "Benutzer",
+      "description": "Personen, die sich an dieser Appliance anmelden können, und ihre Berechtigungen.",
+      "invite": "Benutzer einladen",
+      "columns": {
+        "user": "Benutzer",
+        "role": "Rolle",
+        "status": "Status",
+        "mfa": "MFA",
+        "lastActive": "Zuletzt aktiv"
+      },
+      "mfaOn": "Ein",
+      "mfaOff": "Aus",
+      "empty": {
+        "title": "Keine Benutzer",
+        "description": "Laden Sie jemanden ein, um zu beginnen."
+      },
+      "removeUserAction": "Benutzer entfernen",
+      "menu": {
+        "actionsAria": "Aktionen für {{name}}",
+        "changeRole": "Rolle ändern",
+        "enableAccount": "Konto aktivieren",
+        "disableAccount": "Konto deaktivieren"
+      }
+    },
+    "removeUser": {
+      "title": "{{name}} entfernen?",
+      "description": "Der Zugriff auf diese Appliance geht sofort verloren. Der Audit-Verlauf bleibt erhalten. Dies kann nicht rückgängig gemacht werden."
+    },
+    "tokens": {
+      "title": "API-Token",
+      "description": "Anmeldedaten für die AltaStor-API, die CLI und Integrationen.",
+      "create": "Token erstellen",
+      "empty": {
+        "title": "Keine API-Token",
+        "description": "Erstellen Sie ein Token, um sich bei der API, der CLI oder dem Terraform-Provider zu authentifizieren."
+      },
+      "fullAccess": "Vollzugriff",
+      "readOnly": "Nur Lesen",
+      "created": "Erstellt am {{date}}",
+      "lastUsed": "Zuletzt verwendet {{value}}",
+      "never": "nie",
+      "revokeAria": "{{name}} widerrufen",
+      "hidePrefix": "Token-Präfix ausblenden",
+      "revealPrefix": "Token-Präfix anzeigen",
+      "copyPrefix": "Token-Präfix kopieren"
+    },
+    "revokeToken": {
+      "title": "{{name}} widerrufen?",
+      "description": "Jeder Client, der dieses Token verwendet, verliert sofort den Zugriff. Dies kann nicht rückgängig gemacht werden.",
+      "confirm": "Token widerrufen"
+    },
+    "toast": {
+      "roleUpdated": "Rolle aktualisiert",
+      "roleUpdatedDesc": "{{name}} → {{role}}",
+      "userDisabled": "Benutzer deaktiviert",
+      "userEnabled": "Benutzer aktiviert",
+      "invitationSent": "Einladung gesendet",
+      "invitationSentDesc": "{{name}} ({{role}})",
+      "userRemoved": "Benutzer entfernt",
+      "tokenPrefixCopied": "Token-Präfix kopiert",
+      "tokenRevoked": "Token widerrufen"
+    }
+  },
+  "about": {
+    "brand": {
+      "tagline": "Backups in Stein gemeißelt.",
+      "openSource": "Frei & quelloffen · unveränderlich by design"
+    },
+    "appliance": {
+      "title": "Appliance",
+      "description": "Identität und Hardware dieses Knotens.",
+      "applianceName": "Appliance-Name",
+      "hostname": "Hostname",
+      "version": "Version",
+      "build": "Build",
+      "os": "Betriebssystem",
+      "kernel": "Kernel",
+      "uptime": "Betriebszeit",
+      "cpu": "CPU",
+      "memory": "Arbeitsspeicher",
+      "noAppliance": "Hardware-Details werden von einer verbundenen Appliance gemeldet.",
+      "probeFailed": "Hardware-Details konnten nicht von der Appliance gelesen werden. Von ihr gemeldete Felder erscheinen als „—“."
+    },
+    "license": {
+      "title": "Lizenz & Ressourcen",
+      "description": "AltaStor ist freie und quelloffene Software.",
+      "openSourceTitle": "Frei & quelloffen",
+      "openSourceBlurb": "Keine Lizenzplätze, keine Gebühren pro VM. Selbst gehostet und für Sie einsehbar."
+    },
+    "links": {
+      "documentation": {
+        "label": "Dokumentation",
+        "blurb": "Anleitungen, API-Referenz & Howtos"
+      },
+      "github": {
+        "label": "GitHub",
+        "blurb": "Quellcode, Issues & Releases"
+      },
+      "community": {
+        "label": "Community",
+        "blurb": "Fragen stellen & Setups teilen"
+      }
+    },
+    "releaseNotes": "Versionshinweise"
+  },
+  "createToken": {
+    "copyTitle": "Kopieren Sie Ihr Token",
+    "createTitle": "API-Token erstellen",
+    "copyDescription": "Dies ist das einzige Mal, dass das vollständige Token angezeigt wird. Bewahren Sie es an einem sicheren Ort auf.",
+    "createDescription": "Token authentifizieren die AltaStor-API und die CLI. Beschränken Sie sie auf das notwendige Minimum.",
+    "copyAria": "Token kopieren",
+    "treatLikePassword": "Behandeln Sie es wie ein Passwort. Jeder mit diesem Token kann als <0>{{scope}}</0>-Client agieren.",
+    "scopeFull": "Vollzugriffs-",
+    "scopeReadOnly": "Nur-Lese-",
+    "nameLabel": "Name",
+    "scopesLabel": "Berechtigungen",
+    "readOnly": {
+      "title": "Nur Lesen",
+      "blurb": "Status abfragen; keine Änderungen"
+    },
+    "fullAccess": {
+      "title": "Vollzugriff",
+      "blurb": "Jobs & Wiederherstellungen ausführen"
+    },
+    "create": "Token erstellen",
+    "toast": {
+      "created": "Token erstellt"
+    }
+  },
+  "inviteUser": {
+    "title": "Benutzer einladen",
+    "description": "Die Person erhält eine Einladung, um ein Passwort festzulegen und MFA einzurichten.",
+    "name": "Vollständiger Name",
+    "email": "E-Mail",
+    "role": "Rolle",
+    "send": "Einladung senden"
+  }
+}

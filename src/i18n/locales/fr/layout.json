@@ -1,0 +1,56 @@
+{
+  "cmdPalette": {
+    "title": "Palette de commandes",
+    "description": "Rechercher et accéder à n’importe quelle page ou action",
+    "searchPlaceholder": "Saisissez une commande ou recherchez des VM, des tâches…",
+    "empty": "Aucun résultat trouvé.",
+    "group": {
+      "navigation": "Navigation",
+      "actions": "Actions",
+      "language": "Langue",
+      "runJob": "Exécuter une tâche",
+      "jumpToVm": "Aller à une VM",
+      "jumpToServer": "Aller à un serveur"
+    },
+    "createJob": "Créer une tâche de sauvegarde",
+    "switchToLight": "Passer au mode clair",
+    "switchToDark": "Passer au mode sombre",
+    "connectLive": "Se connecter à l’appliance en direct",
+    "switchDemo": "Passer à la simulation de démonstration",
+    "runJobLabel": "Exécuter · {{name}}",
+    "started": "« {{name}} » démarré",
+    "startedDescription": "Suivez sa progression en direct dans Activité.",
+    "alreadyRunning": "« {{name}} » est déjà en cours d’exécution ou désactivé."
+  },
+  "topbar": {
+    "openMenu": "Ouvrir le menu",
+    "search": "Rechercher",
+    "toggleTheme": "Basculer le thème",
+    "accountMenu": "Menu du compte",
+    "settings": "Paramètres",
+    "signOut": "Se déconnecter",
+    "signOutToast": "Ceci est un prototype front-end — aucune session réelle dont se déconnecter.",
+    "navigation": "Navigation",
+    "navigationMenu": "Menu de navigation principal",
+    "demoData": "Données de démonstration",
+    "demoDataTip": "Affichage de l’environnement de démonstration intégré. ⌘K → « Se connecter à l’appliance en direct » pour changer.",
+    "reconnecting": "Reconnexion…",
+    "reconnectingTip": "Le flux d’événements de l’appliance est interrompu — reconnexion en cours.",
+    "demoSimulation": "Simulation de démonstration",
+    "liveAppliance": "Appliance en direct"
+  },
+  "notifications": {
+    "aria": "Notifications",
+    "ariaUnread": "Notifications, {{count}} non lue",
+    "title": "Notifications",
+    "threats_one": "{{count}} menace",
+    "threats_other": "{{count}} menaces",
+    "markAllRead": "Tout marquer comme lu",
+    "allCaughtUp": "Vous êtes à jour"
+  },
+  "apiVersionBanner": {
+    "title": "Version d’API incompatible",
+    "fallback": "Les versions d’API de la console et de l’appliance sont incompatibles. Rechargez la page une fois le déploiement terminé, ou contactez votre administrateur.",
+    "reload": "Recharger"
+  }
+}

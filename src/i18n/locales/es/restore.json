@@ -1,0 +1,396 @@
+{
+  "page": {
+    "title": "Restaurar",
+    "description": "Recupere una máquina completa desde un punto de restauración."
+  },
+  "actions": {
+    "continue": "Continuar",
+    "startOver": "Empezar de nuevo",
+    "viewInActivity": "Ver en Actividad",
+    "startAnother": "Iniciar otra restauración"
+  },
+  "steps": {
+    "source": {
+      "label": "Elegir origen",
+      "hint": "Qué recuperar"
+    },
+    "point": {
+      "label": "Punto de restauración",
+      "hint": "Momento en el tiempo"
+    },
+    "recover": {
+      "label": "Recuperar",
+      "hint": "Modo y confirmación"
+    }
+  },
+  "stepper": {
+    "aria": "Progreso de la restauración"
+  },
+  "tabs": {
+    "aria": "Qué restaurar",
+    "vm": "Máquinas virtuales",
+    "physicalHost": "Servidores físicos",
+    "disk": "Discos"
+  },
+  "noun": {
+    "vm": "VM",
+    "server": "servidor",
+    "disk": "disco"
+  },
+  "cta": {
+    "downloadSelected": "Descargar {{count}} seleccionados",
+    "recoverSelected": "Recuperar {{count}} seleccionados",
+    "bootFromBackup": "Arrancar desde la copia de seguridad",
+    "recoverServer": "Recuperar servidor",
+    "exportDisk": "Exportar disco",
+    "restoreDisk": "Restaurar disco",
+    "startRestore": "Iniciar restauración"
+  },
+  "toast": {
+    "downloading_one": "Descargando {{count}} archivo",
+    "downloading_other": "Descargando {{count}} archivos",
+    "downloadingDesc": "Recuperado de {{name}} · {{id}}.",
+    "instantStarted": {
+      "title": "Restauración instantánea iniciada",
+      "desc": "Arrancando {{name}} directamente desde la copia de seguridad…"
+    },
+    "unreachable": {
+      "title": "No se pudo contactar con la appliance"
+    },
+    "instantUnreachableDesc": "La restauración instantánea no se inició. Compruebe el backend e inténtelo de nuevo.",
+    "restoreUnreachableDesc": "La restauración no se inició. Compruebe el backend e inténtelo de nuevo.",
+    "refused": {
+      "title": "La appliance rechazó la restauración",
+      "desc": "Es posible que el punto de restauración se haya depurado — elija otro punto e inténtelo de nuevo."
+    },
+    "started": {
+      "title": "Restauración iniciada",
+      "desc": "Recuperando {{name}}. Siga su ejecución en vivo en Actividad.",
+      "descFiles_one": "Recuperando {{count}} archivo de {{name}}. Siga su ejecución en vivo en Actividad.",
+      "descFiles_other": "Recuperando {{count}} archivos de {{name}}. Siga su ejecución en vivo en Actividad."
+    },
+    "insufficientSpace": {
+      "title": "No hay suficiente espacio en el almacén de datos",
+      "desc": "El almacén de datos de destino no tiene suficiente espacio libre para esta restauración."
+    },
+    "originalVmGone": {
+      "title": "La VM original ya no existe",
+      "desc": "Se eliminó después de que se cargara este asistente, así que ya no queda nada que restaurar en el sitio. Vuelva a empezar para restaurarla como una VM nueva."
+    }
+  },
+  "confirm": {
+    "host": {
+      "title": "¿Recuperar {{name}} desde bare metal?",
+      "confirmLabel": "Recuperar {{name}}"
+    },
+    "disk": {
+      "title": "¿Sobrescribir {{name}}?",
+      "confirmLabel": "Sobrescribir {{name}}"
+    }
+  },
+  "points_one": "{{count}} punto",
+  "points_other": "{{count}} puntos",
+  "lastBackup": "Última copia de seguridad {{time}}",
+  "filesSelected_one": "{{count}} archivo seleccionado",
+  "filesSelected_other": "{{count}} archivos seleccionados",
+  "chooseVm": {
+    "title": "¿Qué VM le gustaría recuperar?",
+    "subtitle": "Elija cualquier máquina protegida. A continuación mostraremos sus puntos de restauración — nada cambia hasta que confirme.",
+    "searchPlaceholder": "Buscar por nombre o OS…",
+    "searchAria": "Buscar VMs protegidas",
+    "noMatch": {
+      "title": "Ninguna máquina coincide con esa búsqueda",
+      "desc": "Pruebe con otro nombre, OS, dirección IP o etiqueta."
+    },
+    "empty": {
+      "desc": "Ejecute primero un trabajo de copia de seguridad — las VMs protegidas con puntos de restauración aparecerán aquí, listas para recuperar."
+    },
+    "unknownEnv": "Entorno desconocido"
+  },
+  "chooseHost": {
+    "title": "¿Qué servidor le gustaría recuperar?",
+    "subtitle": "Elija cualquier servidor físico protegido. A continuación mostraremos sus puntos de restauración — nada cambia hasta que confirme.",
+    "searchPlaceholder": "Buscar por nombre o OS…",
+    "searchAria": "Buscar servidores físicos protegidos",
+    "noMatch": {
+      "title": "Ningún servidor coincide con esa búsqueda",
+      "desc": "Pruebe con otro nombre, OS, dirección IP o etiqueta."
+    },
+    "empty": {
+      "desc": "Ejecute primero un trabajo de copia de seguridad de servidor o de archivos — los servidores protegidos con puntos de restauración aparecerán aquí, listos para recuperar."
+    },
+    "agentLabel": "agente {{status}}"
+  },
+  "chooseDisk": {
+    "title": "¿Qué disco le gustaría recuperar?",
+    "subtitle": "Elija cualquier disco protegido — virtual o físico. A continuación mostraremos sus puntos de restauración — nada cambia hasta que confirme.",
+    "searchPlaceholder": "Buscar por disco, dispositivo, VM o servidor…",
+    "searchAria": "Buscar discos protegidos",
+    "noMatch": {
+      "title": "Ningún disco coincide con esa búsqueda",
+      "desc": "Pruebe con otro nombre de disco, dispositivo, VM o servidor."
+    },
+    "empty": {
+      "desc": "Ejecute primero un trabajo de copia de seguridad de disco — los discos protegidos con puntos de restauración aparecerán aquí, listos para recuperar."
+    },
+    "ownerKind": {
+      "physicalServer": "servidor físico",
+      "vm": "VM"
+    },
+    "used": "{{size}} usado"
+  },
+  "emptyPointsTitle": "Aún no hay puntos de restauración",
+  "point": {
+    "title": "Elija un momento en el tiempo desde el que recuperar",
+    "countFor_one": "{{count}} punto de restauración para <1>{{name}}</1>.",
+    "countFor_other": "{{count}} puntos de restauración para <1>{{name}}</1>.",
+    "allUnreachable": "No se puede seleccionar ninguno mientras su repositorio esté sin conexión.",
+    "mostRecentSelected": "El más reciente está seleccionado para usted.",
+    "immutableCallout_one": "<1>{{count}} punto de restauración inmutable</1> está bloqueado en la capa de almacenamiento — no puede alterarse ni eliminarse hasta que expire el bloqueo, por lo que se sabe que está limpio.",
+    "immutableCallout_other": "<1>{{count}} puntos de restauración inmutables</1> están bloqueados en la capa de almacenamiento — no pueden alterarse ni eliminarse hasta que expire el bloqueo, por lo que se sabe que están limpios.",
+    "unreachableCallout_one": "<1>{{count}} punto de restauración</1> no se puede alcanzar — su repositorio está sin conexión. Las copias de seguridad siguen existiendo, pero no se pueden restaurar hasta que el repositorio vuelva a estar en línea.",
+    "unreachableCallout_other": "<1>{{count}} puntos de restauración</1> no se pueden alcanzar — su repositorio está sin conexión. Las copias de seguridad siguen existiendo, pero no se pueden restaurar hasta que el repositorio vuelva a estar en línea.",
+    "blockedCallout_one": "<1>{{count}} punto de restauración</1> no superó una comprobación de integridad de archivos o no está completamente escrito, por lo que es visible aquí pero no se puede restaurar.",
+    "blockedCallout_other": "<1>{{count}} puntos de restauración</1> no superaron una comprobación de integridad de archivos o no están completamente escritos, por lo que son visibles aquí pero no se pueden restaurar.",
+    "empty": {
+      "title": "Este {{noun}} aún no tiene puntos de restauración",
+      "desc": "Una vez que un trabajo de copia de seguridad proteja esta máquina, los puntos de recuperación se alinearán aquí en una línea de tiempo."
+    },
+    "today": "Hoy",
+    "yesterday": "Ayer",
+    "full": "Completa",
+    "incremental": "Incremental",
+    "badge": {
+      "bareMetal": "Imagen bare-metal",
+      "files": "Archivos",
+      "unavailable": "No disponible"
+    },
+    "selected": "Seleccionado",
+    "encrypted": "Cifrado",
+    "encryptedTip": "Los datos de esta copia de seguridad están cifrados en reposo",
+    "compression": "Nivel de compresión {{level}}",
+    "offlineTip": "El repositorio de este punto de restauración está sin conexión — no se puede leer hasta que el repositorio vuelva a estar en línea.",
+    "block": {
+      "corrupt": "Este punto de restauración no superó la comprobación de integridad de sus archivos de copia de seguridad y está bloqueado para la restauración.",
+      "checking": "Una comprobación de integridad está leyendo actualmente este punto de restauración.",
+      "failed": "Los archivos de copia de seguridad no se pudieron escribir por completo.",
+      "pending": "Los archivos de copia de seguridad aún se están escribiendo."
+    },
+    "health": {
+      "verified": "Verificado",
+      "checking": "Comprobando",
+      "metadataUnverified": "Metadatos no verificados",
+      "metadataUnverifiedTitle": "Este manifiesto más antiguo no tiene suma de comprobación de integridad; sus metadatos no se pudieron verificar.",
+      "corrupt": "Dañado — bloqueado",
+      "unavailable": "Comprobación no disponible",
+      "notVerified": "No verificado"
+    },
+    "fromLogical": "de {{size}}",
+    "storedTitle": "{{logical}} de datos almacenados como {{stored}}"
+  },
+  "howToRecover": "¿Cómo le gustaría recuperar?",
+  "whereLand": "¿Dónde debe ubicarse?",
+  "review": {
+    "title": "Revisar y confirmar",
+    "subtitle": "Un último vistazo. Aún no ha cambiado nada."
+  },
+  "summary": {
+    "machine": "Máquina",
+    "server": "Servidor",
+    "disk": "Disco",
+    "restorePoint": "Punto de restauración",
+    "recoveryMode": "Modo de recuperación",
+    "destination": "Destino",
+    "placement": "Ubicación",
+    "placementSub": "Datastore: {{datastore}}",
+    "powerState": "Estado de energía"
+  },
+  "restorePointSub": "{{type}} · {{size}}",
+  "cleanSource": {
+    "immutableData": "El origen es una copia inmutable con bloqueo de objeto — no puede haberse alterado desde que se selló, por lo que los datos que está recuperando están limpios.",
+    "immutableFiles": "El origen es una copia inmutable con bloqueo de objeto — no puede haberse alterado desde que se selló, por lo que los archivos que está recuperando están limpios.",
+    "nonImmutable": "Leemos la copia de seguridad sin llegar a tocarla, por lo que el origen desde el que recupera permanece intacto."
+  },
+  "mode": {
+    "subtitle": "Elija si desea recuperar la máquina completa o solo algunos archivos. Confirmará antes de que se ejecute nada.",
+    "entireVm": {
+      "title": "VM completa",
+      "desc": "Recupere la máquina completa — cada disco, exactamente como estaba en este punto."
+    },
+    "fileLevel": {
+      "title": "Recuperación a nivel de archivo",
+      "desc": "Explore el snapshot y recupere solo los archivos o carpetas que necesita."
+    },
+    "instant": {
+      "title": "Arranque instantáneo",
+      "desc": "Encienda la VM directamente desde la copia de seguridad en segundos — no se copia nada. Los bloques se transmiten bajo demanda; ideal para una comprobación rápida o una conmutación por error de DR."
+    },
+    "original": {
+      "title": "Ubicación original",
+      "desc": "Restaura la VM con su nombre, host y almacén de datos originales. Si esa VM todavía existe, se sobrescribe en el sitio en cuanto la restauración termine de escribirse — confirmará antes de que se ejecute nada."
+    },
+    "newLocation": {
+      "title": "Nueva ubicación",
+      "desc": "Restaure como una copia en otro host — seguro para pruebas o comprobaciones en paralelo."
+    },
+    "instantCallout": "El invitado arranca en su propio host directamente desde el repositorio a través de iSCSI — los bloques se cargan a medida que los lee, por lo que se ejecuta en segundos sin una copia completa. Las escrituras van a una capa temporal, por lo que la copia de seguridad permanece inmutable. Descártela cuando termine para liberar el disco.",
+    "targetEnv": "Entorno de destino",
+    "targetPlaceholder": "Elija dónde restaurar…",
+    "crossPlatform": "Restauración multiplataforma",
+    "sub": {
+      "instant": "Se ejecuta desde la copia de seguridad a través de iSCSI — sin copia",
+      "original": "Mismo nombre, host y almacén de datos que el original",
+      "newLocation": "Como una copia en una nueva ubicación"
+    },
+    "dest": {
+      "fileLevel": "Rutas originales del invitado",
+      "instant": "{{name}} (instantáneo)",
+      "selectTarget": "Seleccione un destino…",
+      "pickTarget": "Elija un entorno de destino arriba",
+      "converted": "Convertido {{from}} → {{to}}",
+      "bootsOn": "Arranca en el host de {{name}}"
+    },
+    "originalOverwriteWarning": "Esto restaura <1>{{name}}</1> en el sitio, en su host y almacén de datos actuales. Una vez que cada disco esté completamente escrito, la VM que se ejecuta actualmente allí se destruye y se reemplaza — esto no se puede deshacer.",
+    "originalOverwriteConfirmLabel": "Escriba <1>{{name}}</1> para confirmar la sobrescritura",
+    "restoredVmName": "Nombre de la VM restaurada",
+    "restoredVmNameHint": "Déjelo en blanco para usar <1>{{name}}</1>.",
+    "restoredVmNameError": {
+      "whitespace": "No puede empezar ni terminar con un espacio.",
+      "tooLong": "Debe tener 80 caracteres o menos.",
+      "forbiddenChars": "No puede contener / \\ : * ? \" < > ni |.",
+      "nonAscii": "Use solo letras latinas, números y símbolos estándar del teclado — nada de cirílico u otros caracteres no latinos.",
+      "duplicate": "Ya existe una VM con este nombre en el entorno de destino. Elija otro nombre."
+    },
+    "targetHost": "Host de destino",
+    "targetHostAuto": "Automático",
+    "targetHostAutoWithValue": "{{name}} (automático)",
+    "datastore": "Datastore",
+    "datastoreAuto": "Automático — usar el predeterminado del host",
+    "datastoreAutoWithValue": "{{name}} (automático)",
+    "datastoreFree": "{{free}} libres",
+    "datastoreLowSpace": "Solo {{free}} libres — la VM de origen tiene aprovisionados hasta {{needed}}. La restauración podría quedarse sin espacio si no cabe en modo thin.",
+    "networkMap": "Asignación de redes",
+    "networkMapSource": "Red de origen",
+    "networkMapTarget": "Red de destino",
+    "networkMapTargetPlaceholder": "Elige una red…",
+    "networkMapNone": "Esta VM no tiene adaptadores de red para asignar.",
+    "networkMapHostNone": "No se han descubierto conmutadores virtuales en el host seleccionado. Elige otro host o vuelve a analizar el inventario.",
+    "networkMapEnvNone": "No se han descubierto conmutadores virtuales en este entorno. Vuelve a analizar el inventario e inténtalo de nuevo.",
+    "networkMapHint": "Las redes de origen provienen de los adaptadores de red de la propia VM; la lista de destino solo muestra los conmutadores virtuales del host seleccionado, y se selecciona automáticamente el del mismo nombre — elige otro de la lista si es necesario.",
+    "powerOn": "Encender tras la restauración",
+    "powerOnHint": "Inicia la VM restaurada en cuanto finalice la restauración.",
+    "powerOnYes": "Se enciende tras la restauración",
+    "powerOnNo": "Permanece apagada"
+  },
+  "bareMetal": {
+    "subtitle": "Esta es una imagen completa del servidor — vuelve como una sola pieza. Confirmará antes de que se ejecute nada.",
+    "mode": {
+      "title": "Recuperación bare-metal",
+      "desc": "Arranca el medio de recuperación en el servidor y luego restaura cada volumen y el estado del sistema exactamente como estaban en este punto."
+    },
+    "lockedDest": "Una imagen bare-metal vuelve a <1>{{name}}</1> — el servidor original, sus discos originales. La restauración en hardware diferente no es compatible, por lo que el destino está bloqueado.",
+    "summarySub": "Cada volumen + estado del sistema",
+    "dest": {
+      "value": "Servidor original",
+      "sub": "De vuelta en los propios discos de {{name}}"
+    },
+    "overwriteWarning": "Esto restaura en el sitio y <1>sobrescribe todo en</1> <2>{{name}}</2> — cada volumen y el estado del sistema se reemplazan por este punto de restauración. Confirmará antes de que se ejecute nada."
+  },
+  "files": {
+    "title": "Elija los archivos a recuperar",
+    "subtitle": "Explore las carpetas respaldadas de <1>{{name}}</1> y marque lo que necesita. Se descargan directamente desde la copia de seguridad — nada en el servidor cambia.",
+    "dest": {
+      "value": "Descargado a usted",
+      "sub": "El servidor queda intacto"
+    }
+  },
+  "disk": {
+    "title": "¿Cómo le gustaría recuperar este disco?",
+    "subtitle": "Vuelva a colocar el disco donde estaba, o expórtelo como un archivo para adjuntarlo en otro lugar. Confirmará antes de que se ejecute nada.",
+    "original": {
+      "title": "Restaurar en el sitio",
+      "desc": "Vuelve a escribir el disco en su dispositivo original en {{name}}. Rápido, pero el contenido actual del disco se sobrescribe."
+    },
+    "export": {
+      "title": "Exportar como archivo",
+      "desc": "Materialice el disco como un archivo de disco virtual que puede adjuntar a cualquier máquina — seguro para la inspección o la recuperación en paralelo."
+    },
+    "exportCallout": "El disco se reconstruye en un archivo <1>{{format}}</1> en la appliance — no se toca nada en {{owner}}. Descárguelo cuando esté listo.",
+    "rawImage": "imagen de disco sin procesar",
+    "sub": {
+      "exportOnAppliance": "{{format}} en la appliance",
+      "overwrites": "Sobrescribe el dispositivo original"
+    },
+    "dest": {
+      "downloadable": "Archivo descargable",
+      "on": "En {{name}}"
+    },
+    "overwriteWarning": "Esto sobrescribe <1>{{name}}</1> ({{device}}) en <2>{{owner}}</2> — los demás discos del {{noun}} quedan intactos, pero el contenido actual de este se reemplaza. Confirmará antes de que se ejecute nada."
+  },
+  "fileBrowser": {
+    "searchPlaceholder": "Buscar en este snapshot…",
+    "searchAria": "Buscar archivos en el punto de restauración",
+    "folderPathAria": "Ruta de la carpeta",
+    "selectAllAria": "Seleccionar todos los archivos visibles",
+    "resultsFor": "Resultados para «{{query}}»",
+    "name": "Nombre",
+    "modified": "Modificado",
+    "size": "Tamaño",
+    "loading": "Abriendo la copia de seguridad…",
+    "error": {
+      "title": "No se pudo leer esta carpeta",
+      "desc": "Es posible que la copia de seguridad aún se esté montando — inténtelo de nuevo."
+    },
+    "noMatch": {
+      "title": "Nada coincide con esa búsqueda",
+      "desc": "Pruebe con otro nombre de archivo o carpeta."
+    },
+    "empty": {
+      "title": "Esta carpeta está vacía"
+    },
+    "selectFile": "Seleccionar {{name}}",
+    "downloadFile": "Descargar {{name}}"
+  },
+  "conversion": {
+    "title": "Conversión multiplataforma",
+    "subtitle": "{{name}} ejecuta un hipervisor diferente al de esta VM. AltaStor convierte el disco y adapta el invitado para que arranque allí.",
+    "noFormatChange": "Sin cambio de formato",
+    "firmware": "Firmware",
+    "bootConfidence": "Confianza de arranque",
+    "guestAdaptation": "Adaptación del invitado",
+    "planLabel": "Plan de conversión",
+    "noCaveats": "Sin salvedades especiales — el invitado debería arrancar en {{platform}} con sus controladores adaptados automáticamente.",
+    "confidence": {
+      "high": "Confianza alta",
+      "medium": "Confianza media",
+      "low": "Confianza baja"
+    }
+  },
+  "instant": {
+    "title": "Restauración instantánea",
+    "namedInstant": "{{name}} (instantáneo)",
+    "fallbackName": "VM instantánea",
+    "toast": {
+      "discarded": {
+        "title": "VM instantánea descartada",
+        "desc": "El disco bajo demanda fue liberado."
+      },
+      "discardError": {
+        "title": "No se pudo descartar la VM instantánea",
+        "desc": "La appliance rechazó la solicitud."
+      }
+    },
+    "subtitle": {
+      "failed": "La restauración instantánea no pudo iniciarse.",
+      "discarded": "«{{name}}» fue descartada y el disco bajo demanda liberado.",
+      "running": "«{{name}}» se ejecuta directamente desde la copia de seguridad.",
+      "booting": "Publicando la copia de seguridad y encendiendo «{{name}}»…"
+    },
+    "runningCallout": "Los bloques se cargan bajo demanda a medida que el invitado los lee; las escrituras van a una capa temporal, por lo que la copia de seguridad permanece inmutable. Descarte la VM cuando termine para liberar el disco.",
+    "discardBtn": "Descartar VM instantánea",
+    "status": {
+      "discarded": "Descartada",
+      "booting": "Arrancando"
+    }
+  }
+}

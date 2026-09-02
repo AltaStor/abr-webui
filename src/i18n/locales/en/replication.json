@@ -1,0 +1,306 @@
+{
+  "page": {
+    "title": "Replication",
+    "description": "Ready-to-run replicas for fast disaster recovery. Manage replication jobs, then see exactly which host each VM fails over to.",
+    "newJob": "New replication job",
+    "empty": {
+      "title": "No replication yet",
+      "description": "Create a replication job to keep a ready-to-run copy of a VM on a target host — fail over in seconds, fail back when the source is healthy."
+    },
+    "kpi": {
+      "replicas": "Replicas",
+      "inSync": "In sync",
+      "failedOver": "Failed over",
+      "acrossJobs_one": "Across {{count}} replication job",
+      "acrossJobs_other": "Across {{count}} replication jobs",
+      "servingDr": "Replicas serving in DR",
+      "noActiveFailovers": "No active failovers"
+    },
+    "tabs": {
+      "jobs": "Jobs",
+      "replicatedVms": "Replicated VMs"
+    }
+  },
+  "state": {
+    "seeding": "Seeding",
+    "ready": "In sync",
+    "syncing": "Syncing",
+    "failover": "Failover — active",
+    "failback": "Failing back",
+    "error": "Error"
+  },
+  "health": {
+    "error": "Error",
+    "failover": "Failover",
+    "syncing": "Syncing",
+    "inSync": "In sync"
+  },
+  "jobs": {
+    "columns": {
+      "job": "Job",
+      "status": "Status",
+      "targetSite": "Target site",
+      "schedule": "Schedule",
+      "replicas": "Replicas",
+      "health": "Health",
+      "lastRun": "Last run",
+      "success": "Success"
+    },
+    "status": {
+      "paused": "Paused"
+    },
+    "filters": {
+      "all": "All statuses",
+      "running": "Running",
+      "healthy": "Healthy",
+      "warning": "Needs attention",
+      "paused": "Paused"
+    },
+    "toolbar": {
+      "searchPlaceholder": "Search replication jobs by name or scope…",
+      "searchAria": "Search replication jobs",
+      "filterByStatus": "Filter by status"
+    },
+    "selectAllAria": "Select all jobs",
+    "selectRowAria": "Select {{name}}",
+    "selection": {
+      "count_one": "{{count}} selected",
+      "count_other": "{{count}} selected",
+      "clearAria": "Clear selection"
+    },
+    "actions": {
+      "run": "Run",
+      "pause": "Pause"
+    },
+    "empty": {
+      "noJobsTitle": "No replication jobs yet",
+      "noJobsDescription": "Create a replication job to keep ready-to-run copies of your VMs on a target host for fast failover.",
+      "noMatchTitle": "No jobs match your filters",
+      "noMatchDescription": "Try a different search term or status filter."
+    },
+    "toast": {
+      "started": {
+        "title": "Started {{name}}",
+        "description": "Watch the sync stream live in Activity.",
+        "watch": "Watch"
+      },
+      "paused": {
+        "title": "{{name}} is paused",
+        "description": "Enable the job to run it."
+      },
+      "alreadyRunning": {
+        "title": "{{name}} is already running",
+        "description": "Let the current sync finish first."
+      },
+      "enabled": {
+        "title": "{{name}} enabled",
+        "description": "It will resync on its next scheduled window."
+      },
+      "pausedToggle": {
+        "title": "{{name}} paused",
+        "description": "It won't resync until you re-enable it."
+      },
+      "deleted": {
+        "title": "Deleted {{name}}",
+        "description": "Standby replicas were removed; any live failover is kept."
+      },
+      "deleteFailed": {
+        "title": "Couldn't delete {{name}}",
+        "description": "The appliance didn't confirm — the job is untouched."
+      },
+      "bulkStarted": {
+        "title_one": "Started {{count}} job",
+        "title_other": "Started {{count}} jobs",
+        "someSkipped": "Some were paused or already running.",
+        "syncing": "Syncing now."
+      },
+      "bulkPaused": {
+        "title_one": "Paused {{count}} job",
+        "title_other": "Paused {{count}} jobs"
+      },
+      "bulkDeleted": {
+        "title_one": "Deleted {{count}} job",
+        "title_other": "Deleted {{count}} jobs",
+        "description": "Standby replicas removed; live failovers kept."
+      },
+      "bulkDeletedPartial": {
+        "title": "Deleted {{deleted}} of {{total}} jobs",
+        "description": "The appliance didn't confirm the rest — they are untouched."
+      }
+    }
+  },
+  "map": {
+    "searchPlaceholder": "Find a VM or host…",
+    "searchAria": "Search replicated VMs and hosts",
+    "groupBy": "Group topology by",
+    "grouping": {
+      "hosts": "Hosts",
+      "sites": "Sites"
+    },
+    "legendHint": "· thickness = VMs · animated = syncing",
+    "scopedCount": "<1>{{scoped}}</1> of {{total}} replicated VMs",
+    "totalReplicasRoutes_one": "<1>{{total}}</1> replicated VMs · {{routes}} route",
+    "totalReplicasRoutes_other": "<1>{{total}}</1> replicated VMs · {{routes}} routes",
+    "replicatedVmsCount_one": "{{count}} replicated VM",
+    "replicatedVmsCount_other": "{{count}} replicated VMs",
+    "routesCount_one": "{{count}} route",
+    "routesCount_other": "{{count}} routes",
+    "selection": "selection",
+    "showing": "Showing {{filter}}",
+    "replicasHeading": "Replicas",
+    "clearFilter": "Clear filter",
+    "viewModeAria": "Replica view mode",
+    "view": {
+      "list": "List",
+      "cards": "Cards"
+    },
+    "empty": {
+      "noReplicatedTitle": "No replicated VMs yet",
+      "noReplicatedDescription": "Create a replication job to keep a ready-to-run copy of a VM on a target host, then watch the topology light up here.",
+      "noMatchTitle": "No replicas match",
+      "noMatchDescription": "Try a different search term, or clear the filter to see the whole topology."
+    },
+    "role": {
+      "source": "Replicating from",
+      "both": "Source & target",
+      "target": "Replicating to"
+    },
+    "direction": {
+      "both": "sends {{out}}, receives {{in}}",
+      "target": "receives {{in}}",
+      "source": "replicates out {{out}}"
+    },
+    "term": {
+      "site": "site"
+    },
+    "node": {
+      "aria": "{{label}} — {{site}}, {{direction}}, {{health}}. {{state}}.",
+      "selected": "Selected",
+      "showOnly": "Show only this {{term}}'s replicas"
+    },
+    "job": {
+      "title": "Source → replica topology"
+    },
+    "fallback": {
+      "source": "Source",
+      "unplaced": "unplaced",
+      "target": "{{platform}} target"
+    }
+  },
+  "list": {
+    "replicatedVm": "Replicated VM",
+    "route": "Route",
+    "state": "State",
+    "lastSync": "Last sync",
+    "size": "Size",
+    "crossPlatform": "cross-platform"
+  },
+  "card": {
+    "from": "from {{job}}",
+    "poweredOn": "Powered on · serving traffic",
+    "source": "{{platform}} source",
+    "target": "{{platform}} target",
+    "crossPlatform": "Cross-platform · {{source}} → {{target}} (converted on failover)",
+    "lastSync": "Last sync",
+    "recoveryPoints": "Recovery points",
+    "replicaSize": "Replica size",
+    "failBack": "Fail back",
+    "undo": "Undo",
+    "seeding": "Seeding…",
+    "failOver": "Fail over"
+  },
+  "menu": {
+    "manage": "Manage {{name}}",
+    "failbackToSource": "Fail back to source",
+    "undoFailover": "Undo failover",
+    "failover": "Fail over…",
+    "seedingCantFailover": "Seeding — can't fail over",
+    "undoToDelete": "Undo failover to delete",
+    "deleteReplica": "Delete replica…"
+  },
+  "delete": {
+    "title": "Delete replica?",
+    "pointsPhrase_one": "its {{count}} recovery point",
+    "pointsPhrase_other": "all {{count}} recovery points",
+    "targetFallback": "the target host",
+    "confirm": "Delete replica",
+    "pending": "Deleting…",
+    "desc": {
+      "failover": "<1>{{name}}</1> is currently failed over and can't be deleted yet.",
+      "hasVm": "This permanently deletes the standby replica <1>{{name}}</1> for {{source}} on {{target}}. The replica VM and {{points}} will be removed from the target host. This can't be undone.",
+      "noVm": "This permanently deletes the standby replica <1>{{name}}</1> for {{source}}. Its seed never finished materializing a VM on {{target}}, so deleting it clears its record and {{points}} — there's no VM on the host to remove. This can't be undone."
+    },
+    "banner": {
+      "failoverTitle": "This replica is currently failed over",
+      "failoverBody": "It's powered on and serving as the live workload. Fail back to the source or undo the failover before deleting it.",
+      "reseedTitle": "The job will re-seed",
+      "reseedBody": "<1>{{job}}</1> will create a fresh replica on its next run — a full read and transfer of the source. Your source VM and the replication job are not affected."
+    },
+    "toast": {
+      "successTitle": "Replica for {{name}} deleted",
+      "successRemoved": "Removed from {{target}}. “{{job}}” re-seeds a full replica on its next run.",
+      "successCleared": "The replica record was cleared. “{{job}}” seeds a fresh replica on its next run.",
+      "errorTitle": "Couldn't delete replica",
+      "errorBody": "The appliance didn't confirm the deletion. Nothing was removed — try again."
+    }
+  },
+  "confirm": {
+    "failback": {
+      "title": "Fail back to {{name}}?",
+      "description": "AltaStor syncs changes made on the replica back to the original source, powers the replica down, and returns <1>{{name}}</1> to production. The replica goes back to standby and resumes protecting the source.",
+      "confirm": "Fail back",
+      "pending": "Failing back…",
+      "toastTitle": "{{name}} is back in production",
+      "toastBody": "Control returned to the source · {{replica}} is on standby again."
+    },
+    "undo": {
+      "title": "Undo failover of {{name}}?",
+      "description": "This <1>discards everything the replica wrote</1> while it was serving, powers it down, and puts it back on standby — as if the failover never happened. Use this when the source is healthy and you don't want the replica's changes.",
+      "confirm": "Discard & undo",
+      "pending": "Undoing…",
+      "toastTitle": "Failover of {{name}} undone",
+      "toastBody": "Failover writes discarded · the replica is back on standby."
+    },
+    "errorTitle": "That didn't complete",
+    "errorBody": "Check the target host connection and try again."
+  },
+  "failover": {
+    "title": "Fail over to {{name}}?",
+    "description": "The replica powers on and starts serving on <1>{{env}}</1>{{hostSuffix}}. The source <3>{{source}}</3> is taken out of rotation until you fail back.",
+    "kindLabel": "How are you failing over?",
+    "planned": {
+      "title": "Planned",
+      "description": "Graceful. Run a final sync so nothing is lost, then cut over."
+    },
+    "unplanned": {
+      "title": "Unplanned",
+      "description": "Disaster. The source is gone — boot the replica from a recovery point now."
+    },
+    "recoveryPoint": "Recovery point",
+    "noPoints": "No recovery points available yet — this replica has nothing to boot from.",
+    "choosePoint": "Choose a recovery point…",
+    "pointType": {
+      "full": "Full",
+      "incremental": "Incremental"
+    },
+    "latest": "latest",
+    "hint": {
+      "unplanned": "Pick the last point you trust — anything written to the source after this is not on the replica.",
+      "planned": "A final sync runs first, so the latest point captures the source right up to cutover."
+    },
+    "banner": {
+      "unplanned": "<1>No final sync.</1> Writes made to {{source}} after the chosen point are lost. Use this only when the source is unreachable.",
+      "planned": "AltaStor runs one last incremental sync, powers the source down, then brings the replica up on {{platform}}. Failback later returns control to the source."
+    },
+    "pending": "Failing over…",
+    "confirmUnplanned": "Fail over now",
+    "confirmPlanned": "Fail over gracefully",
+    "toast": {
+      "title": "{{name}} is now serving",
+      "unplanned": "Unplanned failover complete — the replica is powered on on {{env}}.",
+      "planned": "Planned failover complete — a final sync ran and the replica is live on {{env}}.",
+      "errorTitle": "Failover didn't complete",
+      "errorBody": "The replica was not brought online. Check the target host connection and try again."
+    }
+  }
+}

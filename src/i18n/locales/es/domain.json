@@ -1,0 +1,69 @@
+{
+  "protection": {
+    "protected": "Protegido",
+    "warning": "Fuera de RPO",
+    "unprotected": "No protegido"
+  },
+  "session": {
+    "success": "Correcto",
+    "warning": "Advertencia",
+    "failed": "Fallido",
+    "running": "En ejecución",
+    "queued": "En cola"
+  },
+  "sourceType": {
+    "vm": { "noun": "VM", "nounPlural": "VMs", "jobLabel": "Copia de seguridad de VM" },
+    "disk": { "noun": "disco", "nounPlural": "discos", "jobLabel": "Copia de seguridad de disco" },
+    "files": { "noun": "servidor", "nounPlural": "servidores", "jobLabel": "Copia de seguridad de archivos" },
+    "physicalHost": { "noun": "servidor", "nounPlural": "servidores", "jobLabel": "Copia de seguridad de servidor físico" }
+  },
+  "objectCount": {
+    "vm_one": "{{count}} VM",
+    "vm_other": "{{count}} VMs",
+    "disk_one": "{{count}} disco",
+    "disk_other": "{{count}} discos",
+    "files_one": "{{count}} servidor",
+    "files_other": "{{count}} servidores",
+    "physicalHost_one": "{{count}} servidor",
+    "physicalHost_other": "{{count}} servidores"
+  },
+  "platform": {
+    "vmware": { "label": "VMware vSphere", "short": "vSphere", "hostTerm": "host", "hostTermPlural": "hosts" },
+    "proxmox": { "label": "Proxmox VE", "short": "Proxmox", "hostTerm": "nodo", "hostTermPlural": "nodos" },
+    "hyperv": { "label": "Microsoft Hyper-V", "short": "Hyper-V", "hostTerm": "host", "hostTermPlural": "hosts" }
+  },
+  "raid": {
+    "hint": {
+      "raid1": "Espejo — la mitad de la capacidad bruta, tolera el fallo de 1 disco",
+      "raid5": "Paridad simple — tolera el fallo de 1 disco",
+      "raid6": "Paridad doble — tolera el fallo de 2 discos",
+      "raid10": "Espejos con distribución — rápido, tolera el fallo de 1 disco"
+    },
+    "error": {
+      "minMembers": "{{level}} necesita al menos {{min}} discos miembros",
+      "evenMembers": "RAID10 requiere un número par de discos miembros",
+      "sameMedia": "Todos los miembros y discos de reserva deben ser de la misma clase de medio"
+    }
+  },
+  "restorePoint": {
+    "tooltip": {
+      "full": "Completa — esta ejecución leyó el disco entero. Se restaura por sí sola.",
+      "incremental": "Incremental — esta ejecución solo leyó los bloques que cambiaron desde la anterior. Aun así se restaura por sí sola; no depende de la copia completa."
+    },
+    "selfContainedNote": "Cada punto se puede restaurar de forma independiente — «completa» frente a «incremental» indica cuántos datos se ingirieron, no una dependencia de restauración."
+  },
+  "worldMode": {
+    "live": {
+      "title": "Conectado a la appliance en directo",
+      "description": "Ahora está viendo el backend real."
+    },
+    "sim": {
+      "title": "Cambiado a la simulación de demostración",
+      "description": "Datos de demostración autónomos — la appliance no se ve afectada."
+    },
+    "error": {
+      "title": "No se pudo conectar con la appliance",
+      "description": "¿Está el backend (server/) en ejecución en :4980?"
+    }
+  }
+}

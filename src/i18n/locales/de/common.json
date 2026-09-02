@@ -1,0 +1,51 @@
+{
+  "actions": {
+    "save": "Speichern",
+    "cancel": "Abbrechen",
+    "close": "Schließen",
+    "confirm": "Bestätigen",
+    "delete": "Löschen",
+    "remove": "Entfernen",
+    "edit": "Bearbeiten",
+    "add": "Hinzufügen",
+    "create": "Erstellen",
+    "apply": "Anwenden",
+    "discard": "Verwerfen",
+    "retry": "Wiederholen",
+    "refresh": "Aktualisieren",
+    "back": "Zurück",
+    "next": "Weiter",
+    "previous": "Vorherige",
+    "done": "Fertig",
+    "search": "Suchen",
+    "clear": "Leeren",
+    "copy": "Kopieren",
+    "download": "Herunterladen",
+    "view": "Anzeigen",
+    "select": "Auswählen",
+    "selectAll": "Alle auswählen",
+    "dismiss": "Ausblenden",
+    "enable": "Aktivieren",
+    "disable": "Deaktivieren",
+    "reset": "Zurücksetzen"
+  },
+  "generic": {
+    "loading": "Wird geladen…",
+    "none": "Keine",
+    "all": "Alle",
+    "yes": "Ja",
+    "no": "Nein",
+    "enabled": "Aktiviert",
+    "disabled": "Deaktiviert",
+    "unknown": "Unbekannt",
+    "na": "—"
+  },
+  "time": {
+    "never": "Nie"
+  },
+  "calendar": {
+    "today": "Heute",
+    "prevMonth": "Voriger Monat",
+    "nextMonth": "Nächster Monat"
+  }
+}

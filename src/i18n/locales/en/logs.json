@@ -1,0 +1,41 @@
+{
+  "page": {
+    "title": "Logs",
+    "description": "System events on the appliance, including activity reported by the backup agents."
+  },
+  "actions": {
+    "export": "Export"
+  },
+  "export": {
+    "menuLabel": "Export logs",
+    "supportBundle": "Support bundle",
+    "systemLog": "System log (.log)"
+  },
+  "toast": {
+    "exportedSystem_one": "Exported {{count}} system log line",
+    "exportedSystem_other": "Exported {{count}} system log lines",
+    "exportedSupportBundle": "Support bundle downloaded",
+    "exportSupportBundleFailed": "Couldn't generate the support bundle"
+  },
+  "stats": {
+    "systemWarnings": "System warnings · 24h",
+    "agentEvents": "Agent events · 24h"
+  },
+  "filters": {
+    "clearSearch": "Clear search"
+  },
+  "system": {
+    "sources": "Sources",
+    "searchLabel": "Search system log messages",
+    "searchPlaceholder": "Search messages…",
+    "liveTail": "Live tail",
+    "toggleLiveTail": "Toggle live tail",
+    "downloadLog": "Download .log",
+    "lineCount_one": "{{formatted}} line",
+    "lineCount_other": "{{formatted}} lines",
+    "filteredToSources_one": " · filtered to {{count}} source",
+    "filteredToSources_other": " · filtered to {{count}} sources",
+    "streaming": " · streaming",
+    "following": " · following the appliance's log"
+  }
+}

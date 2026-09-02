@@ -1,0 +1,16 @@
+{
+  "dashboard": "Dashboard",
+  "backups": "Backup",
+  "replication": "Replication",
+  "activity": "Activity",
+  "restore": "Restore",
+  "inventory": "Inventory",
+  "backupInfrastructure": "Backup infrastructure",
+  "repositories": "Repositories",
+  "logs": "Logs",
+  "settings": "Settings",
+  "manage": "Manage",
+  "home": "AltaStor home",
+  "expandSidebar": "Expand sidebar",
+  "collapseSidebar": "Collapse sidebar"
+}

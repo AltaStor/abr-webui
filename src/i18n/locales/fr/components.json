@@ -1,0 +1,66 @@
+{
+  "dataTable": {
+    "range": "{{start}}–{{end}} sur {{total}}",
+    "selected_one": "{{count}} sélectionné",
+    "selected_other": "{{count}} sélectionnés",
+    "previousPage": "Page précédente",
+    "nextPage": "Page suivante"
+  },
+  "immutable": {
+    "chip": "Immuable",
+    "chipDays": "Immuable · {{days}} j",
+    "lockedUntil": "Verrouillé jusqu’au {{date}}",
+    "lockedGeneric": "Copie immuable — verrouillée jusqu’à l’expiration de sa fenêtre"
+  },
+  "pipeline": {
+    "title": "Pipeline",
+    "bottleneck": "Goulot d’étranglement : {{label}}",
+    "bottleneckNone": "Goulot d’étranglement : —",
+    "bottleneckHint": "Déduit de l’endroit où la conduite de transfert attend — contre-pression du référentiel vs attente de la lecture invité / du LAN. Une lecture au mieux du pipeline, pas une mesure matérielle.",
+    "bottleneckLabel": {
+      "source": "Source (lecture invité)",
+      "network": "Réseau (LAN)",
+      "target": "Cible (référentiel)"
+    },
+    "stage": {
+      "source": { "label": "Source", "sub": "lecture invité" },
+      "network": { "label": "Réseau", "sub": "sur le LAN" },
+      "target": { "label": "Cible", "sub": "référentiel · physique" },
+      "replicaLabel": "Réplica",
+      "replicaSub": "→ disque virtuel",
+      "networkReplicaSub": "vers la cible · liaison",
+      "pulled": "lu",
+      "pool": "pool"
+    },
+    "caption": {
+      "staging": "Lecture et préparation de l’image source sur l’appliance — le transfert vers l’hôte cible démarre ensuite.",
+      "replicaRate": "Écriture de <1>{{rate}}</1> dans le disque virtuel du réplica sur l’hôte cible{{wire}} — aucun référentiel, aucune passe de déduplication.",
+      "replicaBlocks": "Écriture des blocs modifiés dans le disque virtuel du réplica sur l’hôte cible{{wire}} — aucun référentiel, aucune passe de déduplication.",
+      "onWire": " ({{rate}} sur la liaison)",
+      "incremental": "Reconstruction de l’image à <1>{{rate}}</1> logique — une sauvegarde incrémentielle réémet l’image complète depuis le référentiel via localhost, il ne s’agit donc pas du débit de la liaison ni de l’écriture au référentiel.",
+      "processing": "Traitement de <1>{{rate}}</1> de l’image invité ; l’écriture au référentiel correspond à l’empreinte physique après déduplication + compression.",
+      "fallback": "L’écriture au référentiel correspond aux octets physiques après déduplication + compression."
+    }
+  },
+  "logViewer": {
+    "filter": {
+      "info": "Infos",
+      "warnings": "Avertissements",
+      "errors": "Erreurs"
+    },
+    "live": "en direct",
+    "pauseAutoScroll": "Suspendre le défilement automatique",
+    "resumeAutoScroll": "Reprendre le défilement automatique",
+    "scrollToLatest": "Défiler jusqu’au dernier",
+    "empty": {
+      "title": "Aucune sortie de journal pour le moment",
+      "description": "Les lignes s’afficheront ici en continu une fois l’exécution démarrée."
+    }
+  },
+  "brand": {
+    "tagline": "Sauvegarde et réplication"
+  },
+  "progressBar": {
+    "label": "Progression"
+  }
+}

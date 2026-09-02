@@ -1,0 +1,16 @@
+{
+  "dashboard": "Tableau de bord",
+  "backups": "Sauvegarde",
+  "replication": "Réplication",
+  "activity": "Activité",
+  "restore": "Restauration",
+  "inventory": "Inventaire",
+  "backupInfrastructure": "Infrastructure de sauvegarde",
+  "repositories": "Référentiels",
+  "logs": "Journaux",
+  "settings": "Paramètres",
+  "manage": "Gérer",
+  "home": "Accueil AltaStor",
+  "expandSidebar": "Développer la barre latérale",
+  "collapseSidebar": "Réduire la barre latérale"
+}

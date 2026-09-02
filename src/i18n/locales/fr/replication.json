@@ -1,0 +1,318 @@
+{
+  "page": {
+    "title": "Réplication",
+    "description": "Des réplicas prêts à démarrer pour une reprise après sinistre rapide. Gérez les tâches de réplication, puis voyez précisément vers quel hôte chaque VM bascule.",
+    "newJob": "Nouvelle tâche de réplication",
+    "empty": {
+      "title": "Aucune réplication pour l'instant",
+      "description": "Créez une tâche de réplication pour conserver une copie prête à démarrer d'une VM sur un hôte cible — basculez en quelques secondes, rebasculez lorsque la source est saine."
+    },
+    "kpi": {
+      "replicas": "Réplicas",
+      "inSync": "Synchronisés",
+      "failedOver": "Basculés",
+      "outOfRpo": "Hors RPO",
+      "acrossJobs_one": "Sur {{count}} tâche de réplication",
+      "acrossJobs_other": "Sur {{count}} tâches de réplication",
+      "withinRpo": "Dans le RPO · décalage moyen {{lag}}",
+      "servingDr": "Réplicas actifs en reprise après sinistre",
+      "noActiveFailovers": "Aucun basculement actif",
+      "lagPastTarget": "Décalage au-delà de la cible — dérive ou dépassement",
+      "allWithinTarget": "Tous les réplicas dans la cible"
+    },
+    "tabs": {
+      "jobs": "Tâches",
+      "replicatedVms": "VMs répliquées"
+    }
+  },
+  "state": {
+    "seeding": "Amorçage",
+    "ready": "Synchronisés",
+    "syncing": "Synchronisation",
+    "failover": "Basculement — actif",
+    "failback": "Rebascule en cours",
+    "error": "Erreur"
+  },
+  "health": {
+    "error": "Erreur",
+    "breach": "Dépassement du RPO",
+    "failover": "Basculement",
+    "drifting": "Dérive",
+    "syncing": "Synchronisation",
+    "inSync": "Synchronisés"
+  },
+  "jobs": {
+    "columns": {
+      "job": "Tâche",
+      "status": "État",
+      "targetSite": "Site cible",
+      "schedule": "Planification",
+      "replicas": "Réplicas",
+      "health": "Santé",
+      "lastRun": "Dernière exécution",
+      "success": "Réussite"
+    },
+    "status": {
+      "paused": "En pause"
+    },
+    "filters": {
+      "all": "Tous les états",
+      "running": "En cours",
+      "healthy": "Sain",
+      "warning": "Attention requise",
+      "paused": "En pause"
+    },
+    "toolbar": {
+      "searchPlaceholder": "Rechercher des tâches de réplication par nom ou portée…",
+      "searchAria": "Rechercher des tâches de réplication",
+      "filterByStatus": "Filtrer par état"
+    },
+    "selectAllAria": "Sélectionner toutes les tâches",
+    "selectRowAria": "Sélectionner {{name}}",
+    "selection": {
+      "count_one": "{{count}} sélectionné",
+      "count_other": "{{count}} sélectionnés",
+      "clearAria": "Effacer la sélection"
+    },
+    "actions": {
+      "run": "Exécuter",
+      "pause": "Mettre en pause"
+    },
+    "empty": {
+      "noJobsTitle": "Aucune tâche de réplication pour l'instant",
+      "noJobsDescription": "Créez une tâche de réplication pour conserver des copies prêtes à démarrer de vos VMs sur un hôte cible et permettre un basculement rapide.",
+      "noMatchTitle": "Aucune tâche ne correspond à vos filtres",
+      "noMatchDescription": "Essayez un autre terme de recherche ou filtre d'état."
+    },
+    "toast": {
+      "started": {
+        "title": "{{name}} démarrée",
+        "description": "Suivez le flux de synchronisation en direct dans l'Activité.",
+        "watch": "Suivre"
+      },
+      "paused": {
+        "title": "{{name}} est en pause",
+        "description": "Activez la tâche pour l'exécuter."
+      },
+      "alreadyRunning": {
+        "title": "{{name}} est déjà en cours",
+        "description": "Laissez d'abord la synchronisation en cours se terminer."
+      },
+      "enabled": {
+        "title": "{{name}} activée",
+        "description": "Elle se resynchronisera lors de sa prochaine fenêtre planifiée."
+      },
+      "pausedToggle": {
+        "title": "{{name}} mise en pause",
+        "description": "Elle ne se resynchronisera pas tant que vous ne l'aurez pas réactivée."
+      },
+      "deleted": {
+        "title": "{{name}} supprimée",
+        "description": "Les réplicas en veille ont été supprimés ; tout basculement actif est conservé."
+      },
+      "deleteFailed": {
+        "title": "Impossible de supprimer {{name}}",
+        "description": "L'appliance n'a pas confirmé — la tâche est inchangée."
+      },
+      "bulkStarted": {
+        "title_one": "{{count}} tâche démarrée",
+        "title_other": "{{count}} tâches démarrées",
+        "someSkipped": "Certaines étaient en pause ou déjà en cours.",
+        "syncing": "Synchronisation en cours."
+      },
+      "bulkPaused": {
+        "title_one": "{{count}} tâche mise en pause",
+        "title_other": "{{count}} tâches mises en pause"
+      },
+      "bulkDeleted": {
+        "title_one": "{{count}} tâche supprimée",
+        "title_other": "{{count}} tâches supprimées",
+        "description": "Réplicas en veille supprimés ; basculements actifs conservés."
+      },
+      "bulkDeletedPartial": {
+        "title": "{{deleted}} tâches sur {{total}} supprimées",
+        "description": "L'appliance n'a pas confirmé les autres — elles sont inchangées."
+      }
+    }
+  },
+  "map": {
+    "searchPlaceholder": "Trouver une VM ou un hôte…",
+    "searchAria": "Rechercher des VMs répliquées et des hôtes",
+    "groupBy": "Regrouper la topologie par",
+    "grouping": {
+      "hosts": "Hôtes",
+      "sites": "Sites"
+    },
+    "legendHint": "· épaisseur = VMs · animé = synchronisation",
+    "scopedCount": "<1>{{scoped}}</1> sur {{total}} VMs répliquées",
+    "totalReplicasRoutes_one": "<1>{{total}}</1> VMs répliquées · {{routes}} route",
+    "totalReplicasRoutes_other": "<1>{{total}}</1> VMs répliquées · {{routes}} routes",
+    "replicatedVmsCount_one": "{{count}} VM répliquée",
+    "replicatedVmsCount_other": "{{count}} VMs répliquées",
+    "routesCount_one": "{{count}} route",
+    "routesCount_other": "{{count}} routes",
+    "selection": "sélection",
+    "showing": "Affichage de {{filter}}",
+    "replicasHeading": "Réplicas",
+    "clearFilter": "Effacer le filtre",
+    "viewModeAria": "Mode d'affichage des réplicas",
+    "view": {
+      "list": "Liste",
+      "cards": "Cartes"
+    },
+    "empty": {
+      "noReplicatedTitle": "Aucune VM répliquée pour l'instant",
+      "noReplicatedDescription": "Créez une tâche de réplication pour conserver une copie prête à démarrer d'une VM sur un hôte cible, puis regardez la topologie s'illuminer ici.",
+      "noMatchTitle": "Aucun réplica ne correspond",
+      "noMatchDescription": "Essayez un autre terme de recherche, ou effacez le filtre pour voir toute la topologie."
+    },
+    "role": {
+      "source": "Réplication depuis",
+      "both": "Source et cible",
+      "target": "Réplication vers"
+    },
+    "direction": {
+      "both": "envoie {{out}}, reçoit {{in}}",
+      "target": "reçoit {{in}}",
+      "source": "réplique en sortie {{out}}"
+    },
+    "term": {
+      "site": "site"
+    },
+    "node": {
+      "aria": "{{label}} — {{site}}, {{direction}}, {{health}}. {{state}}.",
+      "selected": "Sélectionné",
+      "showOnly": "Afficher uniquement les réplicas de ce {{term}}"
+    },
+    "job": {
+      "title": "Topologie source → réplica"
+    },
+    "fallback": {
+      "source": "Source",
+      "unplaced": "non placé",
+      "target": "Cible {{platform}}"
+    }
+  },
+  "list": {
+    "replicatedVm": "VM répliquée",
+    "route": "Route",
+    "state": "État",
+    "rpoLag": "Décalage RPO",
+    "lastSync": "Dernière synchronisation",
+    "size": "Taille",
+    "crossPlatform": "multiplateforme"
+  },
+  "card": {
+    "from": "de {{job}}",
+    "poweredOn": "Démarré · traite le trafic",
+    "source": "Source {{platform}}",
+    "target": "Cible {{platform}}",
+    "crossPlatform": "Multiplateforme · {{source}} → {{target}} (converti au basculement)",
+    "lagLabel": "Décalage de réplication (RPO)",
+    "targetLag": "cible {{duration}}",
+    "within": "Dans le RPO",
+    "drifting": "Dérive",
+    "breached": "Dépassé",
+    "lastSync": "Dernière synchronisation",
+    "recoveryPoints": "Points de récupération",
+    "replicaSize": "Taille du réplica",
+    "failBack": "Rebasculer",
+    "undo": "Annuler",
+    "seeding": "Amorçage…",
+    "failOver": "Basculer"
+  },
+  "menu": {
+    "manage": "Gérer {{name}}",
+    "failbackToSource": "Rebasculer vers la source",
+    "undoFailover": "Annuler le basculement",
+    "failover": "Basculer…",
+    "seedingCantFailover": "Amorçage — basculement impossible",
+    "undoToDelete": "Annuler le basculement pour supprimer",
+    "deleteReplica": "Supprimer le réplica…"
+  },
+  "delete": {
+    "title": "Supprimer le réplica ?",
+    "pointsPhrase_one": "son {{count}} point de récupération",
+    "pointsPhrase_other": "ses {{count}} points de récupération",
+    "targetFallback": "l'hôte cible",
+    "confirm": "Supprimer le réplica",
+    "pending": "Suppression…",
+    "desc": {
+      "failover": "<1>{{name}}</1> est actuellement basculé et ne peut pas encore être supprimé.",
+      "hasVm": "Cette action supprime définitivement le réplica en veille <1>{{name}}</1> pour {{source}} sur {{target}}. La VM réplica et {{points}} seront supprimés de l'hôte cible. Cette action est irréversible.",
+      "noVm": "Cette action supprime définitivement le réplica en veille <1>{{name}}</1> pour {{source}}. Son amorçage n'a jamais abouti à la matérialisation d'une VM sur {{target}}, donc sa suppression efface son enregistrement et {{points}} — il n'y a aucune VM à supprimer sur l'hôte. Cette action est irréversible."
+    },
+    "banner": {
+      "failoverTitle": "Ce réplica est actuellement basculé",
+      "failoverBody": "Il est démarré et sert de charge de travail active. Rebasculez vers la source ou annulez le basculement avant de le supprimer.",
+      "reseedTitle": "La tâche procédera à un nouvel amorçage",
+      "reseedBody": "<1>{{job}}</1> créera un réplica neuf lors de sa prochaine exécution — une lecture et un transfert complets de la source. Votre VM source et la tâche de réplication ne sont pas affectées."
+    },
+    "toast": {
+      "successTitle": "Réplica de {{name}} supprimé",
+      "successRemoved": "Supprimé de {{target}}. « {{job}} » ré-amorce un réplica complet lors de sa prochaine exécution.",
+      "successCleared": "L'enregistrement du réplica a été effacé. « {{job}} » amorce un réplica neuf lors de sa prochaine exécution.",
+      "errorTitle": "Impossible de supprimer le réplica",
+      "errorBody": "L'appliance n'a pas confirmé la suppression. Rien n'a été supprimé — réessayez."
+    }
+  },
+  "confirm": {
+    "failback": {
+      "title": "Rebasculer vers {{name}} ?",
+      "description": "AltaStor synchronise les modifications faites sur le réplica vers la source d'origine, arrête le réplica et remet <1>{{name}}</1> en production. Le réplica revient en veille et reprend la protection de la source.",
+      "confirm": "Rebasculer",
+      "pending": "Rebascule en cours…",
+      "toastTitle": "{{name}} est de nouveau en production",
+      "toastBody": "Contrôle rendu à la source · {{replica}} est de nouveau en veille."
+    },
+    "undo": {
+      "title": "Annuler le basculement de {{name}} ?",
+      "description": "Cette action <1>abandonne tout ce que le réplica a écrit</1> pendant qu'il était actif, l'arrête et le remet en veille — comme si le basculement n'avait jamais eu lieu. Utilisez ceci lorsque la source est saine et que vous ne souhaitez pas conserver les modifications du réplica.",
+      "confirm": "Abandonner et annuler",
+      "pending": "Annulation…",
+      "toastTitle": "Basculement de {{name}} annulé",
+      "toastBody": "Écritures de basculement abandonnées · le réplica est de nouveau en veille."
+    },
+    "errorTitle": "L'opération ne s'est pas terminée",
+    "errorBody": "Vérifiez la connexion à l'hôte cible et réessayez."
+  },
+  "failover": {
+    "title": "Basculer vers {{name}} ?",
+    "description": "Le réplica démarre et commence à servir sur <1>{{env}}</1>{{hostSuffix}}. La source <3>{{source}}</3> est retirée de la rotation jusqu'à ce que vous rebasculiez.",
+    "kindLabel": "Comment effectuez-vous le basculement ?",
+    "planned": {
+      "title": "Planifié",
+      "description": "En douceur. Exécutez une synchronisation finale pour ne rien perdre, puis basculez."
+    },
+    "unplanned": {
+      "title": "Non planifié",
+      "description": "Sinistre. La source est perdue — démarrez le réplica depuis un point de récupération maintenant."
+    },
+    "recoveryPoint": "Point de récupération",
+    "noPoints": "Aucun point de récupération disponible pour l'instant — ce réplica n'a rien à partir de quoi démarrer.",
+    "choosePoint": "Choisir un point de récupération…",
+    "pointType": {
+      "full": "Complet",
+      "incremental": "Incrémentiel"
+    },
+    "latest": "le plus récent",
+    "hint": {
+      "unplanned": "Choisissez le dernier point auquel vous faites confiance — tout ce qui a été écrit sur la source après n'est pas sur le réplica.",
+      "planned": "Une synchronisation finale s'exécute d'abord, de sorte que le point le plus récent capture la source jusqu'au basculement."
+    },
+    "banner": {
+      "unplanned": "<1>Pas de synchronisation finale.</1> Les écritures faites sur {{source}} après le point choisi sont perdues. N'utilisez ceci que lorsque la source est inaccessible.",
+      "planned": "AltaStor exécute une dernière synchronisation incrémentielle, arrête la source, puis démarre le réplica sur {{platform}}. Une rebascule ultérieure rend le contrôle à la source."
+    },
+    "pending": "Basculement en cours…",
+    "confirmUnplanned": "Basculer maintenant",
+    "confirmPlanned": "Basculer en douceur",
+    "toast": {
+      "title": "{{name}} est maintenant actif",
+      "unplanned": "Basculement non planifié terminé — le réplica est démarré sur {{env}}.",
+      "planned": "Basculement planifié terminé — une synchronisation finale a été exécutée et le réplica est actif sur {{env}}.",
+      "errorTitle": "Le basculement ne s'est pas terminé",
+      "errorBody": "Le réplica n'a pas été mis en ligne. Vérifiez la connexion à l'hôte cible et réessayez."
+    }
+  }
+}

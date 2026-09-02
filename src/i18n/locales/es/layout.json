@@ -1,0 +1,56 @@
+{
+  "cmdPalette": {
+    "title": "Paleta de comandos",
+    "description": "Busca y salta a cualquier página o acción",
+    "searchPlaceholder": "Escribe un comando o busca VM, trabajos…",
+    "empty": "No se encontraron resultados.",
+    "group": {
+      "navigation": "Navegación",
+      "actions": "Acciones",
+      "language": "Idioma",
+      "runJob": "Ejecutar un trabajo",
+      "jumpToVm": "Ir a VM",
+      "jumpToServer": "Ir a servidor"
+    },
+    "createJob": "Crear trabajo de copia",
+    "switchToLight": "Cambiar al modo claro",
+    "switchToDark": "Cambiar al modo oscuro",
+    "connectLive": "Conectar con la appliance en vivo",
+    "switchDemo": "Cambiar a la simulación de demostración",
+    "runJobLabel": "Ejecutar · {{name}}",
+    "started": "«{{name}}» iniciado",
+    "startedDescription": "Sigue su progreso en vivo en Actividad.",
+    "alreadyRunning": "«{{name}}» ya se está ejecutando o está desactivado."
+  },
+  "topbar": {
+    "openMenu": "Abrir menú",
+    "search": "Buscar",
+    "toggleTheme": "Alternar tema",
+    "accountMenu": "Menú de cuenta",
+    "settings": "Configuración",
+    "signOut": "Cerrar sesión",
+    "signOutToast": "Este es un prototipo de front-end: no hay ninguna sesión real que cerrar.",
+    "navigation": "Navegación",
+    "navigationMenu": "Menú de navegación principal",
+    "demoData": "Datos de demostración",
+    "demoDataTip": "Mostrando el entorno de demostración integrado. ⌘K → «Conectar con la appliance en vivo» para cambiar.",
+    "reconnecting": "Reconectando…",
+    "reconnectingTip": "Se perdió el flujo de eventos de la appliance: reconectando.",
+    "demoSimulation": "Simulación de demostración",
+    "liveAppliance": "Appliance en vivo"
+  },
+  "notifications": {
+    "aria": "Notificaciones",
+    "ariaUnread": "Notificaciones, {{count}} sin leer",
+    "title": "Notificaciones",
+    "threats_one": "{{count}} amenaza",
+    "threats_other": "{{count}} amenazas",
+    "markAllRead": "Marcar todo como leído",
+    "allCaughtUp": "Estás al día"
+  },
+  "apiVersionBanner": {
+    "title": "Versión de API incompatible",
+    "fallback": "Las versiones de API de la consola y la appliance son incompatibles. Recarga la página cuando finalice la implementación o contacta a tu administrador.",
+    "reload": "Recargar"
+  }
+}

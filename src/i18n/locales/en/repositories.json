@@ -1,0 +1,217 @@
+{
+  "type": {
+    "hardenedImmutable": {
+      "label": "Hardened Linux repository",
+      "short": "Hardened repository"
+    },
+    "objectLockS3": {
+      "label": "S3 storage",
+      "short": "Object storage"
+    },
+    "nfs": {
+      "label": "NFS share",
+      "short": "NFS share"
+    },
+    "smb": {
+      "label": "SMB / CIFS share",
+      "short": "SMB share"
+    },
+    "local": {
+      "label": "Local storage",
+      "short": "Local storage"
+    }
+  },
+  "status": {
+    "healthy": "Healthy",
+    "warning": "Filling up",
+    "offline": "Offline"
+  },
+  "integrity": {
+    "verified": {
+      "label": "Verified",
+      "blurb": "All chunks checksum-verified against the manifest."
+    },
+    "scanning": {
+      "label": "Scanning",
+      "blurb": "Re-hashing stored chunks and cross-checking the index."
+    },
+    "issues": {
+      "label": "Issues found",
+      "blurb": "Some chunks failed verification — a rescan or repair is advised."
+    },
+    "never": {
+      "label": "Never scanned",
+      "blurb": "This repository hasn't been integrity-checked yet."
+    }
+  },
+  "compression": {
+    "none": {
+      "label": "None",
+      "hint": "Fastest writes, no space savings"
+    },
+    "optimal": {
+      "label": "Optimal",
+      "hint": "Balanced ratio and CPU (recommended)"
+    },
+    "high": {
+      "label": "High",
+      "hint": "Maximum ratio, higher CPU cost"
+    }
+  },
+  "actions": {
+    "manage": "Manage {{name}}",
+    "editSettings": "Edit settings",
+    "scanning": "Scanning…",
+    "rescan": "Rescan",
+    "exitMaintenance": "Exit maintenance",
+    "enterMaintenance": "Enter maintenance",
+    "delete": "Delete repository"
+  },
+  "toast": {
+    "rescanStarted": {
+      "title": "Integrity scan started…",
+      "description": "Re-verifying every chunk in {{name}} against its manifest."
+    },
+    "rescanFailed": {
+      "title": "Couldn't start the integrity scan",
+      "description": "{{name}} could not be scanned. Try again in a moment."
+    },
+    "maintenanceOn": {
+      "title": "Maintenance mode on",
+      "description": "{{name}} is read-only and jobs are paused while you service it."
+    },
+    "maintenanceOff": {
+      "title": "Maintenance mode off",
+      "description": "{{name}} is back online and accepting backups."
+    },
+    "maintenanceFailed": {
+      "title": "Couldn't change maintenance mode",
+      "description": "{{name}}'s maintenance state was not updated. Try again."
+    }
+  },
+  "card": {
+    "openDetails": "Open {{name}} details",
+    "importedSubtitle": "Imported backups · read-only",
+    "threatLockedTitle": "Sealed by threat response — holds restore points for {{names}}",
+    "threatLocked": "Threat-locked",
+    "maintenance": "Maintenance",
+    "scanningIntegrity": "Scanning integrity",
+    "capacityOfFree": "of {{capacity}} · {{free}} free",
+    "elasticNote": "Elastic storage · no fixed capacity",
+    "percentUsed": "{{pct}}% used",
+    "criticallyFull": " · critically full",
+    "runningLow": " · running low",
+    "metric": {
+      "restorePoints": "Restore points",
+      "jobsWritingHere": "Jobs writing here"
+    }
+  },
+  "detail": {
+    "inMaintenance": "In maintenance · read-only, jobs paused",
+    "threatLockedTitle": "Threat-locked · sealed by threat response",
+    "threatLockedBody": "This repository holds restore points for {{names}}, currently under active threat investigation. The seal lifts automatically when the threat is contained or dismissed.",
+    "storagePath": "Storage path",
+    "shareAccount": "Share account",
+    "storageMode": "Storage mode",
+    "directNoDedup": "Direct (no dedup)",
+    "deduplicated": "Deduplicated",
+    "shareOffline": "· share offline",
+    "capacity": "Capacity",
+    "usedOfFree": "{{used}} of {{capacity}} · {{free}} free",
+    "usedElastic": "{{used}} used",
+    "elasticNote": "Elastic storage · no fixed capacity",
+    "percentUsedTrend": "{{pct}}% used · 14-day trend",
+    "percentUsedNoTrend": "{{pct}}% used · no history yet",
+    "lastScan": "Last scan",
+    "jobsWriting": "Jobs writing to this repository",
+    "noJobsTarget": "No jobs currently target this repository.",
+    "footer": {
+      "rescan": "Rescan",
+      "maintenance": "Maintenance"
+    }
+  },
+  "add": {
+    "defaultName": "New repository",
+    "toast": {
+      "failed": {
+        "title": "Couldn't add repository",
+        "description": "The appliance refused the request — check the path and capacity, then try again."
+      },
+      "shareOffline": {
+        "title": "Repository added, but the share is offline",
+        "description": "{{name}} — couldn't mount {{path}}. Check the host is reachable, the share exists, and the credentials are right."
+      },
+      "added": {
+        "title": "Repository added",
+        "smbDedup": "{{name}} — mounted, deduplicated, ready to receive backups.",
+        "smbDirect": "{{name}} — mounted, direct (no dedup), ready to receive backups.",
+        "ready": "{{name}} — {{size}} ready to receive backups."
+      }
+    },
+    "trigger": "Add repository",
+    "title": "Add repository",
+    "description": "Point AltaStor at storage you already own.",
+    "nameLabel": "Name",
+    "namePlaceholder": "e.g. AltaStor Repository",
+    "nameInvalid": "Use up to 125 Latin letters, numbers, spaces, dots, underscores, or hyphens — starting with a letter or number.",
+    "typeLabel": "Type",
+    "capacityLabel": "Capacity",
+    "capacityUnit": "Capacity unit",
+    "sharePathLabel": "Share path (UNC)",
+    "pathLabel": "Path",
+    "shareCredentials": "Share credentials",
+    "username": "Username",
+    "password": "Password",
+    "domainLabel": "Domain / workgroup <1>(optional)</1>",
+    "credentialsNote": "Used to mount the SMB/CIFS share. The password is stored in the appliance credential vault and never shown again.",
+    "storageMode": "Storage mode",
+    "mode": {
+      "deduplicated": {
+        "title": "Deduplicated",
+        "hint": "Chunked + compressed on the share — saves space"
+      },
+      "direct": {
+        "title": "Direct",
+        "hint": "Whole files, no dedup — less CPU, faster restores"
+      }
+    },
+    "storageModeNote": "Turn dedup off when the share is on a dedup appliance/NAS, or when faster restores and lower CPU matter more than space.",
+    "adding": "Adding…"
+  },
+  "delete": {
+    "toast": {
+      "deleted": {
+        "title": "Repository deleted",
+        "description": "{{name}} was removed. Its storage is released and no new backups can target it."
+      },
+      "failed": {
+        "title": "Couldn't delete repository",
+        "description": "{{name}} could not be removed. Try again in a moment."
+      }
+    },
+    "title": "Delete {{name}}?",
+    "description": "Removing a repository releases its storage. This can't be undone.",
+    "jobsBlock_one": "<1>{{count}}</1> job still targets this repository — repoint or remove it first.",
+    "jobsBlock_other": "<1>{{count}}</1> jobs still target this repository — repoint or remove them first.",
+    "jobsWarning_one": "<1>{{count}}</1> job currently targets this repository. It will fail on the next run until re-pointed at another target.",
+    "jobsWarning_other": "<1>{{count}}</1> jobs currently target this repository. They will fail on the next run until re-pointed at another target.",
+    "typeToConfirm": "Type <1>{{name}}</1> to confirm",
+    "deleting": "Deleting…"
+  },
+  "edit": {
+    "toast": {
+      "saved": {
+        "title": "Repository settings saved",
+        "descriptionGeneric": "{{name}}'s settings were updated."
+      },
+      "failed": {
+        "title": "Couldn't save repository settings",
+        "description": "{{name}}'s changes were not applied. Try again in a moment."
+      }
+    },
+    "title": "Edit repository",
+    "description": "Rename this repository.",
+    "saving": "Saving…",
+    "saveSettings": "Save settings"
+  }
+}

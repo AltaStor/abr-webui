@@ -1,0 +1,250 @@
+{
+  "page": {
+    "title": "Infrastructure de sauvegarde",
+    "description": "Vos appliances AltaStor et le stockage où résident vos sauvegardes — les nœuds, les grappes et les pools de la flotte, ainsi que les référentiels ciblés par vos sauvegardes.",
+    "navAria": "Sections de l'infrastructure de sauvegarde"
+  },
+  "sections": {
+    "repositories": {
+      "label": "Référentiels",
+      "blurb": "Cibles de sauvegarde et stockage immuable"
+    },
+    "appliances": {
+      "label": "Appliances",
+      "blurb": "Nœuds AltaStor, stockage et niveaux"
+    }
+  },
+  "fleet": {
+    "count_one": "{{count}} appliance",
+    "count_other": "{{count}} appliances",
+    "addAppliance": "Ajouter une appliance",
+    "thisConsole": "Cette console",
+    "healthy": "Sain",
+    "unreachable": "Injoignable",
+    "localStorage": "Stockage local",
+    "pools_one": "{{count}} pool",
+    "pools_other": "{{count}} pools",
+    "removedToast": "{{name}} retirée",
+    "removedToastDescription": "L'appliance continue de fonctionner — elle n'est simplement plus affichée ici.",
+    "removeDialog": {
+      "title": "Retirer {{name}} ?",
+      "body": "L'appliance à l'adresse <1>{{endpoint}}</1> continue de fonctionner et conserve toutes ses données — elle disparaît uniquement de cette console. Vous pouvez la rajouter par son adresse à tout moment."
+    },
+    "archiveTier": {
+      "label": "Niveau d'archivage",
+      "on": "activé — les points de plus de {{days}} jours sont déplacés vers le stockage froid",
+      "off": "désactivé — tous les points restent sur le stockage principal",
+      "configure": "Configurer"
+    }
+  },
+  "detail": {
+    "lastSeen": "vue pour la dernière fois {{time}}",
+    "unreachableLastSeen": "injoignable — vue pour la dernière fois {{time}}",
+    "never": "jamais",
+    "registered": "enregistrée {{time}}",
+    "openConsole": "Ouvrir la console",
+    "probeFailed": "Cette appliance n'a pas répondu à la dernière sonde — affichage de son dernier état connu.",
+    "probeFailedSince": "Cette appliance n'a pas répondu à la dernière sonde — affichage de son dernier état connu du {{time}}.",
+    "noStorage": "Aucun stockage signalé pour l'instant — actualisez une fois le provisionnement de l'appliance terminé, ou ouvrez sa console pour configurer le stockage."
+  },
+  "legacy": {
+    "localStorage": "Stockage local",
+    "allRepositories": "Tous les référentiels",
+    "noLocalPools": "Cette appliance n'a aucun pool de stockage local — ses référentiels résident sur des cibles externes.",
+    "unsupported": "La gestion des disques et du RAID nécessite une version plus récente de l'appliance — affichage du récapitulatif des référentiels à la place."
+  },
+  "repos": {
+    "toolbar": "Les référentiels immuables scellent chaque point de restauration pendant une fenêtre déterminée, de sorte qu'un compte compromis ne puisse ni le modifier ni le supprimer.",
+    "kpi": {
+      "totalCapacity": "Capacité totale",
+      "totalCapacityHint_one": "Sur {{count}} référentiel",
+      "totalCapacityHint_other": "Sur {{count}} référentiels",
+      "used": "Utilisé",
+      "usedHint": "{{pct}} % de la capacité totale",
+      "immutableShare": "Part immuable",
+      "immutableShareHint_one": "{{count}} référentiel durci et immuable",
+      "immutableShareHint_other": "{{count}} référentiels durcis et immuables",
+      "avgDedup": "Taux de dédup. moyen",
+      "avgDedupHint": "Déduplication et compression sur l'ensemble des référentiels"
+    },
+    "health": {
+      "title": "État du stockage",
+      "reclaimable": "Récupérable",
+      "reclaimableHint": "garbage collection en attente",
+      "inMaintenance": "En maintenance",
+      "integrityIssues": "Problèmes d'intégrité",
+      "threatLocked": "Verrouillé (menace)",
+      "threatLockedHint": "scellé par la réponse aux menaces"
+    },
+    "empty": {
+      "title": "Aucun référentiel pour l'instant",
+      "description": "Pointez AltaStor vers un stockage que vous possédez déjà. Les cibles immuables maintiennent chaque point de restauration en lecture seule jusqu'à l'expiration de sa fenêtre de verrouillage."
+    }
+  },
+  "addAppliance": {
+    "title": "Ajouter une appliance",
+    "description": "Déployez d'abord AltaStor sur le nouveau nœud, puis enregistrez son adresse ici. L'appliance continue de se gérer elle-même — cette console affiche son état et son stockage aux côtés de celui-ci.",
+    "addressLabel": "Adresse",
+    "addressHint": "Hôte ou hôte:port — le plan de contrôle utilise par défaut le port 4980.",
+    "nameLabel": "Nom (facultatif)",
+    "namePlaceholder": "Par défaut, le nom d'hôte de l'appliance",
+    "probing": "Sondage…",
+    "registeredToast": "{{name}} enregistrée"
+  },
+  "createArray": {
+    "title": "Créer une grappe RAID",
+    "description": "Construisez une nouvelle grappe à partir de disques non affectés. Elle devient disponible comme stockage de pool une fois qu'un système de fichiers y est provisionné.",
+    "nameLabel": "Nom",
+    "levelLabel": "Niveau RAID",
+    "membersLabel": "Disques membres",
+    "noUnassigned": "Aucun disque non affecté — chaque disque détecté appartient déjà à une grappe.",
+    "useAsMember": "Utiliser {{slot}} comme membre",
+    "spareLabel": "Disque de secours à chaud (facultatif)",
+    "noSpare": "Aucun disque de secours à chaud",
+    "usableAfter": "≈ <1>{{size}}</1> utilisable après {{level}} {{mode}}",
+    "mirroring": "mise en miroir",
+    "parity": "parité",
+    "creating": "Création…",
+    "createButton": "Créer la grappe",
+    "createdToast": "Grappe « {{name}} » créée",
+    "createdToastDescription": "{{level}} · {{size}} utilisable. Elle apparaît sur la carte comme « pas encore pooled ».",
+    "buildStartedToast": "Construction de la grappe démarrée sur l'appliance",
+    "buildStartedToastDescription": "mdadm l'assemble en ce moment — elle apparaît sur la carte en quelques secondes. Sinon, consultez les alertes."
+  },
+  "diskAction": {
+    "requestFailed": "Échec de la requête",
+    "replace": {
+      "title": "Remplacer le disque",
+      "bodyArray": "Remplacez {{slot}} ({{model}}) par un disque neuf dans le même emplacement. La grappe {{array}} se resynchronise sur le nouveau disque — la redondance est rétablie une fois la reconstruction terminée.",
+      "bodyLoose": "Remplacez {{slot}} ({{model}}) par un disque neuf dans le même emplacement. Le nouveau disque devient disponible pour les grappes.",
+      "confirm": "Remplacer le disque",
+      "pending": "Remplacement…",
+      "toast": "Remplacement demandé",
+      "toastArray": "{{array}} se resynchronise sur le nouveau disque dans {{slot}}.",
+      "toastLoose": "{{slot}} est de nouveau en service."
+    },
+    "fail": {
+      "title": "Marquer le disque comme défaillant",
+      "bodyArray": "Mettez {{slot}} ({{model}}) hors service (mdadm --fail). La grappe {{array}} se dégrade et se reconstruit sur un disque de secours à chaud lorsqu'un est disponible — faites-le pour préparer le disque au retrait.",
+      "bodyLoose": "Mettez {{slot}} ({{model}}) hors service (mdadm --fail).",
+      "confirm": "Marquer comme défaillant",
+      "pending": "Marquage…",
+      "toast": "Disque marqué comme défaillant",
+      "toastDescription": "{{slot}} est hors service."
+    }
+  },
+  "section": {
+    "storage": "Stockage",
+    "allRepositories": "Tous les référentiels",
+    "createArray": "Créer une grappe",
+    "createArrayHint": "Nécessite au moins 2 disques non affectés",
+    "manageOnConsole": "Gérer sur sa console",
+    "locateOnMap": "Localiser sur la carte",
+    "replaceDisk": "Remplacer le disque",
+    "notInAnyArray": "Dans aucune grappe :",
+    "looseAvailableNew": "{{count}} disponible(s) pour une nouvelle grappe",
+    "looseAvailableConsole": "{{count}} disponible(s) — provisionner depuis sa propre console",
+    "looseSparesStandby": "des disques de secours à chaud sont en attente pour leurs grappes"
+  },
+  "storage": {
+    "arrayState": {
+      "optimal": "Optimal",
+      "degraded": "Dégradé",
+      "rebuilding": "Reconstruction",
+      "failed": "En échec"
+    },
+    "diskStatus": {
+      "healthy": "Dans la grappe",
+      "failing": "Défaillant",
+      "failed": "En échec",
+      "spare": "Secours à chaud",
+      "unassigned": "Disponible"
+    },
+    "summary": {
+      "healthy": "Sain",
+      "degraded": "Dégradé",
+      "attention": "Attention",
+      "rebuilding": "Reconstruction",
+      "arraysOptimal_one": "{{count}} grappe optimale",
+      "arraysOptimal_other": "{{count}} grappes optimales",
+      "arraysOptimalOf_one": "{{optimal}} grappe optimale sur {{count}}",
+      "arraysOptimalOf_other": "{{optimal}} grappes optimales sur {{count}}",
+      "disksHealthy_one": "{{count}} disque sain",
+      "disksHealthy_other": "{{count}} disques sains",
+      "disksAttention_one": "{{count}} disque nécessite une attention",
+      "disksAttention_other": "{{count}} disques nécessitent une attention",
+      "hotSpares_one": "{{count}} disque de secours à chaud",
+      "hotSpares_other": "{{count}} disques de secours à chaud"
+    },
+    "issues": {
+      "arrayFailed": "La grappe {{name}} ({{id}}) est en échec — ses données sont hors ligne",
+      "arrayDegraded": "La grappe {{name}} ({{id}}) est dégradée — aucun disque de secours disponible, redondance réduite",
+      "arrayRebuilding": "La grappe {{name}} ({{id}}) se reconstruit — {{percent}} % à {{speed}} MB/s",
+      "diskFailingIn": "{{slot}} est défaillant (SMART) dans {{array}}",
+      "diskFailing": "{{slot}} est défaillant (SMART)",
+      "diskFailedIn": "{{slot}} est en échec dans {{array}}",
+      "diskFailed": "{{slot}} est en échec — remplacez-le pour remettre l'emplacement en service"
+    }
+  },
+  "map": {
+    "columns": {
+      "arrays": {
+        "title": "Grappes RAID",
+        "sub": "disques physiques"
+      },
+      "pools": {
+        "title": "Pools",
+        "sub": "système de fichiers et niveaux"
+      },
+      "repos": {
+        "title": "Référentiels",
+        "sub": "cibles de sauvegarde"
+      }
+    },
+    "rebuilding": "Reconstruction",
+    "array": {
+      "osHint": "Miroir de l'OS — contient l'appliance elle-même, jamais de sauvegardes",
+      "unpooledHint": "Pas encore pooled — aucun système de fichiers n'utilise cette grappe",
+      "usable": "{{device}} · {{size}} utilisable",
+      "rebuildLabel": "Reconstruction {{percent}} %",
+      "rebuildEta": "{{percent}} % · ETA {{eta}} · {{speed}} MB/s",
+      "aria_one": "Grappe {{name}} ({{id}}) — {{level}}, {{state}}, {{count}} disque",
+      "aria_other": "Grappe {{name}} ({{id}}) — {{level}}, {{state}}, {{count}} disques",
+      "spotlightAria": "Mettre en évidence la grappe {{name}} ({{id}})"
+    },
+    "disk": {
+      "notReportedAria": "Disque membre (non signalé par l'appliance)",
+      "ariaIn": "Disque {{slot}} — {{status}} dans {{array}}",
+      "aria": "Disque {{slot}} — {{status}}",
+      "title": "{{slot}} · {{model}} · {{status}}",
+      "serial": "Numéro de série",
+      "capacity": "Capacité",
+      "media": "Support",
+      "arrayFact": "Grappe",
+      "temperature": "Température",
+      "temperatureValue": "{{value}} °C",
+      "powerOn": "Heures de fonctionnement",
+      "days_one": "{{count}} jour",
+      "days_other": "{{count}} jours",
+      "smartErrors": "Erreurs SMART",
+      "smartNotCollected": "La télémétrie SMART n'est pas encore collectée depuis cette appliance.",
+      "replaceDisk": "Remplacer le disque",
+      "markFailed": "Marquer comme défaillant",
+      "markFailedHint": "Prépare le disque au retrait — la grappe se dégrade et se reconstruit sur un disque de secours à chaud lorsqu'un est disponible."
+    },
+    "pool": {
+      "aria_one": "Pool {{name}} — {{count}} niveau, {{used}} sur {{capacity}} utilisés",
+      "aria_other": "Pool {{name}} — {{count}} niveaux, {{used}} sur {{capacity}} utilisés",
+      "dedup": "dédup {{ratio}}×"
+    },
+    "tier": {
+      "noArray": "aucune grappe attachée",
+      "s3": "S3",
+      "nfs": "NFS",
+      "smbShare": "Partage SMB"
+    },
+    "repo": {
+      "aria": "Référentiel {{name}} — {{used}} sur {{capacity}} utilisés"
+    }
+  }
+}

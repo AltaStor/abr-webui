@@ -1,0 +1,291 @@
+{
+  "saved": {
+    "title": "Configuración guardada"
+  },
+  "page": {
+    "title": "Configuración",
+    "description": "Configura la apariencia, las notificaciones y la seguridad de la consola.",
+    "unreachable": {
+      "title": "No se pudo leer la configuración de este dispositivo",
+      "description": "El appliance no pudo cargar sus ajustes. Los valores que aparecen a continuación pueden ser predeterminados o estar desactualizados. Los cambios no se pueden guardar hasta que los ajustes vuelvan a cargarse."
+    }
+  },
+  "rail": {
+    "sectionLabel": "Sección de configuración",
+    "sectionsNav": "Secciones de configuración",
+    "sectionAnnounce": "Configuración de {{section}}"
+  },
+  "sections": {
+    "appearance": {
+      "label": "Apariencia",
+      "blurb": "Tema, idioma y acento"
+    },
+    "notifications": {
+      "label": "Notificaciones",
+      "blurb": "Elige qué eventos te notifican"
+    },
+    "security": {
+      "label": "Seguridad",
+      "blurb": "Acceso, inmutabilidad y usuarios"
+    },
+    "about": {
+      "label": "Acerca de",
+      "blurb": "Versión, licencia y enlaces"
+    }
+  },
+  "controls": {
+    "unsavedChanges": "Cambios sin guardar",
+    "saveChanges": "Guardar cambios",
+    "removeItem": "Eliminar {{value}}",
+    "saveUnavailable": "Dispositivo inaccesible: guardar deshabilitado"
+  },
+  "units": {
+    "cores": "núcleos"
+  },
+  "toast": {
+    "connectLive": "Conéctate a una appliance activa para usar esto.",
+    "copyFailed": "No se pudo copiar al portapapeles"
+  },
+  "appearance": {
+    "title": "Apariencia",
+    "description": "Ajusta la consola a tu gusto. El tema se aplica al instante; el resto se guarda con la sección.",
+    "savedDescription": "Preferencias de apariencia actualizadas.",
+    "language": {
+      "label": "Idioma",
+      "description": "El idioma de visualización de la consola."
+    },
+    "theme": {
+      "label": "Tema",
+      "description": "Oscuro por defecto: la appliance está más a gusto de noche.",
+      "dark": "Oscuro",
+      "light": "Claro"
+    },
+    "accent": {
+      "label": "Acento",
+      "description": "El color de resaltado para los estados seleccionados y el foco."
+    },
+    "swatch": {
+      "emerald": "Esmeralda",
+      "cyan": "Hielo",
+      "blue": "Azul",
+      "violet": "Violeta",
+      "amber": "Ámbar"
+    }
+  },
+  "notifications": {
+    "savedDescription": "Preferencias de notificación actualizadas.",
+    "events": {
+      "title": "Eventos",
+      "description": "Elige qué eventos te notifican.",
+      "jobFailure": {
+        "label": "Fallo de trabajo",
+        "blurb": "Una ejecución de copia de seguridad falla o da errores"
+      },
+      "jobSuccess": {
+        "label": "Trabajo correcto",
+        "blurb": "Una ejecución se completa sin problemas"
+      },
+      "immutabilityViolation": {
+        "label": "Violación de inmutabilidad",
+        "blurb": "Se rechaza la eliminación de un punto sellado"
+      },
+      "capacityWarning": {
+        "label": "Aviso de capacidad",
+        "blurb": "Un repositorio se acerca a su límite"
+      },
+      "restoreCompleted": {
+        "label": "Restauración completada",
+        "blurb": "Una recuperación finaliza"
+      }
+    }
+  },
+  "security": {
+    "access": {
+      "title": "Acceso y política",
+      "description": "Cambia la contraseña de tu cuenta."
+    },
+    "session": {
+      "title": "Duración de la sesión",
+      "description": "Cuánto tiempo permanece activa una sesión antes de que debas iniciar sesión de nuevo.",
+      "label": "Mantener sesión iniciada durante",
+      "hint": "Se aplica de inmediato a esta sesión y a los próximos inicios de sesión en este navegador.",
+      "savedDescription": "Duración de la sesión actualizada.",
+      "applyFailed": {
+        "title": "No se aplicó la duración de la sesión",
+        "description": "Se guardó localmente, pero no se pudo contactar con el equipo — se aplicará en el próximo inicio de sesión."
+      },
+      "hours_one": "{{count}} hora",
+      "hours_other": "{{count}} horas",
+      "minutes_one": "{{count}} minuto",
+      "minutes_other": "{{count}} minutos"
+    },
+    "changePassword": {
+      "currentLabel": "Contraseña actual",
+      "newLabel": "Nueva contraseña",
+      "confirmLabel": "Confirmar nueva contraseña",
+      "requirements": "Al menos {{count}} caracteres.",
+      "currentRequired": "Introduce tu contraseña actual.",
+      "tooShort": "Debe tener al menos {{count}} caracteres.",
+      "mismatch": "Las contraseñas no coinciden.",
+      "submit": "Cambiar contraseña",
+      "submitting": "Cambiando…",
+      "success": "Contraseña cambiada."
+    },
+    "roles": {
+      "admin": {
+        "label": "Administrador",
+        "blurb": "Control total, incluidas seguridad y usuarios"
+      },
+      "operator": {
+        "label": "Operador",
+        "blurb": "Ejecutar trabajos y restauraciones; sin cambios de política"
+      },
+      "viewer": {
+        "label": "Observador",
+        "blurb": "Solo lectura en toda la appliance"
+      }
+    },
+    "userStatus": {
+      "active": "Activo",
+      "invited": "Invitado",
+      "disabled": "Deshabilitado"
+    },
+    "users": {
+      "title": "Usuarios",
+      "description": "Personas que pueden iniciar sesión en esta appliance y lo que pueden hacer.",
+      "invite": "Invitar usuario",
+      "columns": {
+        "user": "Usuario",
+        "role": "Rol",
+        "status": "Estado",
+        "mfa": "MFA",
+        "lastActive": "Última actividad"
+      },
+      "mfaOn": "Activado",
+      "mfaOff": "Desactivado",
+      "empty": {
+        "title": "Sin usuarios",
+        "description": "Invita a alguien para empezar."
+      },
+      "removeUserAction": "Eliminar usuario",
+      "menu": {
+        "actionsAria": "Acciones para {{name}}",
+        "changeRole": "Cambiar rol",
+        "enableAccount": "Habilitar cuenta",
+        "disableAccount": "Deshabilitar cuenta"
+      }
+    },
+    "removeUser": {
+      "title": "¿Eliminar a {{name}}?",
+      "description": "Perderá el acceso a esta appliance de inmediato. Su historial de auditoría se conserva. Esto no se puede deshacer."
+    },
+    "tokens": {
+      "title": "Tokens de API",
+      "description": "Credenciales para la API de AltaStor, la CLI y las integraciones.",
+      "create": "Crear token",
+      "empty": {
+        "title": "Sin tokens de API",
+        "description": "Crea un token para autenticar la API, la CLI o el proveedor de Terraform."
+      },
+      "fullAccess": "Acceso completo",
+      "readOnly": "Solo lectura",
+      "created": "Creado el {{date}}",
+      "lastUsed": "Último uso {{value}}",
+      "never": "nunca",
+      "revokeAria": "Revocar {{name}}",
+      "hidePrefix": "Ocultar prefijo del token",
+      "revealPrefix": "Mostrar prefijo del token",
+      "copyPrefix": "Copiar prefijo del token"
+    },
+    "revokeToken": {
+      "title": "¿Revocar {{name}}?",
+      "description": "Cualquier cliente que use este token perderá el acceso de inmediato. Esto no se puede deshacer.",
+      "confirm": "Revocar token"
+    },
+    "toast": {
+      "roleUpdated": "Rol actualizado",
+      "roleUpdatedDesc": "{{name}} → {{role}}",
+      "userDisabled": "Usuario deshabilitado",
+      "userEnabled": "Usuario habilitado",
+      "invitationSent": "Invitación enviada",
+      "invitationSentDesc": "{{name}} ({{role}})",
+      "userRemoved": "Usuario eliminado",
+      "tokenPrefixCopied": "Prefijo del token copiado",
+      "tokenRevoked": "Token revocado"
+    }
+  },
+  "about": {
+    "brand": {
+      "tagline": "Copias de seguridad grabadas en piedra.",
+      "openSource": "Libre y de código abierto · inmutable por diseño"
+    },
+    "appliance": {
+      "title": "Appliance",
+      "description": "Identidad y hardware de este nodo.",
+      "applianceName": "Nombre de la appliance",
+      "hostname": "Nombre de host",
+      "version": "Versión",
+      "build": "Compilación",
+      "os": "Sistema operativo",
+      "kernel": "Kernel",
+      "uptime": "Tiempo de actividad",
+      "cpu": "CPU",
+      "memory": "Memoria",
+      "noAppliance": "Los detalles de hardware los reporta un dispositivo conectado.",
+      "probeFailed": "No se pudieron leer los detalles de hardware del dispositivo. Los campos que él reporta se muestran como «—»."
+    },
+    "license": {
+      "title": "Licencia y recursos",
+      "description": "AltaStor es software libre y de código abierto.",
+      "openSourceTitle": "Libre y de código abierto",
+      "openSourceBlurb": "Sin licencias por usuario, sin tarifas por VM. Autoalojado y libre de inspeccionar."
+    },
+    "links": {
+      "documentation": {
+        "label": "Documentación",
+        "blurb": "Guías, referencia de la API y tutoriales"
+      },
+      "github": {
+        "label": "GitHub",
+        "blurb": "Código, incidencias y versiones"
+      },
+      "community": {
+        "label": "Comunidad",
+        "blurb": "Haz preguntas y comparte configuraciones"
+      }
+    },
+    "releaseNotes": "Notas de la versión"
+  },
+  "createToken": {
+    "copyTitle": "Copia tu token",
+    "createTitle": "Crear token de API",
+    "copyDescription": "Esta es la única vez que se muestra el token completo. Guárdalo en un lugar seguro.",
+    "createDescription": "Los tokens autentican la API y la CLI de AltaStor. Limítalos al mínimo necesario.",
+    "copyAria": "Copiar token",
+    "treatLikePassword": "Trátalo como una contraseña. Cualquiera que tenga este token puede actuar como cliente <0>{{scope}}</0>.",
+    "scopeFull": "de acceso completo",
+    "scopeReadOnly": "de solo lectura",
+    "nameLabel": "Nombre",
+    "scopesLabel": "Ámbitos",
+    "readOnly": {
+      "title": "Solo lectura",
+      "blurb": "Consultar el estado; sin cambios"
+    },
+    "fullAccess": {
+      "title": "Acceso completo",
+      "blurb": "Ejecutar trabajos y restauraciones"
+    },
+    "create": "Crear token",
+    "toast": {
+      "created": "Token creado"
+    }
+  },
+  "inviteUser": {
+    "title": "Invitar usuario",
+    "description": "Recibirá una invitación para establecer una contraseña y registrar la MFA.",
+    "name": "Nombre completo",
+    "email": "Correo",
+    "role": "Rol",
+    "send": "Enviar invitación"
+  }
+}

@@ -1,0 +1,65 @@
+{
+  "greeting": {
+    "morning": "Good morning",
+    "afternoon": "Good afternoon",
+    "evening": "Good evening"
+  },
+  "header": {
+    "loading": "Loading protection posture…",
+    "unavailable": "Protection posture unavailable",
+    "descriptionVmOnly": "Protecting {{protected}} of {{total}} VMs across {{env}} environments · {{points}} restore points",
+    "descriptionWithPhysical": "Protecting {{protected}} of {{total}} VMs and {{physicalProtected}} of {{physicalTotal}} physical servers across {{env}} environments · {{points}} restore points"
+  },
+  "error": {
+    "title": "Could not load the dashboard summary",
+    "body": "The appliance did not answer, so these figures are unknown — they are not zero.",
+    "retry": "Retry"
+  },
+  "kpi": {
+    "coverage": {
+      "label": "Protection coverage",
+      "hint": "{{protected}} of {{total}} VMs protected",
+      "drill": "{{count}} unprotected →"
+    },
+    "success": {
+      "label": "24h success rate",
+      "hint": "{{runs}} runs · {{failed}} failed",
+      "drill": "View activity →"
+    }
+  },
+  "activity": {
+    "title": "Backup activity",
+    "subtitle": "Last 14 days · {{count}} runs",
+    "successRate": "success rate over the window",
+    "noRuns": "no runs in the window",
+    "totalRuns": "Total runs",
+    "ariaLabel": "Backup activity: {{rate}}% success over {{days}} days, {{runs}} total runs, {{failed}} failed.",
+    "ariaLabelNoRuns": "Backup activity: no runs recorded over {{days}} days, so there is no success rate."
+  },
+  "donut": {
+    "title": "Protection status",
+    "center": "{{protected}} of {{total}} protected",
+    "ariaLabel": "Protection: {{coverage}}% of {{total}} VMs protected, {{warning}} at risk, {{unprotected}} unprotected."
+  },
+  "live": {
+    "title": "Live activity",
+    "allActivity": "All activity",
+    "statusNone": "No active backup runs.",
+    "statusOne": "{{name}} running.",
+    "statusMany": "{{count}} backup runs in progress.",
+    "emptyNoRuns": "No active runs right now.",
+    "emptyNextScheduled": "Next scheduled {{when}}.",
+    "progressLabel": "{{name}} {{kind}} progress",
+    "staging": "Reading & staging source",
+    "processing": "Processing {{name}}",
+    "stagingShort": "staging…",
+    "recentCompletions": "Recent completions"
+  },
+  "storage": {
+    "title": "Storage",
+    "repositories": "Repositories",
+    "ofFree": "of {{total}} · {{free}} free",
+    "usedAcross_one": "{{percent}}% used across {{count}} repository",
+    "usedAcross_other": "{{percent}}% used across {{count}} repositories"
+  }
+}

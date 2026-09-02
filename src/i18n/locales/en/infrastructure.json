@@ -1,0 +1,187 @@
+{
+  "vmCount_one": "{{count}} VM",
+  "vmCount_other": "{{count}} VMs",
+  "hostCount_one": "{{count}} host",
+  "hostCount_other": "{{count}} hosts",
+  "rescanVms": "Rescan VMs",
+  "connected": "Connected",
+  "disconnected": "Disconnected",
+  "error": {
+    "rejected": "The appliance rejected the request (HTTP {{status}}).",
+    "unreachable": "The appliance is unreachable."
+  },
+  "deploy": {
+    "stages": {
+      "connect": "Connect over SSH",
+      "push": "Push agent binary",
+      "install": "Install service",
+      "firewall": "Open firewall",
+      "verify": "Verify agent API",
+      "discover": "Discover VMs",
+      "done": "Done"
+    }
+  },
+  "topology": {
+    "physicalServers": "Physical servers",
+    "agentManaged_one": "{{count}} agent-managed",
+    "agentManaged_other": "{{count}} agent-managed",
+    "unknownPlatform": "Unknown platform"
+  },
+  "environment": {
+    "typeLabel": {
+      "vcenter": "vCenter Server",
+      "esxiStandalone": "Standalone ESXi host",
+      "proxmox": "Proxmox VE cluster",
+      "hyperv": "Hyper-V host"
+    },
+    "clusterNoun_one": "cluster",
+    "clusterNoun_other": "clusters",
+    "vmNoun_one": "VM",
+    "vmNoun_other": "VMs",
+    "toast": {
+      "rescanned": "Inventory rescanned",
+      "rescannedDesc": "{{name}}: {{vms}} across {{hosts}}.",
+      "rescanFailed": "Couldn't rescan the source",
+      "removed": "{{name}} removed",
+      "removedDesc": "The source was disconnected. Existing restore points are kept.",
+      "removeFailed": "Couldn't remove the source"
+    },
+    "remove": {
+      "title": "Remove {{name}}?",
+      "description": "AltaStor will disconnect this source and drop its <1>{{hostPart}}</1> and <2>{{vmPart}}</2> from inventory. Backup jobs stop protecting them; existing restore points are kept.",
+      "confirm": "Remove source"
+    }
+  },
+  "addEnv": {
+    "typeMeta": {
+      "vcenter": {
+        "title": "Connect a vCenter Server",
+        "endpointLabel": "vCenter address",
+        "blurb": "AltaStor connects to vCenter and enumerates its clusters, hosts and VMs. Backups use VADP changed-block tracking — nothing is installed in the guests."
+      },
+      "esxiStandalone": {
+        "title": "Connect a standalone ESXi host",
+        "endpointLabel": "ESXi host address",
+        "blurb": "AltaStor connects directly to the ESXi host and discovers its VMs. Backups use VADP changed-block tracking — no vCenter required."
+      },
+      "proxmox": {
+        "title": "Connect a Proxmox VE cluster",
+        "endpointLabel": "Proxmox API address",
+        "blurb": "AltaStor connects to the Proxmox API and enumerates its nodes and guests. Note: Proxmox dirty-bitmaps reset on a power-cycle, so the first backup after a reboot re-reads the full disk.",
+        "demoNoun": "nodes"
+      },
+      "hyperv": {
+        "title": "Connect a Hyper-V host or cluster",
+        "endpointLabel": "Host or cluster address",
+        "blurb": "AltaStor registers the Hyper-V host and discovers its VMs. In the live appliance a host is onboarded by deploying the RCT backup agent over SSH."
+      }
+    },
+    "titleFallback": "Connect a source",
+    "displayName": "Display name",
+    "username": "Username",
+    "password": "Password",
+    "advanced": "Advanced",
+    "verifyTls": "Verify TLS certificate",
+    "verifyTlsHelp": "Recommended. Rejects untrusted, expired, or hostname-mismatched certificates.",
+    "insecureWarning": "Certificate verification is disabled. Use this only for a trusted lab endpoint while you install a valid certificate.",
+    "demoMembers": "Demo member {{noun}}",
+    "hostCountHelp": "Sizes the simulated cluster. Live discovery determines this automatically.",
+    "hostCountError": "Enter a host count between 1 and 16.",
+    "credentialsNote": "Credentials are used to authenticate to {{platform}}. Discovered VMs stay unprotected until a backup job includes them.",
+    "connecting": "Connecting to <1>{{endpoint}}</1> and discovering VMs…",
+    "doneTitle": "{{name}} connected — {{hosts}}, {{vms}} discovered",
+    "doneDesc": "They're in your inventory now, all unprotected — select the source in the estate tree to see its VMs, then create a backup job to start protecting them.",
+    "errorTitle": "Couldn't connect",
+    "errorDefault": "The appliance couldn't connect to that endpoint.",
+    "errorUnreachable": "The appliance couldn't reach that endpoint. Check the address and credentials, then try again.",
+    "connect": "Connect & discover",
+    "connectingButton": "Connecting…",
+    "toastConnected": "{{name}} connected",
+    "toastConnectedDesc": "{{hosts}} · {{vms}} discovered — none protected yet."
+  },
+  "hyperv": {
+    "dialog": {
+      "title": "Add a Hyper-V host",
+      "description": "The agent runs on the Hyper-V host and performs VSS-consistent, changed-block backups. AltaStor installs it over SSH — no reboot, no console access needed.",
+      "host": "Host",
+      "username": "Username",
+      "password": "Password",
+      "advanced": "Advanced",
+      "port": "Agent API port",
+      "portHelp": "The port the agent listens on. AltaStor opens it in the host firewall, scoped to the appliance. Default {{port}}.",
+      "portError": "Enter a port between 1 and 65535.",
+      "credentialsNote": "Credentials are used once, over SSH, to install the service. After that AltaStor authenticates with a per-host key pinned to this appliance — you won't need this password again.",
+      "credentialsNoteOndemand": " SSH is then locked on the host; re-enable it before a future update or removal.",
+      "deploying": "Deploying the agent to <1>{{host}}</1>…",
+      "deployedHealthy": "The agent is installed and reporting healthy.",
+      "deployFailed": "Deploy failed",
+      "submit": "Deploy agent & connect",
+      "deployingButton": "Deploying…"
+    },
+    "progress": {
+      "stagesLabel": "Deployment stages"
+    },
+    "toastConnected": "Hyper-V host connected",
+    "startError": {
+      "inProgress": "A deploy for this host is already in progress.",
+      "rejected": "The appliance rejected the deploy (HTTP {{status}}).",
+      "unreachable": "Couldn't reach the appliance to start the deploy."
+    },
+    "successFallback": "Host connected — VMs discovered.",
+    "ssh": {
+      "authTitle": "SSH answered — the sign-in was rejected",
+      "authBody": "Use a local administrator account on <1>{{host}}</1>. Double-check the username and password, then Retry.",
+      "enableTitle": "Enable SSH on the Hyper-V host",
+      "enableBody": "AltaStor couldn't reach OpenSSH on <1>{{host}}</1>. It's off by default on Windows — paste this into an elevated PowerShell on the host, then click Retry.",
+      "terminalHeader": "PowerShell · run as Administrator",
+      "copyAria": "Copy the enable-SSH script",
+      "copied": "Copied",
+      "keyOnlyNote": "Once enrolled, AltaStor authenticates with a per-host key — you can then require key-only SSH:",
+      "copyFailed": "Couldn't copy to clipboard"
+    },
+    "agent": {
+      "name": "AltaStor agent",
+      "updateBadge": "Update → v{{version}}",
+      "healthy": "Healthy",
+      "notResponding": "Not responding",
+      "seen": "seen {{when}}",
+      "updateAgent": "Update agent",
+      "redeploy": "Redeploy",
+      "ondemandNote": "On-demand SSH — sshd is locked on this host between operations. Re-enable SSH on <1>{{host}}</1> before Update, Redeploy or Remove; a run that can't connect will show the one-click enable script."
+    },
+    "run": {
+      "updated": "Agent updated",
+      "redeployed": "Agent redeployed",
+      "nowVersion": "now v{{version}}",
+      "upToDate": "up to date",
+      "updateFailed": "Update failed",
+      "redeployFailed": "Redeploy failed",
+      "updating": "Updating agent…",
+      "redeploying": "Redeploying agent…"
+    },
+    "rescan": {
+      "toast": "Inventory rescanned",
+      "toastDesc": "{{name}}: {{vms}} ({{delta}}).",
+      "noChanges": "no changes",
+      "added": "{{count}} added",
+      "removed": ", {{count}} removed",
+      "failed": "Couldn't rescan the host"
+    },
+    "startActionError": {
+      "update": "Couldn't start the update",
+      "redeploy": "Couldn't start the redeploy"
+    },
+    "remove": {
+      "toast": "Hyper-V host removed",
+      "toastUninstalled": "The agent service was uninstalled from {{host}}.",
+      "toastKept": "{{name}} was disconnected. The agent is still installed on the host.",
+      "failed": "Couldn't remove the host",
+      "title": "Remove {{name}}?",
+      "description": "AltaStor will drop this connection and stop protecting the host's VMs. Existing restore points are kept.",
+      "uninstallAria": "Also uninstall the agent service from the host",
+      "uninstallLabel": "Also uninstall the agent service from the host",
+      "uninstallHelp": "Stops and removes the BasaltHyperVAgent service on {{host}}. Leave unchecked to keep it installed (e.g. to re-add later without re-deploying).",
+      "removeUninstall": "Remove & uninstall"
+    }
+  }
+}

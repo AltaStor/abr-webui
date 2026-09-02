@@ -1,0 +1,133 @@
+{
+  "page": {
+    "title": "Activité",
+    "live": "En direct",
+    "description": "Vue en direct de chaque exécution de sauvegarde, de réplication et de restauration."
+  },
+  "runKind": {
+    "restore": "Restauration",
+    "replication": "Réplication",
+    "backupCopy": "Copie de sauvegarde",
+    "diskBackup": "Sauvegarde de disque",
+    "fileBackup": "Sauvegarde de fichiers",
+    "serverBackup": "Sauvegarde de serveur",
+    "backup": "Sauvegarde"
+  },
+  "objectNouns": {
+    "disk": {
+      "singular": "Disque",
+      "plural": "Disques",
+      "compact": "Disques"
+    },
+    "server": {
+      "singular": "Serveur",
+      "plural": "Serveurs",
+      "compact": "Serveurs"
+    },
+    "vm": {
+      "singular": "Machine virtuelle",
+      "plural": "Machines virtuelles",
+      "compact": "VMs"
+    }
+  },
+  "trigger": {
+    "schedule": "Planification",
+    "manual": "Manuel"
+  },
+  "filters": {
+    "statusGroupLabel": "Filtrer les exécutions par statut",
+    "jobLabel": "Filtrer par tâche",
+    "allJobs": "Toutes les tâches",
+    "searchPlaceholder": "Rechercher des exécutions…",
+    "searchLabel": "Rechercher des exécutions",
+    "clearSearch": "Effacer la recherche"
+  },
+  "summary": {
+    "running": {
+      "label": "En cours maintenant",
+      "hintNone": "aucune exécution en cours",
+      "hint_one": "exécution en cours",
+      "hint_other": "exécutions en cours"
+    },
+    "runs24": {
+      "label": "Exécutions · 24 dernières h",
+      "hint": "{{count}} terminée(s)"
+    },
+    "successRate": {
+      "label": "Taux de réussite sur 24 h",
+      "hint": "{{ok}} sur {{total}} réussies",
+      "hintNone": "aucune exécution terminée sur la période"
+    },
+    "transferred": {
+      "label": "Transféré · 24 h",
+      "hint": "sur toutes les exécutions"
+    }
+  },
+  "feed": {
+    "columns": {
+      "status": "Statut",
+      "run": "Exécution",
+      "started": "Démarré",
+      "duration": "Durée",
+      "objects": "Objets",
+      "read": "Lu",
+      "sent": "Envoyé"
+    },
+    "listLabel": "Exécutions de sauvegarde et de restauration",
+    "showing": "Affichage de {{visible}} sur {{total}}",
+    "showMore": "Afficher plus",
+    "empty": {
+      "filteredTitle": "Aucune exécution ne correspond à ces filtres",
+      "filteredDescription": "Essayez un autre statut, une autre tâche ou un autre terme de recherche.",
+      "title": "Aucune activité pour l’instant",
+      "description": "Les exécutions de sauvegarde et de restauration apparaîtront ici dès qu’une tâche démarre.",
+      "clearFilters": "Effacer les filtres"
+    }
+  },
+  "row": {
+    "progressLabel": "Progression {{kind}} de {{job}}",
+    "aria": {
+      "started": "démarré {{time}}",
+      "percentComplete": "{{percent}} pour cent terminé",
+      "ranIn": "exécuté en {{duration}}",
+      "objects_one": "{{count}} objet",
+      "objects_other": "{{count}} objets",
+      "transferred": "{{size}} transféré"
+    }
+  },
+  "drawer": {
+    "unavailableTitle": "Exécution indisponible",
+    "unavailableDescription": "Cette exécution ne figure plus dans le flux.",
+    "emptyTitle": "Rien à afficher",
+    "emptyDescription": "L’exécution est peut-être sortie de la fenêtre d’activité.",
+    "progressLabel": "Progression de {{job}}",
+    "rate": {
+      "staging": "Préparation de la source",
+      "transfer": "Débit de transfert",
+      "repoWrite": "Écriture référentiel · physique",
+      "guestRead": "Débit de lecture invité"
+    },
+    "stat": {
+      "type": "Type",
+      "duration": "Durée",
+      "read": "Lu",
+      "transferred": "Transféré",
+      "guestRead": "Débit lecture invité",
+      "throughput": "Débit"
+    },
+    "table": {
+      "result": "Résultat",
+      "read": "Lu",
+      "sent": "Envoyé",
+      "duration": "Durée"
+    },
+    "log": "Journal",
+    "footer": {
+      "restore": "Opération de restauration",
+      "jobLabel": "Tâche {{kind}}",
+      "deleted": "Tâche supprimée — historique conservé",
+      "openRestore": "Ouvrir la restauration",
+      "openJob": "Ouvrir la tâche"
+    }
+  }
+}

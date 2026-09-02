@@ -1,0 +1,133 @@
+{
+  "page": {
+    "title": "Activity",
+    "live": "Live",
+    "description": "Live view of every backup, replication and restore run."
+  },
+  "runKind": {
+    "restore": "Restore",
+    "replication": "Replication",
+    "backupCopy": "Backup copy",
+    "diskBackup": "Disk backup",
+    "fileBackup": "File backup",
+    "serverBackup": "Server backup",
+    "backup": "Backup"
+  },
+  "objectNouns": {
+    "disk": {
+      "singular": "Disk",
+      "plural": "Disks",
+      "compact": "Disks"
+    },
+    "server": {
+      "singular": "Server",
+      "plural": "Servers",
+      "compact": "Servers"
+    },
+    "vm": {
+      "singular": "Virtual machine",
+      "plural": "Virtual machines",
+      "compact": "VMs"
+    }
+  },
+  "trigger": {
+    "schedule": "Schedule",
+    "manual": "Manual"
+  },
+  "filters": {
+    "statusGroupLabel": "Filter runs by status",
+    "jobLabel": "Filter by job",
+    "allJobs": "All jobs",
+    "searchPlaceholder": "Search runs…",
+    "searchLabel": "Search runs",
+    "clearSearch": "Clear search"
+  },
+  "summary": {
+    "running": {
+      "label": "Running now",
+      "hintNone": "nothing running now",
+      "hint_one": "run in progress",
+      "hint_other": "runs in progress"
+    },
+    "runs24": {
+      "label": "Runs · last 24h",
+      "hint": "{{count}} completed"
+    },
+    "successRate": {
+      "label": "24h success rate",
+      "hint": "{{ok}} of {{total}} succeeded",
+      "hintNone": "no runs finished in the window"
+    },
+    "transferred": {
+      "label": "Transferred · 24h",
+      "hint": "across all runs"
+    }
+  },
+  "feed": {
+    "columns": {
+      "status": "Status",
+      "run": "Run",
+      "started": "Started",
+      "duration": "Duration",
+      "objects": "Objects",
+      "read": "Read",
+      "sent": "Sent"
+    },
+    "listLabel": "Backup and restore runs",
+    "showing": "Showing {{visible}} of {{total}}",
+    "showMore": "Show more",
+    "empty": {
+      "filteredTitle": "No runs match these filters",
+      "filteredDescription": "Try a different status, job, or search term.",
+      "title": "No activity yet",
+      "description": "Backup and restore runs will appear here as soon as a job kicks off.",
+      "clearFilters": "Clear filters"
+    }
+  },
+  "row": {
+    "progressLabel": "{{job}} {{kind}} progress",
+    "aria": {
+      "started": "started {{time}}",
+      "percentComplete": "{{percent}} percent complete",
+      "ranIn": "ran in {{duration}}",
+      "objects_one": "{{count}} object",
+      "objects_other": "{{count}} objects",
+      "transferred": "{{size}} transferred"
+    }
+  },
+  "drawer": {
+    "unavailableTitle": "Run unavailable",
+    "unavailableDescription": "This run is no longer in the feed.",
+    "emptyTitle": "Nothing to show",
+    "emptyDescription": "The run may have aged out of the activity window.",
+    "progressLabel": "{{job}} progress",
+    "rate": {
+      "staging": "Staging source",
+      "transfer": "Transfer rate",
+      "repoWrite": "Repository write · physical",
+      "guestRead": "Guest read rate"
+    },
+    "stat": {
+      "type": "Type",
+      "duration": "Duration",
+      "read": "Read",
+      "transferred": "Transferred",
+      "guestRead": "Guest read rate",
+      "throughput": "Throughput"
+    },
+    "table": {
+      "result": "Result",
+      "read": "Read",
+      "sent": "Sent",
+      "duration": "Duration"
+    },
+    "log": "Log",
+    "footer": {
+      "restore": "Restore operation",
+      "jobLabel": "{{kind}} job",
+      "deleted": "Job deleted — history preserved",
+      "openRestore": "Open Restore",
+      "openJob": "Open job"
+    }
+  }
+}

@@ -1,0 +1,187 @@
+{
+  "header": {
+    "initialConfiguration": "Configuration initiale"
+  },
+  "nav": {
+    "skip": "Ignorer l'assistant – ouvrir la console quand même",
+    "begin": "Démarrer la configuration",
+    "applyConfiguration": "Appliquer la configuration",
+    "continue": "Continuer",
+    "stepsAria": "Étapes de configuration"
+  },
+  "steps": {
+    "welcome": "Bienvenue",
+    "appliance": "Appliance",
+    "storage": "Stockage",
+    "repository": "Référentiel",
+    "hypervisors": "Hyperviseurs",
+    "review": "Vérification",
+    "apply": "Appliquer"
+  },
+  "hypervisorTypes": {
+    "vcenter": "VMware vCenter",
+    "esxi-standalone": "ESXi (autonome)",
+    "hyperv": "Microsoft Hyper-V",
+    "proxmox": "Proxmox VE"
+  },
+  "errors": {
+    "disksUnreadable": "Impossible de lire les disques de l'appliance – la control plane est-elle joignable ?"
+  },
+  "welcome": {
+    "state": {
+      "checking": "Vérification de l'état de l'appliance…",
+      "unconfigured": "État d'usine – non configuré",
+      "complete": "Déjà provisionné",
+      "inProgress": "Provisionnement en cours"
+    },
+    "facts": {
+      "hostname": "Nom d'hôte",
+      "os": "Système d'exploitation",
+      "kernel": "Noyau",
+      "mgmtIp": "IP de gestion",
+      "cpu": "CPU",
+      "memory": "Mémoire"
+    },
+    "cores_one": "{{count}} cœur",
+    "cores_other": "{{count}} cœurs",
+    "title": "Configurez votre appliance",
+    "description": "Quelques minutes du bare metal à des sauvegardes renforcées : nommez l'appliance, organisez le stockage et scellez votre premier référentiel immuable. Rien n'est écrit sur le disque tant que vous n'appliquez pas.",
+    "completeNote": "Cette appliance est déjà configurée – l'application d'un nouveau manifeste nécessite d'abord une réinitialisation d'usine depuis la console de l'appliance."
+  },
+  "appliance": {
+    "title": "Appliance",
+    "description": "La façon dont cette appliance s'identifie sur votre réseau.",
+    "hostnameLabel": "Nom d'hôte",
+    "hostnameError": "Lettres, chiffres et traits d'union uniquement – jusqu'à 63 caractères.",
+    "hostnameHint": "Lettres, chiffres et traits d'union – jusqu'à 63 caractères.",
+    "networkLabel": "Réseau",
+    "networkValue": "DHCP · <1>{{ip}}</1> – modifiable via la console de l'appliance (F2)"
+  },
+  "storage": {
+    "title": "Stockage",
+    "description": "Les disques détectés par cette appliance et la configuration RAID qu'elle en construira.",
+    "columns": {
+      "slot": "Emplacement",
+      "model": "Modèle",
+      "media": "Support",
+      "size": "Taille",
+      "status": "État"
+    },
+    "diskStatus": {
+      "available": "Disponible",
+      "hotSpare": "Disque de secours",
+      "failing": "Défaillant",
+      "failed": "En panne",
+      "inArray": "Dans la matrice",
+      "healthy": "Sain"
+    },
+    "plannedLayout": "Disposition planifiée",
+    "noLayout": "Aucune disposition viable – au moins deux disques non affectés d'une même classe de support sont requis.",
+    "hotSpares_one": " + {{count}} disque de secours",
+    "hotSpares_other": " + {{count}} disques de secours",
+    "purpose": {
+      "system": "Miroir du système d'exploitation – contient l'appliance elle-même, jamais de sauvegardes",
+      "perf": "Niveau performance – les sauvegardes entrantes y arrivent en premier",
+      "staging": "Niveau intermédiaire – zone d'atterrissage rapide avant le tiering",
+      "bulk": "Niveau capacité – rétention longue durée sur disques rotatifs",
+      "default": "Niveau données"
+    },
+    "usable": "≈ {{size}} utilisable",
+    "leftover_one": "{{count}} disque reste non affecté – à revendiquer plus tard depuis Infrastructure de sauvegarde → Appliances.",
+    "leftover_other": "{{count}} disques restent non affectés – à revendiquer plus tard depuis Infrastructure de sauvegarde → Appliances.",
+    "appliedAsShown": "La disposition est appliquée exactement telle qu'affichée. Les dispositions personnalisées arriveront plus tard.",
+    "leftoverInventory_one": "{{count}} disque reste non attribué — à réclamer plus tard depuis Inventaire.",
+    "leftoverInventory_other": "{{count}} disques restent non attribués — à réclamer plus tard depuis Inventaire."
+  },
+  "repository": {
+    "title": "Référentiel",
+    "description": "Votre première cible de sauvegarde – renforcée par défaut. Les verrous sont appliqués par l'horloge de l'appliance, pas par les bonnes intentions.",
+    "nameLabel": "Nom du référentiel",
+    "namePlaceholder": "Référentiel renforcé",
+    "nameError": "Donnez un nom au référentiel.",
+    "immutability": {
+      "label": "Immuabilité",
+      "description": "Chaque point de restauration est scellé dès son arrivée – aucune modification, aucune suppression, jusqu'à l'expiration de son verrou. Un ransomware qui atteint l'appliance ne trouve rien à chiffrer.",
+      "daysLabel": "Fenêtre de verrouillage (jours)",
+      "daysHint": "Chaque point de restauration reste scellé pendant ce nombre de jours après son arrivée (1–3650).",
+      "modeLabel": "Mode",
+      "modeAria": "Mode d'immuabilité",
+      "compliance": {
+        "title": "Conformité",
+        "description": "Personne ne peut déverrouiller par anticipation – pas même les administrateurs. Le verrou survit aux identifiants volés."
+      },
+      "governance": {
+        "title": "Gouvernance",
+        "description": "Les administrateurs peuvent forcer le déverrouillage ; chaque dérogation est auditée."
+      }
+    },
+    "encryption": {
+      "label": "Chiffrement (AES-256)",
+      "description": "Les points de restauration sont chiffrés au repos. Un disque volé est une brique, pas une fuite."
+    }
+  },
+  "hypervisors": {
+    "title": "Hyperviseurs",
+    "description": "Connectez les environnements qu'AltaStor doit protéger. Facultatif – vous pouvez aussi connecter des environnements plus tard depuis l'Inventaire.",
+    "environmentN": "Environnement {{n}}",
+    "removeEnvironment": "Supprimer l'environnement {{n}}",
+    "typeLabel": "Type",
+    "typeAria": "Type d'hyperviseur",
+    "endpointLabel": "Point de terminaison",
+    "usernameLabel": "Nom d'utilisateur",
+    "credentialLabel": "Référence d'identifiants",
+    "credentialHint": "p. ex. vault:secret/hv-lab – les secrets ne figurent jamais dans le manifeste.",
+    "partialWarning": "Remplissez chaque champ ou videz la ligne – les lignes incomplètes ne sont pas appliquées.",
+    "addAnother": "Ajouter un autre"
+  },
+  "review": {
+    "title": "Vérification",
+    "description": "Tout ce que l'appliance est sur le point de devenir. Vérifiez-le – puis appliquez.",
+    "groups": {
+      "appliance": "Appliance",
+      "storage": "Stockage",
+      "repository": "Référentiel",
+      "hypervisors": "Hyperviseurs"
+    },
+    "hostname": "Nom d'hôte",
+    "network": "Réseau",
+    "networkValue": "DHCP · {{ip}}",
+    "spares_one": " + {{count}} disque de secours",
+    "spares_other": " + {{count}} disques de secours",
+    "layout": "Disposition",
+    "layoutAutomatic": "Automatique (planifiée au moment de l'application)",
+    "name": "Nom",
+    "immutability": "Immuabilité",
+    "immutabilityValue": "Verrous de {{days}} jours · {{mode}}",
+    "off": "Désactivé",
+    "encryption": "Chiffrement",
+    "encryptionValue": "AES-256 au repos",
+    "hypervisorValue": "{{endpoint}} en tant que {{username}}",
+    "hypervisorsEmpty": "Connecter des environnements plus tard depuis l'Inventaire",
+    "destructiveNote": "L'application écrit cette configuration sur l'appliance. La construction de la disposition de stockage est destructrice pour les disques concernés."
+  },
+  "apply": {
+    "title": "Application de la configuration",
+    "description": "L'appliance exécute le manifeste – réseau, matrices RAID, pool XFS, référentiel, connexions.",
+    "stages": {
+      "network": "Réseau et identité",
+      "storage-layout": "Disposition du stockage",
+      "pool": "Pool de stockage",
+      "repository": "Référentiel",
+      "hypervisors": "Hyperviseurs",
+      "policies": "Politiques",
+      "complete": "Finaliser"
+    },
+    "stagesAria": "Étapes de provisionnement",
+    "errorRejected": "L'appliance a rejeté la requête (HTTP {{status}}).",
+    "errorUnreachable": "Impossible de joindre la control plane de l'appliance.",
+    "ready": "Appliance prête",
+    "repoSealed": "scellé",
+    "repoCreated": "créé",
+    "doneBody": "{{hostname}} est provisionné – stockage en ligne, référentiel {{state}}. Il est temps de protéger quelque chose.",
+    "enterConsole": "Accéder à la console",
+    "backToReview": "Retour à la vérification",
+    "tryAgain": "Réessayer",
+    "progress": "Progression du provisionnement"
+  }
+}

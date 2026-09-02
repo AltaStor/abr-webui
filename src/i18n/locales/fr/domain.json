@@ -1,0 +1,69 @@
+{
+  "protection": {
+    "protected": "Protégé",
+    "warning": "Hors RPO",
+    "unprotected": "Non protégé"
+  },
+  "session": {
+    "success": "Réussi",
+    "warning": "Avertissement",
+    "failed": "Échoué",
+    "running": "En cours",
+    "queued": "En file d’attente"
+  },
+  "sourceType": {
+    "vm": { "noun": "VM", "nounPlural": "VMs", "jobLabel": "Sauvegarde de VM" },
+    "disk": { "noun": "disque", "nounPlural": "disques", "jobLabel": "Sauvegarde de disque" },
+    "files": { "noun": "serveur", "nounPlural": "serveurs", "jobLabel": "Sauvegarde de fichiers" },
+    "physicalHost": { "noun": "serveur", "nounPlural": "serveurs", "jobLabel": "Sauvegarde de serveur physique" }
+  },
+  "objectCount": {
+    "vm_one": "{{count}} VM",
+    "vm_other": "{{count}} VMs",
+    "disk_one": "{{count}} disque",
+    "disk_other": "{{count}} disques",
+    "files_one": "{{count}} serveur",
+    "files_other": "{{count}} serveurs",
+    "physicalHost_one": "{{count}} serveur",
+    "physicalHost_other": "{{count}} serveurs"
+  },
+  "platform": {
+    "vmware": { "label": "VMware vSphere", "short": "vSphere", "hostTerm": "hôte", "hostTermPlural": "hôtes" },
+    "proxmox": { "label": "Proxmox VE", "short": "Proxmox", "hostTerm": "nœud", "hostTermPlural": "nœuds" },
+    "hyperv": { "label": "Microsoft Hyper-V", "short": "Hyper-V", "hostTerm": "hôte", "hostTermPlural": "hôtes" }
+  },
+  "raid": {
+    "hint": {
+      "raid1": "Miroir — la moitié de la capacité brute, tolère la panne d’1 disque",
+      "raid5": "Parité simple — tolère la panne d’1 disque",
+      "raid6": "Double parité — tolère la panne de 2 disques",
+      "raid10": "Miroirs répartis — rapide, tolère la panne d’1 disque"
+    },
+    "error": {
+      "minMembers": "{{level}} nécessite au moins {{min}} disques membres",
+      "evenMembers": "RAID10 requiert un nombre pair de disques membres",
+      "sameMedia": "Tous les membres et disques de secours doivent appartenir à la même classe de support"
+    }
+  },
+  "restorePoint": {
+    "tooltip": {
+      "full": "Complète — cette exécution a lu l’intégralité du disque. Elle se restaure de façon autonome.",
+      "incremental": "Incrémentielle — cette exécution n’a lu que les blocs modifiés depuis la précédente. Elle se restaure malgré tout de façon autonome et ne dépend pas de la sauvegarde complète."
+    },
+    "selfContainedNote": "Chaque point est restaurable indépendamment — « complète » vs « incrémentielle » indique le volume de données ingéré, et non une dépendance de restauration."
+  },
+  "worldMode": {
+    "live": {
+      "title": "Connecté à l’appliance en direct",
+      "description": "Vous consultez à présent le véritable backend."
+    },
+    "sim": {
+      "title": "Basculé sur la simulation de démonstration",
+      "description": "Données de démonstration autonomes — l’appliance n’est pas affectée."
+    },
+    "error": {
+      "title": "Impossible de joindre l’appliance",
+      "description": "Le backend (server/) est-il en cours d’exécution sur :4980 ?"
+    }
+  }
+}

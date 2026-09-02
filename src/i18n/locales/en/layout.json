@@ -1,0 +1,56 @@
+{
+  "cmdPalette": {
+    "title": "Command palette",
+    "description": "Search and jump to any page or action",
+    "searchPlaceholder": "Type a command or search VMs, jobs…",
+    "empty": "No results found.",
+    "group": {
+      "navigation": "Navigation",
+      "actions": "Actions",
+      "language": "Language",
+      "runJob": "Run a job",
+      "jumpToVm": "Jump to VM",
+      "jumpToServer": "Jump to server"
+    },
+    "createJob": "Create backup job",
+    "switchToLight": "Switch to light mode",
+    "switchToDark": "Switch to dark mode",
+    "connectLive": "Connect to live appliance",
+    "switchDemo": "Switch to demo simulation",
+    "runJobLabel": "Run · {{name}}",
+    "started": "Started “{{name}}”",
+    "startedDescription": "Watch it progress live in Activity.",
+    "alreadyRunning": "“{{name}}” is already running or disabled."
+  },
+  "topbar": {
+    "openMenu": "Open menu",
+    "search": "Search",
+    "toggleTheme": "Toggle theme",
+    "accountMenu": "Account menu",
+    "settings": "Settings",
+    "signOut": "Sign out",
+    "signOutToast": "This is a front-end prototype — no real session to sign out of.",
+    "navigation": "Navigation",
+    "navigationMenu": "Main navigation menu",
+    "demoData": "Demo data",
+    "demoDataTip": "Showing the built-in demo world. ⌘K → “Connect to live appliance” to switch.",
+    "reconnecting": "Reconnecting…",
+    "reconnectingTip": "Lost the appliance event stream — reconnecting.",
+    "demoSimulation": "Demo simulation",
+    "liveAppliance": "Live appliance"
+  },
+  "notifications": {
+    "aria": "Notifications",
+    "ariaUnread": "Notifications, {{count}} unread",
+    "title": "Notifications",
+    "threats_one": "{{count}} threat",
+    "threats_other": "{{count}} threats",
+    "markAllRead": "Mark all read",
+    "allCaughtUp": "You're all caught up"
+  },
+  "apiVersionBanner": {
+    "title": "Incompatible API version",
+    "fallback": "The console and appliance API versions are incompatible. Reload after the deployment finishes, or contact your administrator.",
+    "reload": "Reload"
+  }
+}

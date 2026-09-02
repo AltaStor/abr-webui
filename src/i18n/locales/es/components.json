@@ -1,0 +1,66 @@
+{
+  "dataTable": {
+    "range": "{{start}}–{{end}} de {{total}}",
+    "selected_one": "{{count}} seleccionado",
+    "selected_other": "{{count}} seleccionados",
+    "previousPage": "Página anterior",
+    "nextPage": "Página siguiente"
+  },
+  "immutable": {
+    "chip": "Inmutable",
+    "chipDays": "Inmutable · {{days}} d",
+    "lockedUntil": "Bloqueado hasta {{date}}",
+    "lockedGeneric": "Copia inmutable: bloqueada hasta que expire su ventana"
+  },
+  "pipeline": {
+    "title": "Canalización",
+    "bottleneck": "Cuello de botella: {{label}}",
+    "bottleneckNone": "Cuello de botella: —",
+    "bottleneckHint": "Deducido de dónde espera la canalización de transferencia: contrapresión del repositorio frente a la espera de la lectura del invitado / la LAN. Una lectura de mejor esfuerzo de la canalización, no una medición de hardware.",
+    "bottleneckLabel": {
+      "source": "Origen (lectura del invitado)",
+      "network": "Red (LAN)",
+      "target": "Destino (repositorio)"
+    },
+    "stage": {
+      "source": { "label": "Origen", "sub": "lectura del invitado" },
+      "network": { "label": "Red", "sub": "por la LAN" },
+      "target": { "label": "Destino", "sub": "repositorio · físico" },
+      "replicaLabel": "Réplica",
+      "replicaSub": "→ disco virtual",
+      "networkReplicaSub": "al destino · enlace",
+      "pulled": "leído",
+      "pool": "pool"
+    },
+    "caption": {
+      "staging": "Leyendo y preparando la imagen de origen en la appliance; la transferencia al host de destino comienza a continuación.",
+      "replicaRate": "Escribiendo <1>{{rate}}</1> en el disco virtual de la réplica en el host de destino{{wire}}: sin repositorio, sin pasada de deduplicación.",
+      "replicaBlocks": "Escribiendo los bloques modificados en el disco virtual de la réplica en el host de destino{{wire}}: sin repositorio, sin pasada de deduplicación.",
+      "onWire": " ({{rate}} en el enlace)",
+      "incremental": "Reconstruyendo la imagen a <1>{{rate}}</1> lógicos: una copia incremental reemite la imagen completa desde el repositorio a través de localhost, por lo que no es el rendimiento del enlace ni de escritura en el repositorio.",
+      "processing": "Procesando <1>{{rate}}</1> de la imagen del invitado; la escritura en el repositorio es la huella física tras la deduplicación + compresión.",
+      "fallback": "La escritura en el repositorio son bytes físicos tras la deduplicación + compresión."
+    }
+  },
+  "logViewer": {
+    "filter": {
+      "info": "Información",
+      "warnings": "Advertencias",
+      "errors": "Errores"
+    },
+    "live": "en vivo",
+    "pauseAutoScroll": "Pausar el desplazamiento automático",
+    "resumeAutoScroll": "Reanudar el desplazamiento automático",
+    "scrollToLatest": "Desplazar al más reciente",
+    "empty": {
+      "title": "Aún no hay salida de registro",
+      "description": "Las líneas se transmitirán aquí una vez que comience la ejecución."
+    }
+  },
+  "brand": {
+    "tagline": "Copia de seguridad y replicación"
+  },
+  "progressBar": {
+    "label": "Progreso"
+  }
+}

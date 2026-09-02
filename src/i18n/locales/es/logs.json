@@ -1,0 +1,41 @@
+{
+  "page": {
+    "title": "Registros",
+    "description": "Eventos del sistema en la appliance, incluida la actividad reportada por los agentes de backup."
+  },
+  "actions": {
+    "export": "Exportar"
+  },
+  "export": {
+    "menuLabel": "Exportar registros",
+    "supportBundle": "Paquete de soporte",
+    "systemLog": "Registro del sistema (.log)"
+  },
+  "toast": {
+    "exportedSystem_one": "{{count}} línea de registro del sistema exportada",
+    "exportedSystem_other": "{{count}} líneas de registro del sistema exportadas",
+    "exportedSupportBundle": "Paquete de soporte descargado",
+    "exportSupportBundleFailed": "No se pudo generar el paquete de soporte"
+  },
+  "stats": {
+    "systemWarnings": "Advertencias del sistema · 24h",
+    "agentEvents": "Eventos de agente · 24h"
+  },
+  "filters": {
+    "clearSearch": "Borrar búsqueda"
+  },
+  "system": {
+    "sources": "Fuentes",
+    "searchLabel": "Buscar en los mensajes del registro del sistema",
+    "searchPlaceholder": "Buscar mensajes…",
+    "liveTail": "Seguimiento en vivo",
+    "toggleLiveTail": "Alternar seguimiento en vivo",
+    "downloadLog": "Descargar .log",
+    "lineCount_one": "{{formatted}} línea",
+    "lineCount_other": "{{formatted}} líneas",
+    "filteredToSources_one": " · filtrado a {{count}} fuente",
+    "filteredToSources_other": " · filtrado a {{count}} fuentes",
+    "streaming": " · transmitiendo",
+    "following": " · siguiendo el registro de la appliance"
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "dashboard": "Panel",
+  "backups": "Copia de seguridad",
+  "replication": "Replicación",
+  "activity": "Actividad",
+  "restore": "Restauración",
+  "inventory": "Inventario",
+  "backupInfrastructure": "Infraestructura de copias",
+  "repositories": "Repositorios",
+  "logs": "Registros",
+  "settings": "Configuración",
+  "manage": "Gestionar",
+  "home": "Inicio de AltaStor",
+  "expandSidebar": "Expandir barra lateral",
+  "collapseSidebar": "Contraer barra lateral"
+}

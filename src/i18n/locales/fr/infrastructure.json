@@ -1,0 +1,187 @@
+{
+  "vmCount_one": "{{count}} VM",
+  "vmCount_other": "{{count}} VMs",
+  "hostCount_one": "{{count}} hôte",
+  "hostCount_other": "{{count}} hôtes",
+  "rescanVms": "Réanalyser les VMs",
+  "connected": "Connecté",
+  "disconnected": "Déconnecté",
+  "error": {
+    "rejected": "L'appliance a rejeté la requête (HTTP {{status}}).",
+    "unreachable": "L'appliance est injoignable."
+  },
+  "deploy": {
+    "stages": {
+      "connect": "Se connecter via SSH",
+      "push": "Transférer le binaire de l'agent",
+      "install": "Installer le service",
+      "firewall": "Ouvrir le pare-feu",
+      "verify": "Vérifier l'API de l'agent",
+      "discover": "Découvrir les VMs",
+      "done": "Terminé"
+    }
+  },
+  "topology": {
+    "physicalServers": "Serveurs physiques",
+    "agentManaged_one": "{{count}} géré par agent",
+    "agentManaged_other": "{{count}} gérés par agent",
+    "unknownPlatform": "Plateforme inconnue"
+  },
+  "environment": {
+    "typeLabel": {
+      "vcenter": "vCenter Server",
+      "esxiStandalone": "Hôte ESXi autonome",
+      "proxmox": "Cluster Proxmox VE",
+      "hyperv": "Hôte Hyper-V"
+    },
+    "clusterNoun_one": "cluster",
+    "clusterNoun_other": "clusters",
+    "vmNoun_one": "VM",
+    "vmNoun_other": "VMs",
+    "toast": {
+      "rescanned": "Inventaire réanalysé",
+      "rescannedDesc": "{{name}} : {{vms}} sur {{hosts}}.",
+      "rescanFailed": "Impossible de réanalyser la source",
+      "removed": "{{name}} supprimée",
+      "removedDesc": "La source a été déconnectée. Les points de restauration existants sont conservés.",
+      "removeFailed": "Impossible de supprimer la source"
+    },
+    "remove": {
+      "title": "Supprimer {{name}} ?",
+      "description": "AltaStor va déconnecter cette source et retirer ses <1>{{hostPart}}</1> et <2>{{vmPart}}</2> de l'inventaire. Les tâches de sauvegarde cessent de les protéger ; les points de restauration existants sont conservés.",
+      "confirm": "Supprimer la source"
+    }
+  },
+  "addEnv": {
+    "typeMeta": {
+      "vcenter": {
+        "title": "Connecter un vCenter Server",
+        "endpointLabel": "Adresse vCenter",
+        "blurb": "AltaStor se connecte à vCenter et énumère ses clusters, hôtes et VMs. Les sauvegardes utilisent le suivi des blocs modifiés VADP — rien n'est installé dans les systèmes invités."
+      },
+      "esxiStandalone": {
+        "title": "Connecter un hôte ESXi autonome",
+        "endpointLabel": "Adresse de l'hôte ESXi",
+        "blurb": "AltaStor se connecte directement à l'hôte ESXi et découvre ses VMs. Les sauvegardes utilisent le suivi des blocs modifiés VADP — aucun vCenter requis."
+      },
+      "proxmox": {
+        "title": "Connecter un cluster Proxmox VE",
+        "endpointLabel": "Adresse de l'API Proxmox",
+        "blurb": "AltaStor se connecte à l'API Proxmox et énumère ses nœuds et systèmes invités. Remarque : les dirty-bitmaps de Proxmox sont réinitialisés lors d'un cycle d'alimentation, de sorte que la première sauvegarde après un redémarrage relit le disque entier.",
+        "demoNoun": "nœuds"
+      },
+      "hyperv": {
+        "title": "Connecter un hôte ou cluster Hyper-V",
+        "endpointLabel": "Adresse de l'hôte ou du cluster",
+        "blurb": "AltaStor enregistre l'hôte Hyper-V et découvre ses VMs. Dans l'appliance en production, un hôte est intégré en déployant l'agent de sauvegarde RCT via SSH."
+      }
+    },
+    "titleFallback": "Connecter une source",
+    "displayName": "Nom d'affichage",
+    "username": "Nom d'utilisateur",
+    "password": "Mot de passe",
+    "advanced": "Avancé",
+    "verifyTls": "Vérifier le certificat TLS",
+    "verifyTlsHelp": "Recommandé. Rejette les certificats non approuvés, expirés ou dont le nom d'hôte ne correspond pas.",
+    "insecureWarning": "La vérification du certificat est désactivée. À n'utiliser que pour un endpoint de laboratoire de confiance, le temps d'installer un certificat valide.",
+    "demoMembers": "{{noun}} membres de démonstration",
+    "hostCountHelp": "Dimensionne le cluster simulé. La découverte en production le détermine automatiquement.",
+    "hostCountError": "Saisissez un nombre d'hôtes entre 1 et 16.",
+    "credentialsNote": "Les identifiants servent à s'authentifier auprès de {{platform}}. Les VMs découvertes restent non protégées jusqu'à ce qu'une tâche de sauvegarde les inclue.",
+    "connecting": "Connexion à <1>{{endpoint}}</1> et découverte des VMs…",
+    "doneTitle": "{{name}} connectée — {{hosts}}, {{vms}} découvertes",
+    "doneDesc": "Elles figurent désormais dans votre inventaire, toutes non protégées — sélectionnez la source dans l'arborescence de l'estate pour voir ses VMs, puis créez une tâche de sauvegarde pour commencer à les protéger.",
+    "errorTitle": "Connexion impossible",
+    "errorDefault": "L'appliance n'a pas pu se connecter à cet endpoint.",
+    "errorUnreachable": "L'appliance n'a pas pu joindre cet endpoint. Vérifiez l'adresse et les identifiants, puis réessayez.",
+    "connect": "Connecter et découvrir",
+    "connectingButton": "Connexion…",
+    "toastConnected": "{{name}} connectée",
+    "toastConnectedDesc": "{{hosts}} · {{vms}} découvertes — aucune protégée pour le moment."
+  },
+  "hyperv": {
+    "dialog": {
+      "title": "Ajouter un hôte Hyper-V",
+      "description": "L'agent s'exécute sur l'hôte Hyper-V et effectue des sauvegardes de blocs modifiés cohérentes avec VSS. AltaStor l'installe via SSH — aucun redémarrage ni accès à la console nécessaire.",
+      "host": "Hôte",
+      "username": "Nom d'utilisateur",
+      "password": "Mot de passe",
+      "advanced": "Avancé",
+      "port": "Port de l'API de l'agent",
+      "portHelp": "Le port sur lequel l'agent écoute. AltaStor l'ouvre dans le pare-feu de l'hôte, limité à l'appliance. Par défaut {{port}}.",
+      "portError": "Saisissez un port entre 1 et 65535.",
+      "credentialsNote": "Les identifiants sont utilisés une seule fois, via SSH, pour installer le service. Ensuite, AltaStor s'authentifie avec une clé par hôte épinglée à cette appliance — vous n'aurez plus besoin de ce mot de passe.",
+      "credentialsNoteOndemand": " SSH est ensuite verrouillé sur l'hôte ; réactivez-le avant une future mise à jour ou suppression.",
+      "deploying": "Déploiement de l'agent sur <1>{{host}}</1>…",
+      "deployedHealthy": "L'agent est installé et signale un état sain.",
+      "deployFailed": "Échec du déploiement",
+      "submit": "Déployer l'agent et connecter",
+      "deployingButton": "Déploiement…"
+    },
+    "progress": {
+      "stagesLabel": "Étapes de déploiement"
+    },
+    "toastConnected": "Hôte Hyper-V connecté",
+    "startError": {
+      "inProgress": "Un déploiement pour cet hôte est déjà en cours.",
+      "rejected": "L'appliance a rejeté le déploiement (HTTP {{status}}).",
+      "unreachable": "Impossible de joindre l'appliance pour démarrer le déploiement."
+    },
+    "successFallback": "Hôte connecté — VMs découvertes.",
+    "ssh": {
+      "authTitle": "SSH a répondu — la connexion a été rejetée",
+      "authBody": "Utilisez un compte d'administrateur local sur <1>{{host}}</1>. Vérifiez le nom d'utilisateur et le mot de passe, puis réessayez.",
+      "enableTitle": "Activer SSH sur l'hôte Hyper-V",
+      "enableBody": "AltaStor n'a pas pu joindre OpenSSH sur <1>{{host}}</1>. Il est désactivé par défaut sous Windows — collez ceci dans une PowerShell élevée sur l'hôte, puis cliquez sur Réessayer.",
+      "terminalHeader": "PowerShell · exécuter en tant qu'administrateur",
+      "copyAria": "Copier le script d'activation de SSH",
+      "copied": "Copié",
+      "keyOnlyNote": "Une fois l'enrôlement effectué, AltaStor s'authentifie avec une clé par hôte — vous pouvez alors exiger un SSH par clé uniquement :",
+      "copyFailed": "Impossible de copier dans le presse-papiers"
+    },
+    "agent": {
+      "name": "Agent AltaStor",
+      "updateBadge": "Mise à jour → v{{version}}",
+      "healthy": "Sain",
+      "notResponding": "Ne répond pas",
+      "seen": "vu {{when}}",
+      "updateAgent": "Mettre à jour l'agent",
+      "redeploy": "Redéployer",
+      "ondemandNote": "SSH à la demande — sshd est verrouillé sur cet hôte entre les opérations. Réactivez SSH sur <1>{{host}}</1> avant toute mise à jour, tout redéploiement ou toute suppression ; une opération qui ne peut pas se connecter affichera le script d'activation en un clic."
+    },
+    "run": {
+      "updated": "Agent mis à jour",
+      "redeployed": "Agent redéployé",
+      "nowVersion": "désormais v{{version}}",
+      "upToDate": "à jour",
+      "updateFailed": "Échec de la mise à jour",
+      "redeployFailed": "Échec du redéploiement",
+      "updating": "Mise à jour de l'agent…",
+      "redeploying": "Redéploiement de l'agent…"
+    },
+    "rescan": {
+      "toast": "Inventaire réanalysé",
+      "toastDesc": "{{name}} : {{vms}} ({{delta}}).",
+      "noChanges": "aucune modification",
+      "added": "{{count}} ajoutée",
+      "removed": ", {{count}} supprimée",
+      "failed": "Impossible de réanalyser l'hôte"
+    },
+    "startActionError": {
+      "update": "Impossible de démarrer la mise à jour",
+      "redeploy": "Impossible de démarrer le redéploiement"
+    },
+    "remove": {
+      "toast": "Hôte Hyper-V supprimé",
+      "toastUninstalled": "Le service de l'agent a été désinstallé de {{host}}.",
+      "toastKept": "{{name}} a été déconnecté. L'agent est toujours installé sur l'hôte.",
+      "failed": "Impossible de supprimer l'hôte",
+      "title": "Supprimer {{name}} ?",
+      "description": "AltaStor va supprimer cette connexion et cesser de protéger les VMs de l'hôte. Les points de restauration existants sont conservés.",
+      "uninstallAria": "Désinstaller également le service de l'agent de l'hôte",
+      "uninstallLabel": "Désinstaller également le service de l'agent de l'hôte",
+      "uninstallHelp": "Arrête et supprime le service BasaltHyperVAgent sur {{host}}. Laissez décoché pour le conserver installé (par exemple pour le rajouter ultérieurement sans redéployer).",
+      "removeUninstall": "Supprimer et désinstaller"
+    }
+  }
+}

@@ -1,0 +1,56 @@
+{
+  "cmdPalette": {
+    "title": "Befehlspalette",
+    "description": "Suchen und zu jeder Seite oder Aktion springen",
+    "searchPlaceholder": "Befehl eingeben oder VMs, Jobs suchen…",
+    "empty": "Keine Ergebnisse gefunden.",
+    "group": {
+      "navigation": "Navigation",
+      "actions": "Aktionen",
+      "language": "Sprache",
+      "runJob": "Job ausführen",
+      "jumpToVm": "Zu VM springen",
+      "jumpToServer": "Zu Server springen"
+    },
+    "createJob": "Backup-Job erstellen",
+    "switchToLight": "Zum hellen Modus wechseln",
+    "switchToDark": "Zum dunklen Modus wechseln",
+    "connectLive": "Mit Live-Appliance verbinden",
+    "switchDemo": "Zur Demo-Simulation wechseln",
+    "runJobLabel": "Ausführen · {{name}}",
+    "started": "„{{name}}“ gestartet",
+    "startedDescription": "Verfolgen Sie den Fortschritt live unter „Aktivität“.",
+    "alreadyRunning": "„{{name}}“ läuft bereits oder ist deaktiviert."
+  },
+  "topbar": {
+    "openMenu": "Menü öffnen",
+    "search": "Suchen",
+    "toggleTheme": "Design umschalten",
+    "accountMenu": "Kontomenü",
+    "settings": "Einstellungen",
+    "signOut": "Abmelden",
+    "signOutToast": "Dies ist ein Frontend-Prototyp – es gibt keine echte Sitzung zum Abmelden.",
+    "navigation": "Navigation",
+    "navigationMenu": "Hauptnavigationsmenü",
+    "demoData": "Demodaten",
+    "demoDataTip": "Es wird die integrierte Demo-Umgebung angezeigt. ⌘K → „Mit Live-Appliance verbinden“, um zu wechseln.",
+    "reconnecting": "Verbindung wird wiederhergestellt…",
+    "reconnectingTip": "Der Ereignisstream der Appliance ist unterbrochen – Verbindung wird wiederhergestellt.",
+    "demoSimulation": "Demo-Simulation",
+    "liveAppliance": "Live-Appliance"
+  },
+  "notifications": {
+    "aria": "Benachrichtigungen",
+    "ariaUnread": "Benachrichtigungen, {{count}} ungelesen",
+    "title": "Benachrichtigungen",
+    "threats_one": "{{count}} Bedrohung",
+    "threats_other": "{{count}} Bedrohungen",
+    "markAllRead": "Alle als gelesen markieren",
+    "allCaughtUp": "Sie sind auf dem neuesten Stand"
+  },
+  "apiVersionBanner": {
+    "title": "Inkompatible API-Version",
+    "fallback": "Die API-Versionen von Konsole und Appliance sind inkompatibel. Laden Sie die Seite nach Abschluss der Bereitstellung neu oder wenden Sie sich an Ihren Administrator.",
+    "reload": "Neu laden"
+  }
+}

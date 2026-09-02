@@ -1,0 +1,78 @@
+{
+  "greeting": {
+    "morning": "Buenos días",
+    "afternoon": "Buenas tardes",
+    "evening": "Buenas noches"
+  },
+  "header": {
+    "loading": "Cargando estado de protección…",
+    "unavailable": "Estado de protección no disponible",
+    "descriptionVmOnly": "Protegiendo {{protected}} de {{total}} VMs en {{env}} entornos · {{points}} puntos de restauración",
+    "descriptionWithPhysical": "Protegiendo {{protected}} de {{total}} VMs y {{physicalProtected}} de {{physicalTotal}} servidores físicos en {{env}} entornos · {{points}} puntos de restauración"
+  },
+  "error": {
+    "title": "No se pudo cargar el resumen del panel",
+    "body": "El dispositivo no respondió, así que estas cifras son desconocidas, no cero.",
+    "retry": "Reintentar"
+  },
+  "kpi": {
+    "coverage": {
+      "label": "Cobertura de protección",
+      "hint": "{{protected}} de {{total}} VMs protegidas",
+      "drill": "{{count}} sin proteger →"
+    },
+    "rpo": {
+      "label": "Cumplimiento de RPO",
+      "hint": "{{count}} VMs fuera de su ventana de RPO",
+      "drill": "Revisar VMs obsoletas →"
+    },
+    "success": {
+      "label": "Tasa de éxito en 24 h",
+      "hint": "{{runs}} ejecuciones · {{failed}} fallidas",
+      "drill": "Ver actividad →"
+    },
+    "immutable": {
+      "label": "Almacenamiento inmutable",
+      "hint": "{{count}} repositorios reforzados",
+      "drill": "Gestionar repositorios →"
+    }
+  },
+  "activity": {
+    "title": "Actividad de copias de seguridad",
+    "subtitle": "Últimos 14 días · {{count}} ejecuciones",
+    "successRate": "tasa de éxito en el periodo",
+    "noRuns": "sin ejecuciones en el periodo",
+    "totalRuns": "Ejecuciones totales",
+    "ariaLabel": "Actividad de copias de seguridad: {{rate}} % de éxito en {{days}} días, {{runs}} ejecuciones totales, {{failed}} fallidas.",
+    "ariaLabelNoRuns": "Actividad de copias de seguridad: no se registraron ejecuciones en {{days}} días, por lo que no hay tasa de éxito."
+  },
+  "donut": {
+    "title": "Estado de protección",
+    "center": "{{protected}} de {{total}} protegidas",
+    "ariaLabel": "Protección: {{coverage}} % de {{total}} VMs protegidas, {{warning}} fuera de RPO, {{unprotected}} sin proteger."
+  },
+  "live": {
+    "title": "Actividad en vivo",
+    "allActivity": "Toda la actividad",
+    "statusNone": "No hay ejecuciones de copia de seguridad activas.",
+    "statusOne": "{{name}} en ejecución.",
+    "statusMany": "{{count}} ejecuciones de copia de seguridad en curso.",
+    "emptyNoRuns": "No hay ejecuciones activas en este momento.",
+    "emptyNextScheduled": "Próxima programada {{when}}.",
+    "progressLabel": "Progreso de {{kind}} de {{name}}",
+    "staging": "Leyendo y preparando el origen",
+    "processing": "Procesando {{name}}",
+    "stagingShort": "preparando…",
+    "recentCompletions": "Finalizaciones recientes"
+  },
+  "storage": {
+    "title": "Almacenamiento e inmutabilidad",
+    "repositories": "Repositorios",
+    "ofFree": "de {{total}} · {{free}} libres",
+    "usedAcross_one": "{{percent}} % utilizado en {{count}} repositorio",
+    "usedAcross_other": "{{percent}} % utilizado en {{count}} repositorios",
+    "immutablePercent": "{{percent}} % de las VMs protegidas son inmutables",
+    "hardened_one": "{{count}} repositorio reforzado que aplica ventanas de bloqueo de objetos. 0 intentos de manipulación en 24 h.",
+    "hardened_other": "{{count}} repositorios reforzados que aplican ventanas de bloqueo de objetos. 0 intentos de manipulación en 24 h."
+  }
+}

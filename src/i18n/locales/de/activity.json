@@ -1,0 +1,133 @@
+{
+  "page": {
+    "title": "Aktivität",
+    "live": "Live",
+    "description": "Live-Ansicht aller Backup-, Replikations- und Wiederherstellungsläufe."
+  },
+  "runKind": {
+    "restore": "Wiederherstellung",
+    "replication": "Replikation",
+    "backupCopy": "Backup-Kopie",
+    "diskBackup": "Datenträger-Backup",
+    "fileBackup": "Datei-Backup",
+    "serverBackup": "Server-Backup",
+    "backup": "Backup"
+  },
+  "objectNouns": {
+    "disk": {
+      "singular": "Datenträger",
+      "plural": "Datenträger",
+      "compact": "Datenträger"
+    },
+    "server": {
+      "singular": "Server",
+      "plural": "Server",
+      "compact": "Server"
+    },
+    "vm": {
+      "singular": "Virtuelle Maschine",
+      "plural": "Virtuelle Maschinen",
+      "compact": "VMs"
+    }
+  },
+  "trigger": {
+    "schedule": "Zeitplan",
+    "manual": "Manuell"
+  },
+  "filters": {
+    "statusGroupLabel": "Läufe nach Status filtern",
+    "jobLabel": "Nach Job filtern",
+    "allJobs": "Alle Jobs",
+    "searchPlaceholder": "Läufe suchen…",
+    "searchLabel": "Läufe suchen",
+    "clearSearch": "Suche zurücksetzen"
+  },
+  "summary": {
+    "running": {
+      "label": "Läuft jetzt",
+      "hintNone": "Derzeit läuft nichts",
+      "hint_one": "Lauf in Bearbeitung",
+      "hint_other": "Läufe in Bearbeitung"
+    },
+    "runs24": {
+      "label": "Läufe · letzte 24 Std.",
+      "hint": "{{count}} abgeschlossen"
+    },
+    "successRate": {
+      "label": "Erfolgsrate 24 Std.",
+      "hint": "{{ok}} von {{total}} erfolgreich",
+      "hintNone": "keine Durchläufe im Zeitraum abgeschlossen"
+    },
+    "transferred": {
+      "label": "Übertragen · 24 Std.",
+      "hint": "über alle Läufe"
+    }
+  },
+  "feed": {
+    "columns": {
+      "status": "Status",
+      "run": "Lauf",
+      "started": "Gestartet",
+      "duration": "Dauer",
+      "objects": "Objekte",
+      "read": "Gelesen",
+      "sent": "Gesendet"
+    },
+    "listLabel": "Backup- und Wiederherstellungsläufe",
+    "showing": "{{visible}} von {{total}} werden angezeigt",
+    "showMore": "Mehr anzeigen",
+    "empty": {
+      "filteredTitle": "Keine Läufe entsprechen diesen Filtern",
+      "filteredDescription": "Versuchen Sie einen anderen Status, Job oder Suchbegriff.",
+      "title": "Noch keine Aktivität",
+      "description": "Backup- und Wiederherstellungsläufe erscheinen hier, sobald ein Job startet.",
+      "clearFilters": "Filter zurücksetzen"
+    }
+  },
+  "row": {
+    "progressLabel": "{{job}} {{kind}} Fortschritt",
+    "aria": {
+      "started": "gestartet {{time}}",
+      "percentComplete": "{{percent}} Prozent abgeschlossen",
+      "ranIn": "abgeschlossen in {{duration}}",
+      "objects_one": "{{count}} Objekt",
+      "objects_other": "{{count}} Objekte",
+      "transferred": "{{size}} übertragen"
+    }
+  },
+  "drawer": {
+    "unavailableTitle": "Lauf nicht verfügbar",
+    "unavailableDescription": "Dieser Lauf befindet sich nicht mehr im Feed.",
+    "emptyTitle": "Nichts anzuzeigen",
+    "emptyDescription": "Der Lauf ist möglicherweise aus dem Aktivitätszeitfenster gefallen.",
+    "progressLabel": "{{job}} Fortschritt",
+    "rate": {
+      "staging": "Quelle wird bereitgestellt",
+      "transfer": "Übertragungsrate",
+      "repoWrite": "Repository-Schreibvorgang · physisch",
+      "guestRead": "Gast-Leserate"
+    },
+    "stat": {
+      "type": "Typ",
+      "duration": "Dauer",
+      "read": "Gelesen",
+      "transferred": "Übertragen",
+      "guestRead": "Gast-Leserate",
+      "throughput": "Durchsatz"
+    },
+    "table": {
+      "result": "Ergebnis",
+      "read": "Gelesen",
+      "sent": "Gesendet",
+      "duration": "Dauer"
+    },
+    "log": "Protokoll",
+    "footer": {
+      "restore": "Wiederherstellungsvorgang",
+      "jobLabel": "{{kind}} Job",
+      "deleted": "Job gelöscht — Verlauf erhalten",
+      "openRestore": "Wiederherstellung öffnen",
+      "openJob": "Job öffnen"
+    }
+  }
+}

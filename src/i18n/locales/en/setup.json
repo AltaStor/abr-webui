@@ -1,0 +1,169 @@
+{
+  "header": {
+    "initialConfiguration": "Initial configuration"
+  },
+  "nav": {
+    "skip": "Skip wizard — open console anyway",
+    "begin": "Begin setup",
+    "applyConfiguration": "Apply configuration",
+    "continue": "Continue",
+    "stepsAria": "Setup steps"
+  },
+  "steps": {
+    "welcome": "Welcome",
+    "appliance": "Appliance",
+    "storage": "Storage",
+    "repository": "Repository",
+    "hypervisors": "Hypervisors",
+    "review": "Review",
+    "apply": "Apply"
+  },
+  "hypervisorTypes": {
+    "vcenter": "VMware vCenter",
+    "esxi-standalone": "ESXi (standalone)",
+    "hyperv": "Microsoft Hyper-V",
+    "proxmox": "Proxmox VE"
+  },
+  "errors": {
+    "disksUnreadable": "Couldn't read the appliance's disks — is the control plane reachable?"
+  },
+  "welcome": {
+    "state": {
+      "checking": "Checking appliance state…",
+      "unconfigured": "Factory state — unconfigured",
+      "complete": "Already provisioned",
+      "inProgress": "Provisioning in progress"
+    },
+    "facts": {
+      "hostname": "Hostname",
+      "os": "Operating system",
+      "kernel": "Kernel",
+      "mgmtIp": "Management IP",
+      "cpu": "CPU",
+      "memory": "Memory"
+    },
+    "cores_one": "{{count}} core",
+    "cores_other": "{{count}} cores",
+    "title": "Set up your appliance",
+    "description": "A few minutes from bare metal to hardened backups: name the appliance, lay out storage, and create your first repository. Nothing is written to disk until you apply.",
+    "completeNote": "This appliance is already configured — applying a new manifest requires a factory reset from the appliance console first."
+  },
+  "appliance": {
+    "title": "Appliance",
+    "description": "How this appliance identifies itself on your network.",
+    "hostnameLabel": "Hostname",
+    "hostnameError": "Letters, digits, and hyphens only — up to 63 characters.",
+    "hostnameHint": "Letters, digits, and hyphens — up to 63 characters.",
+    "networkLabel": "Network",
+    "networkValue": "DHCP · <1>{{ip}}</1> — change via the appliance console (F2)"
+  },
+  "storage": {
+    "title": "Storage",
+    "description": "The disks this appliance detected, and the RAID layout it will build from them.",
+    "columns": {
+      "slot": "Slot",
+      "model": "Model",
+      "media": "Media",
+      "size": "Size",
+      "status": "Status"
+    },
+    "diskStatus": {
+      "available": "Available",
+      "hotSpare": "Hot spare",
+      "failing": "Failing",
+      "failed": "Failed",
+      "inArray": "In array",
+      "healthy": "Healthy"
+    },
+    "plannedLayout": "Planned layout",
+    "noLayout": "No viable layout — at least two unassigned disks of one media class are required.",
+    "hotSpares_one": " + {{count}} hot spare",
+    "hotSpares_other": " + {{count}} hot spares",
+    "purpose": {
+      "system": "OS mirror — holds the appliance itself, never backups",
+      "perf": "Performance tier — incoming backups land here first",
+      "staging": "Staging tier — fast landing zone before tiering",
+      "bulk": "Capacity tier — long-term retention on spinning disks",
+      "default": "Data tier"
+    },
+    "usable": "≈ {{size}} usable",
+    "leftover_one": "{{count}} disk stays unassigned — claim it later from Backup infrastructure → Appliances.",
+    "leftover_other": "{{count}} disks stay unassigned — claim them later from Backup infrastructure → Appliances.",
+    "appliedAsShown": "Layout is applied exactly as shown. Custom layouts are coming later.",
+    "leftoverInventory_one": "{{count}} disk stays unassigned — claim it later from Inventory.",
+    "leftoverInventory_other": "{{count}} disks stay unassigned — claim them later from Inventory."
+  },
+  "repository": {
+    "title": "Repository",
+    "description": "Your first backup target — hardened by default.",
+    "nameLabel": "Repository name",
+    "namePlaceholder": "Hardened Repository",
+    "nameError": "Give the repository a name.",
+    "encryption": {
+      "label": "Encryption (AES-256)",
+      "description": "Restore points are encrypted at rest. A stolen disk is a brick, not a breach."
+    }
+  },
+  "hypervisors": {
+    "title": "Hypervisors",
+    "description": "Connect the environments AltaStor should protect. Optional — you can also connect environments later from Inventory.",
+    "environmentN": "Environment {{n}}",
+    "removeEnvironment": "Remove environment {{n}}",
+    "typeLabel": "Type",
+    "typeAria": "Hypervisor type",
+    "endpointLabel": "Endpoint",
+    "usernameLabel": "Username",
+    "credentialLabel": "Credential reference",
+    "credentialHint": "e.g. vault:secret/hv-lab — secrets never live in the manifest.",
+    "partialWarning": "Fill every field or clear the row — partial rows aren't applied.",
+    "addAnother": "Add another"
+  },
+  "review": {
+    "title": "Review",
+    "description": "Everything the appliance is about to become. Check it — then apply.",
+    "groups": {
+      "appliance": "Appliance",
+      "storage": "Storage",
+      "repository": "Repository",
+      "hypervisors": "Hypervisors"
+    },
+    "hostname": "Hostname",
+    "network": "Network",
+    "networkValue": "DHCP · {{ip}}",
+    "spares_one": " + {{count}} spare",
+    "spares_other": " + {{count}} spares",
+    "layout": "Layout",
+    "layoutAutomatic": "Automatic (planned at apply time)",
+    "name": "Name",
+    "off": "Off",
+    "encryption": "Encryption",
+    "encryptionValue": "AES-256 at rest",
+    "hypervisorValue": "{{endpoint}} as {{username}}",
+    "hypervisorsEmpty": "Connect environments later from Inventory",
+    "destructiveNote": "Applying writes this configuration to the appliance. Building the storage layout is destructive for the disks involved."
+  },
+  "apply": {
+    "title": "Applying configuration",
+    "description": "The appliance is executing the manifest — network, RAID arrays, XFS pool, repository, connections.",
+    "stages": {
+      "network": "Network & identity",
+      "storage-layout": "Storage layout",
+      "pool": "Storage pool",
+      "repository": "Repository",
+      "hypervisors": "Hypervisors",
+      "policies": "Policies",
+      "complete": "Finalize"
+    },
+    "stagesAria": "Provisioning stages",
+    "errorRejected": "The appliance rejected the request (HTTP {{status}}).",
+    "errorUnreachable": "Couldn't reach the appliance control plane.",
+    "ready": "Appliance ready",
+    "repoSealed": "sealed",
+    "repoCreated": "created",
+    "doneBody": "{{hostname}} is provisioned — storage online, repository {{state}}. Time to protect something.",
+    "enterConsole": "Enter console",
+    "backToReview": "Back to review",
+    "tryAgain": "Try again",
+    "progress": "Provisioning progress"
+  }
+}

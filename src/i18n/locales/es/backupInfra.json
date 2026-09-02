@@ -1,0 +1,250 @@
+{
+  "page": {
+    "title": "Infraestructura de copias de seguridad",
+    "description": "Sus appliances AltaStor y el almacenamiento donde residen sus copias de seguridad: los nodos, arreglos y pools de la flota, y los repositorios a los que apuntan sus copias de seguridad.",
+    "navAria": "Secciones de la infraestructura de copias de seguridad"
+  },
+  "sections": {
+    "repositories": {
+      "label": "Repositorios",
+      "blurb": "Destinos de copia de seguridad y almacenamiento inmutable"
+    },
+    "appliances": {
+      "label": "Appliances",
+      "blurb": "Nodos, almacenamiento y niveles de AltaStor"
+    }
+  },
+  "fleet": {
+    "count_one": "{{count}} appliance",
+    "count_other": "{{count}} appliances",
+    "addAppliance": "Añadir appliance",
+    "thisConsole": "Esta consola",
+    "healthy": "Correcto",
+    "unreachable": "Inaccesible",
+    "localStorage": "Almacenamiento local",
+    "pools_one": "{{count}} pool",
+    "pools_other": "{{count}} pools",
+    "removedToast": "{{name}} eliminada",
+    "removedToastDescription": "El appliance sigue funcionando; simplemente ya no se muestra aquí.",
+    "removeDialog": {
+      "title": "¿Eliminar {{name}}?",
+      "body": "El appliance en <1>{{endpoint}}</1> sigue funcionando y conserva todos sus datos; solo desaparece de esta consola. Puede volver a añadirlo por su dirección en cualquier momento."
+    },
+    "archiveTier": {
+      "label": "Nivel de archivo",
+      "on": "activado: los puntos de más de {{days}} días pasan al almacenamiento en frío",
+      "off": "desactivado: todos los puntos permanecen en el almacenamiento principal",
+      "configure": "Configurar"
+    }
+  },
+  "detail": {
+    "lastSeen": "visto por última vez {{time}}",
+    "unreachableLastSeen": "inaccesible: visto por última vez {{time}}",
+    "never": "nunca",
+    "registered": "registrado {{time}}",
+    "openConsole": "Abrir consola",
+    "probeFailed": "Este appliance no respondió al último sondeo; se muestra su último estado conocido.",
+    "probeFailedSince": "Este appliance no respondió al último sondeo; se muestra su último estado conocido de {{time}}.",
+    "noStorage": "Aún no se ha informado de almacenamiento: actualice cuando el appliance termine el aprovisionamiento, o abra su consola para configurar el almacenamiento."
+  },
+  "legacy": {
+    "localStorage": "Almacenamiento local",
+    "allRepositories": "Todos los repositorios",
+    "noLocalPools": "Este appliance no tiene pools de almacenamiento local; sus repositorios residen en destinos externos.",
+    "unsupported": "La gestión de discos y RAID requiere una versión más reciente del appliance; se muestra el resumen de repositorios en su lugar."
+  },
+  "repos": {
+    "toolbar": "Los repositorios inmutables sellan cada punto de restauración durante una ventana fija, de modo que una cuenta comprometida no pueda alterarlo ni eliminarlo.",
+    "kpi": {
+      "totalCapacity": "Capacidad total",
+      "totalCapacityHint_one": "En {{count}} repositorio",
+      "totalCapacityHint_other": "En {{count}} repositorios",
+      "used": "Utilizado",
+      "usedHint": "{{pct}} % de la capacidad total",
+      "immutableShare": "Proporción inmutable",
+      "immutableShareHint_one": "{{count}} repositorio reforzado e inmutable",
+      "immutableShareHint_other": "{{count}} repositorios reforzados e inmutables",
+      "avgDedup": "Ratio de dedup. medio",
+      "avgDedupHint": "Deduplicación y compresión en todos los repositorios"
+    },
+    "health": {
+      "title": "Estado del almacenamiento",
+      "reclaimable": "Recuperable",
+      "reclaimableHint": "garbage collection pendiente",
+      "inMaintenance": "En mantenimiento",
+      "integrityIssues": "Problemas de integridad",
+      "threatLocked": "Bloqueado por amenaza",
+      "threatLockedHint": "sellado por respuesta a amenazas"
+    },
+    "empty": {
+      "title": "Aún no hay repositorios",
+      "description": "Apunte AltaStor a un almacenamiento que ya posea. Los destinos inmutables mantienen cada punto de restauración en solo lectura hasta que expire su ventana de bloqueo."
+    }
+  },
+  "addAppliance": {
+    "title": "Añadir appliance",
+    "description": "Despliegue primero AltaStor en el nuevo nodo y luego registre aquí su dirección. El appliance sigue gestionándose por sí mismo; esta consola muestra su estado y almacenamiento junto al de este.",
+    "addressLabel": "Dirección",
+    "addressHint": "Host o host:puerto: el plano de control usa por defecto el puerto 4980.",
+    "nameLabel": "Nombre (opcional)",
+    "namePlaceholder": "Por defecto, el nombre de host del appliance",
+    "probing": "Sondeando…",
+    "registeredToast": "{{name}} registrada"
+  },
+  "createArray": {
+    "title": "Crear arreglo RAID",
+    "description": "Construya un nuevo arreglo con discos sin asignar. Queda disponible como almacenamiento de pool en cuanto se aprovisiona un sistema de archivos en él.",
+    "nameLabel": "Nombre",
+    "levelLabel": "Nivel RAID",
+    "membersLabel": "Discos miembro",
+    "noUnassigned": "No hay discos sin asignar: cada disco detectado ya pertenece a un arreglo.",
+    "useAsMember": "Usar {{slot}} como miembro",
+    "spareLabel": "Repuesto en caliente (opcional)",
+    "noSpare": "Sin repuesto en caliente",
+    "usableAfter": "≈ <1>{{size}}</1> utilizables tras {{level}} {{mode}}",
+    "mirroring": "reflejo",
+    "parity": "paridad",
+    "creating": "Creando…",
+    "createButton": "Crear arreglo",
+    "createdToast": "Arreglo «{{name}}» creado",
+    "createdToastDescription": "{{level}} · {{size}} utilizables. Aparece en el mapa como «aún sin pool».",
+    "buildStartedToast": "Construcción del arreglo iniciada en el appliance",
+    "buildStartedToastDescription": "mdadm lo está ensamblando ahora; aparece en el mapa en unos segundos. Si no, revise las alertas."
+  },
+  "diskAction": {
+    "requestFailed": "La solicitud falló",
+    "replace": {
+      "title": "Reemplazar disco",
+      "bodyArray": "Cambie {{slot}} ({{model}}) por un disco nuevo en la misma ranura. El arreglo {{array}} se resincroniza en el nuevo disco; la redundancia se restablece cuando finaliza la reconstrucción.",
+      "bodyLoose": "Cambie {{slot}} ({{model}}) por un disco nuevo en la misma ranura. El nuevo disco queda disponible para arreglos.",
+      "confirm": "Reemplazar disco",
+      "pending": "Reemplazando…",
+      "toast": "Reemplazo solicitado",
+      "toastArray": "{{array}} se resincroniza en el nuevo disco de {{slot}}.",
+      "toastLoose": "{{slot}} vuelve a estar en servicio."
+    },
+    "fail": {
+      "title": "Marcar disco como fallido",
+      "bodyArray": "Retire {{slot}} ({{model}}) del servicio (mdadm --fail). El arreglo {{array}} se degrada y se reconstruye en un repuesto en caliente cuando hay uno disponible; hágalo para preparar el disco para su extracción.",
+      "bodyLoose": "Retire {{slot}} ({{model}}) del servicio (mdadm --fail).",
+      "confirm": "Marcar como fallido",
+      "pending": "Marcando…",
+      "toast": "Disco marcado como fallido",
+      "toastDescription": "{{slot}} está fuera de servicio."
+    }
+  },
+  "section": {
+    "storage": "Almacenamiento",
+    "allRepositories": "Todos los repositorios",
+    "createArray": "Crear arreglo",
+    "createArrayHint": "Necesita al menos 2 discos sin asignar",
+    "manageOnConsole": "Gestionar en su consola",
+    "locateOnMap": "Localizar en el mapa",
+    "replaceDisk": "Reemplazar disco",
+    "notInAnyArray": "En ningún arreglo:",
+    "looseAvailableNew": "{{count}} disponible(s) para un nuevo arreglo",
+    "looseAvailableConsole": "{{count}} disponible(s): aprovisionar desde su propia consola",
+    "looseSparesStandby": "repuestos en caliente en espera para sus arreglos"
+  },
+  "storage": {
+    "arrayState": {
+      "optimal": "Óptimo",
+      "degraded": "Degradado",
+      "rebuilding": "Reconstruyendo",
+      "failed": "Fallido"
+    },
+    "diskStatus": {
+      "healthy": "En el arreglo",
+      "failing": "Fallando",
+      "failed": "Fallido",
+      "spare": "Repuesto en caliente",
+      "unassigned": "Disponible"
+    },
+    "summary": {
+      "healthy": "Correcto",
+      "degraded": "Degradado",
+      "attention": "Atención",
+      "rebuilding": "Reconstruyendo",
+      "arraysOptimal_one": "{{count}} arreglo óptimo",
+      "arraysOptimal_other": "{{count}} arreglos óptimos",
+      "arraysOptimalOf_one": "{{optimal}} de {{count}} arreglo óptimo",
+      "arraysOptimalOf_other": "{{optimal}} de {{count}} arreglos óptimos",
+      "disksHealthy_one": "{{count}} disco correcto",
+      "disksHealthy_other": "{{count}} discos correctos",
+      "disksAttention_one": "{{count}} disco necesita atención",
+      "disksAttention_other": "{{count}} discos necesitan atención",
+      "hotSpares_one": "{{count}} repuesto en caliente",
+      "hotSpares_other": "{{count}} repuestos en caliente"
+    },
+    "issues": {
+      "arrayFailed": "El arreglo {{name}} ({{id}}) ha fallado: sus datos están sin conexión",
+      "arrayDegraded": "El arreglo {{name}} ({{id}}) está degradado: no hay repuesto disponible, redundancia reducida",
+      "arrayRebuilding": "El arreglo {{name}} ({{id}}) se está reconstruyendo: {{percent}} % a {{speed}} MB/s",
+      "diskFailingIn": "{{slot}} está fallando (SMART) en {{array}}",
+      "diskFailing": "{{slot}} está fallando (SMART)",
+      "diskFailedIn": "{{slot}} ha fallado en {{array}}",
+      "diskFailed": "{{slot}} ha fallado: reemplácelo para devolver la ranura al servicio"
+    }
+  },
+  "map": {
+    "columns": {
+      "arrays": {
+        "title": "Arreglos RAID",
+        "sub": "discos físicos"
+      },
+      "pools": {
+        "title": "Pools",
+        "sub": "sistema de archivos y niveles"
+      },
+      "repos": {
+        "title": "Repositorios",
+        "sub": "destinos de copia de seguridad"
+      }
+    },
+    "rebuilding": "Reconstruyendo",
+    "array": {
+      "osHint": "Reflejo del SO: contiene el propio appliance, nunca copias de seguridad",
+      "unpooledHint": "Aún sin pool: ningún sistema de archivos usa este arreglo",
+      "usable": "{{device}} · {{size}} utilizables",
+      "rebuildLabel": "Reconstrucción {{percent}} %",
+      "rebuildEta": "{{percent}} % · ETA {{eta}} · {{speed}} MB/s",
+      "aria_one": "Arreglo {{name}} ({{id}}) — {{level}}, {{state}}, {{count}} disco",
+      "aria_other": "Arreglo {{name}} ({{id}}) — {{level}}, {{state}}, {{count}} discos",
+      "spotlightAria": "Destacar el arreglo {{name}} ({{id}})"
+    },
+    "disk": {
+      "notReportedAria": "Disco miembro (no informado por el appliance)",
+      "ariaIn": "Disco {{slot}} — {{status}} en {{array}}",
+      "aria": "Disco {{slot}} — {{status}}",
+      "title": "{{slot}} · {{model}} · {{status}}",
+      "serial": "Número de serie",
+      "capacity": "Capacidad",
+      "media": "Medio",
+      "arrayFact": "Arreglo",
+      "temperature": "Temperatura",
+      "temperatureValue": "{{value}} °C",
+      "powerOn": "Horas de funcionamiento",
+      "days_one": "{{count}} día",
+      "days_other": "{{count}} días",
+      "smartErrors": "Errores SMART",
+      "smartNotCollected": "La telemetría SMART aún no se recopila de este appliance.",
+      "replaceDisk": "Reemplazar disco",
+      "markFailed": "Marcar como fallido",
+      "markFailedHint": "Prepara el disco para su extracción: el arreglo se degrada y se reconstruye en un repuesto en caliente cuando hay uno disponible."
+    },
+    "pool": {
+      "aria_one": "Pool {{name}} — {{count}} nivel, {{used}} de {{capacity}} utilizados",
+      "aria_other": "Pool {{name}} — {{count}} niveles, {{used}} de {{capacity}} utilizados",
+      "dedup": "dedup {{ratio}}×"
+    },
+    "tier": {
+      "noArray": "sin arreglo adjunto",
+      "s3": "S3",
+      "nfs": "NFS",
+      "smbShare": "Recurso compartido SMB"
+    },
+    "repo": {
+      "aria": "Repositorio {{name}} — {{used}} de {{capacity}} utilizados"
+    }
+  }
+}

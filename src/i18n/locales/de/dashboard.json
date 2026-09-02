@@ -1,0 +1,78 @@
+{
+  "greeting": {
+    "morning": "Guten Morgen",
+    "afternoon": "Guten Tag",
+    "evening": "Guten Abend"
+  },
+  "header": {
+    "loading": "Schutzstatus wird geladen…",
+    "unavailable": "Schutzstatus nicht verfügbar",
+    "descriptionVmOnly": "{{protected}} von {{total}} VMs in {{env}} Umgebungen geschützt · {{points}} Wiederherstellungspunkte",
+    "descriptionWithPhysical": "{{protected}} von {{total}} VMs und {{physicalProtected}} von {{physicalTotal}} physischen Servern in {{env}} Umgebungen geschützt · {{points}} Wiederherstellungspunkte"
+  },
+  "error": {
+    "title": "Dashboard-Übersicht konnte nicht geladen werden",
+    "body": "Die Appliance hat nicht geantwortet — diese Werte sind unbekannt, nicht null.",
+    "retry": "Erneut versuchen"
+  },
+  "kpi": {
+    "coverage": {
+      "label": "Schutzabdeckung",
+      "hint": "{{protected}} von {{total}} VMs geschützt",
+      "drill": "{{count}} ungeschützt →"
+    },
+    "rpo": {
+      "label": "RPO-Konformität",
+      "hint": "{{count}} VMs außerhalb ihres RPO-Fensters",
+      "drill": "Veraltete VMs prüfen →"
+    },
+    "success": {
+      "label": "Erfolgsquote (24 h)",
+      "hint": "{{runs}} Durchläufe · {{failed}} fehlgeschlagen",
+      "drill": "Aktivität anzeigen →"
+    },
+    "immutable": {
+      "label": "Unveränderlicher Speicher",
+      "hint": "{{count}} gehärtete Repositorys",
+      "drill": "Repositorys verwalten →"
+    }
+  },
+  "activity": {
+    "title": "Backup-Aktivität",
+    "subtitle": "Letzte 14 Tage · {{count}} Durchläufe",
+    "successRate": "Erfolgsquote im Zeitraum",
+    "noRuns": "keine Durchläufe im Zeitraum",
+    "totalRuns": "Durchläufe gesamt",
+    "ariaLabel": "Backup-Aktivität: {{rate}} % Erfolg über {{days}} Tage, {{runs}} Durchläufe gesamt, {{failed}} fehlgeschlagen.",
+    "ariaLabelNoRuns": "Backup-Aktivität: keine Durchläufe über {{days}} Tage erfasst, daher gibt es keine Erfolgsquote."
+  },
+  "donut": {
+    "title": "Schutzstatus",
+    "center": "{{protected}} von {{total}} geschützt",
+    "ariaLabel": "Schutz: {{coverage}} % von {{total}} VMs geschützt, {{warning}} außerhalb des RPO, {{unprotected}} ungeschützt."
+  },
+  "live": {
+    "title": "Live-Aktivität",
+    "allActivity": "Alle Aktivitäten",
+    "statusNone": "Keine aktiven Backup-Durchläufe.",
+    "statusOne": "{{name}} läuft.",
+    "statusMany": "{{count}} Backup-Durchläufe in Bearbeitung.",
+    "emptyNoRuns": "Derzeit keine aktiven Durchläufe.",
+    "emptyNextScheduled": "Nächster geplant {{when}}.",
+    "progressLabel": "{{name}} {{kind}} Fortschritt",
+    "staging": "Quelle wird gelesen und bereitgestellt",
+    "processing": "{{name}} wird verarbeitet",
+    "stagingShort": "wird bereitgestellt…",
+    "recentCompletions": "Kürzlich abgeschlossen"
+  },
+  "storage": {
+    "title": "Speicher & Unveränderlichkeit",
+    "repositories": "Repositorys",
+    "ofFree": "von {{total}} · {{free}} frei",
+    "usedAcross_one": "{{percent}} % belegt in {{count}} Repository",
+    "usedAcross_other": "{{percent}} % belegt in {{count}} Repositorys",
+    "immutablePercent": "{{percent}} % der geschützten VMs sind unveränderlich",
+    "hardened_one": "{{count}} gehärtetes Repository mit erzwungenen Object-Lock-Fenstern. 0 Manipulationsversuche in 24 h.",
+    "hardened_other": "{{count}} gehärtete Repositorys mit erzwungenen Object-Lock-Fenstern. 0 Manipulationsversuche in 24 h."
+  }
+}

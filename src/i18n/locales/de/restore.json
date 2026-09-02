@@ -1,0 +1,396 @@
+{
+  "page": {
+    "title": "Wiederherstellen",
+    "description": "Stellen Sie eine ganze Maschine aus einem Wiederherstellungspunkt wieder her."
+  },
+  "actions": {
+    "continue": "Weiter",
+    "startOver": "Von vorn beginnen",
+    "viewInActivity": "In Aktivität anzeigen",
+    "startAnother": "Weitere Wiederherstellung starten"
+  },
+  "steps": {
+    "source": {
+      "label": "Quelle wählen",
+      "hint": "Was wiederhergestellt wird"
+    },
+    "point": {
+      "label": "Wiederherstellungspunkt",
+      "hint": "Zeitpunkt"
+    },
+    "recover": {
+      "label": "Wiederherstellen",
+      "hint": "Modus & Bestätigung"
+    }
+  },
+  "stepper": {
+    "aria": "Wiederherstellungsfortschritt"
+  },
+  "tabs": {
+    "aria": "Was wiederhergestellt werden soll",
+    "vm": "Virtuelle Maschinen",
+    "physicalHost": "Physische Server",
+    "disk": "Festplatten"
+  },
+  "noun": {
+    "vm": "VM",
+    "server": "Server",
+    "disk": "Festplatte"
+  },
+  "cta": {
+    "downloadSelected": "{{count}} ausgewählte herunterladen",
+    "recoverSelected": "{{count}} ausgewählte wiederherstellen",
+    "bootFromBackup": "Vom Backup booten",
+    "recoverServer": "Server wiederherstellen",
+    "exportDisk": "Festplatte exportieren",
+    "restoreDisk": "Festplatte wiederherstellen",
+    "startRestore": "Wiederherstellung starten"
+  },
+  "toast": {
+    "downloading_one": "{{count}} Datei wird heruntergeladen",
+    "downloading_other": "{{count}} Dateien werden heruntergeladen",
+    "downloadingDesc": "Wiederhergestellt aus {{name}} · {{id}}.",
+    "instantStarted": {
+      "title": "Sofortwiederherstellung gestartet",
+      "desc": "{{name}} wird direkt aus dem Backup gebootet…"
+    },
+    "unreachable": {
+      "title": "Appliance nicht erreichbar"
+    },
+    "instantUnreachableDesc": "Die Sofortwiederherstellung wurde nicht gestartet. Prüfen Sie das Backend und versuchen Sie es erneut.",
+    "restoreUnreachableDesc": "Die Wiederherstellung wurde nicht gestartet. Prüfen Sie das Backend und versuchen Sie es erneut.",
+    "refused": {
+      "title": "Die Appliance hat die Wiederherstellung abgelehnt",
+      "desc": "Der Wiederherstellungspunkt wurde möglicherweise bereinigt — wählen Sie einen anderen Punkt und versuchen Sie es erneut."
+    },
+    "started": {
+      "title": "Wiederherstellung gestartet",
+      "desc": "{{name}} wird wiederhergestellt. Verfolgen Sie den Vorgang live in Aktivität.",
+      "descFiles_one": "{{count}} Datei aus {{name}} wird wiederhergestellt. Verfolgen Sie den Vorgang live in Aktivität.",
+      "descFiles_other": "{{count}} Dateien aus {{name}} werden wiederhergestellt. Verfolgen Sie den Vorgang live in Aktivität."
+    },
+    "insufficientSpace": {
+      "title": "Nicht genügend Datastore-Speicherplatz",
+      "desc": "Der Ziel-Datastore hat nicht genügend freien Speicherplatz für diese Wiederherstellung."
+    },
+    "originalVmGone": {
+      "title": "Die ursprüngliche VM ist nicht mehr vorhanden",
+      "desc": "Sie wurde entfernt, nachdem dieser Assistent geladen wurde — es gibt nichts mehr an Ort und Stelle wiederherzustellen. Beginnen Sie erneut, um sie stattdessen als neue VM wiederherzustellen."
+    }
+  },
+  "confirm": {
+    "host": {
+      "title": "{{name}} per Bare-Metal wiederherstellen?",
+      "confirmLabel": "{{name}} wiederherstellen"
+    },
+    "disk": {
+      "title": "{{name}} überschreiben?",
+      "confirmLabel": "{{name}} überschreiben"
+    }
+  },
+  "points_one": "{{count}} Punkt",
+  "points_other": "{{count}} Punkte",
+  "lastBackup": "Letztes Backup {{time}}",
+  "filesSelected_one": "{{count}} Datei ausgewählt",
+  "filesSelected_other": "{{count}} Dateien ausgewählt",
+  "chooseVm": {
+    "title": "Welche VM möchten Sie wiederherstellen?",
+    "subtitle": "Wählen Sie eine geschützte Maschine. Anschließend zeigen wir ihre Wiederherstellungspunkte — es ändert sich nichts, bis Sie bestätigen.",
+    "searchPlaceholder": "Nach Name oder OS suchen…",
+    "searchAria": "Geschützte VMs durchsuchen",
+    "noMatch": {
+      "title": "Keine Maschinen passen zu dieser Suche",
+      "desc": "Versuchen Sie einen anderen Namen, OS, IP-Adresse oder Tag."
+    },
+    "empty": {
+      "desc": "Führen Sie zuerst einen Backup-Job aus — geschützte VMs mit Wiederherstellungspunkten erscheinen hier, bereit zur Wiederherstellung."
+    },
+    "unknownEnv": "Unbekannte Umgebung"
+  },
+  "chooseHost": {
+    "title": "Welchen Server möchten Sie wiederherstellen?",
+    "subtitle": "Wählen Sie einen geschützten physischen Server. Anschließend zeigen wir seine Wiederherstellungspunkte — es ändert sich nichts, bis Sie bestätigen.",
+    "searchPlaceholder": "Nach Name oder OS suchen…",
+    "searchAria": "Geschützte physische Server durchsuchen",
+    "noMatch": {
+      "title": "Keine Server passen zu dieser Suche",
+      "desc": "Versuchen Sie einen anderen Namen, OS, IP-Adresse oder Tag."
+    },
+    "empty": {
+      "desc": "Führen Sie zuerst einen Server- oder Datei-Backup-Job aus — geschützte Server mit Wiederherstellungspunkten erscheinen hier, bereit zur Wiederherstellung."
+    },
+    "agentLabel": "Agent {{status}}"
+  },
+  "chooseDisk": {
+    "title": "Welche Festplatte möchten Sie wiederherstellen?",
+    "subtitle": "Wählen Sie eine geschützte Festplatte — virtuell oder physisch. Anschließend zeigen wir ihre Wiederherstellungspunkte — es ändert sich nichts, bis Sie bestätigen.",
+    "searchPlaceholder": "Nach Festplatte, Gerät, VM oder Server suchen…",
+    "searchAria": "Geschützte Festplatten durchsuchen",
+    "noMatch": {
+      "title": "Keine Festplatten passen zu dieser Suche",
+      "desc": "Versuchen Sie einen anderen Festplatten-, Geräte-, VM- oder Servernamen."
+    },
+    "empty": {
+      "desc": "Führen Sie zuerst einen Festplatten-Backup-Job aus — geschützte Festplatten mit Wiederherstellungspunkten erscheinen hier, bereit zur Wiederherstellung."
+    },
+    "ownerKind": {
+      "physicalServer": "physischer Server",
+      "vm": "VM"
+    },
+    "used": "{{size}} belegt"
+  },
+  "emptyPointsTitle": "Noch keine Wiederherstellungspunkte",
+  "point": {
+    "title": "Wählen Sie einen Zeitpunkt für die Wiederherstellung",
+    "countFor_one": "{{count}} Wiederherstellungspunkt für <1>{{name}}</1>.",
+    "countFor_other": "{{count}} Wiederherstellungspunkte für <1>{{name}}</1>.",
+    "allUnreachable": "Keiner kann ausgewählt werden, solange sein Repository offline ist.",
+    "mostRecentSelected": "Der aktuellste ist für Sie ausgewählt.",
+    "immutableCallout_one": "<1>{{count}} unveränderlicher</1> Wiederherstellungspunkt ist auf der Speicherebene gesperrt — er kann bis zum Ablauf der Sperre weder geändert noch gelöscht werden und ist somit nachweislich sauber.",
+    "immutableCallout_other": "<1>{{count}} unveränderliche</1> Wiederherstellungspunkte sind auf der Speicherebene gesperrt — sie können bis zum Ablauf der Sperre weder geändert noch gelöscht werden und sind somit nachweislich sauber.",
+    "unreachableCallout_one": "<1>{{count}} Wiederherstellungspunkt</1> ist nicht erreichbar — sein Repository ist offline. Die Backups existieren weiterhin, können aber erst wiederhergestellt werden, wenn das Repository wieder online ist.",
+    "unreachableCallout_other": "<1>{{count}} Wiederherstellungspunkte</1> sind nicht erreichbar — ihr Repository ist offline. Die Backups existieren weiterhin, können aber erst wiederhergestellt werden, wenn das Repository wieder online ist.",
+    "blockedCallout_one": "<1>{{count}} Wiederherstellungspunkt</1> hat eine Dateigesundheitsprüfung nicht bestanden oder ist nicht vollständig geschrieben und ist daher zwar hier sichtbar, kann aber nicht wiederhergestellt werden.",
+    "blockedCallout_other": "<1>{{count}} Wiederherstellungspunkte</1> haben eine Dateigesundheitsprüfung nicht bestanden oder sind nicht vollständig geschrieben und sind daher zwar hier sichtbar, können aber nicht wiederhergestellt werden.",
+    "empty": {
+      "title": "Diese {{noun}} hat noch keine Wiederherstellungspunkte",
+      "desc": "Sobald ein Backup-Job diese Maschine schützt, reihen sich die Wiederherstellungspunkte hier auf einer Zeitachse auf."
+    },
+    "today": "Heute",
+    "yesterday": "Gestern",
+    "full": "Vollständig",
+    "incremental": "Inkrementell",
+    "badge": {
+      "bareMetal": "Bare-Metal-Image",
+      "files": "Dateien",
+      "unavailable": "Nicht verfügbar"
+    },
+    "selected": "Ausgewählt",
+    "encrypted": "Verschlüsselt",
+    "encryptedTip": "Die Daten dieser Sicherung sind im Ruhezustand verschlüsselt",
+    "compression": "Komprimierungsstufe {{level}}",
+    "offlineTip": "Das Repository dieses Wiederherstellungspunkts ist offline — er kann erst gelesen werden, wenn das Repository wieder online ist.",
+    "block": {
+      "corrupt": "Dieser Wiederherstellungspunkt hat seine Backup-Datei-Gesundheitsprüfung nicht bestanden und ist für die Wiederherstellung gesperrt.",
+      "checking": "Eine Gesundheitsprüfung liest derzeit diesen Wiederherstellungspunkt.",
+      "failed": "Die Backup-Dateien konnten nicht vollständig geschrieben werden.",
+      "pending": "Die Backup-Dateien werden noch geschrieben."
+    },
+    "health": {
+      "verified": "Verifiziert",
+      "checking": "Wird geprüft",
+      "metadataUnverified": "Metadaten nicht verifiziert",
+      "metadataUnverifiedTitle": "Dieses ältere Manifest hat keine Integritätsprüfsumme; seine Metadaten konnten nicht verifiziert werden.",
+      "corrupt": "Beschädigt — gesperrt",
+      "unavailable": "Prüfung nicht verfügbar",
+      "notVerified": "Nicht verifiziert"
+    },
+    "fromLogical": "aus {{size}}",
+    "storedTitle": "{{logical}} Daten, gespeichert als {{stored}}"
+  },
+  "howToRecover": "Wie möchten Sie wiederherstellen?",
+  "whereLand": "Wohin soll es gelangen?",
+  "review": {
+    "title": "Prüfen & bestätigen",
+    "subtitle": "Ein letzter Blick. Es hat sich noch nichts geändert."
+  },
+  "summary": {
+    "machine": "Maschine",
+    "server": "Server",
+    "disk": "Festplatte",
+    "restorePoint": "Wiederherstellungspunkt",
+    "recoveryMode": "Wiederherstellungsmodus",
+    "destination": "Ziel",
+    "placement": "Platzierung",
+    "placementSub": "Datastore: {{datastore}}",
+    "powerState": "Betriebszustand"
+  },
+  "restorePointSub": "{{type}} · {{size}}",
+  "cleanSource": {
+    "immutableData": "Die Quelle ist eine unveränderliche, objektgesperrte Kopie — sie kann seit ihrer Versiegelung nicht verändert worden sein, sodass die Daten, die Sie wiederherstellen, sauber sind.",
+    "immutableFiles": "Die Quelle ist eine unveränderliche, objektgesperrte Kopie — sie kann seit ihrer Versiegelung nicht verändert worden sein, sodass die Dateien, die Sie wiederherstellen, sauber sind.",
+    "nonImmutable": "Wir lesen das Backup, ohne es jemals zu berühren, sodass die Quelle, aus der Sie wiederherstellen, intakt bleibt."
+  },
+  "mode": {
+    "subtitle": "Wählen Sie, ob Sie die gesamte Maschine oder nur einige Dateien zurückholen möchten. Sie bestätigen, bevor etwas ausgeführt wird.",
+    "entireVm": {
+      "title": "Gesamte VM",
+      "desc": "Stellen Sie die vollständige Maschine wieder her — jede Festplatte, genau wie zu diesem Zeitpunkt."
+    },
+    "fileLevel": {
+      "title": "Wiederherstellung auf Dateiebene",
+      "desc": "Durchsuchen Sie den Snapshot und holen Sie nur die benötigten Dateien oder Ordner zurück."
+    },
+    "instant": {
+      "title": "Sofort-Boot",
+      "desc": "Schalten Sie die VM in Sekunden direkt aus dem Backup ein — nichts wird kopiert. Blöcke werden bei Bedarf gestreamt; ideal für eine schnelle Prüfung oder ein DR-Failover."
+    },
+    "original": {
+      "title": "Ursprünglicher Speicherort",
+      "desc": "Stellt die VM unter ihrem ursprünglichen Namen, Host und Datastore wieder her. Falls diese VM noch existiert, wird sie an Ort und Stelle überschrieben, sobald die Wiederherstellung fertig geschrieben ist — Sie bestätigen, bevor etwas ausgeführt wird."
+    },
+    "newLocation": {
+      "title": "Neuer Speicherort",
+      "desc": "Als Kopie auf einem anderen Host wiederherstellen — sicher für Tests oder Vergleichsprüfungen."
+    },
+    "instantCallout": "Der Gast bootet auf seinem eigenen Host direkt aus dem Repository über iSCSI — Blöcke werden beim Lesen eingeblendet, sodass er in Sekunden läuft, ohne vollständige Kopie. Schreibvorgänge landen in einem Scratch-Overlay, sodass das Backup unveränderlich bleibt. Verwerfen Sie es, wenn Sie fertig sind, um die Festplatte freizugeben.",
+    "targetEnv": "Zielumgebung",
+    "targetPlaceholder": "Wählen Sie das Wiederherstellungsziel…",
+    "crossPlatform": "Plattformübergreifende Wiederherstellung",
+    "sub": {
+      "instant": "Läuft über iSCSI aus dem Backup — keine Kopie",
+      "original": "Gleicher Name, Host & Datastore wie das Original",
+      "newLocation": "Als Kopie an einem neuen Speicherort"
+    },
+    "dest": {
+      "fileLevel": "Ursprüngliche Gastpfade",
+      "instant": "{{name}} (sofort)",
+      "selectTarget": "Ziel auswählen…",
+      "pickTarget": "Wählen Sie oben eine Zielumgebung",
+      "converted": "Konvertiert {{from}} → {{to}}",
+      "bootsOn": "Bootet auf dem Host von {{name}}"
+    },
+    "originalOverwriteWarning": "Dies stellt <1>{{name}}</1> an Ort und Stelle wieder her, an seinem aktuellen Host und Datastore. Sobald jede Festplatte vollständig geschrieben ist, wird die dort derzeit laufende VM zerstört und ersetzt — dies kann nicht rückgängig gemacht werden.",
+    "originalOverwriteConfirmLabel": "Geben Sie <1>{{name}}</1> ein, um das Überschreiben zu bestätigen",
+    "restoredVmName": "Name der wiederhergestellten VM",
+    "restoredVmNameHint": "Leer lassen, um <1>{{name}}</1> zu verwenden.",
+    "restoredVmNameError": {
+      "whitespace": "Darf nicht mit einem Leerzeichen beginnen oder enden.",
+      "tooLong": "Darf höchstens 80 Zeichen lang sein.",
+      "forbiddenChars": "Darf keine der Zeichen / \\ : * ? \" < > oder | enthalten.",
+      "nonAscii": "Nur lateinische Buchstaben, Zahlen und Standardtastatursymbole verwenden — kein Kyrillisch oder andere nicht-lateinische Zeichen.",
+      "duplicate": "In der Zielumgebung existiert bereits eine VM mit diesem Namen. Wählen Sie einen anderen Namen."
+    },
+    "targetHost": "Zielhost",
+    "targetHostAuto": "Automatisch",
+    "targetHostAutoWithValue": "{{name}} (automatisch)",
+    "datastore": "Datastore",
+    "datastoreAuto": "Automatisch — Standard des Hosts verwenden",
+    "datastoreAutoWithValue": "{{name}} (automatisch)",
+    "datastoreFree": "{{free}} frei",
+    "datastoreLowSpace": "Nur {{free}} frei — die Quell-VM ist bis zu {{needed}} zugewiesen. Bei der Wiederherstellung könnte der Speicherplatz knapp werden, falls sie nicht thin passt.",
+    "networkMap": "Netzwerkzuordnung",
+    "networkMapSource": "Quellnetzwerk",
+    "networkMapTarget": "Zielnetzwerk",
+    "networkMapTargetPlaceholder": "Netzwerk auswählen…",
+    "networkMapNone": "Diese VM hat keine Netzwerkadapter zum Zuordnen.",
+    "networkMapHostNone": "Auf dem ausgewählten Host wurden keine virtuellen Switches gefunden. Wählen Sie einen anderen Host oder scannen Sie das Inventar erneut.",
+    "networkMapEnvNone": "In dieser Umgebung wurden keine virtuellen Switches gefunden. Scannen Sie das Inventar erneut und versuchen Sie es noch einmal.",
+    "networkMapHint": "Die Quellnetzwerke stammen von den Netzwerkadaptern der VM selbst; die Zielliste zeigt nur die virtuellen Switches des ausgewählten Hosts, und ein gleichnamiger wird automatisch ausgewählt — wählen Sie bei Bedarf einen anderen aus der Liste.",
+    "powerOn": "Nach der Wiederherstellung einschalten",
+    "powerOnHint": "Die wiederhergestellte VM sofort nach Abschluss der Wiederherstellung starten.",
+    "powerOnYes": "Schaltet sich nach der Wiederherstellung ein",
+    "powerOnNo": "Bleibt ausgeschaltet"
+  },
+  "bareMetal": {
+    "subtitle": "Dies ist ein vollständiges Server-Image — es kommt als Ganzes zurück. Sie bestätigen, bevor etwas ausgeführt wird.",
+    "mode": {
+      "title": "Bare-Metal-Wiederherstellung",
+      "desc": "Bootet Wiederherstellungsmedien auf dem Server und stellt anschließend jedes Volume und den Systemzustand genau so wieder her, wie sie zu diesem Zeitpunkt waren."
+    },
+    "lockedDest": "Ein Bare-Metal-Image geht zurück an <1>{{name}}</1> — den ursprünglichen Server, seine ursprünglichen Festplatten. Die Wiederherstellung auf anderer Hardware wird nicht unterstützt, daher ist das Ziel gesperrt.",
+    "summarySub": "Jedes Volume + Systemzustand",
+    "dest": {
+      "value": "Ursprünglicher Server",
+      "sub": "Zurück auf die eigenen Festplatten von {{name}}"
+    },
+    "overwriteWarning": "Dies stellt an Ort und Stelle wieder her und <1>überschreibt alles auf</1> <2>{{name}}</2> — jedes Volume und der Systemzustand werden durch diesen Wiederherstellungspunkt ersetzt. Sie bestätigen, bevor etwas ausgeführt wird."
+  },
+  "files": {
+    "title": "Wählen Sie die wiederherzustellenden Dateien",
+    "subtitle": "Durchsuchen Sie die gesicherten Ordner von <1>{{name}}</1> und markieren Sie, was Sie benötigen. Sie werden direkt aus dem Backup heruntergeladen — nichts auf dem Server wird geändert.",
+    "dest": {
+      "value": "An Sie heruntergeladen",
+      "sub": "Der Server bleibt unberührt"
+    }
+  },
+  "disk": {
+    "title": "Wie möchten Sie diese Festplatte wiederherstellen?",
+    "subtitle": "Legen Sie die Festplatte wieder dort ab, wo sie war, oder exportieren Sie sie als Datei, um sie anderswo anzuhängen. Sie bestätigen, bevor etwas ausgeführt wird.",
+    "original": {
+      "title": "An Ort und Stelle wiederherstellen",
+      "desc": "Schreibt die Festplatte auf ihr ursprüngliches Gerät auf {{name}} zurück. Schnell, aber der aktuelle Inhalt der Festplatte wird überschrieben."
+    },
+    "export": {
+      "title": "Als Datei exportieren",
+      "desc": "Materialisieren Sie die Festplatte als virtuelle Festplattendatei, die Sie an jede Maschine anhängen können — sicher für Inspektion oder parallele Wiederherstellung."
+    },
+    "exportCallout": "Die Festplatte wird in eine <1>{{format}}</1>-Datei auf der Appliance rekonstruiert — nichts auf {{owner}} wird berührt. Laden Sie sie herunter, sobald sie bereit ist.",
+    "rawImage": "Raw-Festplatten-Image",
+    "sub": {
+      "exportOnAppliance": "{{format}} auf der Appliance",
+      "overwrites": "Überschreibt das ursprüngliche Gerät"
+    },
+    "dest": {
+      "downloadable": "Herunterladbare Datei",
+      "on": "Auf {{name}}"
+    },
+    "overwriteWarning": "Dies überschreibt <1>{{name}}</1> ({{device}}) auf <2>{{owner}}</2> — die anderen Festplatten der {{noun}} bleiben unberührt, aber der aktuelle Inhalt dieser wird ersetzt. Sie bestätigen, bevor etwas ausgeführt wird."
+  },
+  "fileBrowser": {
+    "searchPlaceholder": "Diesen Snapshot durchsuchen…",
+    "searchAria": "Dateien im Wiederherstellungspunkt durchsuchen",
+    "folderPathAria": "Ordnerpfad",
+    "selectAllAria": "Alle sichtbaren Dateien auswählen",
+    "resultsFor": "Ergebnisse für „{{query}}“",
+    "name": "Name",
+    "modified": "Geändert",
+    "size": "Größe",
+    "loading": "Backup wird geöffnet…",
+    "error": {
+      "title": "Ordner konnte nicht gelesen werden",
+      "desc": "Das Backup wird möglicherweise noch eingebunden — versuchen Sie es erneut."
+    },
+    "noMatch": {
+      "title": "Nichts passt zu dieser Suche",
+      "desc": "Versuchen Sie einen anderen Datei- oder Ordnernamen."
+    },
+    "empty": {
+      "title": "Dieser Ordner ist leer"
+    },
+    "selectFile": "{{name}} auswählen",
+    "downloadFile": "{{name}} herunterladen"
+  },
+  "conversion": {
+    "title": "Plattformübergreifende Konvertierung",
+    "subtitle": "{{name}} verwendet einen anderen Hypervisor als diese VM. AltaStor konvertiert die Festplatte und passt den Gast an, damit er dort bootet.",
+    "noFormatChange": "Keine Formatänderung",
+    "firmware": "Firmware",
+    "bootConfidence": "Boot-Zuverlässigkeit",
+    "guestAdaptation": "Gastanpassung",
+    "planLabel": "Konvertierungsplan",
+    "noCaveats": "Keine besonderen Einschränkungen — der Gast sollte auf {{platform}} booten, wobei seine Treiber automatisch angepasst werden.",
+    "confidence": {
+      "high": "Hohe Zuverlässigkeit",
+      "medium": "Mittlere Zuverlässigkeit",
+      "low": "Geringe Zuverlässigkeit"
+    }
+  },
+  "instant": {
+    "title": "Sofortwiederherstellung",
+    "namedInstant": "{{name}} (sofort)",
+    "fallbackName": "Sofort-VM",
+    "toast": {
+      "discarded": {
+        "title": "Sofort-VM verworfen",
+        "desc": "Die On-Demand-Festplatte wurde freigegeben."
+      },
+      "discardError": {
+        "title": "Sofort-VM konnte nicht verworfen werden",
+        "desc": "Die Appliance hat die Anfrage abgelehnt."
+      }
+    },
+    "subtitle": {
+      "failed": "Die Sofortwiederherstellung konnte nicht gestartet werden.",
+      "discarded": "„{{name}}“ wurde verworfen und die On-Demand-Festplatte freigegeben.",
+      "running": "„{{name}}“ läuft direkt aus dem Backup.",
+      "booting": "Backup wird veröffentlicht und „{{name}}“ wird eingeschaltet…"
+    },
+    "runningCallout": "Blöcke werden bei Bedarf eingeblendet, während der Gast sie liest; Schreibvorgänge landen in einem Scratch-Overlay, sodass das Backup unveränderlich bleibt. Verwerfen Sie die VM, wenn Sie fertig sind, um die Festplatte freizugeben.",
+    "discardBtn": "Sofort-VM verwerfen",
+    "status": {
+      "discarded": "Verworfen",
+      "booting": "Bootet"
+    }
+  }
+}

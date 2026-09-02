@@ -1,0 +1,318 @@
+{
+  "page": {
+    "title": "Replicación",
+    "description": "Réplicas listas para ejecutarse para una recuperación ante desastres rápida. Gestione los trabajos de replicación y vea exactamente a qué host conmuta cada VM.",
+    "newJob": "Nuevo trabajo de replicación",
+    "empty": {
+      "title": "Aún no hay replicación",
+      "description": "Cree un trabajo de replicación para mantener una copia lista para ejecutarse de una VM en un host de destino: conmute en segundos y reconmute cuando la fuente esté en buen estado."
+    },
+    "kpi": {
+      "replicas": "Réplicas",
+      "inSync": "Sincronizadas",
+      "failedOver": "Conmutadas",
+      "outOfRpo": "Fuera del RPO",
+      "acrossJobs_one": "En {{count}} trabajo de replicación",
+      "acrossJobs_other": "En {{count}} trabajos de replicación",
+      "withinRpo": "Dentro del RPO · retraso medio {{lag}}",
+      "servingDr": "Réplicas en servicio en recuperación ante desastres",
+      "noActiveFailovers": "Sin conmutaciones activas",
+      "lagPastTarget": "Retraso por encima del objetivo: desviándose o incumplido",
+      "allWithinTarget": "Todas las réplicas dentro del objetivo"
+    },
+    "tabs": {
+      "jobs": "Trabajos",
+      "replicatedVms": "VMs replicadas"
+    }
+  },
+  "state": {
+    "seeding": "Sembrado",
+    "ready": "Sincronizadas",
+    "syncing": "Sincronizando",
+    "failover": "Conmutación — activa",
+    "failback": "Reconmutando",
+    "error": "Error"
+  },
+  "health": {
+    "error": "Error",
+    "breach": "Incumplimiento del RPO",
+    "failover": "Conmutación",
+    "drifting": "Desviándose",
+    "syncing": "Sincronizando",
+    "inSync": "Sincronizadas"
+  },
+  "jobs": {
+    "columns": {
+      "job": "Trabajo",
+      "status": "Estado",
+      "targetSite": "Sitio de destino",
+      "schedule": "Programación",
+      "replicas": "Réplicas",
+      "health": "Estado de salud",
+      "lastRun": "Última ejecución",
+      "success": "Éxito"
+    },
+    "status": {
+      "paused": "En pausa"
+    },
+    "filters": {
+      "all": "Todos los estados",
+      "running": "En ejecución",
+      "healthy": "En buen estado",
+      "warning": "Requiere atención",
+      "paused": "En pausa"
+    },
+    "toolbar": {
+      "searchPlaceholder": "Buscar trabajos de replicación por nombre o alcance…",
+      "searchAria": "Buscar trabajos de replicación",
+      "filterByStatus": "Filtrar por estado"
+    },
+    "selectAllAria": "Seleccionar todos los trabajos",
+    "selectRowAria": "Seleccionar {{name}}",
+    "selection": {
+      "count_one": "{{count}} seleccionado",
+      "count_other": "{{count}} seleccionados",
+      "clearAria": "Borrar selección"
+    },
+    "actions": {
+      "run": "Ejecutar",
+      "pause": "Pausar"
+    },
+    "empty": {
+      "noJobsTitle": "Aún no hay trabajos de replicación",
+      "noJobsDescription": "Cree un trabajo de replicación para mantener copias listas para ejecutarse de sus VMs en un host de destino y conmutar rápidamente.",
+      "noMatchTitle": "Ningún trabajo coincide con sus filtros",
+      "noMatchDescription": "Pruebe con otro término de búsqueda o filtro de estado."
+    },
+    "toast": {
+      "started": {
+        "title": "{{name}} iniciado",
+        "description": "Vea el flujo de sincronización en directo en Actividad.",
+        "watch": "Ver"
+      },
+      "paused": {
+        "title": "{{name}} está en pausa",
+        "description": "Habilite el trabajo para ejecutarlo."
+      },
+      "alreadyRunning": {
+        "title": "{{name}} ya está en ejecución",
+        "description": "Deje que primero termine la sincronización actual."
+      },
+      "enabled": {
+        "title": "{{name}} habilitado",
+        "description": "Se resincronizará en su próxima ventana programada."
+      },
+      "pausedToggle": {
+        "title": "{{name}} en pausa",
+        "description": "No se resincronizará hasta que lo vuelva a habilitar."
+      },
+      "deleted": {
+        "title": "{{name}} eliminado",
+        "description": "Las réplicas en espera se eliminaron; se conserva cualquier conmutación activa."
+      },
+      "deleteFailed": {
+        "title": "No se pudo eliminar {{name}}",
+        "description": "La appliance no confirmó: el trabajo permanece sin cambios."
+      },
+      "bulkStarted": {
+        "title_one": "{{count}} trabajo iniciado",
+        "title_other": "{{count}} trabajos iniciados",
+        "someSkipped": "Algunos estaban en pausa o ya en ejecución.",
+        "syncing": "Sincronizando ahora."
+      },
+      "bulkPaused": {
+        "title_one": "{{count}} trabajo en pausa",
+        "title_other": "{{count}} trabajos en pausa"
+      },
+      "bulkDeleted": {
+        "title_one": "{{count}} trabajo eliminado",
+        "title_other": "{{count}} trabajos eliminados",
+        "description": "Réplicas en espera eliminadas; conmutaciones activas conservadas."
+      },
+      "bulkDeletedPartial": {
+        "title": "{{deleted}} de {{total}} trabajos eliminados",
+        "description": "La appliance no confirmó el resto: permanecen sin cambios."
+      }
+    }
+  },
+  "map": {
+    "searchPlaceholder": "Buscar una VM o un host…",
+    "searchAria": "Buscar VMs replicadas y hosts",
+    "groupBy": "Agrupar topología por",
+    "grouping": {
+      "hosts": "Hosts",
+      "sites": "Sitios"
+    },
+    "legendHint": "· grosor = VMs · animado = sincronizando",
+    "scopedCount": "<1>{{scoped}}</1> de {{total}} VMs replicadas",
+    "totalReplicasRoutes_one": "<1>{{total}}</1> VMs replicadas · {{routes}} ruta",
+    "totalReplicasRoutes_other": "<1>{{total}}</1> VMs replicadas · {{routes}} rutas",
+    "replicatedVmsCount_one": "{{count}} VM replicada",
+    "replicatedVmsCount_other": "{{count}} VMs replicadas",
+    "routesCount_one": "{{count}} ruta",
+    "routesCount_other": "{{count}} rutas",
+    "selection": "selección",
+    "showing": "Mostrando {{filter}}",
+    "replicasHeading": "Réplicas",
+    "clearFilter": "Borrar filtro",
+    "viewModeAria": "Modo de vista de réplica",
+    "view": {
+      "list": "Lista",
+      "cards": "Tarjetas"
+    },
+    "empty": {
+      "noReplicatedTitle": "Aún no hay VMs replicadas",
+      "noReplicatedDescription": "Cree un trabajo de replicación para mantener una copia lista para ejecutarse de una VM en un host de destino y vea cómo la topología se ilumina aquí.",
+      "noMatchTitle": "Ninguna réplica coincide",
+      "noMatchDescription": "Pruebe con otro término de búsqueda o borre el filtro para ver toda la topología."
+    },
+    "role": {
+      "source": "Replicando desde",
+      "both": "Fuente y destino",
+      "target": "Replicando a"
+    },
+    "direction": {
+      "both": "envía {{out}}, recibe {{in}}",
+      "target": "recibe {{in}}",
+      "source": "replica hacia fuera {{out}}"
+    },
+    "term": {
+      "site": "sitio"
+    },
+    "node": {
+      "aria": "{{label}} — {{site}}, {{direction}}, {{health}}. {{state}}.",
+      "selected": "Seleccionado",
+      "showOnly": "Mostrar solo las réplicas de este {{term}}"
+    },
+    "job": {
+      "title": "Topología fuente → réplica"
+    },
+    "fallback": {
+      "source": "Fuente",
+      "unplaced": "sin ubicar",
+      "target": "Destino {{platform}}"
+    }
+  },
+  "list": {
+    "replicatedVm": "VM replicada",
+    "route": "Ruta",
+    "state": "Estado",
+    "rpoLag": "Retraso del RPO",
+    "lastSync": "Última sincronización",
+    "size": "Tamaño",
+    "crossPlatform": "multiplataforma"
+  },
+  "card": {
+    "from": "de {{job}}",
+    "poweredOn": "Encendida · atendiendo tráfico",
+    "source": "Fuente {{platform}}",
+    "target": "Destino {{platform}}",
+    "crossPlatform": "Multiplataforma · {{source}} → {{target}} (convertida al conmutar)",
+    "lagLabel": "Retraso de replicación (RPO)",
+    "targetLag": "objetivo {{duration}}",
+    "within": "Dentro del RPO",
+    "drifting": "Desviándose",
+    "breached": "Incumplido",
+    "lastSync": "Última sincronización",
+    "recoveryPoints": "Puntos de recuperación",
+    "replicaSize": "Tamaño de la réplica",
+    "failBack": "Reconmutar",
+    "undo": "Deshacer",
+    "seeding": "Sembrando…",
+    "failOver": "Conmutar"
+  },
+  "menu": {
+    "manage": "Gestionar {{name}}",
+    "failbackToSource": "Reconmutar a la fuente",
+    "undoFailover": "Deshacer conmutación",
+    "failover": "Conmutar…",
+    "seedingCantFailover": "Sembrando — no se puede conmutar",
+    "undoToDelete": "Deshacer conmutación para eliminar",
+    "deleteReplica": "Eliminar réplica…"
+  },
+  "delete": {
+    "title": "¿Eliminar réplica?",
+    "pointsPhrase_one": "su {{count}} punto de recuperación",
+    "pointsPhrase_other": "sus {{count}} puntos de recuperación",
+    "targetFallback": "el host de destino",
+    "confirm": "Eliminar réplica",
+    "pending": "Eliminando…",
+    "desc": {
+      "failover": "<1>{{name}}</1> está actualmente conmutada y aún no se puede eliminar.",
+      "hasVm": "Esto elimina permanentemente la réplica en espera <1>{{name}}</1> de {{source}} en {{target}}. La VM réplica y {{points}} se eliminarán del host de destino. Esto no se puede deshacer.",
+      "noVm": "Esto elimina permanentemente la réplica en espera <1>{{name}}</1> de {{source}}. Su sembrado nunca llegó a materializar una VM en {{target}}, por lo que al eliminarla se borra su registro y {{points}}: no hay ninguna VM que quitar del host. Esto no se puede deshacer."
+    },
+    "banner": {
+      "failoverTitle": "Esta réplica está actualmente conmutada",
+      "failoverBody": "Está encendida y sirviendo como carga de trabajo activa. Reconmute a la fuente o deshaga la conmutación antes de eliminarla.",
+      "reseedTitle": "El trabajo volverá a sembrar",
+      "reseedBody": "<1>{{job}}</1> creará una réplica nueva en su próxima ejecución: una lectura y transferencia completas de la fuente. Su VM de origen y el trabajo de replicación no se ven afectados."
+    },
+    "toast": {
+      "successTitle": "Réplica de {{name}} eliminada",
+      "successRemoved": "Eliminada de {{target}}. «{{job}}» vuelve a sembrar una réplica completa en su próxima ejecución.",
+      "successCleared": "El registro de la réplica se borró. «{{job}}» siembra una réplica nueva en su próxima ejecución.",
+      "errorTitle": "No se pudo eliminar la réplica",
+      "errorBody": "La appliance no confirmó la eliminación. No se eliminó nada: inténtelo de nuevo."
+    }
+  },
+  "confirm": {
+    "failback": {
+      "title": "¿Reconmutar a {{name}}?",
+      "description": "AltaStor sincroniza los cambios realizados en la réplica de vuelta a la fuente original, apaga la réplica y devuelve <1>{{name}}</1> a producción. La réplica vuelve a espera y reanuda la protección de la fuente.",
+      "confirm": "Reconmutar",
+      "pending": "Reconmutando…",
+      "toastTitle": "{{name}} está de nuevo en producción",
+      "toastBody": "Control devuelto a la fuente · {{replica}} está de nuevo en espera."
+    },
+    "undo": {
+      "title": "¿Deshacer la conmutación de {{name}}?",
+      "description": "Esto <1>descarta todo lo que la réplica escribió</1> mientras estaba en servicio, la apaga y la devuelve a espera, como si la conmutación nunca hubiera ocurrido. Use esto cuando la fuente esté en buen estado y no desee los cambios de la réplica.",
+      "confirm": "Descartar y deshacer",
+      "pending": "Deshaciendo…",
+      "toastTitle": "Conmutación de {{name}} deshecha",
+      "toastBody": "Escrituras de conmutación descartadas · la réplica está de nuevo en espera."
+    },
+    "errorTitle": "Eso no se completó",
+    "errorBody": "Compruebe la conexión con el host de destino e inténtelo de nuevo."
+  },
+  "failover": {
+    "title": "¿Conmutar a {{name}}?",
+    "description": "La réplica se enciende y empieza a servir en <1>{{env}}</1>{{hostSuffix}}. La fuente <3>{{source}}</3> se retira de la rotación hasta que reconmute.",
+    "kindLabel": "¿Cómo va a conmutar?",
+    "planned": {
+      "title": "Planificada",
+      "description": "Controlada. Ejecute una sincronización final para no perder nada y luego conmute."
+    },
+    "unplanned": {
+      "title": "No planificada",
+      "description": "Desastre. La fuente ha desaparecido: arranque la réplica desde un punto de recuperación ahora."
+    },
+    "recoveryPoint": "Punto de recuperación",
+    "noPoints": "Aún no hay puntos de recuperación disponibles: esta réplica no tiene nada desde donde arrancar.",
+    "choosePoint": "Elegir un punto de recuperación…",
+    "pointType": {
+      "full": "Completo",
+      "incremental": "Incremental"
+    },
+    "latest": "más reciente",
+    "hint": {
+      "unplanned": "Elija el último punto en el que confíe: todo lo que se haya escrito en la fuente después de este no está en la réplica.",
+      "planned": "Primero se ejecuta una sincronización final, de modo que el punto más reciente captura la fuente justo hasta la conmutación."
+    },
+    "banner": {
+      "unplanned": "<1>Sin sincronización final.</1> Las escrituras realizadas en {{source}} después del punto elegido se pierden. Use esto solo cuando la fuente sea inaccesible.",
+      "planned": "AltaStor ejecuta una última sincronización incremental, apaga la fuente y luego arranca la réplica en {{platform}}. Una reconmutación posterior devuelve el control a la fuente."
+    },
+    "pending": "Conmutando…",
+    "confirmUnplanned": "Conmutar ahora",
+    "confirmPlanned": "Conmutar de forma controlada",
+    "toast": {
+      "title": "{{name}} está ahora en servicio",
+      "unplanned": "Conmutación no planificada completada: la réplica está encendida en {{env}}.",
+      "planned": "Conmutación planificada completada: se ejecutó una sincronización final y la réplica está activa en {{env}}.",
+      "errorTitle": "La conmutación no se completó",
+      "errorBody": "La réplica no se puso en línea. Compruebe la conexión con el host de destino e inténtelo de nuevo."
+    }
+  }
+}

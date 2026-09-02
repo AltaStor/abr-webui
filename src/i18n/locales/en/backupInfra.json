@@ -1,0 +1,246 @@
+{
+  "page": {
+    "title": "Backup infrastructure",
+    "description": "Your AltaStor appliances and the storage your backups live in — the fleet's nodes, arrays and pools, and the repositories your backups target.",
+    "navAria": "Backup infrastructure sections"
+  },
+  "sections": {
+    "repositories": {
+      "label": "Repositories",
+      "blurb": "Backup targets & storage"
+    },
+    "appliances": {
+      "label": "Appliances",
+      "blurb": "AltaStor nodes, storage & tiers"
+    }
+  },
+  "fleet": {
+    "count_one": "{{count}} appliance",
+    "count_other": "{{count}} appliances",
+    "addAppliance": "Add appliance",
+    "thisConsole": "This console",
+    "healthy": "Healthy",
+    "unreachable": "Unreachable",
+    "localStorage": "Local storage",
+    "pools_one": "{{count}} pool",
+    "pools_other": "{{count}} pools",
+    "removedToast": "{{name}} removed",
+    "removedToastDescription": "The appliance itself keeps running — it's just no longer shown here.",
+    "removeDialog": {
+      "title": "Remove {{name}}?",
+      "body": "The appliance at <1>{{endpoint}}</1> keeps running and keeps all its data — it just disappears from this console. You can re-add it by address at any time."
+    },
+    "archiveTier": {
+      "label": "Archive tier",
+      "on": "on — points older than {{days}} days move to cold storage",
+      "off": "off — all points stay on primary storage",
+      "configure": "Configure"
+    }
+  },
+  "detail": {
+    "lastSeen": "last seen {{time}}",
+    "unreachableLastSeen": "unreachable — last seen {{time}}",
+    "never": "never",
+    "registered": "registered {{time}}",
+    "openConsole": "Open console",
+    "probeFailed": "This appliance didn't answer the last probe — showing its last known state.",
+    "probeFailedSince": "This appliance didn't answer the last probe — showing its last known state from {{time}}.",
+    "noStorage": "No storage reported yet — refresh once the appliance finishes provisioning, or open its console to set up storage."
+  },
+  "legacy": {
+    "localStorage": "Local storage",
+    "allRepositories": "All repositories",
+    "noLocalPools": "This appliance has no local storage pools — its repositories live on external targets.",
+    "unsupported": "Disk & RAID management needs a newer appliance version — showing the repository summary instead."
+  },
+  "repos": {
+    "kpi": {
+      "totalCapacity": "Total capacity",
+      "totalCapacityHint_one": "Across {{count}} repository",
+      "totalCapacityHint_other": "Across {{count}} repositories",
+      "used": "Used",
+      "usedHint": "{{pct}}% of total capacity",
+      "avgDedup": "Avg. dedup ratio",
+      "avgDedupHint": "Deduplication & compression across repositories"
+    },
+    "health": {
+      "title": "Storage health",
+      "reclaimable": "Reclaimable",
+      "reclaimableHint": "pending garbage collection",
+      "inMaintenance": "In maintenance",
+      "integrityIssues": "Integrity issues",
+      "threatLocked": "Threat-locked",
+      "threatLockedHint": "sealed by threat response"
+    },
+    "empty": {
+      "title": "No repositories yet",
+      "description": "Point AltaStor at storage you already own."
+    }
+  },
+  "addAppliance": {
+    "title": "Add appliance",
+    "description": "Deploy AltaStor on the new node first, then register its address here. The appliance keeps managing itself — this console shows its health and storage alongside this one.",
+    "addressLabel": "Address",
+    "addressHint": "Host or host:port — the control plane defaults to port 4980.",
+    "nameLabel": "Name (optional)",
+    "namePlaceholder": "Defaults to the appliance's hostname",
+    "probing": "Probing…",
+    "registeredToast": "{{name}} registered"
+  },
+  "createArray": {
+    "title": "Create RAID array",
+    "description": "Build a new array from unassigned disks. It becomes available as pool storage once a filesystem is provisioned on it.",
+    "nameLabel": "Name",
+    "levelLabel": "RAID level",
+    "membersLabel": "Member disks",
+    "noUnassigned": "No unassigned disks — every detected disk already belongs to an array.",
+    "useAsMember": "Use {{slot}} as a member",
+    "spareLabel": "Hot spare (optional)",
+    "noSpare": "No hot spare",
+    "usableAfter": "≈ <1>{{size}}</1> usable after {{level}} {{mode}}",
+    "mirroring": "mirroring",
+    "parity": "parity",
+    "creating": "Creating…",
+    "createButton": "Create array",
+    "createdToast": "Array \"{{name}}\" created",
+    "createdToastDescription": "{{level}} · {{size}} usable. It appears on the map as \"not yet pooled\".",
+    "buildStartedToast": "Array build started on the appliance",
+    "buildStartedToastDescription": "mdadm is assembling it now — it appears on the map within a few seconds. If it doesn't, check Alerts."
+  },
+  "diskAction": {
+    "requestFailed": "Request failed",
+    "replace": {
+      "title": "Replace disk",
+      "bodyArray": "Swap {{slot}} ({{model}}) for a fresh disk in the same slot. The {{array}} array resyncs onto the new disk — redundancy is restored when the rebuild finishes.",
+      "bodyLoose": "Swap {{slot}} ({{model}}) for a fresh disk in the same slot. The new disk becomes available for arrays.",
+      "confirm": "Replace disk",
+      "pending": "Replacing…",
+      "toast": "Replacement requested",
+      "toastArray": "{{array}} resyncs onto the new disk in {{slot}}.",
+      "toastLoose": "{{slot}} is back in service."
+    },
+    "fail": {
+      "title": "Mark disk as failed",
+      "bodyArray": "Take {{slot}} ({{model}}) out of service (mdadm --fail). The {{array}} array degrades and rebuilds onto a hot spare when one is available — do this to prepare the disk for removal.",
+      "bodyLoose": "Take {{slot}} ({{model}}) out of service (mdadm --fail).",
+      "confirm": "Mark as failed",
+      "pending": "Marking…",
+      "toast": "Disk marked as failed",
+      "toastDescription": "{{slot}} is out of service."
+    }
+  },
+  "section": {
+    "storage": "Storage",
+    "allRepositories": "All repositories",
+    "createArray": "Create array",
+    "createArrayHint": "Needs at least 2 unassigned disks",
+    "manageOnConsole": "Manage on its console",
+    "locateOnMap": "Locate on the map",
+    "replaceDisk": "Replace disk",
+    "notInAnyArray": "Not in any array:",
+    "looseAvailableNew": "{{count}} available for a new array",
+    "looseAvailableConsole": "{{count}} available — provision from its own console",
+    "looseSparesStandby": "hot spares stand by for their arrays"
+  },
+  "storage": {
+    "arrayState": {
+      "optimal": "Optimal",
+      "degraded": "Degraded",
+      "rebuilding": "Rebuilding",
+      "failed": "Failed"
+    },
+    "diskStatus": {
+      "healthy": "In array",
+      "failing": "Failing",
+      "failed": "Failed",
+      "spare": "Hot spare",
+      "unassigned": "Available"
+    },
+    "summary": {
+      "healthy": "Healthy",
+      "degraded": "Degraded",
+      "attention": "Attention",
+      "rebuilding": "Rebuilding",
+      "arraysOptimal_one": "{{count}} array optimal",
+      "arraysOptimal_other": "{{count}} arrays optimal",
+      "arraysOptimalOf_one": "{{optimal}} of {{count}} array optimal",
+      "arraysOptimalOf_other": "{{optimal}} of {{count}} arrays optimal",
+      "disksHealthy_one": "{{count}} disk healthy",
+      "disksHealthy_other": "{{count}} disks healthy",
+      "disksAttention_one": "{{count}} disk needs attention",
+      "disksAttention_other": "{{count}} disks need attention",
+      "hotSpares_one": "{{count}} hot spare",
+      "hotSpares_other": "{{count}} hot spares"
+    },
+    "issues": {
+      "arrayFailed": "Array {{name}} ({{id}}) has failed — its data is offline",
+      "arrayDegraded": "Array {{name}} ({{id}}) is degraded — no spare available, redundancy reduced",
+      "arrayRebuilding": "Array {{name}} ({{id}}) rebuilding — {{percent}}% at {{speed}} MB/s",
+      "diskFailingIn": "{{slot}} is failing (SMART) in {{array}}",
+      "diskFailing": "{{slot}} is failing (SMART)",
+      "diskFailedIn": "{{slot}} has failed in {{array}}",
+      "diskFailed": "{{slot}} has failed — replace it to return the slot to service"
+    }
+  },
+  "map": {
+    "columns": {
+      "arrays": {
+        "title": "RAID arrays",
+        "sub": "physical disks"
+      },
+      "pools": {
+        "title": "Pools",
+        "sub": "filesystem & tiers"
+      },
+      "repos": {
+        "title": "Repositories",
+        "sub": "backup targets"
+      }
+    },
+    "rebuilding": "Rebuilding",
+    "array": {
+      "osHint": "OS mirror — holds the appliance itself, never backups",
+      "unpooledHint": "Not yet pooled — no filesystem uses this array",
+      "usable": "{{device}} · {{size}} usable",
+      "rebuildLabel": "Rebuild {{percent}}%",
+      "rebuildEta": "{{percent}}% · ETA {{eta}} · {{speed}} MB/s",
+      "aria_one": "Array {{name}} ({{id}}) — {{level}}, {{state}}, {{count}} disk",
+      "aria_other": "Array {{name}} ({{id}}) — {{level}}, {{state}}, {{count}} disks",
+      "spotlightAria": "Spotlight array {{name}} ({{id}})"
+    },
+    "disk": {
+      "notReportedAria": "Member disk (not reported by the appliance)",
+      "ariaIn": "Disk {{slot}} — {{status}} in {{array}}",
+      "aria": "Disk {{slot}} — {{status}}",
+      "title": "{{slot}} · {{model}} · {{status}}",
+      "serial": "Serial",
+      "capacity": "Capacity",
+      "media": "Media",
+      "arrayFact": "Array",
+      "temperature": "Temperature",
+      "temperatureValue": "{{value}} °C",
+      "powerOn": "Power-on",
+      "days_one": "{{count}} day",
+      "days_other": "{{count}} days",
+      "smartErrors": "SMART errors",
+      "smartNotCollected": "SMART telemetry isn't collected from this appliance yet.",
+      "replaceDisk": "Replace disk",
+      "markFailed": "Mark as failed",
+      "markFailedHint": "Prepares the disk for removal — the array degrades and rebuilds onto a hot spare when one is available."
+    },
+    "pool": {
+      "aria_one": "Pool {{name}} — {{count}} tier, {{used}} of {{capacity}} used",
+      "aria_other": "Pool {{name}} — {{count}} tiers, {{used}} of {{capacity}} used",
+      "dedup": "dedup {{ratio}}×"
+    },
+    "tier": {
+      "noArray": "no array attached",
+      "s3": "S3",
+      "nfs": "NFS",
+      "smbShare": "SMB share"
+    },
+    "repo": {
+      "aria": "Repository {{name}} — {{used}} of {{capacity}} used"
+    }
+  }
+}

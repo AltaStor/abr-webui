@@ -1,0 +1,41 @@
+{
+  "page": {
+    "title": "Journaux",
+    "description": "Événements système sur l'appliance, y compris l'activité signalée par les agents de sauvegarde."
+  },
+  "actions": {
+    "export": "Exporter"
+  },
+  "export": {
+    "menuLabel": "Exporter les journaux",
+    "supportBundle": "Pack de support",
+    "systemLog": "Journal système (.log)"
+  },
+  "toast": {
+    "exportedSystem_one": "{{count}} ligne de journal système exportée",
+    "exportedSystem_other": "{{count}} lignes de journal système exportées",
+    "exportedSupportBundle": "Pack de support téléchargé",
+    "exportSupportBundleFailed": "Impossible de générer le pack de support"
+  },
+  "stats": {
+    "systemWarnings": "Avertissements système · 24h",
+    "agentEvents": "Événements d'agent · 24h"
+  },
+  "filters": {
+    "clearSearch": "Effacer la recherche"
+  },
+  "system": {
+    "sources": "Sources",
+    "searchLabel": "Rechercher dans les messages du journal système",
+    "searchPlaceholder": "Rechercher des messages…",
+    "liveTail": "Suivi en direct",
+    "toggleLiveTail": "Activer/désactiver le suivi en direct",
+    "downloadLog": "Télécharger le .log",
+    "lineCount_one": "{{formatted}} ligne",
+    "lineCount_other": "{{formatted}} lignes",
+    "filteredToSources_one": " · filtré sur {{count}} source",
+    "filteredToSources_other": " · filtré sur {{count}} sources",
+    "streaming": " · diffusion en cours",
+    "following": " · suit le journal de l'appliance"
+  }
+}

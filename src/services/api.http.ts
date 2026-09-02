@@ -1,0 +1,1679 @@
+// SPDX-License-Identifier: Apache-2.0
+// Copyright © 2026 Norvitex OÜ
+
+/**
+ * Real-backend client for the AltaStor console — wired to the Python FastAPI
+ * orchestrator (the "v4.1" API under /api/v1/*).
+ *
+ * This is the single adapter seam between the console's domain model (@/types)
+ * and the orchestrator's JSON. Every page reads from the zustand world store,
+ * which the live driver (world.live.ts) hydrates purely through the functions
+ * below — so wiring the whole console to VMware backup/restore is done here,
+ * with no page changes.
+ *
+ * What is REAL (backed end-to-end for vSphere): environments/inventories, the
+ * VM tree, backup jobs (CRUD + run + stop), sessions (poll + log + stop),
+ * repositories (list/create/rescan/delete), restore points, and full-VM
+ * out-of-place restore.
+ *
+ * What is a graceful STUB (no orchestrator support yet — surfaced in the UI as
+ * "Work in progress"): replication, threats/ransomware, audit trail, metrics
+ * history, appliance settings, first-boot provisioning, and the Hyper-V agent
+ * lifecycle. These keep their export signatures so the WIP-gated pages still
+ * compile and render empty.
+ *
+ * Transport: same-origin `/api/v1/*` (the Vite dev server proxies to :8443).
+ * There is NO server-sent-event stream on this backend, so `subscribeEvents`
+ * is a polling loop (see the bottom of the file).
+ */
+import { fileStamp } from "@/lib/download";
+import { restoreRunName } from "@/lib/format";
+import { useWorldStore } from "@/store/world";
+import type {
+  Alert,
+  ApplianceSettings,
+  AuditEvent,
+  BackupJob,
+  CreateEnvironmentInput,
+  CreateRepositoryInput,
+  DashboardSummary,
+  Environment,
+  EnvironmentType,
+  Host,
+  Hypervisor,
+  JobOptions,
+  JobType,
+  LogLine,
+  MetricSnapshot,
+  OsFamily,
+  PowerState,
+  Replica,
+  ReplicaTarget,
+  Repository,
+  RepositoryType,
+  RestorePlacementOptions,
+  RestorePoint,
+  Retention,
+  S3ConnectionTestResult,
+  S3RepositoryConfig,
+  Schedule,
+  Session,
+  SessionStatus,
+  Threat,
+  VM,
+} from "@/types";
+
+/** Same-origin by default so the Vite `/api` proxy reaches the orchestrator. */
+const BASE = (import.meta.env.VITE_API_URL as string | undefined) ?? "";
+
+class ApiError extends Error {
+  constructor(
+    readonly status: number,
+    readonly body: unknown,
+  ) {
+    super(`API ${status}`);
+  }
+}
+
+/**
+ * The orchestrator's real error body is `{ error: { code, message, details? } }`
+ * (see `api_errors.py::ApiError.to_payload`); some frontend-synthesized
+ * `ApiError`s in this file instead use the shorthand `{ error: "message" }`.
+ * Handles both. Returns null for anything else so callers can fall back to a
+ * generic message.
+ */
+function apiErrorMessage(err: unknown): string | null {
+  if (!(err instanceof ApiError)) return null;
+  const body = err.body as { error?: unknown } | null;
+  const e = body?.error;
+  if (typeof e === "string") return e;
+  if (e && typeof e === "object" && typeof (e as { message?: unknown }).message === "string") {
+    return (e as { message: string }).message;
+  }
+  return null;
+}
+
+/**
+ * True for a major-version mismatch between this console build and the
+ * appliance it's talking to (see `checkApiVersion` below and the matching
+ * `api_version_incompatible` rejection in `api_version_middleware` server-side).
+ * Callers use this instead of `ApiError.status` — that status is whichever
+ * response happened to carry the version header first (often an unrelated
+ * 401 during an unauthenticated boot hydrate), so it can't be trusted to
+ * tell a version mismatch apart from a plain auth failure.
+ */
+function isVersionMismatchError(err: unknown): boolean {
+  if (!(err instanceof ApiError)) return false;
+  const body = err.body as { error?: { code?: unknown } } | null;
+  return body?.error?.code === "api_version_incompatible";
+}
+
+/** The orchestrator's structured error `code` (e.g. "target_vm_exists"), so
+ *  callers can react to a specific failure instead of only its message text. */
+function apiErrorCode(err: unknown): string | null {
+  if (!(err instanceof ApiError)) return null;
+  const body = err.body as { error?: unknown } | null;
+  const e = body?.error;
+  if (e && typeof e === "object" && typeof (e as { code?: unknown }).code === "string") {
+    return (e as { code: string }).code;
+  }
+  return null;
+}
+
+/* --------------------------- auth: session token -------------------------- */
+let authToken: string | null = null;
+let unauthorizedHandler: (() => void) | null = null;
+
+/** Set by the auth store on sign-in/out — every request below attaches it. */
+export function setAuthToken(token: string | null): void {
+  authToken = token;
+}
+
+/**
+ * Registered once by the auth store. The request layer has no router access,
+ * so a 401 on an authenticated call (session expired/revoked server-side)
+ * reports through this single hook instead — the store decides what a
+ * sign-out means for the rest of the app.
+ */
+export function setUnauthorizedHandler(handler: (() => void) | null): void {
+  unauthorizedHandler = handler;
+}
+
+const API_VERSION_HEADER = "x-abr-api-version";
+let apiVersionChecked = false;
+
+function checkApiVersion(res: Response): void {
+  if (apiVersionChecked) return;
+  const serverHeader = res.headers.get(API_VERSION_HEADER);
+  if (!serverHeader) return;
+  apiVersionChecked = true;
+  const [serverMajorStr, serverMinorStr] = serverHeader.split(".");
+  const serverMajor = Number(serverMajorStr);
+  const serverMinor = Number(serverMinorStr);
+  if (!Number.isFinite(serverMajor) || !Number.isFinite(serverMinor)) return;
+  if (serverMajor !== __ABR_API_MAJOR__) {
+    throw new ApiError(res.status, {
+      error: {
+        code: "api_version_incompatible",
+        message:
+          `Incompatible API version: server speaks ${serverMajor}.${serverMinor}, ` +
+          `console speaks ${__ABR_API_MAJOR__}.${__ABR_API_MINOR__}. Major versions must match ` +
+          "— reload after the deployment finishes, or contact your administrator.",
+      },
+    });
+  }
+  if (serverMinor !== __ABR_API_MINOR__) {
+    if (serverMinor > __ABR_API_MINOR__) {
+      console.warn(
+        `[AltaStor] Server API is newer (${serverMajor}.${serverMinor}) than this console build ` +
+          `(${__ABR_API_MAJOR__}.${__ABR_API_MINOR__}) — reload to pick up the latest console assets.`,
+      );
+    } else {
+      console.warn(
+        `[AltaStor] Server API is older (${serverMajor}.${serverMinor}) than this console build ` +
+          `(${__ABR_API_MAJOR__}.${__ABR_API_MINOR__}) — the server needs an upgrade.`,
+      );
+    }
+  }
+}
+
+async function request<T>(path: string, init?: RequestInit): Promise<T> {
+  const headers: Record<string, string> = {
+    "content-type": "application/json",
+    "x-client-type": "web",
+    [API_VERSION_HEADER]: `${__ABR_API_MAJOR__}.${__ABR_API_MINOR__}`,
+  };
+  if (authToken) headers.authorization = `Bearer ${authToken}`;
+  const res = await fetch(`${BASE}/api/v1${path}`, { ...init, headers });
+  checkApiVersion(res);
+  if (res.status === 401 && authToken) {
+    // A previously-valid session no longer is (expired or revoked elsewhere) —
+    // drop it now so nothing keeps acting on the app's behalf as it.
+    authToken = null;
+    unauthorizedHandler?.();
+  }
+  if (!res.ok) throw new ApiError(res.status, await res.json().catch(() => null));
+  return res.status === 204 ? (undefined as T) : ((await res.json()) as T);
+}
+
+/** Unwrap the orchestrator's `{items:[...]}` / `{nodes:[...]}` list envelopes. */
+async function collection<T>(path: string, key: "items" | "nodes" = "items"): Promise<T[]> {
+  const raw = await request<Record<string, unknown> | T[]>(path);
+  if (Array.isArray(raw)) return raw as T[];
+  const inner = (raw as Record<string, unknown>)[key];
+  return Array.isArray(inner) ? (inner as T[]) : [];
+}
+
+/* ====================================================================== */
+/* Small shared coercers + enum mappers                                    */
+/* ====================================================================== */
+
+type Dict = Record<string, unknown>;
+const asDict = (v: unknown): Dict => (v && typeof v === "object" ? (v as Dict) : {});
+const str = (v: unknown, fallback = ""): string => (typeof v === "string" ? v : fallback);
+const num = (v: unknown, fallback = 0): number =>
+  typeof v === "number" && Number.isFinite(v) ? v : fallback;
+const strOrNull = (v: unknown): string | null => (typeof v === "string" && v ? v : null);
+const GB = 1_000_000_000;
+/** Matches the appliance's DEFAULT_COMPRESSION_LEVEL (vcenter_backup.py). */
+const DEFAULT_COMPRESSION_LEVEL = 3;
+
+/** Deterministic accent so a job keeps the same colour across reloads. */
+const ACCENTS = ["cyan", "blue", "emerald", "violet", "amber"] as const;
+function accentFor(id: string): (typeof ACCENTS)[number] {
+  let h = 0;
+  for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) >>> 0;
+  return ACCENTS[h % ACCENTS.length];
+}
+
+function osFamilyOf(guest: string): OsFamily {
+  const g = guest.toLowerCase();
+  // macOS first: vSphere reports it as "darwin*Guest", and "darwin" would not
+  // match the others, but "Mac OS X Server" contains no windows/linux token
+  // either — checking it up front keeps both spellings off "unknown".
+  if (/darwin|mac ?os|macintosh|osx/.test(g)) return "macos";
+  if (/win|microsoft/.test(g)) return "windows";
+  if (/linux|ubuntu|debian|centos|rhel|red hat|suse|fedora|oracle|rocky|alma|photon|coreos/.test(g))
+    return "linux";
+  return "unknown";
+}
+
+function powerStateOf(v: string): PowerState {
+  const p = v.toLowerCase();
+  if (/on|running|poweredon/.test(p)) return "running";
+  if (/susp/.test(p)) return "suspended";
+  return "stopped";
+}
+
+/** Orchestrator inventory `type` → console EnvironmentType / Hypervisor. */
+function envTypeOf(t: string): { type: EnvironmentType; hypervisor: Hypervisor } {
+  switch (t) {
+    case "vsphere":
+      return { type: "vcenter", hypervisor: "vmware" };
+    case "hyper-v":
+      return { type: "hyperv", hypervisor: "hyperv" };
+    case "proxmox-ve":
+      return { type: "proxmox", hypervisor: "proxmox" };
+    default:
+      return { type: "vcenter", hypervisor: "vmware" };
+  }
+}
+
+function repoTypeOf(t: string): RepositoryType {
+  switch (t) {
+    case "s3":
+      return "object-lock-s3";
+    case "nfs":
+    case "smb":
+      return "nfs";
+    default:
+      return "local";
+  }
+}
+
+function sessionStatusOf(state: string, hasErrors: boolean): SessionStatus {
+  switch (state) {
+    case "queued":
+      return "queued";
+    case "running":
+    case "stopping":
+      return "running";
+    case "completed":
+      return hasErrors ? "warning" : "success";
+    case "failed":
+    case "stopped":
+    case "canceled":
+    case "cancelled":
+      return "failed";
+    default:
+      return "queued";
+  }
+}
+
+function durationSecOf(startedAt: string, finishedAt: string | null): number {
+  if (!startedAt) return 0;
+  const start = new Date(startedAt).getTime();
+  const end = finishedAt ? new Date(finishedAt).getTime() : Date.now();
+  return Number.isFinite(start) && Number.isFinite(end) ? Math.max(0, Math.round((end - start) / 1000)) : 0;
+}
+
+function hashString(s: string): number {
+  let h = 0;
+  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0;
+  return h;
+}
+
+/** Make orchestrator error text legible in the console (esp. non-VMware runs). */
+function friendlyError(msg: string): string {
+  if (/unsupported hypervisor kind/i.test(msg)) {
+    return "This hypervisor’s backup engine isn’t wired up yet — registration and discovery work, but runs don’t.";
+  }
+  return msg;
+}
+
+/* ====================================================================== */
+/* Mappers: orchestrator record  →  domain entity                          */
+/* ====================================================================== */
+
+function mapEnvironment(inv: Dict): Environment {
+  const { type, hypervisor } = envTypeOf(str(inv.type));
+  const conn = asDict(inv.connection);
+  const discovery = asDict(inv.discovery);
+  return {
+    id: str(inv.id),
+    name: str(inv.name) || str(inv.address) || "Environment",
+    type,
+    hypervisor,
+    version: str(inv.version) || (type === "vcenter" ? "vSphere" : ""),
+    endpoint: str(inv.endpoint) || str(inv.address) || str(conn.endpoint) || str(conn.address),
+    port: conn.port === undefined || conn.port === null ? undefined : num(conn.port),
+    insecure: Boolean(conn.insecure),
+    connected: str(inv.status) === "available",
+    statusError: strOrNull(discovery.last_scan_error),
+    hostCount: num(inv.host_count),
+    vmCount: num(inv.vm_count),
+  };
+}
+
+function mapSession(s: Dict): Session {
+  const job = asDict(s.job);
+  const errors = Array.isArray(s.errors) ? (s.errors as Dict[]) : [];
+  const startedAt = str(s.started_at);
+  const finishedAt = strOrNull(s.finished_at);
+  const state = str(s.state);
+  const status = sessionStatusOf(state, errors.length > 0);
+  const backupType = /inc/i.test(str(s.resolved_backup_type)) ? "incremental" : "full";
+  const vmId = str(s.vm_id);
+  const isRestore = str(s.type) === "restore";
+  // The VM this run acts on, by name, straight from the orchestrator (see
+  // _session_vm_names in abr_v41.py). For a restore that's the VM being
+  // created; source_vm_name is where the point came from.
+  const vmName = str(s.vm_name);
+  const sourceVmName = str(s.source_vm_name);
+  // Restore tasks have no job (job_id is null), so there is no job.name to
+  // fall back to — name the run after the VM it restores instead of leaving
+  // the placeholder, so the feed's RUN column identifies it at a glance.
+  // world.live.ts still resolves a name from inventory when the orchestrator
+  // couldn't supply one (older sessions predating the vm_name field).
+  const jobName = isRestore
+    ? restoreRunName(vmName || sourceVmName)
+    : str(job.name) || "—";
+  const message = errors.length ? friendlyError(str(errors[0].message)) : undefined;
+  // The orchestrator's `message` field carries the live per-disk stage caption
+  // while a session is running (see _emit_progress in vcenter_backup.py /
+  // vcenter_restore.py — the same text the CLI's --watch prints) and the
+  // terminal error text once it isn't — `message` above already covers the
+  // latter, so only pull this while still running.
+  const stageMessage = status === "running" ? strOrNull(s.message) ?? undefined : undefined;
+  const progress = num(s.progress);
+  const resultStatus =
+    status === "success" || status === "warning" || status === "failed" || status === "running"
+      ? status
+      : "pending";
+  return {
+    id: str(s.id),
+    jobId: str(job.id),
+    jobName,
+    type: isRestore ? "restore" : "backup",
+    status,
+    backupType,
+    startedAt,
+    finishedAt,
+    durationSec: durationSecOf(startedAt, finishedAt),
+    progress,
+    // Best-effort — the orchestrator only reports these for real vCenter
+    // backups (see run_vcenter_backup's processed_bytes/transferred_bytes);
+    // restores and non-vCenter engines have no byte telemetry and stay 0,
+    // which the UI renders as "—" rather than a false "0 B".
+    processedGB: num(s.processed_bytes) / GB,
+    transferredGB: num(s.transferred_bytes) / GB,
+    // The orchestrator has no rate field, only cumulative bytes — a single
+    // session record can't derive a rate on its own. world.live.ts fills
+    // this in by diffing transferredGB across consecutive samples.
+    throughputMBps: 0,
+    vmCount: 1,
+    vmResults: vmId
+      ? [
+          {
+            vmId,
+            // The real VM name — NOT jobName, which named the *job* here and
+            // made the per-VM breakdown read "nightly-backup" instead of the
+            // machine it backed up. Sessions predating the orchestrator's
+            // vm_name field carry neither name; they fall back to the raw id,
+            // which is opaque but honest, and which world.live.ts recognises
+            // as "unnamed" and resolves against the hydrated inventory.
+            vmName: vmName || sourceVmName || vmId,
+            status: resultStatus,
+            processedGB: num(s.processed_bytes) / GB,
+            transferredGB: num(s.transferred_bytes) / GB,
+            durationSec: durationSecOf(startedAt, finishedAt),
+            message,
+          },
+        ]
+      : [],
+    message,
+    stageMessage,
+    // Only the JobScheduler's own runs report "schedule" — Run now/Run full
+    // backup, restores and backup-copy sessions are all "manual" (see
+    // session_to_dto in abr_v41.py).
+    triggeredBy: str(s.triggered_by) === "schedule" ? "schedule" : "manual",
+  };
+}
+
+const DAY_NAMES = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
+
+function daysOfWeekOf(sched: Dict): number[] {
+  if (Array.isArray(sched.weekdays)) return sched.weekdays as number[];
+  if (Array.isArray(sched.days)) {
+    return (sched.days as string[])
+      .map((d) => DAY_NAMES.indexOf(String(d).toLowerCase()))
+      .filter((i) => i >= 0);
+  }
+  return [1];
+}
+
+/** Orchestrator schedule DTO (`{type, time, days, interval_minutes, …}`). */
+function mapSchedule(sched: Dict): Schedule {
+  const kind = str(sched.type) || str(sched.kind);
+  const time = str(sched.time) || str(sched.start_time) || "00:00";
+  switch (kind) {
+    case "weekly":
+      return { frequency: "weekly", atTime: time, daysOfWeek: daysOfWeekOf(sched) };
+    case "periodic": {
+      const mins = num(sched.interval_minutes, 60);
+      return { frequency: "hourly", everyHours: Math.max(1, Math.round(mins / 60)) };
+    }
+    case "monthly":
+      return { frequency: "custom", atTime: time };
+    case "cron":
+      return { frequency: "custom", cron: str(sched.expression) };
+    default:
+      return { frequency: "daily", atTime: time };
+  }
+}
+
+function mapJobOptions(params: Dict, compressionLevel?: unknown, encryption?: Dict): JobOptions {
+  const level = Math.round(num(compressionLevel, DEFAULT_COMPRESSION_LEVEL));
+  return {
+    appAware: Boolean(params.app_aware ?? params.application_aware ?? params.quiesce),
+    // The job DTO's own `encryption` block is what the appliance actually acts
+    // on; task_parameters is the fallback for payloads that predate it. Note
+    // the key is `encryption_enabled` there — reading a bare `encryption` off
+    // task_parameters is what let a job report itself encrypted while its
+    // restore points were written in the clear.
+    encryption: Boolean(encryption?.enabled ?? params.encryption_enabled),
+    compression: Math.min(9, Math.max(0, level)),
+    dedup: params.dedup === undefined ? true : Boolean(params.dedup),
+  };
+}
+
+function mapRetention(job: Dict): Retention {
+  const gfs = asDict(job.gfs);
+  const keep = num(job.retention_days, 7);
+  const out: Retention = { keepDays: keep };
+  if (gfs.weekly || gfs.monthly || gfs.yearly) {
+    out.gfs = { weekly: num(gfs.weekly), monthly: num(gfs.monthly), yearly: num(gfs.yearly), enabled: gfs.enabled !== false };
+  }
+  return out;
+}
+
+/**
+ * The three job fields derived from its run history: the last-12 outcome strip,
+ * the success ratio, and the pill's last status.
+ *
+ * Split out of `mapJob` so a caller that already holds the session list can
+ * attach these without `mapJob` refetching it — see `withJobRunStats`.
+ */
+function jobRunStats(jobSessions: Session[]): Pick<BackupJob, "recentRuns" | "successRate" | "lastStatus"> {
+  const mine = [...jobSessions].sort(
+    (a, b) => new Date(a.startedAt).getTime() - new Date(b.startedAt).getTime(),
+  );
+  const recentRuns = mine.slice(-12).map((s) => s.status);
+  const finished = mine.filter((s) => s.status === "success" || s.status === "warning" || s.status === "failed");
+  return {
+    recentRuns,
+    successRate: finished.length
+      ? Math.round((finished.filter((s) => s.status === "success").length / finished.length) * 100)
+      : 100,
+    lastStatus: mine.length ? mine[mine.length - 1].status : null,
+  };
+}
+
+/**
+ * Attach run history to already-mapped jobs.
+ *
+ * `listJobs` deliberately does NOT fetch sessions: hydrate pulls the session
+ * list once for the store, and having `listJobs` pull it again meant every
+ * poll fetched the whole session history twice. The live driver calls this
+ * with the list it already has.
+ */
+export function withJobRunStats(jobs: BackupJob[], sessions: Session[]): BackupJob[] {
+  const byJob = new Map<string, Session[]>();
+  for (const session of sessions) {
+    const bucket = byJob.get(session.jobId);
+    if (bucket) bucket.push(session);
+    else byJob.set(session.jobId, [session]);
+  }
+  return jobs.map((job) => ({ ...job, ...jobRunStats(byJob.get(job.id) ?? []) }));
+}
+
+/** Build a job from its DTO, enriched with run history from `sessions` (may be
+ *  empty — `withJobRunStats` can fill it in later). */
+function mapJob(job: Dict, sessions: Session[]): BackupJob {
+  const id = str(job.id);
+  const repo = asDict(job.repository);
+  const inventory = asDict(job.inventory);
+  const jobType = str(job.job_type);
+  const type: JobType = jobType === "backup-copy" ? "backup-copy" : "backup";
+  const vmIds = Array.isArray(job.vm_ids) ? (job.vm_ids as string[]) : [];
+  const vmCount = num(job.vm_count, vmIds.length);
+  const activeCount = num(job.active_session_count);
+  const enabled = job.enabled !== false && str(job.status) !== "disabled";
+
+  const { recentRuns, successRate, lastStatus } = jobRunStats(sessions.filter((s) => s.jobId === id));
+
+  const scopeSummary =
+    (str(inventory.name) ? `${str(inventory.name)} · ` : "") +
+    `${vmCount} VM${vmCount === 1 ? "" : "s"}`;
+
+  return {
+    id,
+    name: str(job.name) || "Job",
+    type,
+    description: str(job.description) || undefined,
+    vmIds,
+    scopeSummary,
+    repositoryId: str(repo.id),
+    schedule: mapSchedule(asDict(job.schedule)),
+    retention: mapRetention(job),
+    options: mapJobOptions(asDict(job.task_parameters ?? job.backup_options), job.compression_level, asDict(job.encryption)),
+    state: activeCount > 0 ? "running" : enabled ? "idle" : "disabled",
+    lastStatus,
+    lastRunAt: strOrNull(job.last_run_at),
+    nextRunAt: enabled ? strOrNull(job.next_run_at) : null,
+    createdAt: str(job.created_at) || new Date(0).toISOString(),
+    successRate,
+    recentRuns,
+    accent: accentFor(id),
+  };
+}
+
+function mapRepository(r: Dict): Repository {
+  const storage = asDict(r.storage);
+  const capacityGB = num(storage.capacity_bytes) / GB;
+  const usedGB = num(storage.used_bytes) / GB;
+  const status = str(r.status);
+  return {
+    id: str(r.id),
+    name: str(r.name) || "Repository",
+    type: repoTypeOf(str(r.type)),
+    path: str(r.path) || str(r.address) || str(r.location),
+    capacityGB,
+    usedGB,
+    dedupRatio: 1,
+    status:
+      status === "available" ? "healthy" : status === "unavailable" || status === "error" ? "offline" : "warning",
+    usageTrend: [usedGB, usedGB],
+    lastScanAt: strOrNull(r.last_scan_at),
+  };
+}
+
+function mapRestorePointFromChainPoint(chain: Dict, point: Dict): RestorePoint {
+  const vm = asDict(chain.vm);
+  const job = asDict(chain.job);
+  const repo = asDict(chain.repository);
+  const execType = str(point.execution_type);
+  return {
+    id: str(point.id),
+    chainId: str(chain.id),
+    vmId: str(point.vm_id) || str(vm.id),
+    vmName: str(point.vm_name) || str(vm.name),
+    jobId: str(job.id),
+    jobName: str(job.name),
+    createdAt: str(point.created_at),
+    type: /inc/i.test(execType) ? "incremental" : "full",
+    sizeGB: num(point.size_bytes) / GB,
+    repositoryId: str(point.repository_id) || str(repo.id),
+    logicalGB: point.logical_size_bytes == null ? null : num(point.logical_size_bytes) / GB,
+    compressionRatio: point.compression_ratio == null ? null : num(point.compression_ratio),
+    compressionLevel: point.compression_level == null ? null : num(point.compression_level),
+    encrypted: Boolean(point.encryption_enabled),
+  };
+}
+
+function mapLogLines(logs: unknown): LogLine[] {
+  if (!Array.isArray(logs)) return [];
+  const levels = new Set(["debug", "info", "warn", "error", "success"]);
+  return logs.map((raw, i) => {
+    const l = asDict(raw);
+    const level = str(l.level);
+    return {
+      id: `${str(l.timestamp) || i}-${i}`,
+      ts: str(l.timestamp) || new Date().toISOString(),
+      level: (levels.has(level) ? level : "info") as LogLine["level"],
+      message: str(l.message),
+      vmName: str(l.vm_name) || undefined,
+      component: str(l.component) || undefined,
+    };
+  });
+}
+
+/* ====================================================================== */
+/* VM tree → VMs + Hosts                                                    */
+/* ====================================================================== */
+
+interface TreeNode extends Dict {
+  kind?: string;
+  children?: TreeNode[];
+}
+
+function walkTree(nodes: TreeNode[], visit: (n: TreeNode) => void): void {
+  for (const n of nodes) {
+    visit(n);
+    if (Array.isArray(n.children)) walkTree(n.children, visit);
+  }
+}
+
+/** Fetch the VM tree once and derive both hosts and VMs from it. */
+async function fetchInventoryTree(): Promise<{ vms: VM[]; hosts: Host[] }> {
+  const nodes = await collection<TreeNode>("/inventories/vms/tree", "nodes").catch(() => [] as TreeNode[]);
+  const hosts: Host[] = [];
+  const vms: VM[] = [];
+  walkTree(nodes, (n) => {
+    if (n.kind === "host") {
+      const hs = str(n.host_status).toLowerCase();
+      hosts.push({
+        id: str(n.host_id) || str(n.id),
+        environmentId: str(n.inventory_id),
+        name: str(n.host_name) || str(n.label) || "host",
+        cluster: str(n.cluster_name),
+        status: hs.includes("maint") ? "maintenance" : hs.includes("disconn") ? "disconnected" : "online",
+        cpuCores: num(n.cpu_count),
+        memoryGB: Math.round(num(n.memory_mb) / 1024),
+        vmCount: num(n.vm_count),
+      });
+    } else if (n.kind === "vm") {
+      const guest = str(n.guest_os);
+      vms.push({
+        id: str(n.vm_id) || str(n.id),
+        name: str(n.label) || str(n.vm_id) || "vm",
+        environmentId: str(n.inventory_id),
+        hostId: str(n.host_id),
+        guestOs: guest || "Unknown",
+        osFamily: osFamilyOf(guest),
+        powerState: powerStateOf(str(n.power_state)),
+        vcpus: num(n.cpu_count),
+        memoryGB: Math.round(num(n.memory_mb) / 1024),
+        // Sum of the VM's discovered disks; usedGB is filled in from real
+        // restore-point sizes once backup coverage is overlaid (applyProtection).
+        provisionedGB: num(n.disk_capacity_bytes) / GB,
+        usedGB: 0,
+        tags: [],
+        protection: "unprotected",
+        lastBackupAt: null,
+        restorePointCount: 0,
+        ipAddress: str(n.ip_address),
+      });
+    }
+  });
+  return { vms, hosts };
+}
+
+/** Overlay restore-point coverage onto VMs so protection status is real. */
+function applyProtection(vms: VM[], points: RestorePoint[]): VM[] {
+  const byVm = new Map<string, RestorePoint[]>();
+  for (const p of points) {
+    const list = byVm.get(p.vmId) ?? [];
+    list.push(p);
+    byVm.set(p.vmId, list);
+  }
+  const DAY = 86_400_000;
+  return vms.map((vm) => {
+    const pts = byVm.get(vm.id);
+    if (!pts || pts.length === 0) return vm;
+    const latest = pts.reduce((a, b) => (new Date(a.createdAt) > new Date(b.createdAt) ? a : b));
+    const fresh = Date.now() - new Date(latest.createdAt).getTime() < DAY;
+    // A full restore point captures the VM's real data footprint — use the most
+    // recent one as "used" so the size column isn't stuck at 0 in live mode.
+    const latestFull = pts
+      .filter((p) => p.type === "full")
+      .reduce<RestorePoint | null>(
+        (a, b) => (!a || new Date(b.createdAt) > new Date(a.createdAt) ? b : a),
+        null,
+      );
+    return {
+      ...vm,
+      restorePointCount: pts.length,
+      lastBackupAt: latest.createdAt,
+      usedGB: (latestFull ?? latest).sizeGB,
+      protection: fresh ? "protected" : "warning",
+      protectionNote: fresh ? undefined : "Last backup is older than 24h",
+    };
+  });
+}
+
+/* ====================================================================== */
+/* Auth — console sign-in (POST /auth/login, /auth/logout,                 */
+/* /auth/change-password), added alongside the rest of the v4.1 API.       */
+/* ====================================================================== */
+
+export interface AuthUser {
+  id: string;
+  name: string;
+  fullName: string;
+  createdAt: string | null;
+  /** True when the account's password fails the security policy (e.g. the
+   * bootstrap admin's default password) — the console forces a change before
+   * anything else. */
+  passwordPolicyExempt: boolean;
+}
+
+export interface LoginResult {
+  token: string;
+  expiresAt: string;
+  user: AuthUser;
+}
+
+function mapAuthUser(u: Dict): AuthUser {
+  return {
+    id: str(u.id),
+    name: str(u.name),
+    fullName: str(u.fullName),
+    createdAt: strOrNull(u.created_at),
+    passwordPolicyExempt: Boolean(u.passwordPolicyExempt),
+  };
+}
+
+export async function login(name: string, password: string, durationSeconds?: number): Promise<LoginResult> {
+  const body: Dict = { name, password };
+  if (durationSeconds !== undefined) body.duration_seconds = durationSeconds;
+  const res = asDict(await request<Dict>("/auth/login", { method: "POST", body: JSON.stringify(body) }));
+  return { token: str(res.token), expiresAt: str(res.expires_at), user: mapAuthUser(asDict(res.user)) };
+}
+
+export const logout = () => request<void>("/auth/logout", { method: "POST", body: "{}" });
+
+/** Adjusts the current session's absolute expiry in place (Settings ->
+ *  Security's token-lifetime slider) -- takes effect immediately rather than
+ *  waiting for the next login. Resolves the new `expiresAt` ISO timestamp. */
+export async function extendSession(durationSeconds: number): Promise<string> {
+  const res = asDict(
+    await request<Dict>("/auth/session/duration", {
+      method: "PUT",
+      body: JSON.stringify({ duration_seconds: durationSeconds }),
+    }),
+  );
+  return str(res.expires_at);
+}
+
+export async function changePassword(currentPassword: string, newPassword: string): Promise<AuthUser> {
+  const res = await request<Dict>("/auth/change-password", {
+    method: "POST",
+    body: JSON.stringify({ current_password: currentPassword, new_password: newPassword }),
+  });
+  return mapAuthUser(asDict(res));
+}
+
+/* ====================================================================== */
+/* Reads (same signatures the world driver + pages expect)                 */
+/* ====================================================================== */
+
+/** All restore points, flattened from the backup chains catalog. */
+export async function listRestorePoints(vmId?: string): Promise<RestorePoint[]> {
+  const chains = await collection<Dict>("/backups");
+  const points: RestorePoint[] = [];
+  for (const chain of chains) {
+    const rps = Array.isArray(chain.restore_points) ? (chain.restore_points as Dict[]) : [];
+    for (const p of rps) points.push(mapRestorePointFromChainPoint(chain, p));
+  }
+  return vmId ? points.filter((p) => p.vmId === vmId) : points;
+}
+
+export async function listEnvironments(): Promise<Environment[]> {
+  const items = await collection<Dict>("/inventories");
+  return items.map(mapEnvironment);
+}
+
+/** Console EnvironmentType → orchestrator inventory `type`. */
+function inventoryTypeOf(t: EnvironmentType): string {
+  switch (t) {
+    case "hyperv":
+      return "hyper-v";
+    case "proxmox":
+      return "proxmox-ve";
+    default:
+      // vcenter + esxi-standalone both register as vSphere; the backend probes
+      // whether it's a vCenter or a standalone host.
+      return "vsphere";
+  }
+}
+
+export async function createEnvironment(input: CreateEnvironmentInput): Promise<Environment> {
+  const body: Dict = {
+    name: input.name,
+    type: inventoryTypeOf(input.type),
+    address: input.endpoint,
+    username: input.username,
+    password: input.password,
+    insecure: Boolean(input.insecure),
+  };
+  if (input.token) body.token = input.token;
+  if (input.port) body.port = input.port;
+  return mapEnvironment(asDict(await request<Dict>("/inventories", { method: "POST", body: JSON.stringify(body) })));
+}
+
+export interface EnvironmentPatch {
+  name?: string;
+  /** Host / management address (vCenter, ESXi, or Hyper-V host). */
+  endpoint?: string;
+  port?: number;
+  username?: string;
+  password?: string;
+  /** Skip TLS certificate verification (self-signed lab certs). */
+  insecure?: boolean;
+}
+
+export async function patchEnvironment(id: string, patch: EnvironmentPatch): Promise<Environment> {
+  const body: Dict = {};
+  if (patch.name !== undefined) body.name = patch.name;
+  if (patch.endpoint !== undefined) body.address = patch.endpoint;
+  if (patch.port !== undefined) body.port = patch.port;
+  if (patch.username !== undefined) body.username = patch.username;
+  if (patch.password !== undefined) body.password = patch.password;
+  if (patch.insecure !== undefined) body.insecure = patch.insecure;
+  return mapEnvironment(
+    asDict(await request<Dict>(`/inventories/${id}`, { method: "PATCH", body: JSON.stringify(body) })),
+  );
+}
+
+export const deleteEnvironment = (id: string) => request<void>(`/inventories/${id}`, { method: "DELETE" });
+
+export async function listHosts(): Promise<Host[]> {
+  return (await fetchInventoryTree()).hosts;
+}
+
+export async function listVms(): Promise<VM[]> {
+  const [{ vms }, points] = await Promise.all([fetchInventoryTree(), listRestorePoints().catch(() => [])]);
+  return applyProtection(vms, points);
+}
+
+export async function getVM(id: string): Promise<VM> {
+  const vms = await listVms();
+  const vm = vms.find((v) => v.id === id);
+  if (!vm) throw new ApiError(404, { error: "vm not found" });
+  return vm;
+}
+
+/**
+ * Sessions per request. The appliance keeps one session per VM per run, so an
+ * appliance a few months old has thousands: at 1000 they came back as a single
+ * ~1.8 MB response, which the poll loop below refetches every 2.5 s while
+ * anything is running. `GET /sessions` takes `limit`/`offset` and reports
+ * `total`, so the console walks it in bounded chunks instead.
+ *
+ * The server caps `limit` at 500 (SESSION_PAGE_LIMIT_MAX in abr_v41.py).
+ */
+const SESSION_PAGE_SIZE = 250;
+
+/** Hard stop on the paging loop, so a server that keeps reporting a `total` it
+ *  never satisfies can't spin the console forever. */
+const SESSION_PAGE_LIMIT = 40;
+
+/** One page of sessions, newest first, plus the unpaged match count. */
+export async function listSessionsPage(
+  opts: { limit?: number; offset?: number } = {},
+): Promise<{ items: Session[]; total: number }> {
+  const limit = opts.limit ?? SESSION_PAGE_SIZE;
+  const offset = opts.offset ?? 0;
+  const res = asDict(await request<Dict>(`/sessions?limit=${limit}&offset=${offset}`));
+  const items = Array.isArray(res.items) ? (res.items as Dict[]).map(mapSession) : [];
+  // An appliance predating pagination ignores the params and sends everything
+  // with no `total`; falling back to the page length ends the walk after one
+  // request, which is exactly right for that case.
+  return { items, total: num(res.total, items.length) };
+}
+
+/**
+ * Every session, walked a page at a time.
+ *
+ * The store's dashboard aggregates (24 h success rate, the 14-day activity
+ * timeline) and each job's run history are computed over the whole history, so
+ * this still returns all of it — the win is that it arrives as several small
+ * responses rather than one huge one. Offsets shift if a run starts mid-walk,
+ * so rows are de-duplicated by id.
+ */
+export async function listSessions(): Promise<Session[]> {
+  const all: Session[] = [];
+  const seen = new Set<string>();
+  let total = Infinity;
+  for (let page = 0; page < SESSION_PAGE_LIMIT && all.length < total; page++) {
+    const res = await listSessionsPage({ offset: all.length });
+    total = res.total;
+    if (res.items.length === 0) break;
+    for (const session of res.items) {
+      if (seen.has(session.id)) continue;
+      seen.add(session.id);
+      all.push(session);
+    }
+  }
+  return all;
+}
+
+export async function getSession(id: string): Promise<Session> {
+  return mapSession(asDict(await request<Dict>(`/sessions/${id}`)));
+}
+
+export async function getJobSessions(jobId: string): Promise<Session[]> {
+  return (await listSessions()).filter((s) => s.jobId === jobId);
+}
+
+/** Jobs without run history — the caller attaches it via `withJobRunStats`
+ *  from the session list it already holds (see hydrate in world.live.ts). */
+export async function listJobs(): Promise<BackupJob[]> {
+  return (await collection<Dict>("/jobs")).map((j) => mapJob(j, []));
+}
+
+/**
+ * Run history here comes from the world the live driver already hydrated, not
+ * from a fresh list: this runs on every job-changed event, and refetching the
+ * entire session history to compute one job's 12-run strip is what made the
+ * session list the console's heaviest traffic.
+ */
+export async function getJob(id: string): Promise<BackupJob> {
+  const job = asDict(await request<Dict>(`/jobs/${id}`));
+  return mapJob(job, useWorldStore.getState().sessions);
+}
+
+export async function listRepositories(): Promise<Repository[]> {
+  const items = await collection<Dict>("/repositories");
+  return items.map(mapRepository);
+}
+
+export const getSessionLog = async (sessionId: string) => {
+  const res = asDict(await request<Dict>(`/sessions/${sessionId}/log`));
+  return { lines: mapLogLines(res.logs) };
+};
+
+/**
+ * Dashboard summary. The console computes the rich summary client-side from the
+ * hydrated world (see services/api.ts), so this thin mapping of the backend's
+ * summary endpoint exists only to satisfy the export contract.
+ */
+export async function getDashboard(): Promise<DashboardSummary> {
+  const s = asDict(await request<Dict>("/dashboard/summary").catch(() => ({})));
+  return {
+    totalVms: num(s.protected_vms),
+    protectedVms: num(s.protected_vms),
+    warningVms: 0,
+    unprotectedVms: 0,
+    protectionCoverage: 0,
+    successRate24h: null,
+    sessions24h: 0,
+    failed24h: 0,
+    totalRestorePoints: 0,
+    capacityGB: 0,
+    usedGB: 0,
+    activeThreats: 0,
+    dataProtectedGB: num(s.recent_backups_size_tb) * 1000,
+    activityTimeline: [],
+  };
+}
+
+/** System-health "alerts" derived from the dashboard's problem-areas list. */
+export async function listAlerts(): Promise<Alert[]> {
+  const s = asDict(await request<Dict>("/dashboard/summary").catch(() => ({})));
+  const problems = Array.isArray(s.problem_areas) ? (s.problem_areas as Dict[]) : [];
+  const now = new Date().toISOString();
+  return problems.map((p) => ({
+    id: str(p.id) || `alert-${Math.abs(hashString(str(p.message)))}`,
+    severity: str(p.type) === "error" ? "critical" : "warning",
+    category: "system",
+    title: str(p.message).slice(0, 64) || "System notice",
+    message: str(p.message),
+    createdAt: now,
+    read: false,
+  }));
+}
+
+/* ---- Reads with no orchestrator backing yet (WIP features) ---- */
+export const listReplicas = async (): Promise<Replica[]> => [];
+export const listThreats = async (): Promise<Threat[]> => [];
+export const getMetricsHistory = async (_days = 90): Promise<MetricSnapshot[]> => [];
+export const listAuditEvents = async (_q: AuditQuery = {}): Promise<AuditEvent[]> => [];
+
+/* ====================================================================== */
+/* Mutations — jobs                                                        */
+/* ====================================================================== */
+
+export interface CreateJobPayload {
+  name: string;
+  type?: BackupJob["type"];
+  description?: string;
+  vmIds: string[];
+  scopeSummary: string;
+  repositoryId: string;
+  schedule: Schedule;
+  retention: Retention;
+  options: JobOptions;
+  accent?: BackupJob["accent"];
+  runNow?: boolean;
+  replicaTarget?: ReplicaTarget;
+}
+
+/** Domain Schedule → orchestrator schedule dict. */
+function scheduleToWire(s: Schedule): Dict {
+  const timezone = "UTC";
+  switch (s.frequency) {
+    case "weekly":
+      // The API validates weekdays as "Mon".."Sun" names (DAY_ALIASES in
+      // abr_v41.py) and 422s on raw numbers — convert from the domain's
+      // 0 (Sun) – 6 (Sat) indices before sending.
+      return {
+        schedule_type: "weekly",
+        start_time: s.atTime ?? "00:00",
+        weekdays: (s.daysOfWeek ?? [1]).map((d) => DAY_NAMES[d]).filter(Boolean),
+        timezone,
+      };
+    case "hourly":
+      return { schedule_type: "periodic", interval_minutes: (s.everyHours ?? 1) * 60, timezone };
+    case "custom":
+      return s.cron
+        ? { schedule_type: "cron", expression: s.cron, timezone }
+        : { schedule_type: "daily", start_time: s.atTime ?? "00:00", timezone };
+    default:
+      return { schedule_type: "daily", start_time: s.atTime ?? "00:00", timezone };
+  }
+}
+
+function optionsToTaskParams(o: JobOptions): Dict {
+  const params: Dict = {
+    app_aware: o.appAware,
+    // The appliance reads `encryption_enabled` (+ `encryption_key`) and
+    // ignores every other spelling, so anything else here silently produces
+    // unencrypted backups for a job the UI shows as encrypted.
+    encryption_enabled: o.encryption,
+    compression_level: o.compression,
+    dedup: o.dedup,
+  };
+  // The key itself is never sent: the appliance generates and keeps one for a
+  // job that switches encryption on. null clears it again on the way back off
+  // (see _merge_task_parameters), so no stale key outlives the setting.
+  if (!o.encryption) params.encryption_key = null;
+  return params;
+}
+
+/**
+ * The create wizard collects VMs but not an inventory (a VM knows its
+ * environment). The orchestrator needs the inventory, so resolve it from the
+ * selected VMs via the world store and pass VM names alongside ids.
+ */
+function resolveJobScope(vmIds: string[]): { inventoryId: string; vmNames: string[] } {
+  const vms = useWorldStore.getState().vms;
+  const selected = vms.filter((v) => vmIds.includes(v.id));
+  const inventoryId = selected[0]?.environmentId ?? "";
+  return { inventoryId, vmNames: selected.map((v) => v.name) };
+}
+
+function createJobBody(payload: Partial<CreateJobPayload>): Dict {
+  const vmIds = payload.vmIds ?? [];
+  const { inventoryId, vmNames } = resolveJobScope(vmIds);
+  const body: Dict = {};
+  if (payload.name !== undefined) body.name = payload.name;
+  if (vmIds.length) {
+    body.vms = vmIds;
+    body.vm_ids = vmIds;
+    body.vm_names = vmNames;
+  }
+  if (inventoryId) body.inventory_id = inventoryId;
+  if (payload.repositoryId) body.repo_id = payload.repositoryId;
+  if (payload.schedule) body.schedule = scheduleToWire(payload.schedule);
+  if (payload.retention) {
+    body.retention_days = payload.retention.keepDays;
+    // Create (CreateJobRequest) reads a nested `gfs` object; update
+    // (UpdateJobRequest, PATCH) only reads flat gfs_weekly/monthly/yearly/gfs_enabled —
+    // send both shapes so this body works unmodified for either endpoint.
+    const gfs = payload.retention.gfs ?? { weekly: 0, monthly: 0, yearly: 0, enabled: true };
+    body.gfs = gfs;
+    body.gfs_weekly = gfs.weekly;
+    body.gfs_monthly = gfs.monthly;
+    body.gfs_yearly = gfs.yearly;
+    body.gfs_enabled = gfs.enabled ?? true;
+  }
+  if (payload.options) body.task_parameters = optionsToTaskParams(payload.options);
+  return body;
+}
+
+export async function createJob(payload: CreateJobPayload): Promise<BackupJob> {
+  const created = asDict(
+    await request<Dict>("/jobs", { method: "POST", body: JSON.stringify(createJobBody(payload)) }),
+  );
+  if (payload.runNow && created.id) {
+    await request(`/jobs/${str(created.id)}/start`, { method: "POST", body: "{}" }).catch(() => undefined);
+  }
+  return mapJob(created, useWorldStore.getState().sessions);
+}
+
+export async function updateJob(id: string, patch: Partial<CreateJobPayload>): Promise<BackupJob> {
+  const updated = asDict(
+    await request<Dict>(`/jobs/${id}`, { method: "PATCH", body: JSON.stringify(createJobBody(patch)) }),
+  );
+  return mapJob(updated, useWorldStore.getState().sessions);
+}
+
+export const deleteJob = (id: string) => request<void>(`/jobs/${id}`, { method: "DELETE" });
+
+export async function runJob(id: string, opts?: { forceFull?: boolean }): Promise<{ sessionId: string }> {
+  const body = opts?.forceFull ? JSON.stringify({ force_full: true }) : "{}";
+  const res = asDict(await request<Dict>(`/jobs/${id}/start`, { method: "POST", body }));
+  const items = Array.isArray(res.items) ? (res.items as Dict[]) : [];
+  return { sessionId: str(items[0]?.id) || str(res.last_session_id) };
+}
+
+/**
+ * Enable/disable is a PATCH on the job's schedule — the orchestrator has no
+ * dedicated enable/disable route and, critically, does NOT recognize a bare
+ * top-level `enabled` field (`edit_job_record` in abr_v41.py only inspects
+ * `schedule`), so that flag has to travel nested inside the current schedule
+ * or the appliance 422s with "job edit requires at least one editable option".
+ */
+export const setJobEnabled = (id: string, enabled: boolean, schedule: Schedule) =>
+  request<void>(`/jobs/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify({ schedule: { ...scheduleToWire(schedule), enabled } }),
+  });
+
+/**
+ * Stop every active session of a job (no per-job stop route on the backend).
+ *
+ * The job DTO already reports its queued/running sessions (`active_sessions`,
+ * built by _active_sessions_for_job in abr_v41.py), so this reads them from
+ * the one job it is stopping instead of scanning the whole session history.
+ */
+export async function stopJob(id: string): Promise<void> {
+  const job = asDict(await request<Dict>(`/jobs/${id}`));
+  // `active_sessions` is exactly {queued, running, stopping} — the same set the
+  // old whole-history scan covered, since sessionStatusOf folds "stopping" into
+  // "running". Re-stopping one already stopping is a no-op server-side.
+  const active = Array.isArray(job.active_sessions) ? (job.active_sessions as Dict[]) : [];
+  await Promise.all(
+    active.map((s) =>
+      request(`/sessions/${str(s.id)}/stop`, { method: "POST", body: "{}" }).catch(() => undefined),
+    ),
+  );
+}
+
+/* ====================================================================== */
+/* Mutations — restore                                                     */
+/* ====================================================================== */
+
+/**
+ * Placement options for a new-location restore: the source VM's real NICs
+ * (from its manifest) and the candidate target environments' real datastores
+ * and networks (from live inventory) — everything the wizard needs to offer
+ * dropdowns instead of free text, and to auto-suggest a target network whose
+ * name matches the source. Datastores and networks each carry the hosts they
+ * are reachable from, so picking a host narrows both lists to what that host
+ * can actually serve.
+ */
+export async function getRestorePlacementOptions(restorePointId: string): Promise<RestorePlacementOptions> {
+  const res = asDict(
+    await request<Dict>(`/restore/context?restore_point_id=${encodeURIComponent(restorePointId)}`),
+  );
+  const sourceVm = asDict(res.source_vm);
+  const nics = Array.isArray(sourceVm.nics) ? (sourceVm.nics as Dict[]) : [];
+  // One entry per real adapter — never deduped by network name, so two NICs
+  // on the same source network still show (and map) as separate rows.
+  const sourceNics = nics.map((n, i) => ({
+    id: str(n.id) || `nic-${i}`,
+    label: str(n.label) || `Network adapter ${i + 1}`,
+    sourceNetwork: str(n.source_network).trim() || null,
+    connected: n.connected !== false,
+  }));
+  const originalDatastore = str(sourceVm.original_datastore).trim() || null;
+  const originalHost = str(sourceVm.original_host).trim() || null;
+
+  const targets = asDict(res.targets);
+  const datastores = (Array.isArray(targets.datastores) ? (targets.datastores as Dict[]) : []).map((d) => ({
+    id: str(d.id),
+    environmentId: str(d.inventory_id),
+    name: str(d.name),
+    hostIds: (Array.isArray(d.host_ids) ? d.host_ids : []).map((h) => String(h)),
+    freeBytes: d.free_bytes == null ? null : num(d.free_bytes),
+    capacityBytes: d.capacity_bytes == null ? null : num(d.capacity_bytes),
+  }));
+  const networks = (Array.isArray(targets.networks) ? (targets.networks as Dict[]) : []).map((n) => ({
+    id: str(n.id),
+    environmentId: str(n.inventory_id),
+    name: str(n.name),
+    hostIds: (Array.isArray(n.host_ids) ? n.host_ids : []).map((h) => String(h)),
+  }));
+  const existingVms = (Array.isArray(targets.existing_vms) ? (targets.existing_vms as Dict[]) : []).map((v) => ({
+    id: str(v.id),
+    environmentId: str(v.inventory_id),
+    name: str(v.name),
+  }));
+
+  const defaults = asDict(res.defaults);
+
+  return {
+    sourceNics,
+    datastores,
+    networks,
+    existingVms,
+    originalDatastore,
+    originalHost,
+    defaultHostId: str(defaults.target_host_id).trim() || null,
+    defaultDatastoreId: str(defaults.target_datastore_id).trim() || null,
+    defaultEnvironmentId: str(defaults.target_inventory_id).trim() || null,
+  };
+}
+
+/**
+ * Start a full-VM restore. The wizard's "New location" picks host/datastore/
+ * name explicitly and always restores out-of-place ("new_vm"). "Original
+ * location" restores in place ("in_place") — the orchestrator forces target
+ * host/datastore/name to the source VM's own original placement server-side,
+ * so none of those are sent for it; it destroys the still-live original once
+ * every disk is fully written, so it requires `force: true`, set only once
+ * the wizard's typed confirmation has been completed.
+ */
+export async function startRestore(payload: {
+  vmId: string;
+  restorePointId: string;
+  target: { mode: "original" | "new"; newName?: string };
+  targetEnvironmentId?: string;
+  targetHostId?: string;
+  datastore?: string;
+  /** Per-adapter mapping — `target` is a target network *id*, not a name, so
+   *  two source NICs sharing a network name can still map independently
+   *  (see `_resolve_restore_network_selection`'s `source_nic_id` branch). */
+  networkMappings?: { nicId: string; target: string }[];
+  powerOn?: boolean;
+  /** Authorizes an in-place restore — required by the backend whenever
+   *  `target.mode` is "original"; ignored otherwise. */
+  force?: boolean;
+}): Promise<{ restoreId: string; sessionId: string }> {
+  const isInPlace = payload.target.mode === "original";
+  const body: Dict = {
+    point_id: payload.restorePointId,
+    restore_mode: isInPlace ? "in_place" : "new_vm",
+    power_on_after_restore: Boolean(payload.powerOn),
+    connect_nics: true,
+  };
+  if (isInPlace) {
+    if (payload.force) body.force = true;
+  } else {
+    if (payload.target.newName) body.target_vm_name = payload.target.newName;
+    if (payload.targetEnvironmentId) body.target_inventory_id = payload.targetEnvironmentId;
+    if (payload.targetHostId) body.target_host = payload.targetHostId;
+    if (payload.datastore) body.target_datastore = payload.datastore;
+  }
+  if (payload.networkMappings?.length) {
+    body.network_mappings = payload.networkMappings.map((m) => ({
+      source_nic_id: m.nicId,
+      target_network_id: m.target,
+    }));
+  }
+  const res = asDict(await request<Dict>("/restore/start", { method: "POST", body: JSON.stringify(body) }));
+  const sessionId = str(res.restore_session_id) || str(res.id);
+  return { restoreId: sessionId, sessionId };
+}
+
+/** Deletes a backup chain, or — when `segmentId` is given — just one full
+ *  backup and the incrementals chained onto it (`RestorePointSegment.id`).
+ *  `chainId` is `RestorePoint.chainId`, which the orchestrator's `/backups/{id}`
+ *  DELETE resolves as a chain id; `segmentId` maps to its `?segment=` param. */
+export const deleteRestorePoint = (chainId: string, segmentId?: string) =>
+  request<void>(
+    `/backups/${chainId}${segmentId ? `?segment=${encodeURIComponent(segmentId)}` : ""}`,
+    { method: "DELETE" },
+  );
+
+/* ====================================================================== */
+/* Mutations — repositories                                                */
+/* ====================================================================== */
+
+/** Wire shape for the orchestrator's nested `s3` config object, read in
+ *  _normalize_s3_configuration (bucket/region/keys/etc.) — shared by create
+ *  and the pre-create connection test so both send identical settings. */
+function s3ConfigWireBody(s3: S3RepositoryConfig): Dict {
+  return {
+    bucket: s3.bucket,
+    prefix: s3.prefix ?? "",
+    region: s3.region ?? "",
+    endpoint_url: s3.endpointUrl ?? "",
+    access_key: s3.accessKey ?? "",
+    secret_key: s3.secretKey ?? "",
+    profile: s3.profile ?? "",
+    path_style: s3.pathStyle ?? Boolean(s3.endpointUrl),
+    verify_tls: s3.verifyTls ?? true,
+  };
+}
+
+export async function createRepository(input: CreateRepositoryInput): Promise<Repository> {
+  const wireType = input.type === "object-lock-s3" ? "s3" : input.type === "nfs" ? "nfs" : "local";
+  const body: Dict = { name: input.name, type: wireType, address: input.path, description: "" };
+  // Without it the backend rejects the create with "S3 bucket is required".
+  if (wireType === "s3" && input.s3) {
+    body.s3 = s3ConfigWireBody(input.s3);
+  }
+  return mapRepository(asDict(await request<Dict>("/repositories", { method: "POST", body: JSON.stringify(body) })));
+}
+
+/** Real pre-create S3 connectivity test — probes the given settings through
+ *  the appliance's native storage tool via POST /repositories/test-s3
+ *  without persisting a repository record. */
+export async function testS3RepositoryConnection(s3: S3RepositoryConfig): Promise<S3ConnectionTestResult> {
+  const body: Dict = { type: "s3", s3: s3ConfigWireBody(s3) };
+  const res = asDict(
+    await request<Dict>("/repositories/test-s3", { method: "POST", body: JSON.stringify(body) }),
+  );
+  const checks = Array.isArray(res.checks) ? res.checks : [];
+  return {
+    ok: str(res.status) === "success",
+    message: str(res.message) || (str(res.status) === "success" ? "S3 connection succeeded" : "S3 connection failed"),
+    checks: checks.map((c) => {
+      const check = asDict(c);
+      return {
+        name: str(check.name),
+        status: (str(check.status, "failed") as "ok" | "failed" | "skipped"),
+        message: strOrNull(check.message) ?? undefined,
+      };
+    }),
+  };
+}
+
+export interface RepositoryPatch {
+  name?: string;
+  capacityGB?: number;
+  compression?: "none" | "optimal" | "high";
+  ioThrottleMBps?: number;
+  maxConcurrentTasks?: number;
+  maintenanceMode?: boolean;
+}
+
+export async function patchRepository(id: string, patch: RepositoryPatch): Promise<Repository> {
+  // Only name round-trips to the backend; storage-management fields
+  // (throttle, maintenance) have no orchestrator support yet.
+  const body: Dict = {};
+  if (patch.name !== undefined) body.name = patch.name;
+  return mapRepository(
+    asDict(await request<Dict>(`/repositories/${id}`, { method: "PATCH", body: JSON.stringify(body) })),
+  );
+}
+
+export const deleteRepository = (id: string) => request<void>(`/repositories/${id}`, { method: "DELETE" });
+
+export async function rescanRepository(id: string): Promise<Repository> {
+  await request(`/repositories/${id}/rescan`, { method: "POST", body: "{}" }).catch(() => undefined);
+  return mapRepository(asDict(await request<Dict>(`/repositories/${id}`)));
+}
+
+export async function setRepositoryMaintenance(_id: string, _maintenance: boolean): Promise<Repository> {
+  throw new ApiError(501, { error: "Repository maintenance mode is not available yet" });
+}
+
+/* ====================================================================== */
+/* Mutations — alerts / threats / replication (WIP stubs)                  */
+/* ====================================================================== */
+
+export const markAlertRead = async (_id: string): Promise<void> => undefined;
+export const markAllAlertsRead = async (): Promise<void> => undefined;
+export const setThreatStatus = async (_id: string, _status: Threat["status"]): Promise<Threat> => {
+  throw new ApiError(501, { error: "Threat management is not available yet" });
+};
+export const failoverReplica = async (_id: string, _planned: boolean, _pointId?: string): Promise<{ ok: true }> => {
+  throw new ApiError(501, { error: "Replication is not available yet" });
+};
+export const failbackReplica = async (_id: string): Promise<{ ok: true }> => {
+  throw new ApiError(501, { error: "Replication is not available yet" });
+};
+export const undoFailover = async (_id: string): Promise<{ ok: true }> => {
+  throw new ApiError(501, { error: "Replication is not available yet" });
+};
+
+/* ====================================================================== */
+/* Appliance settings / system ops (WIP stubs — no orchestrator support)   */
+/* ====================================================================== */
+
+const EMPTY_SETTINGS: ApplianceSettings = {
+  general: {
+    applianceName: "AltaStor",
+    hostname: "altastor",
+    organization: "",
+    contactEmail: "",
+    timezone: "UTC",
+    timeFormat: "24h",
+    dateFormat: "iso",
+  },
+  notifications: {
+    email: {
+      enabled: false,
+      smtpHost: "",
+      smtpPort: 587,
+      encryption: "starttls",
+      username: "",
+      fromAddress: "",
+      recipients: [],
+    },
+    webhooks: [],
+    events: {
+      jobFailure: true,
+      jobSuccess: false,
+      capacityWarning: true,
+      restoreCompleted: true,
+    },
+  },
+  security: {
+    mfaRequired: false,
+    sessionDurationSec: 3600,
+    passwordMinLength: 12,
+    auditRetentionDays: 90,
+    autoLockThreatResponse: false,
+  },
+  storageDefaults: {
+    compression: "optimal",
+    dedup: true,
+    gcSchedule: "daily",
+    capacityWarnPct: 80,
+    capacityCriticalPct: 92,
+    archiveTierEnabled: false,
+    archiveAfterDays: 30,
+    globalThrottleMBps: 0,
+  },
+  network: { ipMode: "dhcp", address: "", gateway: "", dns: [], ntpServers: [], proxyUrl: "", managementPort: 8443 },
+  updates: { channel: "stable", autoCheck: true, autoInstall: false, maintenanceWindow: "02:00-04:00" },
+  users: [],
+  apiTokens: [],
+};
+
+export const getSettings = async (): Promise<ApplianceSettings> => EMPTY_SETTINGS;
+export const putSettings = async (settings: ApplianceSettings): Promise<ApplianceSettings> => settings;
+
+export interface TestNotificationResult {
+  channel: "email" | "webhook";
+  ok: boolean;
+  detail: string;
+  status?: number;
+}
+export const testNotification = async (
+  channel: "email" | "webhook",
+  _webhookId?: string,
+): Promise<TestNotificationResult> => ({
+  channel,
+  ok: false,
+  detail: "Notifications are not available yet",
+});
+
+export interface UpdateCheckResult {
+  current: string;
+  latest: string | null;
+  upToDate: boolean;
+  source: string;
+  checkedAt: string;
+  note?: string;
+}
+export async function checkForUpdates(): Promise<UpdateCheckResult> {
+  const v = asDict(await request<Dict>("/system/version").catch(() => ({})));
+  return {
+    current: str(v.version) || "4.1.0",
+    latest: null,
+    upToDate: true,
+    source: "orchestrator",
+    checkedAt: new Date().toISOString(),
+    note: "Update checks are not available yet",
+  };
+}
+export const restartControlPlane = async (): Promise<{ ok: boolean; detail: string }> => ({
+  ok: false,
+  detail: "Not available yet",
+});
+export const resetAppliance = async (): Promise<{ status: string }> => ({ status: "unavailable" });
+export async function getSupportBundle(): Promise<{ blob: Blob; filename: string }> {
+  const res = asDict(await request<Dict>("/system/support-bundle", { method: "POST", body: "{}" }));
+  const archiveBase64 = str(res.archive_base64);
+  if (!archiveBase64) {
+    throw new ApiError(502, { error: "The appliance returned an empty support bundle" });
+  }
+  const binary = atob(archiveBase64);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i += 1) bytes[i] = binary.charCodeAt(i);
+  return {
+    blob: new Blob([bytes], { type: "application/zip" }),
+    filename: `support-bundle-${fileStamp()}.zip`,
+  };
+}
+
+export interface AuditQuery {
+  category?: string;
+  severity?: string;
+  actor?: string;
+  limit?: number;
+}
+
+/* ---- Setup / provisioning (WIP: no first-boot flow on this backend) ---- */
+
+export interface ApplianceServiceInfo {
+  name: string;
+  status: "running" | "degraded" | "stopped";
+  pid: number;
+  uptimeSec: number;
+}
+export interface ApplianceInfo {
+  hostname: string;
+  version: string;
+  os: string;
+  kernel: string;
+  mgmtIp: string;
+  uptimeSec: number;
+  cpuCores: number;
+  memoryGB: number;
+  cpuUsagePct: number;
+  memUsagePct: number;
+  services: ApplianceServiceInfo[];
+  ntpSynced: boolean;
+}
+export type ProvisioningStage =
+  | "unconfigured"
+  | "network"
+  | "storage-layout"
+  | "pool"
+  | "repository"
+  | "hypervisors"
+  | "policies"
+  | "complete";
+export interface ProvisioningStatus {
+  stage: ProvisioningStage;
+  completedStages: ProvisioningStage[];
+  manifestApplied: boolean;
+  progress: number;
+  startedAt: string | null;
+  finishedAt: string | null;
+  log: LogLine[];
+}
+export type DiskMedia = "nvme" | "ssd" | "hdd";
+export type DiskStatus = "healthy" | "failing" | "failed" | "spare" | "unassigned";
+export interface PhysicalDisk {
+  id: string;
+  slot: string;
+  model: string;
+  serial: string;
+  media: DiskMedia;
+  capacityGB: number;
+  status: DiskStatus;
+  arrayId: string | null;
+  temperatureC: number;
+  powerOnHours: number;
+  smartErrors: number;
+}
+export type RaidLevel = "raid1" | "raid5" | "raid6" | "raid10";
+export interface ManifestArraySpec {
+  name: string;
+  level: RaidLevel;
+  media: DiskMedia;
+  diskCount: number;
+  spares: number;
+}
+export interface ApplianceManifest {
+  hostname: string;
+  network: { mode: "dhcp" } | { mode: "static"; address: string; gateway: string; dns: string[] };
+  storage: { layout: "auto" | ManifestArraySpec[] };
+  repository: {
+    name: string;
+    encryption: boolean;
+  };
+  hypervisors: Array<{ type: EnvironmentType; endpoint: string; username: string; credentialRef: string }>;
+  defaultPolicy: { scheduleAt: string; keepPoints: number; tag?: string } | null;
+}
+
+export async function getSystemInfo(): Promise<ApplianceInfo> {
+  const res = asDict(await request<Dict>("/system/info"));
+  return {
+    hostname: str(res.hostname),
+    version: str(res.version) || "4.1.0",
+    os: str(res.os),
+    kernel: str(res.kernel),
+    mgmtIp: "",
+    uptimeSec: num(res.uptime_sec),
+    cpuCores: num(res.cpu_cores),
+    memoryGB: num(res.memory_gb),
+    cpuUsagePct: 0,
+    memUsagePct: 0,
+    services: [],
+    ntpSynced: true,
+  };
+}
+// The console is already provisioned against a running orchestrator, so the
+// setup wizard never engages (stage is always "complete").
+export const getProvisioning = async (): Promise<ProvisioningStatus> => ({
+  stage: "complete",
+  completedStages: ["network", "storage-layout", "pool", "repository", "hypervisors", "policies", "complete"],
+  manifestApplied: true,
+  progress: 100,
+  startedAt: null,
+  finishedAt: null,
+  log: [],
+});
+export const getProvisionPlan = async (): Promise<{ layout: ManifestArraySpec[]; notes?: string[] }> => ({ layout: [] });
+export const applyProvisioning = async (_manifest: ApplianceManifest): Promise<{ status: string }> => ({
+  status: "complete",
+});
+export const listStorageDisks = async (): Promise<PhysicalDisk[]> => [];
+
+/** Re-scan a vSphere inventory (maps to the orchestrator's rescan). */
+export async function refreshEnvironment(
+  envId: string,
+): Promise<{ status: string; added: number; removed: number; total: number }> {
+  const res = asDict(await request<Dict>(`/inventories/${envId}/rescan`, { method: "POST", body: "{}" }));
+  const discovery = asDict(res.discovery);
+  return { status: "ok", added: 0, removed: 0, total: num(discovery.vm_count) };
+}
+
+/* ====================================================================== */
+/* Live events → polling (no SSE on this backend)                          */
+/* ====================================================================== */
+
+export interface ApplianceEventMessage {
+  type: string;
+  [key: string]: unknown;
+}
+
+/**
+ * Poll-based stand-in for the appliance event stream. The Python orchestrator
+ * exposes no SSE, so instead of relaying push events we re-hydrate the whole
+ * world on a cadence: `onOpen` (which the live driver wires to a full
+ * re-hydrate) fires immediately, then repeats — fast while any session is
+ * active, slow when idle. `onEvent` is unused (there is nothing to push).
+ */
+export function subscribeEvents(
+  onEvent: (ev: ApplianceEventMessage) => void,
+  onOpen?: () => void,
+  onError?: () => void,
+): () => void {
+  void onEvent;
+  const ACTIVE_MS = 2500;
+  const IDLE_MS = 8000;
+  let stopped = false;
+  let timer: ReturnType<typeof setTimeout> | null = null;
+
+  const tick = (): void => {
+    if (stopped) return;
+    try {
+      onOpen?.();
+    } catch {
+      onError?.();
+    }
+    const sessions = useWorldStore.getState().sessions;
+    const active = sessions.some((s) => s.status === "running" || s.status === "queued");
+    timer = setTimeout(tick, active ? ACTIVE_MS : IDLE_MS);
+  };
+
+  // Kick off on the next macrotask so the driver finishes wiring first.
+  timer = setTimeout(tick, 0);
+  return () => {
+    stopped = true;
+    if (timer) clearTimeout(timer);
+  };
+}
+
+export { ApiError, apiErrorMessage, apiErrorCode, isVersionMismatchError };
