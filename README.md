@@ -1,73 +1,99 @@
-# React + TypeScript + Vite
+# AltaStor Web Console
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+The web UI for **AltaStor** — free, open-source VMware backup & replication.
+Sealed in stone: immutable, recoverable, and run on your own servers.
 
-Currently, two official plugins are available:
+This is a React + TypeScript single-page app that acts as a pure client of
+the Python FastAPI orchestrator (`python/srv`) shipped alongside it in the
+main AltaStor repository. It talks to the orchestrator's `/api/v1/*` REST
+API and renders no data of its own.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Features
 
-## React Compiler
+- **Dashboard** — appliance health and backup posture at a glance
+- **Backups** (`/jobs`) — backup schedules and the restore points they produce
+- **Activity** — running and historical job activity
+- **Restore** — restoring VMs from repository restore points
+- **Inventory** — vCenter/ESXi topology and protected VM inventory
+- **Repositories** — backup repository management
+- **Logs** — local log viewer
+- **Settings**, **Auth**, **Setup** — appliance configuration, authentication, and first-run setup
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Tech stack
 
-## Expanding the ESLint configuration
+- [React 18](https://react.dev/) + [TypeScript](https://www.typescriptlang.org/)
+- [Vite](https://vitejs.dev/) for dev server and bundling
+- [Tailwind CSS](https://tailwindcss.com/) + [Radix UI](https://www.radix-ui.com/) primitives
+- [TanStack Query](https://tanstack.com/query) and [TanStack Table](https://tanstack.com/table)
+- [Zustand](https://github.com/pmndrs/zustand) for local state
+- [react-router-dom](https://reactrouter.com/) for routing
+- [react-i18next](https://react.i18next.com/) for i18n (English, German, Spanish, French)
+- [Recharts](https://recharts.org/) for charts, [Framer Motion](https://www.framer.com/motion/) for animation
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## Prerequisites
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+- **Node.js** v18.x or higher
+- **npm** (or `yarn`/`pnpm`)
+- A running AltaStor orchestrator (`python/srv`) to talk to — see the main
+  repository for backend setup
+- For HTTPS in dev: a `python3` on `PATH` with `cryptography` installed, so
+  the dev server can reuse the backend's self-signed TLS certificate via
+  `python -m python.srv.core.tls_bootstrap`. If it can't be found or run,
+  the dev server falls back to plain HTTP and logs a warning instead of
+  failing (override the interpreter with `PYTHON_BIN`).
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+## Getting started
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm install
+npm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+The app is served at `https://localhost:3000` (or plain HTTP if the TLS
+bootstrap step above isn't available). Since the certificate is self-signed,
+the browser will show an untrusted-certificate warning the first time —
+accept it, the same as for the API on port 8443.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+In dev, API requests to `/api/*` are proxied same-origin to the orchestrator
+at `https://127.0.0.1:8443` (override with the `VITE_API_PROXY` env var), so
+the app never has to deal with CORS. The dev/preview port defaults to 3000
+and can be overridden with `PORT`.
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+## Scripts
+
+| Command | Description |
+| --- | --- |
+| `npm run dev` | Start the Vite dev server with HTTPS + API proxying |
+| `npm run build` | Type-check (`tsc -b`) and build for production |
+| `npm run preview` | Serve the production build locally, same HTTPS/proxy setup as dev |
+| `npm run typecheck` | Type-check only, no emit |
+| `npm run lint` | Alias for `typecheck` |
+
+## Project structure
+
 ```
+src/
+  app/         App shell, routing, providers, navigation
+  features/    One directory per feature area (dashboard, jobs, activity,
+               restore, inventory, repositories, settings, auth, setup, logs,
+               replication)
+  components/  Shared UI (brand, layout, calendar, shadcn/ui-style primitives)
+  services/    API client and data-fetching hooks
+  store/       Zustand stores
+  i18n/        react-i18next setup and locale files
+  lib/         Shared utilities
+  mock/        Mock data for local/offline development
+  types/       Shared TypeScript types
+```
+
+The `APIVER` file at the repo root pins the orchestrator API version
+(`ABR_API_MAJOR`/`ABR_API_MINOR`) this console is built against; it's
+injected at build time via Vite `define`.
+
+See [doc/WebuiSetup.md](doc/WebuiSetup.md) for more on local setup.
+
+## License
+
+Apache License 2.0 — see [LICENSE](LICENSE).
+
+Copyright © 2026 Norvitex OÜ
