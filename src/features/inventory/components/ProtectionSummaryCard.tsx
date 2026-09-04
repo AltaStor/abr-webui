@@ -5,8 +5,9 @@ import { useTranslation } from "react-i18next";
 import { Clock } from "@/lib/icons";
 import { Card, CardContent } from "@/components/ui/card";
 import { StatusPill } from "@/components/StatusPill";
+import { Metric } from "@/components/Metric";
 import { cn } from "@/lib/utils";
-import { formatRelative } from "@/lib/format";
+import { formatDateTime, formatRelative } from "@/lib/format";
 import { PROTECTION_META, toneChip, toneFg } from "@/lib/status";
 import type { VM } from "@/types";
 
@@ -44,7 +45,7 @@ export function ProtectionSummaryCard({
         <div className="flex items-start gap-4">
           <span
             className={cn(
-              "flex h-12 w-12 shrink-0 items-center justify-center rounded-xl",
+              "flex h-12 w-12 shrink-0 items-center justify-center",
               toneChip(meta.tone),
             )}
           >
@@ -59,39 +60,22 @@ export function ProtectionSummaryCard({
           </div>
         </div>
 
-        <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <Stat label={t("summary.lastBackup")} tone={vm.protection === "warning" ? "warning" : "default"}>
-            <span className="inline-flex items-center gap-1.5">
-              <Clock className="h-3.5 w-3.5 text-muted-foreground" />
-              {formatRelative(vm.lastBackupAt)}
-            </span>
-          </Stat>
-          <Stat label={t("summary.restorePoints")}>
-            <span className="nums">{vm.restorePointCount}</span>
-          </Stat>
+        <div className="mt-4 grid grid-cols-1 items-start gap-3 sm:grid-cols-2">
+          <Metric
+            label={t("summary.lastBackup")}
+            value={formatRelative(vm.lastBackupAt)}
+            sub={vm.lastBackupAt ? formatDateTime(vm.lastBackupAt) : undefined}
+            icon={Clock}
+            tone={vm.protection === "warning" ? "warning" : undefined}
+            surface="inset"
+          />
+          <Metric
+            label={t("summary.restorePoints")}
+            value={vm.restorePointCount}
+            surface="inset"
+          />
         </div>
       </CardContent>
     </Card>
-  );
-}
-
-function Stat({
-  label,
-  tone = "default",
-  children,
-}: {
-  label: string;
-  tone?: "default" | "warning";
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="rounded-lg border border-border/70 bg-muted/20 p-3">
-      <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70">
-        {label}
-      </p>
-      <div className={cn("mt-1 text-sm font-medium", tone === "warning" && "text-warning")}>
-        {children}
-      </div>
-    </div>
   );
 }

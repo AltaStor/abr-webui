@@ -9,11 +9,13 @@
   "export": {
     "menuLabel": "Export logs",
     "supportBundle": "Support bundle",
-    "systemLog": "System log (.log)"
+    "systemLog": "Full system log (.log)"
   },
   "toast": {
     "exportedSystem_one": "Exported {{count}} system log line",
     "exportedSystem_other": "Exported {{count}} system log lines",
+    "exportedSystemFiltered_one": "Exported {{count}} filtered log line",
+    "exportedSystemFiltered_other": "Exported {{count}} filtered log lines",
     "exportedSupportBundle": "Support bundle downloaded",
     "exportSupportBundleFailed": "Couldn't generate the support bundle"
   },
@@ -26,11 +28,14 @@
   },
   "system": {
     "sources": "Sources",
+    "sourcesGroupLabel": "Log sources — select any number to filter",
+    "sourcesAllShown": "all {{total}} shown",
+    "sourcesSomeShown": "{{selected}} of {{total}} shown",
     "searchLabel": "Search system log messages",
     "searchPlaceholder": "Search messages…",
     "liveTail": "Live tail",
     "toggleLiveTail": "Toggle live tail",
-    "downloadLog": "Download .log",
+    "downloadLog": "Download filtered (.log)",
     "lineCount_one": "{{formatted}} line",
     "lineCount_other": "{{formatted}} lines",
     "filteredToSources_one": " · filtered to {{count}} source",

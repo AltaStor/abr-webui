@@ -99,22 +99,6 @@
     "nameLabel": "Nombre del repositorio",
     "namePlaceholder": "Repositorio reforzado",
     "nameError": "Asigne un nombre al repositorio.",
-    "immutability": {
-      "label": "Inmutabilidad",
-      "description": "Cada punto de restauración se sella en el momento en que llega: sin ediciones ni eliminaciones, hasta que su bloqueo expire. El ransomware que alcance la appliance no encontrará nada que cifrar.",
-      "daysLabel": "Ventana de bloqueo (días)",
-      "daysHint": "Cada punto de restauración permanece sellado esta cantidad de días tras su llegada (1–3650).",
-      "modeLabel": "Modo",
-      "modeAria": "Modo de inmutabilidad",
-      "compliance": {
-        "title": "Cumplimiento",
-        "description": "Nadie puede desbloquear antes de tiempo, ni siquiera los administradores. El bloqueo sobrevive a las credenciales robadas."
-      },
-      "governance": {
-        "title": "Gobernanza",
-        "description": "Los administradores pueden forzar el desbloqueo; cada anulación queda auditada."
-      }
-    },
     "encryption": {
       "label": "Cifrado (AES-256)",
       "description": "Los puntos de restauración se cifran en reposo. Un disco robado es un ladrillo, no una filtración."
@@ -132,7 +116,8 @@
     "credentialLabel": "Referencia de credencial",
     "credentialHint": "p. ej., vault:secret/hv-lab: los secretos nunca residen en el manifiesto.",
     "partialWarning": "Rellene todos los campos o vacíe la fila: las filas incompletas no se aplican.",
-    "addAnother": "Añadir otro"
+    "addAnother": "Añadir otro",
+    "vmwareOnly": "Aquí solo se pueden añadir VMware vCenter y hosts ESXi independientes. Esta appliance puede registrar entornos Hyper-V y Proxmox, pero todavía ninguna ejecución contra ellos funcionaría."
   },
   "review": {
     "title": "Revisión",
@@ -151,8 +136,6 @@
     "layout": "Distribución",
     "layoutAutomatic": "Automática (planificada en el momento de aplicar)",
     "name": "Nombre",
-    "immutability": "Inmutabilidad",
-    "immutabilityValue": "Bloqueos de {{days}} días · {{mode}}",
     "off": "Desactivado",
     "encryption": "Cifrado",
     "encryptionValue": "AES-256 en reposo",

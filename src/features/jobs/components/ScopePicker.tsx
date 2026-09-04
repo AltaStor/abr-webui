@@ -106,7 +106,7 @@ export function ScopePicker({ selected, onChange }: ScopePickerProps) {
       </div>
 
       {/* Grouped VM list */}
-      <div className="max-h-80 overflow-y-auto rounded-lg border border-border/70">
+      <div className="max-h-80 overflow-y-auto border border-border">
         {groups.length === 0 ? (
           <div className="flex items-center justify-center gap-2 py-10 text-sm text-muted-foreground">
             <Server className="h-4 w-4" />
@@ -119,7 +119,7 @@ export function ScopePicker({ selected, onChange }: ScopePickerProps) {
             const allSelected = selectedInGroup === envVms.length;
             return (
               <div key={envId} className="border-b border-border/50 last:border-0">
-                <div className="sticky top-0 z-10 flex items-center gap-2 bg-card/95 px-3 py-1.5 backdrop-blur">
+                <div className="sticky top-0 z-10 flex items-center gap-2 bg-card px-3 py-1.5">
                   <Checkbox
                     checked={allSelected ? true : selectedInGroup ? "indeterminate" : false}
                     onCheckedChange={() => toggleGroup(envVms, allSelected)}
@@ -168,7 +168,7 @@ export function ScopePicker({ selected, onChange }: ScopePickerProps) {
       </div>
 
       {/* Running tally */}
-      <div className="flex items-center justify-between rounded-lg bg-muted/30 px-3 py-2 text-sm">
+      <div className="flex items-center justify-between bg-muted/30 px-3 py-2 text-sm">
         <span className="flex items-center gap-1.5">
           <Badge variant={selected.size ? "default" : "outline"}>{selected.size}</Badge>
           <span className="text-muted-foreground">{t("scope.vmsSelected", { count: selected.size })}</span>

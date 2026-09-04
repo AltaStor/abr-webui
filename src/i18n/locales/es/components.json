@@ -6,12 +6,6 @@
     "previousPage": "Página anterior",
     "nextPage": "Página siguiente"
   },
-  "immutable": {
-    "chip": "Inmutable",
-    "chipDays": "Inmutable · {{days}} d",
-    "lockedUntil": "Bloqueado hasta {{date}}",
-    "lockedGeneric": "Copia inmutable: bloqueada hasta que expire su ventana"
-  },
   "pipeline": {
     "title": "Canalización",
     "bottleneck": "Cuello de botella: {{label}}",
@@ -23,9 +17,18 @@
       "target": "Destino (repositorio)"
     },
     "stage": {
-      "source": { "label": "Origen", "sub": "lectura del invitado" },
-      "network": { "label": "Red", "sub": "por la LAN" },
-      "target": { "label": "Destino", "sub": "repositorio · físico" },
+      "source": {
+        "label": "Origen",
+        "sub": "lectura del invitado"
+      },
+      "network": {
+        "label": "Red",
+        "sub": "por la LAN"
+      },
+      "target": {
+        "label": "Destino",
+        "sub": "repositorio · físico"
+      },
       "replicaLabel": "Réplica",
       "replicaSub": "→ disco virtual",
       "networkReplicaSub": "al destino · enlace",

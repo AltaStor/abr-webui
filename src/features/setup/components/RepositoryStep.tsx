@@ -30,14 +30,14 @@ export function RepositoryStep({ form, onChange }: RepositoryStepProps) {
           value={form.repoName}
           onChange={(e) => onChange({ repoName: e.target.value })}
           placeholder={t("repository.namePlaceholder")}
-          className={cn("max-w-sm", nameInvalid && "border-danger focus-visible:ring-danger/40")}
+          className={cn("max-w-sm", nameInvalid && "border-danger")}
           aria-invalid={nameInvalid}
         />
         {nameInvalid && <p className="text-xs text-danger">{t("repository.nameError")}</p>}
       </div>
 
       {/* -------- encryption -------- */}
-      <label className="flex cursor-pointer items-start justify-between gap-3 rounded-lg border border-border/70 bg-muted/20 p-4">
+      <label className="flex cursor-pointer items-start justify-between gap-3 border border-border bg-muted/20 p-4">
         <span className="min-w-0">
           <span className="flex items-center gap-1.5 text-sm font-medium">
             <ShieldCheck className="h-4 w-4 text-muted-foreground" />

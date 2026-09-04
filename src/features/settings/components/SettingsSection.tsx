@@ -35,15 +35,21 @@ export function SettingsSection({
 }: SettingsSectionProps) {
   return (
     <Card className={cn("overflow-hidden", className)}>
-      <CardHeader className="flex flex-row items-start justify-between gap-3 space-y-0 border-b border-border/60 bg-muted/25 py-4">
-        <div className="flex items-start gap-2.5">
+      <CardHeader className="flex flex-row items-start justify-between gap-3 space-y-0 border-b border-border bg-muted/25 py-4">
+        <div className={cn("flex gap-2.5", description ? "items-start" : "items-center")}>
           {Icon && (
-            <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/12 text-primary">
+            <span
+              className={cn(
+                "flex h-8 w-8 shrink-0 items-center justify-center bg-primary/12 text-primary",
+                // only nudged onto the title's baseline when a description follows
+                description && "mt-0.5",
+              )}
+            >
               <Icon className="h-4 w-4" />
             </span>
           )}
           <div className="space-y-0.5">
-            <h2 className="text-sm font-semibold tracking-tight">{title}</h2>
+            <h2 className="font-display text-sm font-semibold tracking-tight">{title}</h2>
             {description && <p className="text-[13px] leading-relaxed text-muted-foreground">{description}</p>}
           </div>
         </div>
@@ -51,7 +57,7 @@ export function SettingsSection({
       </CardHeader>
       <CardContent className={cn(flush ? "p-0" : "px-5 py-1")}>{children}</CardContent>
       {footer && (
-        <div className="flex items-center justify-end gap-2 border-t border-border/60 bg-muted/25 px-5 py-3">
+        <div className="flex items-center justify-end gap-2 border-t border-border bg-muted/25 px-5 py-3">
           {footer}
         </div>
       )}

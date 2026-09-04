@@ -152,7 +152,7 @@ function AccessPolicyCard() {
     >
       <form onSubmit={(e) => void onSubmit(e)} noValidate className="max-w-sm space-y-4 py-3.5">
         {error && (
-          <div className="flex items-center gap-2 rounded-lg border border-danger/30 bg-danger-subtle px-3 py-2 text-sm text-danger-text">
+          <div className="flex items-center gap-2 border border-danger/30 bg-danger-subtle px-3 py-2 text-sm text-danger-text">
             <AlertTriangle className="h-4 w-4 shrink-0" />
             <span className="min-w-0">{error}</span>
           </div>

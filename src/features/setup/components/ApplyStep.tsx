@@ -75,7 +75,7 @@ function StageChecklist({
           <li
             key={s.key}
             className={cn(
-              "flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm",
+              "flex items-center gap-2.5 px-3 py-2 text-sm",
               isCurrent && "bg-muted/40",
             )}
           >
@@ -186,7 +186,7 @@ export function ApplyStep({ manifest, onBackToReview }: ApplyStepProps) {
     return (
       <div className="space-y-6">
         <div className="flex flex-col items-center gap-4 py-8 text-center">
-          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-success-subtle text-success">
+          <div className="flex h-16 w-16 items-center justify-center bg-success-subtle text-success">
             <CheckCircle2 className="h-8 w-8" />
           </div>
           <div>
@@ -214,7 +214,7 @@ export function ApplyStep({ manifest, onBackToReview }: ApplyStepProps) {
       <StepHeader title={t("apply.title")} description={t("apply.description")} />
 
       {phase === "error" && errorMsg && (
-        <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-danger/30 bg-danger-subtle px-4 py-3">
+        <div className="flex flex-wrap items-center justify-between gap-3 border border-danger/30 bg-danger-subtle px-4 py-3">
           <span className="flex min-w-0 items-center gap-2 text-sm text-danger-text">
             <AlertTriangle className="h-4 w-4 shrink-0" />
             <span className="min-w-0">{errorMsg}</span>

@@ -19,8 +19,6 @@ export interface NavItem {
   icon: LucideIcon;
   /** Match nested routes for active state. */
   match?: (path: string) => boolean;
-  /** Ported UI with no VMware-orchestrator backing yet — tagged "WIP". */
-  wip?: boolean;
 }
 
 export const PRIMARY_NAV: NavItem[] = [
@@ -37,8 +35,5 @@ export const PRIMARY_NAV: NavItem[] = [
 export const SECONDARY_NAV: NavItem[] = [
   { labelKey: "inventory", href: "/inventory", icon: Server, match: (p) => p.startsWith("/inventory") },
   { labelKey: "repositories", href: "/repositories", icon: HardDrive, match: (p) => p.startsWith("/repositories") },
-  // Logs renders from locally-generated data (no audit-trail backing on the
-  // orchestrator yet) — not "wip" since the page itself is fully reachable and
-  // populated, just not appliance-sourced.
   { labelKey: "logs", href: "/logs", icon: Terminal, match: (p) => p.startsWith("/logs") },
 ];

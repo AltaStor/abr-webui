@@ -22,8 +22,6 @@
   },
   "filters": {
     "byProtection": "Filtrar por estado de protección",
-    "title": "Filtros",
-    "active": "Filtros, {{count}} activos",
     "clear": "Borrar filtros",
     "environment": "Entorno",
     "os": "Sistema operativo",
@@ -35,7 +33,6 @@
     "allOs": "Todos los SO",
     "windows": "Windows",
     "linux": "Linux",
-    "macos": "macOS",
     "unknown": "Desconocido",
     "anyPower": "Cualquier estado"
   },
@@ -64,7 +61,12 @@
     "lastBackup": "Última copia de seguridad",
     "points": "Puntos",
     "server": "Servidor",
-    "agentStatus": "agente {{status}}"
+    "agentStatus": "agente {{status}}",
+    "vmSizeHint": "Capacidad de disco total aprovisionada para esta VM. El orquestador no informa del espacio usado por VM, así que este es el espacio asignado, no el escrito.",
+    "backupSizeHint": "Tamaño combinado de todos los puntos de restauración guardados para esta VM, tras la deduplicación y la compresión.",
+    "protectionHint": "Estado de protección actual, según la cobertura de copias y los puntos de restauración.",
+    "lastBackupHint": "Cuándo terminó la última copia de seguridad.",
+    "pointsHint": "Número de puntos de restauración guardados para esta VM."
   },
   "actions": {
     "restore": "Restaurar",
@@ -107,13 +109,20 @@
     "physicalHost": "Servidor físico"
   },
   "coverage": {
-    "protected": "protegido",
     "vms": "VMs",
     "sources": "orígenes",
     "running": "en ejecución",
     "vmsRunning": "VMs en ejecución",
-    "immutablySealed": "sellado de forma inmutable",
-    "summary": "<b>{{protected}}</b> de <n>{{total}}</n> {{noun}} · <n>{{running}}</n> {{runningLabel}}"
+    "summary": "<b>{{protected}}</b> de <n>{{total}}</n> {{noun}} · <n>{{running}}</n> {{runningLabel}}",
+    "card": {
+      "coverage": "Cobertura de protección",
+      "coverageHint": "{{protected}} de {{total}} {{noun}} · {{running}} {{runningLabel}}",
+      "ofEstate_one": "{{count}} {{noun}}",
+      "ofEstate_other": "{{count}} {{noun}}",
+      "exposed": "Datos expuestos",
+      "exposedHint_one": "En {{count}} {{noun}} sin proteger o en riesgo",
+      "exposedHint_other": "En {{count}} {{noun}} sin proteger o en riesgo"
+    }
   },
   "estate": {
     "navigator": "Navegador de infraestructura",
@@ -124,7 +133,8 @@
     "settingsFor": "Ajustes de {{name}}",
     "empty": "vacío",
     "protectedSr": "protegido",
-    "description": "Su parque virtual: plataformas, centros de datos, clústeres y hosts. Vea la capacidad, la conectividad y exactamente dónde se ejecuta cada VM."
+    "description": "Su parque virtual: plataformas, centros de datos, clústeres y hosts. Vea la capacidad, la conectividad y exactamente dónde se ejecuta cada VM.",
+    "resizeLabel": "Cambiar el ancho del panel del inventario"
   },
   "agent": {
     "connected": "Conectado",
@@ -138,8 +148,7 @@
   },
   "os": {
     "windows": "Windows",
-    "linux": "Linux",
-    "macos": "macOS"
+    "linux": "Linux"
   },
   "size": {
     "storageUsedAria": "Almacenamiento {{pct}} % usado"
@@ -152,13 +161,10 @@
     "nounServer": "servidor",
     "sublineUnreachable_one": "{{count}} punto de restauración está en almacenamiento fuera de línea y no se puede restaurar en este momento — no se ha perdido y vuelve a estar disponible en cuanto el repositorio vuelve a estar en línea.",
     "sublineUnreachable_other": "{{count}} puntos de restauración están en almacenamiento fuera de línea y no se pueden restaurar en este momento — no se han perdido y vuelven a estar disponibles en cuanto el repositorio vuelve a estar en línea.",
-    "sublineImmutable": "Su punto de restauración más reciente es inmutable y no se puede modificar ni eliminar.",
     "sublineHealthy": "Los puntos de restauración están en buen estado. Añade un repositorio inmutable para bloquearlos frente a cambios.",
     "sublineProtect": "Añádela a un trabajo de copia de seguridad para empezar a protegerla.",
     "lastBackup": "Última copia de seguridad",
-    "restorePoints": "Puntos de restauración",
-    "immutable": "Inmutable",
-    "notCovered": "No cubierto"
+    "restorePoints": "Puntos de restauración"
   },
   "detail": {
     "backToInventory": "Volver al inventario",
@@ -180,7 +186,7 @@
     "alreadyRunning": "{{job}} ya está en ejecución",
     "alreadyRunningDesc": "Se está haciendo una copia de seguridad de esta VM en este momento.",
     "location": "Ubicación",
-    "topology": "Topología",
+    "topology": "Inventario",
     "specs": "Especificaciones",
     "powerState": "Estado de energía",
     "vcpus": "vCPUs",
@@ -193,7 +199,8 @@
     "noJob": "Aún no hay ningún trabajo de copia de seguridad que proteja esta VM. Actualmente está expuesta.",
     "restorePoints": "Puntos de restauración",
     "noPointsDesc": "Ejecuta una copia de seguridad para crear el primer punto recuperable de esta VM.",
-    "recentActivity": "Actividad reciente"
+    "recentActivity": "Actividad reciente",
+    "unknownPlatform": "Plataforma desconocida"
   },
   "hostDetail": {
     "notFoundTitle": "Servidor no encontrado",
@@ -281,19 +288,15 @@
       "unavailable": "Comprobación no disponible",
       "unavailableTip": "La comprobación de integridad de los archivos de copia de seguridad no pudo leer este punto de restauración.",
       "notVerified": "No verificado"
-    },
-    "fromLogical": "de {{size}}",
-    "storedTitle": "{{logical}} de datos almacenados como {{stored}}"
+    }
   },
   "calendar": {
     "pointsCount_one": "{{count}} punto de restauración",
     "pointsCount_other": "{{count}} puntos de restauración",
     "includesFullSuffix": " · incluye una completa",
-    "immutablePoint": "Punto inmutable",
     "noPointDay": "Sin punto de restauración este día",
     "legendFull": "Incluye completa",
     "legendIncremental": "Solo incremental",
-    "legendImmutable": "Inmutable",
     "legendGap": "Hueco",
     "noPoints": "Sin puntos",
     "noPointsDay": "No se crearon puntos de restauración este día. Elige un día resaltado para ver sus puntos."
@@ -306,51 +309,13 @@
     "alreadyDesc": "Esa copia de seguridad ya no existe.",
     "errorTitle": "No se pudo eliminar la copia de seguridad",
     "errorDesc": "La copia de seguridad no se pudo quitar. Inténtalo de nuevo en un momento.",
-    "sealedTitle": "Este punto de restauración está sellado",
     "title": "¿Eliminar esta copia de seguridad?",
-    "sealedDesc": "Los puntos inmutables están bloqueados en la capa de almacenamiento y no se pueden quitar hasta que expire el bloqueo.",
     "desc": "Esto quita de forma permanente todos los puntos de restauración de esta copia de seguridad — completos e incrementales juntos. No se puede deshacer. No es posible eliminar un solo punto de forma independiente.",
     "pointCount_one": "{{count}} punto de restauración",
     "pointCount_other": "{{count}} puntos de restauración",
     "range": "{{from}} – {{to}}",
-    "lockedBadge": "Bloqueado · HTTP 423",
-    "sealedUntil": "Sellado hasta el <1>{{date}}</1>. La inmutabilidad es la esencia de la protección contra ransomware — ni siquiera un administrador puede quitar un punto sellado antes de que expire su bloqueo.",
     "recoverWarn": "Una vez eliminada, no podrás recuperar <1>{{name}}</1> a ningún punto de esta copia de seguridad.",
     "confirm": "Eliminar copia de seguridad",
-    "deleting": "Eliminando…"
-  },
-  "deleteAll": {
-    "successTitle_one": "{{count}} punto de restauración eliminado",
-    "successTitle_other": "{{count}} puntos de restauración eliminados",
-    "successDesc_one": "Quitado en {{count}} VM. El almacenamiento se recupera en la próxima limpieza.",
-    "successDesc_other": "Quitado en {{count}} VMs. El almacenamiento se recupera en la próxima limpieza.",
-    "warningTitle": "Se eliminaron {{deleted}} de {{considered}} puntos de restauración",
-    "warningCompliance": "{{count}} bloqueados por cumplimiento conservados",
-    "warningGovernance": "{{count}} bloqueados por gobernanza conservados",
-    "infoTitle": "No se eliminó nada",
-    "infoDesc": "Todos los puntos de restauración seleccionados están sellados por un bloqueo de inmutabilidad activo.",
-    "errorTitle": "No se pudieron eliminar los puntos de restauración",
-    "errorDesc": "La appliance no confirmó la eliminación. No se quitó nada — inténtalo de nuevo.",
-    "title": "¿Eliminar todos los puntos de restauración?",
-    "description": "Esto quita de forma permanente todos los puntos recuperables de {{label}}. No se puede deshacer.",
-    "thisVm": "esta VM",
-    "scopeVms_one": "{{count}} VM",
-    "scopeVms_other": "{{count}} VMs",
-    "vmsLabel": "VMs",
-    "pointsToDelete": "Puntos a eliminar",
-    "pointsCount": "{{willDelete}} de {{total}}",
-    "complianceHeading_one": "Se conservará {{count}} punto bloqueado por cumplimiento",
-    "complianceHeading_other": "Se conservarán {{count}} puntos bloqueados por cumplimiento",
-    "complianceBody": "La inmutabilidad en modo cumplimiento no puede ser anulada por nadie — estos puntos permanecen hasta que expiren sus bloqueos.",
-    "overrideHeading": "Anular bloqueo de gobernanza",
-    "overrideBody_one": "{{count}} punto está bajo un bloqueo de gobernanza. Marca esta casilla para forzar su eliminación antes de que expire el bloqueo. Esta acción se audita.",
-    "overrideBody_other": "{{count}} puntos están bajo un bloqueo de gobernanza. Marca esta casilla para forzar su eliminación antes de que expire el bloqueo. Esta acción se audita.",
-    "governanceKeptHeading_one": "Se conservará {{count}} punto bloqueado por gobernanza",
-    "governanceKeptHeading_other": "Se conservarán {{count}} puntos bloqueados por gobernanza",
-    "governanceKeptBody_one": "La eliminación forzada está deshabilitada en los ajustes de seguridad, por lo que el bloqueo de gobernanza no se puede anular aquí. Este punto permanece hasta que expire el bloqueo — habilita la eliminación forzada por administrador para anularlo.",
-    "governanceKeptBody_other": "La eliminación forzada está deshabilitada en los ajustes de seguridad, por lo que el bloqueo de gobernanza no se puede anular aquí. Estos puntos permanecen hasta que expire el bloqueo — habilita la eliminación forzada por administrador para anularlos.",
-    "confirm_one": "Eliminar {{count}} punto",
-    "confirm_other": "Eliminar {{count}} puntos",
     "deleting": "Eliminando…"
   },
   "addPhysical": {
@@ -372,7 +337,10 @@
   },
   "sourceSettings": {
     "fallbackTitle": "Origen",
-    "description": "Reanalizar su inventario, quitarlo o actualizar su agente."
+    "description": "Reanalizar su inventario, quitarlo o actualizar su agente.",
+    "edit": "Editar",
+    "rescan": "Volver a analizar",
+    "remove": "Eliminar entorno"
   },
   "removeEnvironment": {
     "title": "¿Quitar {{name}}?",
@@ -392,5 +360,77 @@
         "description": "No se pudo quitar el entorno. Inténtelo de nuevo en un momento."
       }
     }
+  },
+  "addEnvironment": {
+    "title": "Agregar entorno",
+    "description": "Registre un VMware vCenter Server o un host ESXi independiente para que AltaStor pueda detectar y proteger sus VMs.",
+    "platformLabel": "Plataforma",
+    "type": {
+      "vcenter": {
+        "label": "VMware vCenter",
+        "hint": "Un vCenter Server que gestiona uno o varios hosts ESXi."
+      },
+      "esxiStandalone": {
+        "label": "VMware ESXi (independiente)",
+        "hint": "Un único host ESXi, gestionado directamente."
+      }
+    },
+    "nameLabel": "Nombre",
+    "addressLabel": "Dirección",
+    "addressInvalid": "Introduzca un FQDN o una dirección IP válidos — sin protocolo, ruta ni espacios.",
+    "portLabel": "Puerto",
+    "usernameLabel": "Nombre de usuario",
+    "passwordLabel": "Contraseña",
+    "skipTlsLabel": "Omitir la verificación TLS",
+    "skipTlsHint": "Acepta certificados autofirmados (habitual en laboratorios).",
+    "submit": "Registrar y detectar",
+    "error": "El orquestador rechazó el registro. Compruebe la dirección y las credenciales.",
+    "toast": {
+      "registered": "{{platform}} registrado",
+      "registeredDesc": "Detectando VMs en {{endpoint}}…",
+      "discoveryFailed": "{{platform}} registrado, pero la detección falló"
+    }
+  },
+  "editEnvironment": {
+    "addressInvalid": "Introduzca un FQDN o una dirección IP válidos — sin protocolo, ruta ni espacios.",
+    "addressLabel": "Dirección",
+    "nameLabel": "Nombre",
+    "passwordLabel": "Contraseña",
+    "portLabel": "Puerto",
+    "usernameLabel": "Nombre de usuario",
+    "skipTlsHint": "Acepta certificados autofirmados (habitual en laboratorios).",
+    "skipTlsLabel": "Omitir la verificación TLS",
+    "description": "Actualice los datos de conexión que AltaStor usa para acceder a este entorno.",
+    "passwordPlaceholder": "Déjelo en blanco para conservar la contraseña actual",
+    "usernamePlaceholder": "Déjelo en blanco para conservar el nombre de usuario actual",
+    "save": "Guardar cambios",
+    "saving": "Guardando…",
+    "title": "Editar {{name}}",
+    "toast": {
+      "saved": {
+        "title": "Entorno actualizado",
+        "description": "{{name}} se ha actualizado."
+      },
+      "failed": {
+        "description": "No se pudo actualizar el entorno. Vuelva a intentarlo en un momento."
+      }
+    }
+  },
+  "rescan": {
+    "tooltip": "Obtiene los hosts y las VMs recién detectados de todos los entornos conectados.",
+    "running": "Reescaneando…",
+    "doneTitle": "Reescaneo completado",
+    "doneDesc_one": "{{count}} entorno actualizado.",
+    "doneDesc_other": "{{count}} entornos actualizados.",
+    "failedTitle": "El reescaneo falló",
+    "failedDesc_one": "La appliance no pudo contactar con {{count}} entorno, así que no se actualizó nada.",
+    "failedDesc_other": "La appliance no pudo contactar con {{count}} entornos, así que no se actualizó nada.",
+    "partialTitle": "Reescaneo parcialmente completado",
+    "partialDesc": "Se actualizaron {{ok}} de {{total}} entornos; con el resto la appliance no pudo contactar.",
+    "oneDoneTitle": "{{name}} reescaneado",
+    "oneDoneDesc_one": "{{count}} VM encontrada.",
+    "oneDoneDesc_other": "{{count}} VMs encontradas.",
+    "oneFailedTitle": "No se pudo reescanear {{name}}",
+    "oneFailedDesc": "La appliance no pudo contactar con él, así que su inventario no ha cambiado."
   }
 }

@@ -2,7 +2,7 @@
 // Copyright © 2026 Norvitex OÜ
 
 import { seededRandom } from "@/lib/utils";
-import { simChainId, simCompressionRatio } from "@/lib/restore-points";
+import { simChainId } from "@/lib/restore-points";
 import type {
   Alert,
   BackupJob,
@@ -566,10 +566,6 @@ function buildRestorePoints(vms: VM[], jobs: BackupJob[]): RestorePoint[] {
     for (let i = 0; i < count; i++) {
       const isFull = i % 7 === 0;
       const ageHours = i * (job.schedule.frequency === "hourly" ? job.schedule.everyHours ?? 1 : 24) + 1;
-      const storedGB = isFull
-        ? Math.round(vm.usedGB * (0.9 + rand() * 0.1))
-        : Math.round(vm.usedGB * (0.02 + rand() * 0.08));
-      const ratio = simCompressionRatio(job.options.compression);
       points.push({
         id: `rp-${++counter}`,
         chainId: simChainId(job.id, vm.id, repo),
@@ -579,10 +575,8 @@ function buildRestorePoints(vms: VM[], jobs: BackupJob[]): RestorePoint[] {
         jobName: job.name,
         createdAt: hoursAgo(ageHours),
         type: isFull ? "full" : "incremental",
-        sizeGB: storedGB,
+        sizeGB: isFull ? Math.round(vm.usedGB * (0.9 + rand() * 0.1)) : Math.round(vm.usedGB * (0.02 + rand() * 0.08)),
         repositoryId: repo,
-        logicalGB: Math.round(storedGB / ratio),
-        compressionRatio: ratio,
         compressionLevel: job.options.compression,
         encrypted: job.options.encryption,
       });

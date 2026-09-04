@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 // Copyright © 2026 Norvitex OÜ
 
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslation, Trans } from "react-i18next";
 import { motion } from "framer-motion";
 import { Gauge, Radio, Timer } from "@/lib/icons";
@@ -11,6 +11,7 @@ import { LiveThroughput } from "@/components/LiveThroughput";
 import { CountUp } from "@/components/CountUp";
 import { StatusPill, StatusDot } from "@/components/StatusPill";
 import { LogViewer } from "@/components/LogViewer";
+import { Metric } from "@/components/Metric";
 import { SESSION_META } from "@/lib/status";
 import { cn } from "@/lib/utils";
 import { formatDuration, formatStorage, formatThroughput } from "@/lib/format";
@@ -37,16 +38,28 @@ const VM_LABEL: Record<VmRunResult["status"], () => string> = {
   pending: () => i18n.t("jobs:vmStatus.queued"),
 };
 
+/**
+ * Run trigger → the same words the Activity list shows. The footer used to
+ * interpolate `session.triggeredBy` straight into the sentence, so the wire
+ * enum ("schedule", "manual", "retry") surfaced untranslated in every language.
+ * The enum values themselves are the backend's and are untouched.
+ */
+const TRIGGER_LABEL: Record<Session["triggeredBy"], () => string> = {
+  schedule: () => i18n.t("activity:trigger.schedule"),
+  manual: () => i18n.t("activity:trigger.manual"),
+  retry: () => i18n.t("common:actions.retry"),
+};
+
 /** Static class strings per tone — Tailwind can't see dynamically built class
  * names, so the run panel's status colours are looked up here as literals. */
 const TONE_CLASS: Record<
   "info" | "success" | "warning" | "danger",
-  { border: string; borderSoft: string; bgSoft: string; text: string; dot: string; grad: string }
+  { border: string; borderSoft: string; bgSoft: string; text: string; dot: string; rail: string }
 > = {
-  info: { border: "border-info/30", borderSoft: "border-info/20", bgSoft: "bg-info/[0.04]", text: "text-info", dot: "bg-info", grad: "from-info via-info/40" },
-  success: { border: "border-success/30", borderSoft: "border-success/20", bgSoft: "bg-success/[0.04]", text: "text-success", dot: "bg-success", grad: "from-success via-success/40" },
-  warning: { border: "border-warning/30", borderSoft: "border-warning/20", bgSoft: "bg-warning/[0.04]", text: "text-warning", dot: "bg-warning", grad: "from-warning via-warning/40" },
-  danger: { border: "border-danger/30", borderSoft: "border-danger/20", bgSoft: "bg-danger/[0.04]", text: "text-danger", dot: "bg-danger", grad: "from-danger via-danger/40" },
+  info: { border: "border-info/30", borderSoft: "border-info/20", bgSoft: "bg-info/[0.04]", text: "text-info", dot: "bg-info", rail: "bg-info" },
+  success: { border: "border-success/30", borderSoft: "border-success/20", bgSoft: "bg-success/[0.04]", text: "text-success", dot: "bg-success", rail: "bg-success" },
+  warning: { border: "border-warning/30", borderSoft: "border-warning/20", bgSoft: "bg-warning/[0.04]", text: "text-warning", dot: "bg-warning", rail: "bg-warning" },
+  danger: { border: "border-danger/30", borderSoft: "border-danger/20", bgSoft: "bg-danger/[0.04]", text: "text-danger", dot: "bg-danger", rail: "bg-danger" },
 };
 
 /** Prominent panel for a job's latest run: live progress while running, and a
@@ -110,7 +123,7 @@ export function ActiveRunPanel({ session }: { session: Session }) {
 
   return (
     <Card className={cn("overflow-hidden", tc.border)} aria-busy={!terminal}>
-      <div className={cn("h-0.5 w-full bg-gradient-to-r to-transparent", tc.grad)} />
+      <div className={cn("h-0.5 w-full", tc.rail)} />
 
       <p className="sr-only" aria-live="polite">
         {t("run.sr.status", {
@@ -165,7 +178,7 @@ export function ActiveRunPanel({ session }: { session: Session }) {
 
         {preparing ? (
           /* Agent-backed run before the real read starts — no honest rate yet. */
-          <div className="flex items-center gap-2 rounded-lg border border-info/20 bg-info/[0.04] px-3 py-2.5 text-sm text-muted-foreground">
+          <div className="flex items-center gap-2 border border-info/20 bg-info/[0.04] px-3 py-2.5 text-sm text-muted-foreground">
             <span className="relative flex h-2 w-2">
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-info opacity-75" />
               <span className="relative inline-flex h-2 w-2 rounded-full bg-info" />
@@ -175,9 +188,9 @@ export function ActiveRunPanel({ session }: { session: Session }) {
         ) : (
           /* Rate meter — phase-labeled. In storing it tracks the repository's
              real physical write rate (the waveform the operator watches). */
-          <div className={cn("rounded-lg border p-3", tc.borderSoft, tc.bgSoft)}>
+          <div className={cn("border p-3", tc.borderSoft, tc.bgSoft)}>
             <div className="mb-1.5 flex items-center justify-between">
-              <span className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/70">
+              <span className="label-overline flex items-center gap-1.5">
                 <Gauge className="h-3 w-3" /> {rateLabel}
               </span>
               <span className={cn("nums text-sm font-semibold", tc.text)}>
@@ -189,15 +202,15 @@ export function ActiveRunPanel({ session }: { session: Session }) {
         )}
 
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-          <Metric icon={Radio} label={t("run.metrics.objectsDone", { objects: objectsShort })} value={`${doneCount}/${session.vmCount}`} />
-          <Metric icon={Timer} label={t("run.metrics.elapsed")} value={formatDuration(session.durationSec)} />
-          <Metric label={t("run.metrics.readGuest")} value={<CountUp value={session.processedGB} format={(n) => formatStorage(n)} durationMs={1100} />} />
-          <Metric label={t("run.metrics.storedRepo")} value={<CountUp value={session.transferredGB} format={(n) => formatStorage(n)} durationMs={1100} />} />
+          <Metric className="bg-muted/30 px-3 py-2" icon={Radio} label={t("run.metrics.objectsDone", { objects: objectsShort })} value={`${doneCount}/${session.vmCount}`} />
+          <Metric className="bg-muted/30 px-3 py-2" icon={Timer} label={t("run.metrics.elapsed")} value={formatDuration(session.durationSec)} />
+          <Metric className="bg-muted/30 px-3 py-2" label={t("run.metrics.readGuest")} value={<CountUp value={session.processedGB} format={(n) => formatStorage(n)} durationMs={1100} />} />
+          <Metric className="bg-muted/30 px-3 py-2" label={t("run.metrics.storedRepo")} value={<CountUp value={session.transferredGB} format={(n) => formatStorage(n)} durationMs={1100} />} />
         </div>
 
         {/* Per-VM list — each machine ripples as it completes. */}
-        <div className="rounded-lg border border-border/70">
-          <div className="border-b border-border/60 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/70">
+        <div className="border border-border">
+          <div className="label-overline border-b border-border px-3 py-1.5">
             {objectsHeading}
           </div>
           <div className="max-h-44 divide-y divide-border/50 overflow-y-auto">
@@ -212,32 +225,10 @@ export function ActiveRunPanel({ session }: { session: Session }) {
 
         <p className="text-xs text-muted-foreground">
           {/* Elapsed already has its own metric tile above — this footer only adds trigger context. */}
-          {t("run.triggered", { by: session.triggeredBy })}
+          {t("run.triggered", { by: TRIGGER_LABEL[session.triggeredBy]() })}
         </p>
       </CardContent>
     </Card>
-  );
-}
-
-function Metric({
-  icon: Icon,
-  label,
-  value,
-  accent,
-}: {
-  icon?: typeof Gauge;
-  label: string;
-  value: ReactNode;
-  accent?: boolean;
-}) {
-  return (
-    <div className="rounded-lg bg-muted/30 px-3 py-2">
-      <p className="flex items-center gap-1 text-[11px] text-muted-foreground">
-        {Icon && <Icon className="h-3 w-3" />}
-        {label}
-      </p>
-      <p className={cn("nums mt-0.5 text-sm font-semibold", accent && "text-info")}>{value}</p>
-    </div>
   );
 }
 

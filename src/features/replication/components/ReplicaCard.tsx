@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 // Copyright © 2026 Norvitex OÜ
 
+import { useTranslation } from "react-i18next";
 import {
   ArrowRight,
   History,
@@ -11,7 +12,8 @@ import {
 } from "@/lib/icons";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { formatRelative, formatStorage } from "@/lib/format";
+import { Metric } from "@/components/Metric";
+import { formatDateTime, formatRelative, formatStorage } from "@/lib/format";
 import { PLATFORM_META } from "@/lib/platform";
 import type { Replica } from "@/types";
 import { ReplicaStateBadge } from "./ReplicaStateBadge";
@@ -23,6 +25,7 @@ interface ReplicaCardProps {
 }
 
 export function ReplicaCard({ replica, actions }: ReplicaCardProps) {
+  const { t } = useTranslation("replication");
   const inFailover = replica.state === "failover";
   const crossPlatform = replica.sourcePlatform !== replica.targetPlatform;
   const sourceShort = PLATFORM_META[replica.sourcePlatform].short;
@@ -31,15 +34,15 @@ export function ReplicaCard({ replica, actions }: ReplicaCardProps) {
   return (
     <div
       className={cn(
-        "group relative flex flex-col overflow-hidden rounded-xl border bg-card shadow-card transition-all hover:shadow-pop",
+        "group relative flex flex-col overflow-hidden border bg-card transition-colors duration-250 hover:shadow-pop",
         inFailover
           ? "border-warning/40 hover:border-warning/60"
-          : "border-border/70 hover:border-border",
+          : "border-border hover:border-border",
       )}
     >
       {/* Failover accent rail — this replica is live and serving */}
       {inFailover && (
-        <span className="pointer-events-none absolute inset-x-0 top-0 z-10 h-0.5 bg-gradient-to-r from-warning/0 via-warning to-warning/0" />
+        <span className="pointer-events-none absolute inset-x-0 top-0 z-10 h-0.5 bg-warning" />
       )}
 
       {/* Kebab overlay */}
@@ -53,7 +56,7 @@ export function ReplicaCard({ replica, actions }: ReplicaCardProps) {
           <div className="flex min-w-0 items-start gap-3">
             <span
               className={cn(
-                "flex h-10 w-10 shrink-0 items-center justify-center rounded-lg",
+                "flex h-10 w-10 shrink-0 items-center justify-center",
                 inFailover ? "bg-warning-subtle text-warning-text" : "bg-muted text-muted-foreground",
               )}
             >
@@ -67,7 +70,7 @@ export function ReplicaCard({ replica, actions }: ReplicaCardProps) {
                 className="mt-0.5 truncate text-xs text-muted-foreground"
                 title={replica.jobName}
               >
-                from {replica.jobName}
+                {t("card.from", { job: replica.jobName })}
               </p>
             </div>
           </div>
@@ -79,20 +82,20 @@ export function ReplicaCard({ replica, actions }: ReplicaCardProps) {
           <div className="mt-3">
             <span className="inline-flex items-center gap-1.5 bg-warning-subtle px-2 py-0.5 text-[11px] font-medium text-warning-text">
               <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-warning" />
-              Powered on · serving traffic
+              {t("card.poweredOn")}
             </span>
           </div>
         )}
 
         {/* Source → target topology */}
-        <div className="mt-4 flex items-center gap-2 rounded-lg border border-border/60 bg-muted/30 px-3 py-2.5">
+        <div className="mt-4 flex items-center gap-2 border border-border bg-muted/30 px-3 py-2.5">
           <div className="min-w-0 flex-1">
             <p className="truncate text-sm font-medium" title={replica.sourceVmName}>
               {replica.sourceVmName}
             </p>
             <p className="mt-0.5 flex items-center gap-1 truncate text-[11px] text-muted-foreground">
               <Server className="h-3 w-3 shrink-0" />
-              {sourceShort} source
+              {t("card.source", { platform: sourceShort })}
             </p>
           </div>
           <ArrowRight className="h-4 w-4 shrink-0 text-muted-foreground" />
@@ -102,7 +105,7 @@ export function ReplicaCard({ replica, actions }: ReplicaCardProps) {
             </p>
             <p className="mt-0.5 flex items-center justify-end gap-1 truncate text-[11px] text-muted-foreground">
               <Server className="h-3 w-3 shrink-0" />
-              {replica.targetHostName ?? `${targetShort} target`}
+              {replica.targetHostName ?? t("card.target", { platform: targetShort })}
             </p>
           </div>
         </div>
@@ -111,15 +114,20 @@ export function ReplicaCard({ replica, actions }: ReplicaCardProps) {
         {crossPlatform && (
           <div className="mt-2 flex items-center gap-1.5 text-[11px] text-info-text">
             <Repeat className="h-3 w-3 shrink-0" />
-            Cross-platform · {sourceShort} → {targetShort} (converted on failover)
+            {t("card.crossPlatform", { source: sourceShort, target: targetShort })}
           </div>
         )}
 
         {/* Metric chips: last sync · recovery points · size */}
-        <div className="mt-4 grid grid-cols-3 gap-2 border-t border-border/60 pt-3 text-xs">
-          <Metric icon={History} label="Last sync" value={formatRelative(replica.lastSyncAt)} />
-          <Metric icon={Layers} label="Recovery points" value={replica.points.length.toString()} />
-          <Metric icon={Server} label="Replica size" value={formatStorage(replica.sizeGB, 0)} />
+        <div className="mt-4 grid grid-cols-3 gap-2 border-t border-border pt-3">
+          <Metric
+            icon={History}
+            label={t("card.lastSync")}
+            value={formatRelative(replica.lastSyncAt)}
+            sub={replica.lastSyncAt ? formatDateTime(replica.lastSyncAt) : undefined}
+          />
+          <Metric icon={Layers} label={t("card.recoveryPoints")} value={replica.points.length.toString()} />
+          <Metric icon={Server} label={t("card.replicaSize")} value={formatStorage(replica.sizeGB, 0)} />
         </div>
 
         {/* Primary action */}
@@ -128,11 +136,11 @@ export function ReplicaCard({ replica, actions }: ReplicaCardProps) {
             <>
               <Button variant="outline" size="sm" className="flex-1" onClick={actions.onFailback}>
                 <Repeat className="h-4 w-4" />
-                Fail back
+                {t("card.failBack")}
               </Button>
               <Button variant="ghost" size="sm" className="flex-1 text-muted-foreground" onClick={actions.onUndoFailover}>
                 <History className="h-4 w-4" />
-                Undo
+                {t("card.undo")}
               </Button>
             </>
           ) : (
@@ -144,32 +152,10 @@ export function ReplicaCard({ replica, actions }: ReplicaCardProps) {
               onClick={actions.onFailover}
             >
               <Power className="h-4 w-4" />
-              {replica.state === "seeding" ? "Seeding…" : "Fail over"}
+              {replica.state === "seeding" ? t("card.seeding") : t("card.failOver")}
             </Button>
           )}
         </div>
-      </div>
-    </div>
-  );
-}
-
-function Metric({
-  icon: Icon,
-  label,
-  value,
-}: {
-  icon: typeof History;
-  label: string;
-  value: string;
-}) {
-  return (
-    <div className="min-w-0">
-      <div className="flex items-center gap-1 text-muted-foreground">
-        <Icon className="h-3.5 w-3.5 shrink-0" />
-        <span className="truncate">{label}</span>
-      </div>
-      <div className="mt-0.5 truncate nums font-semibold" title={value}>
-        {value}
       </div>
     </div>
   );

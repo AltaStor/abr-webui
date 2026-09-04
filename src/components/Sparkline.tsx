@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 // Copyright © 2026 Norvitex OÜ
 
-import { useId } from "react";
-
 interface SparklineProps {
   data: number[];
   width?: number;
@@ -24,7 +22,6 @@ export function Sparkline({
   strokeWidth = 1.5,
   className,
 }: SparklineProps) {
-  const id = useId();
   if (data.length === 0) return <svg width={width} height={height} className={className} />;
   const min = Math.min(...data);
   const max = Math.max(...data);
@@ -40,17 +37,7 @@ export function Sparkline({
 
   return (
     <svg width={width} height={height} className={className} preserveAspectRatio="none" aria-hidden>
-      {fill && (
-        <>
-          <defs>
-            <linearGradient id={`spark-${id}`} x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor={color} stopOpacity="0.28" />
-              <stop offset="100%" stopColor={color} stopOpacity="0" />
-            </linearGradient>
-          </defs>
-          <path d={area} fill={`url(#spark-${id})`} />
-        </>
-      )}
+      {fill && <path d={area} fill={color} fillOpacity={0.08} />}
       <path d={line} fill="none" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );

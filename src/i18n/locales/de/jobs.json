@@ -37,7 +37,6 @@
     "noRunsThisDay": "Für diesen Tag sind keine Ausführungen erfasst und keine geplant.",
     "scheduledRun": "Geplante Ausführung",
     "railTitle": "Zeitplan",
-    "achievesRpo": "Erreicht RPO",
     "retention": "Aufbewahrung",
     "nextRun": "Nächste Ausführung",
     "notScheduled": "Nicht geplant",
@@ -46,18 +45,10 @@
     "customSchedule": "Benutzerdefinierter Zeitplan",
     "noRunsProjected": "Keine Ausführungen projiziert."
   },
-  "rpo": {
-    "hours_one": "{{count}} Stunde",
-    "hours_other": "{{count}} Stunden",
-    "weekly": "7 Tage",
-    "custom": "Benutzerdefiniert",
-    "daily": "24 Stunden"
-  },
   "retention": {
     "days_one": "{{count}} Tag",
     "days_other": "{{count}} Tage",
-    "withGfs": "{{base}} · GFS {{tail}}",
-    "suspended": "{{label}} (ausgesetzt)"
+    "withGfs": "{{base}} · GFS {{tail}}"
   },
   "type": {
     "replication": "Replikation",
@@ -73,7 +64,8 @@
     "off": "Aus"
   },
   "status": {
-    "disabled": "Deaktiviert"
+    "disabled": "Deaktiviert",
+    "neverRun": "Noch nie ausgeführt"
   },
   "objects": {
     "disks": "Datenträger",
@@ -136,6 +128,7 @@
   },
   "lastRun": {
     "title": "Letzte Ausführung",
+    "finishedAt": "{{rel}} · {{abs}}",
     "avgPrefix": "Ø",
     "kindReplication": "VM-Replikation",
     "kindBackup": "Backup"
@@ -151,7 +144,7 @@
   },
   "page": {
     "title": "Backup",
-    "description": "Ihre Backup-Zeitpläne und jeder Wiederherstellungspunkt, den sie erzeugt haben.",
+    "description": "Alle Backup-Jobs und die zugehörigen Wiederherstellungspunkte.",
     "addJob": "Backup-Job hinzufügen",
     "addJobNeedsBoth": "Verbinden Sie eine Umgebung und fügen Sie ein Repository hinzu, bevor Sie einen Backup-Job erstellen.",
     "addJobNeedsEnv": "Verbinden Sie eine Umgebung, bevor Sie einen Backup-Job erstellen.",
@@ -212,7 +205,8 @@
     "scheduleHint": "Wann der Job von selbst startet. Deaktivierte Jobs behalten ihren Zeitplan, überspringen ihn aber.",
     "repositoryHint": "Wo die Backups dieses Jobs liegen. Ein Schild kennzeichnet ein unveränderliches Repository.",
     "successRate": "Erfolgsquote",
-    "successRateHint": "Prozentsatz erfolgreicher Ausführungen, basierend auf bis zu 8 der letzten abgeschlossenen Ausführungen."
+    "successRateHint": "Prozentsatz erfolgreicher Ausführungen, basierend auf bis zu 8 der letzten abgeschlossenen Ausführungen.",
+    "objectsHint": "Anzahl der VMs, Datenträger, Dateisätze oder physischen Server, die dieser Job schützt."
   },
   "stats": {
     "totalJobs": "Jobs gesamt",
@@ -223,7 +217,7 @@
     "avgSuccess": "Ø Erfolgsquote",
     "acrossActive": "Über alle aktiven Jobs",
     "nextRun": "Nächste Ausführung",
-    "scheduled": "Geplant",
+    "scheduled": "Geplant · {{abs}}",
     "nothingQueued": "Nichts in Warteschlange"
   },
   "toolbar": {
@@ -234,10 +228,7 @@
   "bulk": {
     "selected": "{{count}} ausgewählt",
     "run": "Ausführen",
-    "clearSelection": "Auswahl aufheben",
-    "disableAllAlreadyDisabled": "Alle ausgewählten Jobs sind bereits deaktiviert",
-    "disableAppliesTo_one": "Deaktiviert {{count}} aktiven Job; die anderen {{total}} ausgewählten sind bereits deaktiviert",
-    "disableAppliesTo_other": "Deaktiviert {{count}} aktive Jobs von {{total}} ausgewählten; der Rest ist bereits deaktiviert"
+    "clearSelection": "Auswahl aufheben"
   },
   "empty": {
     "noJobs": {
@@ -259,10 +250,10 @@
   },
   "toast": {
     "started": "{{name}} gestartet",
-    "startedDesc": "Verfolgen Sie den Live-Stream in „Aktivität“.",
-    "startedFullDesc": "Vollsicherung gestartet — verfolgen Sie den Live-Stream in „Aktivität“.",
+    "startedDesc": "Verfolgen Sie den Live-Stream auf der Job-Seite.",
+    "startedFullDesc": "Vollsicherung gestartet — verfolgen Sie den Live-Stream auf der Job-Seite.",
     "startedBelow": "Live-Stream unten.",
-    "watch": "Ansehen",
+    "watch": "Job öffnen",
     "jobDisabled": "{{name}} ist deaktiviert",
     "jobAlreadyRunning": "{{name}} läuft bereits",
     "enableToRun": "Aktivieren Sie den Job, um ihn auszuführen.",
@@ -290,8 +281,9 @@
     "bulkDeleted_other": "{{count}} Jobs gelöscht",
     "bulkDeletedPartial": "{{deleted}} von {{total}} Jobs gelöscht",
     "bulkDeletedPartialDesc": "Die Appliance hat die übrigen nicht bestätigt – sie bleiben unverändert.",
-    "bulkDisabledSkipped_one": "{{count}} war bereits deaktiviert.",
-    "bulkDisabledSkipped_other": "{{count}} waren bereits deaktiviert."
+    "runRefused": "{{name}} konnte nicht gestartet werden",
+    "runRefusedDesc": "Die Appliance hat die Ausführung nicht gestartet und keinen Grund genannt. Versuchen Sie es gleich noch einmal.",
+    "runRefusedDisabledDesc": "Der Job ist deaktiviert — aktivieren Sie ihn, um ihn auszuführen."
   },
   "delete": {
     "titleOne": "Diesen Job löschen?",
@@ -315,10 +307,7 @@
     "objects": "Objekte",
     "inScope": "{{noun}} im Umfang",
     "repository": "Repository",
-    "immutable": "Unveränderlich",
-    "standard": "Standard",
     "nextRun": "Nächste Ausführung",
-    "scheduled": "Geplant",
     "notScheduled": "Nicht geplant",
     "retention": "Aufbewahrung",
     "daysValue": "{{count}} Tage",
@@ -392,7 +381,6 @@
     "estSeedWindow": "Gesch. Seed-Fenster",
     "estBackupWindow": "Gesch. Backup-Fenster",
     "schedule": "Zeitplan",
-    "achievesRpo": "Erreicht RPO",
     "firstRun": "Erste Ausführung",
     "retention": "Aufbewahrung",
     "target": "Ziel",
@@ -401,9 +389,6 @@
     "repository": "Repository",
     "readyToFailOver": "Bereit zum Failover",
     "readyToFailOverBody": "Bei jeder Ausführung wird ein einsatzbereites Replikat auf dem Zielhost neu synchronisiert. Im Katastrophenfall schalten Sie es ein, um den Betrieb aufrechtzuerhalten, während die Quelle wiederhergestellt wird.",
-    "immutable": "Unveränderlich",
-    "immutableBody": "Wiederherstellungspunkte sind für {{days}} Tage gesperrt – sie können bis zum Ablauf des Zeitfensters nicht geändert oder gelöscht werden.",
-    "immutableOff": "Die Unveränderlichkeit ist für diesen Job deaktiviert. Aktivieren Sie sie und wählen Sie ein gehärtetes Repository, um Wiederherstellungspunkte vor Änderungen zu schützen.",
     "saveChanges": "Änderungen speichern",
     "createReplication": "Replikations-Job erstellen",
     "createJob": "Job erstellen",
@@ -458,10 +443,8 @@
     "healthWeekly": "Wöchentlich · {{time}}",
     "healthMonthly": "Monatlich · {{time}}",
     "healthOff": "Aus – manuelle Prüfungen verfügbar",
-    "summary": "Eine schreibgeschützte Zusammenfassung der Konfiguration dieses Jobs.",
     "scheduleTitle": "Zeitplan",
     "runs": "Ausführungen",
-    "rpoTarget": "RPO-Ziel",
     "backupWindow": "Backup-Fenster",
     "anytime": "Jederzeit",
     "throttle": "Drosselung",
@@ -473,7 +456,6 @@
     "gfsMonthly": "Monatlich (GFS)",
     "gfsYearly": "Jährlich (GFS)",
     "noGfs": "Keine Langzeit-Aufbewahrung (GFS) konfiguriert.",
-    "gfsSuspended": "Ausgesetzt",
     "repositoryTitle": "Repository",
     "freeOf": "{{free}} frei von {{total}}",
     "pathsTitle": "Pfade",
@@ -483,8 +465,6 @@
     "appAware": "Anwendungsbewusst",
     "appAwareHint": "VSS / Pre-Freeze",
     "encryption": "Verschlüsselung",
-    "immutable": "Unveränderlich",
-    "immutableHint": "Objektgesperrt",
     "deduplication": "Deduplizierung",
     "deduplicationHint": "Blockbasiert",
     "compression": "Komprimierung",
@@ -564,7 +544,6 @@
     "newRepoData": "neue Repository-Daten",
     "measuredNewRepoData": "gemessene neue Repository-Daten",
     "measuredNewData": "gemessene neue Daten",
-    "immutableWord": "unveränderlich",
     "footer": "Neue Repository-Daten sind der marginale Schreibvorgang aus vollständigen Punkten. Mit früheren Backups geteilte Chunks werden weiterhin zur Repository-Kapazität gezählt, nicht zu einer einzelnen VM.",
     "removedBadge": "entfernt",
     "usable": "{{count}} nutzbar",
@@ -573,14 +552,14 @@
     "incompleteCount": "{{count}} unvollständig",
     "groupTitleAll": "Logische Daten über die vollständigen Wiederherstellungspunkte dieses Objekts und die neuen Repository-Daten, die sie eingeführt haben",
     "groupTitlePartial": "Logische Daten über die vollständigen Wiederherstellungspunkte dieses Objekts; die Messungen der Repository-Schreibvorgänge sind unvollständig",
-    "latest": "neuester {{rel}}",
+    "latest": "neuester {{rel}} ({{abs}})",
     "unavailable": "{{count}} nicht verfügbar",
     "restore": "Wiederherstellen"
   },
   "backupsTab": {
     "removedTip": "Die Quelle dieses Backups ist nicht im Bestand (entfernt oder von einer anderen Appliance importiert). Fügen Sie dieselbe Quelle erneut hinzu – bei Hyper-V-VMs sind die IDs stabil – und diese Punkte werden normal wiederhergestellt.",
     "emptyTitle": "Noch keine Backups gespeichert",
-    "emptyDescription": "Während Ihre Jobs ausgeführt werden, werden die erstellten Wiederherstellungspunkte hier aufgeführt – gruppiert nach der VM, dem Datenträger oder dem Server, den sie schützen. Punkte bleiben auch dann aufgeführt, wenn ihr Job später gelöscht wird. Sie können auch Backups importieren, die von einer anderen Appliance erstellt wurden.",
+    "emptyDescription": "Während Ihre Jobs ausgeführt werden, werden die erstellten Wiederherstellungspunkte hier aufgeführt – gruppiert nach Job und dann nach der VM, die sie schützen. Punkte bleiben auch dann aufgeführt, wenn ihr Job später gelöscht wird.",
     "import": "Backups importieren",
     "summaryAcross_one": "Wiederherstellungspunkt über <1>{{objectCount}}</1> {{objects}}",
     "summaryAcross_other": "Wiederherstellungspunkte über <1>{{objectCount}}</1> {{objects}}",
@@ -602,7 +581,49 @@
     "sourceRemoved": "Quelle entfernt",
     "logicalShort": "{{size}} logisch",
     "deleteAllTip": "Alle Wiederherstellungspunkte für {{name}} löschen",
-    "deleteAll": "Alle löschen"
+    "deleteAll": "Alle löschen",
+    "summaryPoints_one": "Wiederherstellungspunkt über <1>{{jobCount}}</1> {{jobs}}, <2>{{vmCount}}</2> {{vms}}",
+    "summaryPoints_other": "Wiederherstellungspunkte über <1>{{jobCount}}</1> {{jobs}}, <2>{{vmCount}}</2> {{vms}}",
+    "jobNoun_one": "Job",
+    "jobNoun_other": "Jobs",
+    "vmNoun_one": "VM",
+    "vmNoun_other": "VMs",
+    "vmCount_one": "{{count}} VM",
+    "vmCount_other": "{{count}} VMs",
+    "logicalTitle": "Logische Daten, die über diese Wiederherstellungspunkte hinweg erfasst wurden, vor Deduplizierung und Komprimierung",
+    "sortLabel": "Wiederherstellungspunkte nach Zeit sortieren",
+    "newestFirst": "Neueste zuerst",
+    "oldestFirst": "Älteste zuerst",
+    "restoreVmAria": "{{vm}} aus {{job}} wiederherstellen",
+    "deleteVmAria": "Backup von {{vm}} aus {{job}} löschen",
+    "deleteVmTip": "Backup dieser VM aus diesem Job löschen",
+    "kpi": {
+      "points": "Wiederherstellungspunkte",
+      "acrossObjects": "Über {{jobs}} Jobs · {{vms}} VMs",
+      "sizeUnrecorded": "Der Katalog erfasst noch keine Größen"
+    }
+  },
+  "point": {
+    "offlineTip": "Das Repository dieses Wiederherstellungspunkts ist offline — er kann erst gelesen werden, wenn das Repository wieder online ist.",
+    "unavailable": "Nicht verfügbar",
+    "encrypted": "Verschlüsselt",
+    "encryptedTip": "Die Daten dieser Sicherung sind im Ruhezustand verschlüsselt",
+    "compression": "Komprimierungsstufe {{level}}",
+    "restoreAria": "Diesen Punkt wiederherstellen"
+  },
+  "deleteBackup": {
+    "title": "Backup löschen?",
+    "description": "Damit werden alle Wiederherstellungspunkte entfernt, die <1>{{vm}}</1> aus <2>{{job}}</2> hat – das vollständige Backup und jedes darauf aufbauende Inkrement.",
+    "pointsCount_one": "{{count}} Wiederherstellungspunkt",
+    "pointsCount_other": "{{count}} Wiederherstellungspunkte",
+    "warning": "Dies kann nicht rückgängig gemacht werden. <1>{{vm}}</1> lässt sich aus diesen Punkten nicht mehr wiederherstellen, sobald sie gelöscht sind.",
+    "confirm": "Backup löschen",
+    "deleting": "Wird gelöscht…",
+    "successTitle": "Backup gelöscht",
+    "successDesc_one": "{{count}} Wiederherstellungspunkt für {{name}} entfernt.",
+    "successDesc_other": "{{count}} Wiederherstellungspunkte für {{name}} entfernt.",
+    "errorTitle": "Backup konnte nicht gelöscht werden",
+    "errorUnreachable": "Appliance nicht erreichbar"
   },
   "scope": {
     "searchVmsPlaceholder": "VMs nach Name suchen…",
@@ -705,7 +726,7 @@
     "vm": {
       "title": "Neuer Backup-Job",
       "editTitle": "Backup-Job bearbeiten",
-      "description": "Wählen Sie, was gesichert werden soll, wo es gespeichert wird und wie oft. Standardwerte sind vorausgefüllt – passen Sie nach Bedarf an.",
+      "description": "Wählen Sie, was gesichert werden soll und wo die Backups gespeichert werden, und richten Sie den Zeitplan ein. Passen Sie die vorkonfigurierten Einstellungen bei Bedarf an.",
       "scopeError": "Wählen Sie mindestens eine VM zum Sichern aus."
     },
     "disk": {
@@ -778,7 +799,7 @@
     "descPlaceholderReplication": "z. B. Hält die SQL-Ebene am DR-Standort warm",
     "descPlaceholderBackup": "z. B. Nächtlicher Schutz für die produktive SQL-Ebene",
     "whatToReplicate": "Was replizieren",
-    "whatToBackUp": "Was sichern",
+    "whatToBackUp": "Objekte zum Sichern auswählen",
     "replicateTo": "Replizieren nach",
     "targetEnvironment": "Zielumgebung",
     "chooseTargetEnv": "Wählen Sie eine Zielumgebung",
@@ -788,33 +809,32 @@
     "hostSpec": "{{cores}} Kerne · {{ram}} RAM",
     "replicaPrefix": "Präfix des Replikatnamens",
     "replicasNamed": "Replikate werden <1>{{example}}</1> benannt.",
-    "whereToStore": "Wo speichern",
-    "immutableSuffix": "· unveränderlich",
+    "whereToStore": "Backup-Repository auswählen",
     "freeSuffix": "{{free}} frei",
-    "howOften": "Wie oft",
+    "howOften": "Zeitplan festlegen",
     "preset": {
       "hourly": "Stündlich",
-      "hourlyRpo": "1 h RPO",
       "every4h": "Alle 4 h",
-      "every4hRpo": "4 h RPO",
       "daily": "Täglich",
-      "dailyRpo": "24 h RPO",
       "weekly": "Wöchentlich",
-      "weeklyRpo": "7 T RPO"
+      "hourlySub": "Stündlich",
+      "every4hSub": "Alle 4 Stunden",
+      "dailySub": "Einmal täglich",
+      "weeklySub": "Einmal wöchentlich"
     },
     "atTime": "Um Uhrzeit",
     "onDay": "Am Tag",
     "recoveryPointsToKeep": "Aufzubewahrende Wiederherstellungspunkte",
-    "howLongToKeep": "Wie lange aufbewahren",
+    "howLongToKeep": "Aufbewahrung festlegen",
     "retentionAriaReplication": "Auf dem Replikat aufzubewahrende Wiederherstellungspunkte",
     "retentionAriaBackup": "Aufzubewahrende Tage",
     "daysShort": "{{count}} T",
     "keepReplicaNote_one": "{{count}} Wiederherstellungspunkt auf dem Replikat aufbewahren – Snapshots, zu denen Sie vor einem Failover zurückkehren können.",
     "keepReplicaNote_other": "{{count}} Wiederherstellungspunkte auf dem Replikat aufbewahren – Snapshots, zu denen Sie vor einem Failover zurückkehren können.",
-    "keepBackupNote_one": "Sicherungen {{count}} Tag lang aufbewahren, bevor sie ablaufen.",
-    "keepBackupNote_other": "Sicherungen {{count}} Tage lang aufbewahren, bevor sie ablaufen.",
+    "keepBackupNote_one": "Backups {{count}} Tag lang aufbewahren, bevor sie automatisch gelöscht werden.",
+    "keepBackupNote_other": "Backups {{count}} Tage lang aufbewahren, bevor sie automatisch gelöscht werden.",
     "advanced": "Erweiterte Einstellungen",
-    "advancedHint": "— optional, intelligente Standardwerte angewendet",
+    "advancedHint": "(Standardwerte werden angewendet)",
     "opt": {
       "appAware": "Anwendungsbewusste Verarbeitung",
       "appAwareHint": "VSS- & Pre-Freeze-Skripte für konsistentes SQL/Exchange",
@@ -823,31 +843,23 @@
       "encryption": "Verschlüsselung (AES-256)",
       "encryptionHintReplication": "Replikatdaten im Ruhezustand verschlüsseln",
       "encryptionHintBackup": "Wiederherstellungspunkte im Ruhezustand verschlüsseln",
-      "immutability": "Unveränderlichkeit",
-      "immutabilityHint": "Sperrt Wiederherstellungspunkte, sodass sie nicht geändert oder gelöscht werden können",
       "dedup": "Deduplizierung",
       "dedupHint": "Blockbasierte Deduplizierung zum Sparen von Speicherplatz",
       "compressionTerm": "Komprimierung",
-      "compressionHelp": "0 ist am schnellsten und komprimiert nicht; 9 verkleinert Wiederherstellungspunkte am stärksten, verbraucht aber mehr CPU. Standard ist 3 — ein Ausgleich zwischen Größe und Geschwindigkeit.",
-      "compressionHint": "Links ist schneller, rechts komprimiert stärker. Standard: 3."
+      "compressionHelp": "Ermöglicht es Ihnen, die Komprimierungsstufe anzupassen, um Backup-Größe, Verarbeitungsgeschwindigkeit und CPU-Auslastung auszubalancieren.\n0 = keine Komprimierung, schnellste Verarbeitung\n9 = mehr Datenersparnis, höhere CPU-Auslastung",
+      "compressionHint": "Niedrigere Komprimierungsstufen sind schneller, höhere sparen mehr Speicherplatz und Bandbreite. Standard ist 3."
     },
     "syncWindow": "Synchronisierungsfenster",
     "throttleLabel": "Drosselung (MB/s)",
     "gfsTitle": "GFS-Langzeit-Aufbewahrung",
     "gfsTerm": "GFS-Aufbewahrung",
-    "gfsHelp": "Grandfather-Father-Son: bewahren Sie zusätzliche wöchentliche, monatliche und jährliche Kopien für die Langzeitarchivierung auf, zusätzlich zu Ihren täglichen Wiederherstellungspunkten.",
+    "gfsHelp": "Grandfather-Father-Son (GFS): bewahren Sie zusätzliche wöchentliche, monatliche und jährliche Kopien für die Langzeitarchivierung auf, zusätzlich zu Ihren täglichen Wiederherstellungspunkten.",
     "gfsDescription": "Optionale Archivkopien, die über die reguläre Aufbewahrung oben hinaus aufbewahrt werden. Belassen Sie den Wert bei 0, um zu überspringen.",
     "gfsWeekly": "Wöchentlich",
     "gfsMonthly": "Monatlich",
     "gfsYearly": "Jährlich",
-    "gfsEnabled": "Schutz aktiv",
-    "gfsEnabledHint": "Aussetzen, um die GFS-Archivierung zu pausieren, ohne die konfigurierten Anzahlen zu verlieren",
     "loadingJob": "Job wird geladen",
     "whatIs": "Was ist {{term}}?",
-    "jobNameInvalid": "Der Auftragsname muss mit einem Buchstaben oder einer Zahl beginnen und darf nur lateinische Buchstaben, Zahlen, Leerzeichen, Punkte, Unterstriche oder Bindestriche enthalten.",
-    "timeField": {
-      "hour": "Stunde",
-      "minute": "Minute"
-    }
+    "jobNameInvalid": "Der Auftragsname muss mit einem Buchstaben oder einer Zahl beginnen und darf nur lateinische Buchstaben, Zahlen, Leerzeichen, Punkte, Unterstriche oder Bindestriche enthalten."
   }
 }

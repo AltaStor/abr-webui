@@ -12,10 +12,26 @@
     "queued": "Queued"
   },
   "sourceType": {
-    "vm": { "noun": "VM", "nounPlural": "VMs", "jobLabel": "VM backup" },
-    "disk": { "noun": "disk", "nounPlural": "disks", "jobLabel": "Disk backup" },
-    "files": { "noun": "server", "nounPlural": "servers", "jobLabel": "File backup" },
-    "physicalHost": { "noun": "server", "nounPlural": "servers", "jobLabel": "Physical server backup" }
+    "vm": {
+      "noun": "VM",
+      "nounPlural": "VMs",
+      "jobLabel": "VM backup"
+    },
+    "disk": {
+      "noun": "disk",
+      "nounPlural": "disks",
+      "jobLabel": "Disk backup"
+    },
+    "files": {
+      "noun": "server",
+      "nounPlural": "servers",
+      "jobLabel": "File backup"
+    },
+    "physicalHost": {
+      "noun": "server",
+      "nounPlural": "servers",
+      "jobLabel": "Physical server backup"
+    }
   },
   "objectCount": {
     "vm_one": "{{count}} VM",
@@ -28,9 +44,24 @@
     "physicalHost_other": "{{count}} servers"
   },
   "platform": {
-    "vmware": { "label": "VMware vSphere", "short": "vSphere", "hostTerm": "host", "hostTermPlural": "hosts" },
-    "proxmox": { "label": "Proxmox VE", "short": "Proxmox", "hostTerm": "node", "hostTermPlural": "nodes" },
-    "hyperv": { "label": "Microsoft Hyper-V", "short": "Hyper-V", "hostTerm": "host", "hostTermPlural": "hosts" }
+    "vmware": {
+      "label": "VMware vSphere",
+      "short": "vSphere",
+      "hostTerm": "host",
+      "hostTermPlural": "hosts"
+    },
+    "proxmox": {
+      "label": "Proxmox VE",
+      "short": "Proxmox",
+      "hostTerm": "node",
+      "hostTermPlural": "nodes"
+    },
+    "hyperv": {
+      "label": "Microsoft Hyper-V",
+      "short": "Hyper-V",
+      "hostTerm": "host",
+      "hostTermPlural": "hosts"
+    }
   },
   "raid": {
     "hint": {
@@ -62,8 +93,12 @@
       "description": "Self-contained demo data — the appliance is untouched."
     },
     "error": {
-      "title": "Couldn't reach the appliance",
-      "description": "Is the backend (server/) running on :4980?"
+      "title": "Couldn’t reach the appliance",
+      "description": "Check the appliance is powered on and reachable on your network, then try again."
+    },
+    "unreachable": {
+      "title": "Can’t reach your appliance — showing demo data",
+      "description": "Everything below is a self-contained example, not your systems. Check the appliance is powered on and reachable, then reload. Press ⌘K → “Connect to live appliance” to retry."
     }
   }
 }

@@ -15,13 +15,24 @@ import { cn } from "@/lib/utils";
 import { formatDateTime, formatDuration, formatStorage } from "@/lib/format";
 import { SESSION_META } from "@/lib/status";
 import type { Session, VmRunResult } from "@/types";
+import i18n from "@/i18n";
 
-const VM_TONE: Record<VmRunResult["status"], string> = {
-  success: "success",
-  warning: "warning",
-  failed: "danger",
-  running: "info",
-  pending: "muted",
+/**
+ * Per-object run result → tone + the word we show for it.
+ *
+ * The status values are the appliance's wire format and stay untouched; the
+ * Result column used to print them verbatim ("succeeded", "warning") behind a
+ * `capitalize`, which is the backend's vocabulary in every language. `label`
+ * is a getter so it resolves through i18next at access time — the same shape
+ * as SESSION_META and as ActiveRunPanel's map, which this deliberately mirrors
+ * so the two per-object views can't drift apart.
+ */
+const VM_RESULT_META: Record<VmRunResult["status"], { tone: string; label: string }> = {
+  success: { tone: "success", get label() { return i18n.t("jobs:vmStatus.done"); } },
+  warning: { tone: "warning", get label() { return i18n.t("jobs:vmStatus.warning"); } },
+  failed: { tone: "danger", get label() { return i18n.t("jobs:vmStatus.failed"); } },
+  running: { tone: "info", get label() { return i18n.t("jobs:vmStatus.running"); } },
+  pending: { tone: "muted", get label() { return i18n.t("jobs:vmStatus.queued"); } },
 };
 
 /** Newest-first session list with expandable per-VM breakdown rows. */
@@ -46,7 +57,7 @@ export function RunHistoryTable({ sessions }: { sessions: Session[] }) {
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-border/70 text-left text-xs text-muted-foreground">
+            <tr className="border-b border-border text-left text-xs text-muted-foreground">
               <th className="w-8 py-2.5 pl-4" />
               <th className="py-2.5 pr-3 font-medium">{t("history.status")}</th>
               <th className="py-2.5 pr-3 font-medium">{t("history.started")}</th>
@@ -121,7 +132,7 @@ export function RunHistoryTable({ sessions }: { sessions: Session[] }) {
                               {s.message && (
                                 <p className="mb-2 text-xs text-muted-foreground">{s.message}</p>
                               )}
-                              <div className="overflow-hidden rounded-lg border border-border/60">
+                              <div className="overflow-hidden border border-border">
                                 <table className="w-full text-xs">
                                   <thead>
                                     <tr className="border-b border-border/50 text-left text-[11px] text-muted-foreground">
@@ -141,12 +152,12 @@ export function RunHistoryTable({ sessions }: { sessions: Session[] }) {
                                       <tr key={r.vmId} className="border-b border-border/40 last:border-0">
                                         <td className="py-1.5 pl-3">
                                           <span className="flex items-center gap-2">
-                                            <StatusDot tone={VM_TONE[r.status]} />
+                                            <StatusDot tone={VM_RESULT_META[r.status].tone} />
                                             <span className="truncate" title={r.vmName}>{r.vmName}</span>
                                           </span>
                                         </td>
-                                        <td className="py-1.5 pr-3 capitalize text-muted-foreground">
-                                          {r.message ?? r.status}
+                                        <td className="py-1.5 pr-3 text-muted-foreground">
+                                          {r.message ?? VM_RESULT_META[r.status].label}
                                         </td>
                                         <td className="nums hidden py-1.5 pr-3 text-muted-foreground sm:table-cell">
                                           {formatStorage(r.processedGB)}

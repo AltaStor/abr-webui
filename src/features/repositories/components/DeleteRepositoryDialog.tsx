@@ -96,7 +96,7 @@ export function DeleteRepositoryDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <div className="mb-1 flex h-10 w-10 items-center justify-center rounded-lg bg-danger-subtle text-danger">
+          <div className="mb-1 flex h-10 w-10 items-center justify-center bg-danger-subtle text-danger">
             <Trash2 className="h-5 w-5" />
           </div>
           <DialogTitle>{t("delete.title", { name: repo.name })}</DialogTitle>
@@ -104,7 +104,7 @@ export function DeleteRepositoryDialog({
         </DialogHeader>
 
         {jobsBlock && (
-          <div className="flex items-start gap-2.5 rounded-lg border border-danger/30 bg-danger-subtle px-3 py-2.5">
+          <div className="flex items-start gap-2.5 border border-danger/30 bg-danger-subtle px-3 py-2.5">
             <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-danger" />
             <div className="space-y-1 text-xs text-danger">
               <Trans
@@ -125,7 +125,7 @@ export function DeleteRepositoryDialog({
           </div>
         )}
         {!jobsBlock && referencingJobs.length > 0 && (
-          <div className="flex items-start gap-2.5 rounded-lg border border-warning/30 bg-warning-subtle px-3 py-2.5">
+          <div className="flex items-start gap-2.5 border border-warning/30 bg-warning-subtle px-3 py-2.5">
             <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-warning-text" />
             <div className="space-y-1 text-xs text-warning-text">
               <Trans

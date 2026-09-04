@@ -115,7 +115,7 @@ export function ConfirmReplicaActionDialog({
         <DialogHeader>
           <div
             className={cn(
-              "mb-1 flex h-10 w-10 items-center justify-center rounded-lg",
+              "mb-1 flex h-10 w-10 items-center justify-center",
               copy.destructive ? "bg-danger-subtle text-danger" : "bg-info-subtle text-info-text",
             )}
           >

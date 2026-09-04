@@ -140,7 +140,7 @@ function EditEnvironmentForm({ environment, onClose }: { environment: Environmen
               autoComplete="off"
               spellCheck={false}
               aria-invalid={!endpointValid}
-              className={cn(!endpointValid && "border-danger focus-visible:ring-danger/40")}
+              className={cn(!endpointValid && "border-danger")}
             />
             {!endpointValid && <p className="text-xs text-danger">{t("editEnvironment.addressInvalid")}</p>}
           </div>
@@ -154,7 +154,7 @@ function EditEnvironmentForm({ environment, onClose }: { environment: Environmen
               value={port}
               onChange={(e) => setPort(e.target.value)}
               aria-invalid={!portValid}
-              className={cn(!portValid && "border-danger focus-visible:ring-danger/40")}
+              className={cn(!portValid && "border-danger")}
             />
           </div>
         </div>

@@ -8,10 +8,7 @@ export const Card = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDi
   ({ className, ...props }, ref) => (
     <div
       ref={ref}
-      className={cn(
-        "rounded-xl border border-border/70 bg-card text-card-foreground shadow-card",
-        className,
-      )}
+      className={cn("border border-border bg-card text-card-foreground", className)}
       {...props}
     />
   ),
@@ -25,11 +22,25 @@ export const CardHeader = React.forwardRef<HTMLDivElement, React.HTMLAttributes<
 );
 CardHeader.displayName = "CardHeader";
 
-export const CardTitle = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
-  ({ className, ...props }, ref) => (
-    <div
+export interface CardTitleProps extends React.HTMLAttributes<HTMLHeadingElement> {
+  /**
+   * The heading level to render. A card title *is* a section heading, so it has
+   * to be one in the document too — as a `<div>` it was invisible to the
+   * outline every screen-reader user navigates by, which silently dropped every
+   * section title in the console out of that list. `h3` is the default because
+   * a page owns its `h1` and its major regions own the `h2`s; a card that sits
+   * higher or lower in the hierarchy passes its own level.
+   */
+  as?: "h1" | "h2" | "h3" | "h4" | "h5" | "h6";
+}
+
+/* Tailwind's preflight strips the browser's heading size, weight and margin, so
+ * the element change is invisible: the class list still decides how it looks. */
+export const CardTitle = React.forwardRef<HTMLHeadingElement, CardTitleProps>(
+  ({ className, as: Heading = "h3", ...props }, ref) => (
+    <Heading
       ref={ref}
-      className={cn("font-semibold leading-none tracking-tight", className)}
+      className={cn("font-display font-semibold leading-none tracking-tight", className)}
       {...props}
     />
   ),

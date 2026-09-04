@@ -17,8 +17,17 @@
       "withinRpo": "Innerhalb des RPO · durchschn. Verzögerung {{lag}}",
       "servingDr": "Replikate im DR-Einsatz",
       "noActiveFailovers": "Keine aktiven Umschaltungen",
+      "allReady": "Alle Replikate bereit",
+      "someSyncing": "Einige Replikate synchronisieren noch",
       "lagPastTarget": "Verzögerung über Zielwert — driftet oder überschritten",
       "allWithinTarget": "Alle Replikate innerhalb des Zielwerts"
+    },
+    "jobsSection": {
+      "title": "Replikations-Jobs",
+      "subtitle": "Jeder Job synchronisiert seine Replikate nach Zeitplan.",
+      "replicaCount_one": "{{count}} Replikat",
+      "replicaCount_other": "{{count}} Replikate",
+      "lastRun": "letzte Ausführung {{when}}"
     },
     "tabs": {
       "jobs": "Jobs",
@@ -87,8 +96,8 @@
     "toast": {
       "started": {
         "title": "{{name}} gestartet",
-        "description": "Verfolgen Sie den Synchronisierungs-Stream live in der Aktivität.",
-        "watch": "Ansehen"
+        "description": "Verfolgen Sie den Synchronisierungs-Stream live auf der Job-Seite.",
+        "watch": "Job öffnen"
       },
       "paused": {
         "title": "{{name}} ist pausiert",

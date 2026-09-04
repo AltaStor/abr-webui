@@ -2,9 +2,9 @@
 // Copyright © 2026 Norvitex OÜ
 
 import { useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { Menu, Moon, Play, Search, Server, Settings, Sun, User } from "@/lib/icons";
+import { LogOut, Menu, Moon, Play, Search, Server, Settings, Sun } from "@/lib/icons";
 import { cn, isMacPlatform } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Hint } from "@/components/ui/tooltip";
@@ -28,7 +28,6 @@ import { useUiStore } from "@/store/ui";
 import { useWorldStore } from "@/store/world";
 import { useAuthStore } from "@/store/auth";
 import { switchWorldMode } from "@/lib/worldMode";
-import { toast } from "@/components/ui/sonner";
 
 /** "Alex Rivera" → "AR"; "admin" → "AD". Falls back to "?" for an empty name. */
 function initialsOf(name: string): string {
@@ -51,40 +50,46 @@ export function Topbar() {
   const logout = useAuthStore((s) => s.logout);
   const themeAction = t(theme === "dark" ? "cmdPalette.switchToLight" : "cmdPalette.switchToDark");
 
-  // In live mode this is the signed-in operator; the demo simulation has no
-  // real session, so it keeps the illustrative placeholder identity.
-  const accountName = mode === "live" && authUser ? authUser.fullName || authUser.name : "Alex Rivera";
-  const accountHandle = mode === "live" && authUser ? authUser.name : "admin@corp.local";
+  // The signed-in operator, live or demo (the sim answers its own login form —
+  // see @/mock/auth). Only a session that hasn't happened yet falls back to the
+  // illustrative placeholder, which is what a demo boot opens on.
+  const accountName = authUser ? authUser.fullName || authUser.name : "Alex Rivera";
+  const accountHandle = authUser ? authUser.name : "admin@corp.local";
 
   const onSignOut = async () => {
-    if (mode !== "live") {
-      toast.info(t("topbar.signOutToast"));
-      return;
-    }
     await logout();
-    navigate("/login", { replace: true });
+    // AppShell's auth gate is live-only — a demo boot is deliberately never
+    // trapped behind a form it can't satisfy — so in sim nothing would redirect
+    // us, and `?demo-login` is what holds LoginPage on screen once we get there
+    // instead of bouncing straight back to the dashboard.
+    navigate(mode === "live" ? "/login" : "/login?demo-login", { replace: true });
   };
 
   return (
-    <header className="sticky top-0 z-30 flex h-16 shrink-0 items-center gap-2 border-b border-border/70 bg-background/80 px-3 backdrop-blur-md sm:px-5">
+    // 68px, matched by the sidebar's logo row, so the two bottom hairlines meet
+    // as one rule across the full width of the top chrome.
+    <header className="sticky top-0 z-30 flex h-[68px] shrink-0 items-center gap-2 border-b border-border bg-background px-3 sm:px-5">
       {/* Mobile menu */}
       <Button variant="ghost" size="icon" className="lg:hidden" onClick={() => setMobileOpen(true)} aria-label={t("topbar.openMenu")}>
         <Menu className="h-5 w-5" />
       </Button>
 
-      {/* Command / search trigger */}
+      {/* Command / search trigger. Icon-only until the row can spare the ~120px
+          the placeholder needs — below that it is squeezed to a third of that
+          and the label wraps out of the control. */}
       <button
         onClick={() => setCommandOpen(true)}
+        aria-label={t("topbar.search")}
         className={cn(
-          "group flex h-9 max-w-md flex-1 items-center gap-2 rounded-lg border border-border/70 bg-card/50 px-3 text-sm text-muted-foreground transition-colors hover:border-border hover:bg-card",
-          "sm:flex-initial sm:w-72",
+          "group flex h-9 w-9 shrink-0 items-center justify-center border border-border bg-card text-sm text-muted-foreground transition-colors duration-250 hover:bg-secondary hover:text-foreground",
+          "sm:w-72 sm:justify-start sm:gap-2 sm:px-3",
         )}
       >
-        <Search className="h-4 w-4" />
-        <span className="flex-1 text-left">
-          {t("topbar.search")}
-          <span className="hidden sm:inline"> ({isMacPlatform() ? "⌘K" : "Ctrl K"})</span>
-        </span>
+        <Search className="h-4 w-4 shrink-0" />
+        <span className="hidden flex-1 truncate text-left sm:block">{t("topbar.search")}</span>
+        <kbd className="hidden items-center gap-0.5 border border-border bg-muted px-1.5 py-0.5 text-[11px] font-medium text-muted-foreground sm:flex">
+          {isMacPlatform() ? "⌘K" : "Ctrl K"}
+        </kbd>
       </button>
 
       {/* Which world the console is showing — only surfaced when it isn't the
@@ -124,19 +129,21 @@ export function Topbar() {
         <Button
           variant="ghost"
           size="icon"
-          onClick={() => navigate("/settings")}
+          asChild
           aria-label={t("topbar.settings")}
           aria-current={pathname.startsWith("/settings") ? "page" : undefined}
           className={cn(pathname.startsWith("/settings") && "bg-accent text-accent-foreground")}
         >
-          <Settings className="h-[18px] w-[18px]" />
+          <Link to="/settings">
+            <Settings className="h-[18px] w-[18px]" />
+          </Link>
         </Button>
       </Hint>
 
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <button
-            className="flex h-9 w-9 items-center justify-center bg-gradient-to-br from-primary/80 to-immutable/70 text-sm font-semibold text-primary-foreground ring-offset-background transition-shadow hover:shadow-glow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            className="flex h-9 w-9 items-center justify-center border border-border bg-secondary font-display text-sm font-semibold text-foreground transition-colors duration-250 hover:bg-accent"
             aria-label={t("topbar.accountMenu")}
           >
             {initialsOf(accountName)}
@@ -170,7 +177,7 @@ export function Topbar() {
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={() => void onSignOut()}>
-            <User className="h-4 w-4" />
+            <LogOut className="h-4 w-4" />
             {t("topbar.signOut")}
           </DropdownMenuItem>
         </DropdownMenuContent>
@@ -179,7 +186,7 @@ export function Topbar() {
       {/* Mobile sidebar drawer */}
       <Dialog open={mobileOpen} onOpenChange={setMobileOpen}>
         <DialogContent
-          className="left-0 top-0 h-full max-w-[280px] translate-x-0 translate-y-0 rounded-none rounded-r-xl border-l-0 p-0 data-[state=closed]:slide-out-to-left data-[state=open]:slide-in-from-left sm:rounded-none sm:rounded-r-xl"
+          className="left-0 top-0 h-full max-w-[280px] translate-x-0 translate-y-0 border-l-0 p-0 data-[state=closed]:slide-out-to-left data-[state=open]:slide-in-from-left"
           hideClose
         >
           <DialogTitle className="sr-only">{t("topbar.navigation")}</DialogTitle>

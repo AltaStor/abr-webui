@@ -1,25 +1,16 @@
 // SPDX-License-Identifier: Apache-2.0
 // Copyright © 2026 Norvitex OÜ
 
+import { useTranslation } from "react-i18next";
 import { AlertTriangle, ChevronRight, History } from "@/lib/icons";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { formatRelative, formatStorage } from "@/lib/format";
-import {
-  compressionRatioLabel,
-  type RestorePointJobGroup,
-  type RestorePointJobVmGroup,
-} from "@/lib/restore-points";
-import type { BackupJob } from "@/types";
+import { formatDateTime, formatRelative, formatStorage } from "@/lib/format";
+import type { RestorePointJobGroup, RestorePointJobVmGroup } from "@/lib/restore-points";
+import type { BackupJob, RestorePoint } from "@/types";
 import { accentColor, jobTypeMeta } from "../lib";
 import { BackupJobVmRow } from "./BackupJobVmRow";
-
-/** Why a source-less backup can't be restored from here — shown, not hidden.
- *  The restore wizard resolves its target VM from inventory, so a point whose
- *  VM is gone has nothing to restore onto until that VM is re-added. */
-const REMOVED_RESTORE_TIP =
-  "The source VM of this backup isn't in inventory (removed, or discovered by another appliance). Re-add the same VM and these points restore normally.";
 
 /**
  * One job in the Backups tree: header (job identity, orphan badge, aggregate
@@ -38,6 +29,7 @@ export function BackupJobRow({
   sortDir,
   offlineRepoIds,
   onRestoreVm,
+  onRestorePoint,
   onDeleteVm,
 }: {
   group: RestorePointJobGroup;
@@ -49,12 +41,17 @@ export function BackupJobRow({
   sortDir: "asc" | "desc";
   offlineRepoIds: Set<string>;
   onRestoreVm: (vm: RestorePointJobVmGroup) => void;
+  onRestorePoint: (vm: RestorePointJobVmGroup, point: RestorePoint) => void;
   onDeleteVm: (vm: RestorePointJobVmGroup) => void;
 }) {
+  const { t } = useTranslation("jobs");
+  /** Why a source-less backup can't be restored from here — shown, not hidden.
+   *  The restore wizard resolves its target VM from inventory, so a point whose
+   *  VM is gone has nothing to restore onto until that VM is re-added. */
+  const removedRestoreTip = t("backupsTab.removedTip");
   const typeMeta = job ? jobTypeMeta(job.type) : null;
   const TypeIcon = typeMeta?.icon ?? History;
   const pointCount = group.points.length;
-  const vmNoun = group.vms.length === 1 ? "VM" : "VMs";
 
   return (
     <Card className="overflow-hidden">
@@ -72,7 +69,7 @@ export function BackupJobRow({
             )}
           />
           <span
-            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-muted/60"
+            className="flex h-8 w-8 shrink-0 items-center justify-center bg-muted/60"
             style={{ color: job ? accentColor(job.accent) : undefined }}
           >
             <TypeIcon className="h-4 w-4" />
@@ -84,49 +81,39 @@ export function BackupJobRow({
                 <Badge
                   variant="outline"
                   className="shrink-0 gap-1 border-warning/40 font-normal text-warning-text"
-                  title="This job has been deleted. Its restore points are kept and stay restorable."
+                  title={t("backupsTab.noActiveJobTip")}
                 >
                   <AlertTriangle className="h-3 w-3" />
-                  No active job
+                  {t("backupsTab.noActiveJob")}
                 </Badge>
               )}
             </CardTitle>
             <span className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-muted-foreground">
-              <span className="nums">
-                {pointCount} point{pointCount === 1 ? "" : "s"}
-              </span>
+              <span className="nums">{t("rp.pointsShort", { count: pointCount })}</span>
               <span aria-hidden>·</span>
-              <span className="nums">
-                {group.vms.length} {vmNoun}
-              </span>
-              {group.storedGB > 0 && (
+              <span className="nums">{t("backupsTab.vmCount", { count: group.vms.length })}</span>
+              {group.logicalGB > 0 && (
                 <>
                   <span aria-hidden>·</span>
-                  <span className="nums">{formatStorage(group.storedGB)} stored</span>
-                </>
-              )}
-              {group.logicalGB != null && (
-                <>
-                  <span aria-hidden>·</span>
-                  <span
-                    className="nums"
-                    title="The real, uncompressed data these restore points hold"
-                  >
-                    from {formatStorage(group.logicalGB)}
-                    {compressionRatioLabel(group.compressionRatio) &&
-                      ` (${compressionRatioLabel(group.compressionRatio)})`}
+                  <span className="nums">
+                    {t("backupsTab.logicalShort", { size: formatStorage(group.logicalGB) })}
                   </span>
                 </>
               )}
               <span aria-hidden>·</span>
-              <span>latest {formatRelative(group.latest)}</span>
+              <span>
+                {t("rp.latest", {
+                  rel: formatRelative(group.latest),
+                  abs: formatDateTime(group.latest),
+                })}
+              </span>
             </span>
           </span>
         </button>
       </CardHeader>
       {isOpen && (
         <CardContent className="pt-0">
-          <ul className="divide-y divide-border/60 border-t border-border/60">
+          <ul className="divide-y divide-border/60 border-t border-border">
             {group.vms.map((vm) => (
               <BackupJobVmRow
                 key={vm.vmId}
@@ -136,8 +123,9 @@ export function BackupJobRow({
                 onToggle={() => onToggleVm(vm.vmId)}
                 sortDir={sortDir}
                 offlineRepoIds={offlineRepoIds}
-                restoreBlockedReason={vm.removed ? REMOVED_RESTORE_TIP : undefined}
+                restoreBlockedReason={vm.removed ? removedRestoreTip : undefined}
                 onRestore={() => onRestoreVm(vm)}
+                onRestorePoint={(point) => onRestorePoint(vm, point)}
                 onDelete={() => onDeleteVm(vm)}
               />
             ))}

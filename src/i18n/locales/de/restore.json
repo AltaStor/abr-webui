@@ -6,21 +6,17 @@
   "actions": {
     "continue": "Weiter",
     "startOver": "Von vorn beginnen",
-    "viewInActivity": "In Aktivität anzeigen",
     "startAnother": "Weitere Wiederherstellung starten"
   },
   "steps": {
     "source": {
-      "label": "Quelle wählen",
-      "hint": "Was wiederhergestellt wird"
+      "label": "Objekt wählen"
     },
     "point": {
-      "label": "Wiederherstellungspunkt",
-      "hint": "Zeitpunkt"
+      "label": "Wiederherstellungspunkt wählen"
     },
     "recover": {
-      "label": "Wiederherstellen",
-      "hint": "Modus & Bestätigung"
+      "label": "Wiederherstellen"
     }
   },
   "stepper": {
@@ -94,8 +90,8 @@
   "filesSelected_one": "{{count}} Datei ausgewählt",
   "filesSelected_other": "{{count}} Dateien ausgewählt",
   "chooseVm": {
-    "title": "Welche VM möchten Sie wiederherstellen?",
-    "subtitle": "Wählen Sie eine geschützte Maschine. Anschließend zeigen wir ihre Wiederherstellungspunkte — es ändert sich nichts, bis Sie bestätigen.",
+    "title": "Wählen Sie die VM, die Sie wiederherstellen möchten",
+    "subtitle": "Wählen Sie eine beliebige geschützte Maschine. Anschließend wird die Liste der Wiederherstellungspunkte angezeigt.",
     "searchPlaceholder": "Nach Name oder OS suchen…",
     "searchAria": "Geschützte VMs durchsuchen",
     "noMatch": {
@@ -108,8 +104,8 @@
     "unknownEnv": "Unbekannte Umgebung"
   },
   "chooseHost": {
-    "title": "Welchen Server möchten Sie wiederherstellen?",
-    "subtitle": "Wählen Sie einen geschützten physischen Server. Anschließend zeigen wir seine Wiederherstellungspunkte — es ändert sich nichts, bis Sie bestätigen.",
+    "title": "Wählen Sie den Server, den Sie wiederherstellen möchten",
+    "subtitle": "Wählen Sie einen beliebigen geschützten physischen Server. Anschließend wird die Liste der Wiederherstellungspunkte angezeigt.",
     "searchPlaceholder": "Nach Name oder OS suchen…",
     "searchAria": "Geschützte physische Server durchsuchen",
     "noMatch": {
@@ -122,8 +118,8 @@
     "agentLabel": "Agent {{status}}"
   },
   "chooseDisk": {
-    "title": "Welche Festplatte möchten Sie wiederherstellen?",
-    "subtitle": "Wählen Sie eine geschützte Festplatte — virtuell oder physisch. Anschließend zeigen wir ihre Wiederherstellungspunkte — es ändert sich nichts, bis Sie bestätigen.",
+    "title": "Wählen Sie die Festplatte, die Sie wiederherstellen möchten",
+    "subtitle": "Wählen Sie eine beliebige geschützte Festplatte — virtuell oder physisch. Anschließend wird die Liste der Wiederherstellungspunkte angezeigt.",
     "searchPlaceholder": "Nach Festplatte, Gerät, VM oder Server suchen…",
     "searchAria": "Geschützte Festplatten durchsuchen",
     "noMatch": {
@@ -146,8 +142,6 @@
     "countFor_other": "{{count}} Wiederherstellungspunkte für <1>{{name}}</1>.",
     "allUnreachable": "Keiner kann ausgewählt werden, solange sein Repository offline ist.",
     "mostRecentSelected": "Der aktuellste ist für Sie ausgewählt.",
-    "immutableCallout_one": "<1>{{count}} unveränderlicher</1> Wiederherstellungspunkt ist auf der Speicherebene gesperrt — er kann bis zum Ablauf der Sperre weder geändert noch gelöscht werden und ist somit nachweislich sauber.",
-    "immutableCallout_other": "<1>{{count}} unveränderliche</1> Wiederherstellungspunkte sind auf der Speicherebene gesperrt — sie können bis zum Ablauf der Sperre weder geändert noch gelöscht werden und sind somit nachweislich sauber.",
     "unreachableCallout_one": "<1>{{count}} Wiederherstellungspunkt</1> ist nicht erreichbar — sein Repository ist offline. Die Backups existieren weiterhin, können aber erst wiederhergestellt werden, wenn das Repository wieder online ist.",
     "unreachableCallout_other": "<1>{{count}} Wiederherstellungspunkte</1> sind nicht erreichbar — ihr Repository ist offline. Die Backups existieren weiterhin, können aber erst wiederhergestellt werden, wenn das Repository wieder online ist.",
     "blockedCallout_one": "<1>{{count}} Wiederherstellungspunkt</1> hat eine Dateigesundheitsprüfung nicht bestanden oder ist nicht vollständig geschrieben und ist daher zwar hier sichtbar, kann aber nicht wiederhergestellt werden.",
@@ -184,15 +178,12 @@
       "corrupt": "Beschädigt — gesperrt",
       "unavailable": "Prüfung nicht verfügbar",
       "notVerified": "Nicht verifiziert"
-    },
-    "fromLogical": "aus {{size}}",
-    "storedTitle": "{{logical}} Daten, gespeichert als {{stored}}"
+    }
   },
   "howToRecover": "Wie möchten Sie wiederherstellen?",
-  "whereLand": "Wohin soll es gelangen?",
+  "whereLand": "Speicherort wählen",
   "review": {
-    "title": "Prüfen & bestätigen",
-    "subtitle": "Ein letzter Blick. Es hat sich noch nichts geändert."
+    "title": "Prüfen und bestätigen"
   },
   "summary": {
     "machine": "Maschine",
@@ -206,11 +197,6 @@
     "powerState": "Betriebszustand"
   },
   "restorePointSub": "{{type}} · {{size}}",
-  "cleanSource": {
-    "immutableData": "Die Quelle ist eine unveränderliche, objektgesperrte Kopie — sie kann seit ihrer Versiegelung nicht verändert worden sein, sodass die Daten, die Sie wiederherstellen, sauber sind.",
-    "immutableFiles": "Die Quelle ist eine unveränderliche, objektgesperrte Kopie — sie kann seit ihrer Versiegelung nicht verändert worden sein, sodass die Dateien, die Sie wiederherstellen, sauber sind.",
-    "nonImmutable": "Wir lesen das Backup, ohne es jemals zu berühren, sodass die Quelle, aus der Sie wiederherstellen, intakt bleibt."
-  },
   "mode": {
     "subtitle": "Wählen Sie, ob Sie die gesamte Maschine oder nur einige Dateien zurückholen möchten. Sie bestätigen, bevor etwas ausgeführt wird.",
     "entireVm": {
@@ -227,11 +213,11 @@
     },
     "original": {
       "title": "Ursprünglicher Speicherort",
-      "desc": "Stellt die VM unter ihrem ursprünglichen Namen, Host und Datastore wieder her. Falls diese VM noch existiert, wird sie an Ort und Stelle überschrieben, sobald die Wiederherstellung fertig geschrieben ist — Sie bestätigen, bevor etwas ausgeführt wird."
+      "desc": "Stellt die VM unter ihrem ursprünglichen Namen, Host und Datastore wieder her. Falls die VM noch existiert, wird sie an Ort und Stelle überschrieben, sobald die Wiederherstellung fertig geschrieben ist."
     },
     "newLocation": {
       "title": "Neuer Speicherort",
-      "desc": "Als Kopie auf einem anderen Host wiederherstellen — sicher für Tests oder Vergleichsprüfungen."
+      "desc": "Stellt die VM als Kopie auf einem anderen Host wieder her. Nutzen Sie diese Option für Tests, Vergleichsprüfungen oder eine Migration."
     },
     "instantCallout": "Der Gast bootet auf seinem eigenen Host direkt aus dem Repository über iSCSI — Blöcke werden beim Lesen eingeblendet, sodass er in Sekunden läuft, ohne vollständige Kopie. Schreibvorgänge landen in einem Scratch-Overlay, sodass das Backup unveränderlich bleibt. Verwerfen Sie es, wenn Sie fertig sind, um die Festplatte freizugeben.",
     "targetEnv": "Zielumgebung",
@@ -248,9 +234,10 @@
       "selectTarget": "Ziel auswählen…",
       "pickTarget": "Wählen Sie oben eine Zielumgebung",
       "converted": "Konvertiert {{from}} → {{to}}",
-      "bootsOn": "Bootet auf dem Host von {{name}}"
+      "bootsOn": "Bootet auf dem Host von {{name}}",
+      "blocked": "Diese Appliance kann nicht auf einen anderen Hypervisor wiederherstellen."
     },
-    "originalOverwriteWarning": "Dies stellt <1>{{name}}</1> an Ort und Stelle wieder her, an seinem aktuellen Host und Datastore. Sobald jede Festplatte vollständig geschrieben ist, wird die dort derzeit laufende VM zerstört und ersetzt — dies kann nicht rückgängig gemacht werden.",
+    "originalOverwriteWarning": "Dieser Vorgang überschreibt die vorhandene VM auf ihrem aktuellen Host und Datastore, nachdem alle Festplatten wiederhergestellt wurden. Diese Aktion kann nicht rückgängig gemacht werden.",
     "originalOverwriteConfirmLabel": "Geben Sie <1>{{name}}</1> ein, um das Überschreiben zu bestätigen",
     "restoredVmName": "Name der wiederhergestellten VM",
     "restoredVmNameHint": "Leer lassen, um <1>{{name}}</1> zu verwenden.",
@@ -278,7 +265,7 @@
     "networkMapEnvNone": "In dieser Umgebung wurden keine virtuellen Switches gefunden. Scannen Sie das Inventar erneut und versuchen Sie es noch einmal.",
     "networkMapHint": "Die Quellnetzwerke stammen von den Netzwerkadaptern der VM selbst; die Zielliste zeigt nur die virtuellen Switches des ausgewählten Hosts, und ein gleichnamiger wird automatisch ausgewählt — wählen Sie bei Bedarf einen anderen aus der Liste.",
     "powerOn": "Nach der Wiederherstellung einschalten",
-    "powerOnHint": "Die wiederhergestellte VM sofort nach Abschluss der Wiederherstellung starten.",
+    "powerOnHint": "Die VM starten, sobald die Wiederherstellung abgeschlossen ist.",
     "powerOnYes": "Schaltet sich nach der Wiederherstellung ein",
     "powerOnNo": "Bleibt ausgeschaltet"
   },
@@ -364,6 +351,12 @@
       "high": "Hohe Zuverlässigkeit",
       "medium": "Mittlere Zuverlässigkeit",
       "low": "Geringe Zuverlässigkeit"
+    },
+    "blocked": {
+      "title": "Dieses Ziel kann die Kopie nicht aufnehmen",
+      "body": "Diese VM von {{from}} nach {{to}} zu verschieben bedeutet, ihre Festplatten zu konvertieren und den Gast anzupassen — das kann diese Appliance nicht. Wählen Sie ein Ziel mit {{from}}.",
+      "notBuilt": "Noch nicht umgesetzt",
+      "unaffected": "Das Backup selbst bleibt unberührt. Es lässt sich weiterhin am ursprünglichen Ort wiederherstellen und auf jedes Ziel mit demselben Hypervisor wie das Original."
     }
   },
   "instant": {
@@ -391,6 +384,68 @@
     "status": {
       "discarded": "Verworfen",
       "booting": "Bootet"
+    }
+  },
+  "refusal": {
+    "pointUnavailable": {
+      "title": "Dieser Wiederherstellungspunkt kann nicht gelesen werden",
+      "desc": "Die Appliance kennt den Punkt, öffnet ihn aber nicht — er kann versiegelt oder bereinigt sein oder auf einem Speicher liegen, der offline ist. Wählen Sie einen anderen Punkt oder bringen Sie den Speicher zurück."
+    },
+    "pointMissing": {
+      "title": "Dieser Wiederherstellungspunkt existiert nicht mehr",
+      "desc": "Der Punkt, seine Kopie im Repository oder sein Manifest ist nicht mehr vorhanden. Wählen Sie einen anderen Punkt aus der Liste — er wurde möglicherweise bereinigt, seit dieser Assistent geladen wurde."
+    },
+    "targetUnreachable": {
+      "title": "Die Zielumgebung antwortet nicht",
+      "desc": "Die Appliance ist bei dieser Umgebung registriert, kann sie aber gerade nicht ansprechen und daher die VM nicht platzieren. Prüfen Sie Host und Anmeldedaten der Umgebung und versuchen Sie es erneut."
+    },
+    "targetNotScanned": {
+      "title": "Die Zielumgebung wurde noch nicht gescannt",
+      "desc": "Sie hat keine erkannten Hosts, also gibt es keinen Platz für die VM. Scannen Sie sie im Inventar neu und starten Sie die Wiederherstellung erneut."
+    },
+    "targetMissing": {
+      "title": "Diese Zielumgebung existiert nicht mehr",
+      "desc": "Die Appliance kennt die Umgebung, die dieser Assistent angeboten hat, nicht mehr. Beginnen Sie erneut und wählen Sie ein Ziel aus der aktuellen Liste."
+    },
+    "placementMissing": {
+      "title": "Die gewählte Platzierung existiert nicht mehr",
+      "desc": "Host, Datastore oder Netzwerk aus dem Assistenten sind nicht mehr vorhanden. Gehen Sie einen Schritt zurück und wählen Sie sie erneut aus der aktuellen Liste."
+    },
+    "nameTaken": {
+      "title": "Dieser Name ist bereits vergeben",
+      "desc": "In der Zielumgebung gibt es bereits eine VM mit diesem Namen. Wählen Sie einen anderen Namen und starten Sie die Wiederherstellung erneut."
+    },
+    "originalVmGone": {
+      "title": "Die ursprüngliche VM ist nicht mehr vorhanden",
+      "desc": "Sie wurde entfernt, nachdem dieser Assistent geladen wurde — es gibt nichts mehr an Ort und Stelle wiederherzustellen. Beginnen Sie erneut, um sie stattdessen als neue VM wiederherzustellen."
+    },
+    "notEnoughSpace": {
+      "title": "Nicht genügend Datastore-Speicherplatz",
+      "desc": "Der Ziel-Datastore hat nicht genügend freien Speicherplatz für diese Wiederherstellung."
+    },
+    "unsupported": {
+      "title": "Diese Wiederherstellung wird nicht unterstützt",
+      "desc": "Der vom Assistenten angeforderte Modus bzw. die Option ist auf dieser Appliance nicht implementiert — es wurde nichts gestartet. Versuchen Sie einen anderen Wiederherstellungsmodus."
+    },
+    "rejected": {
+      "title": "Die Appliance hat die Wiederherstellung abgelehnt",
+      "desc": "Sie hat einen Grund genannt, für den diese Konsole keinen eigenen Satz hat. Es wurde nichts gestartet."
+    },
+    "signedOut": {
+      "title": "Ihre Sitzung ist abgelaufen",
+      "desc": "Die Appliance akzeptiert diese Sitzung nicht mehr — die Wiederherstellung wurde gar nicht erst versucht. Melden Sie sich erneut an und versuchen Sie es noch einmal."
+    },
+    "versionMismatch": {
+      "title": "Konsole und Appliance passen nicht zusammen",
+      "desc": "Sie sprechen unterschiedliche API-Versionen — die Wiederherstellung wurde nicht gesendet. Aktualisieren Sie Konsole oder Appliance, damit beide dieselbe Version haben."
+    },
+    "unreachable": {
+      "title": "Appliance nicht erreichbar",
+      "desc": "Die Wiederherstellung wurde nicht gestartet. Prüfen Sie das Backend und versuchen Sie es erneut."
+    },
+    "noSession": {
+      "title": "Die Wiederherstellung wurde nicht gestartet",
+      "desc": "Die Appliance hat die Anfrage angenommen, aber keine Wiederherstellungssitzung benannt — es läuft nichts. Prüfen Sie „Aktivität“ und versuchen Sie es erneut."
     }
   }
 }

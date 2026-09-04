@@ -16,7 +16,7 @@ interface CoverageBarProps {
 /**
  * The single segmented protection-coverage bar used everywhere protection is
  * shown as a proportion — the infrastructure topology rollups and the inventory
- * coverage strip. One vocabulary, one component, so green/amber/red always mean
+ * coverage strip. One vocabulary, one component, so ice/amber/red always mean
  * the same thing at the same weights.
  */
 export function CoverageBar({

@@ -43,9 +43,28 @@
   "time": {
     "never": "Never"
   },
+  "timeField": {
+    "hour": "Hour",
+    "minute": "Minute",
+    "openPicker": "Choose a time"
+  },
   "calendar": {
     "today": "Today",
     "prevMonth": "Previous month",
     "nextMonth": "Next month"
+  },
+  "routeError": {
+    "title": "This view hit a snag",
+    "fallback": "Something went wrong rendering this view.",
+    "back": "Back to Dashboard"
+  },
+  "featureUnavailable": {
+    "replication": {
+      "title": "Replication isn’t available on this appliance",
+      "description": "This build backs up and restores; it does not keep a running replica on a second host. The link you followed is from a console that does. Nothing is broken and nothing is lost — your backup jobs and restore points are unaffected."
+    }
+  },
+  "resize": {
+    "hint": "Drag to resize · double-click to reset"
   }
 }

@@ -20,7 +20,12 @@
     "runJobLabel": "Ausführen · {{name}}",
     "started": "„{{name}}“ gestartet",
     "startedDescription": "Verfolgen Sie den Fortschritt live unter „Aktivität“.",
-    "alreadyRunning": "„{{name}}“ läuft bereits oder ist deaktiviert."
+    "alreadyRunning": "„{{name}}“ läuft bereits.",
+    "alreadyRunningDescription": "Lassen Sie die aktuelle Ausführung zuerst abschließen.",
+    "jobDisabled": "„{{name}}“ ist deaktiviert",
+    "jobDisabledDescription": "Aktivieren Sie den Job, um ihn auszuführen.",
+    "runRefused": "„{{name}}“ konnte nicht gestartet werden",
+    "runRefusedDescription": "Die Appliance hat die Ausführung nicht gestartet und keinen Grund genannt. Versuchen Sie es auf der Job-Seite erneut."
   },
   "topbar": {
     "openMenu": "Menü öffnen",
@@ -52,5 +57,9 @@
     "title": "Inkompatible API-Version",
     "fallback": "Die API-Versionen von Konsole und Appliance sind inkompatibel. Laden Sie die Seite nach Abschluss der Bereitstellung neu oder wenden Sie sich an Ihren Administrator.",
     "reload": "Neu laden"
+  },
+  "offline": {
+    "title": "Verbindung zur Appliance verloren.",
+    "body": "Auf dieser Seite wird nichts mehr aktualisiert — Läufe, Kapazität und Warnungen zeigen den Stand vom Verbindungsabbruch. Es wird im Hintergrund neu verbunden."
   }
 }

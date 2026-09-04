@@ -20,7 +20,12 @@
     "runJobLabel": "Exécuter · {{name}}",
     "started": "« {{name}} » démarré",
     "startedDescription": "Suivez sa progression en direct dans Activité.",
-    "alreadyRunning": "« {{name}} » est déjà en cours d’exécution ou désactivé."
+    "alreadyRunning": "« {{name}} » est déjà en cours d’exécution.",
+    "alreadyRunningDescription": "Laissez d’abord l’exécution en cours se terminer.",
+    "jobDisabled": "« {{name}} » est désactivée",
+    "jobDisabledDescription": "Activez la tâche pour l’exécuter.",
+    "runRefused": "Impossible de démarrer « {{name}} »",
+    "runRefusedDescription": "L’appliance n’a pas démarré l’exécution et n’a donné aucune raison. Réessayez depuis la page de la tâche."
   },
   "topbar": {
     "openMenu": "Ouvrir le menu",
@@ -52,5 +57,9 @@
     "title": "Version d’API incompatible",
     "fallback": "Les versions d’API de la console et de l’appliance sont incompatibles. Rechargez la page une fois le déploiement terminé, ou contactez votre administrateur.",
     "reload": "Recharger"
+  },
+  "offline": {
+    "title": "Contact perdu avec l’appliance.",
+    "body": "Plus rien ne se met à jour sur cette page : exécutions, capacité et alertes datent de la coupure. Reconnexion en arrière-plan."
   }
 }

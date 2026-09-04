@@ -1,4 +1,26 @@
 {
+  "page": {
+    "title": "Référentiels",
+    "description": "Là où résident vos sauvegardes."
+  },
+  "kpi": {
+    "totalCapacity": "Capacité totale",
+    "totalCapacityHint_one": "Sur {{count}} référentiel",
+    "totalCapacityHint_other": "Sur {{count}} référentiels",
+    "used": "Utilisé",
+    "usedHint": "{{pct}} % de la capacité totale"
+  },
+  "health": {
+    "title": "État du stockage",
+    "reclaimable": "Récupérable",
+    "reclaimableHint": "garbage collection en attente",
+    "inMaintenance": "En maintenance",
+    "integrityIssues": "Problèmes d'intégrité"
+  },
+  "empty": {
+    "title": "Aucun référentiel pour l'instant",
+    "description": "Pointez AltaStor vers un stockage que vous possédez déjà."
+  },
   "type": {
     "hardenedImmutable": {
       "label": "Linux durci · immuable",
@@ -65,7 +87,6 @@
     "rescan": "Réanalyser / vérifier l'intégrité",
     "exitMaintenance": "Quitter la maintenance",
     "enterMaintenance": "Passer en maintenance",
-    "evacuate": "Évacuer / déplacer les données",
     "delete": "Supprimer le référentiel"
   },
   "toast": {
@@ -97,17 +118,12 @@
     "threatLocked": "Verrouillé par menace",
     "maintenance": "Maintenance",
     "scanningIntegrity": "Analyse de l'intégrité",
-    "immutableBanner": "Immuable · Object Lock de {{days}} jours",
-    "standardBanner": "Stockage standard · non immuable",
-    "objectLocked": "Object Lock actif",
     "capacityOfFree": "sur {{capacity}} · {{free}} libres",
     "elasticNote": "Stockage élastique · pas de capacité fixe",
     "percentUsed": "{{pct}} % utilisés",
     "criticallyFull": " · saturation critique",
     "runningLow": " · bientôt saturé",
-    "encryptionOff": "Désactivé",
     "metric": {
-      "encryption": "Chiffrement",
       "restorePoints": "Points de restauration",
       "jobsWritingHere": "Tâches écrivant ici"
     }
@@ -128,13 +144,7 @@
     "elasticNote": "Stockage élastique · pas de capacité fixe",
     "percentUsedTrend": "{{pct}} % utilisés · tendance sur 14 jours",
     "percentUsedNoTrend": "{{pct}} % utilisés · pas encore d'historique",
-    "encryption": "Chiffrement",
     "lastScan": "Dernière analyse",
-    "objectLockHint": "Object Lock : les sauvegardes ici sont en lecture seule jusqu'à l'expiration de la fenêtre de verrouillage.",
-    "immutableWindow": "Immuable · fenêtre Object Lock de {{days}} jours",
-    "immutableExplainer": "Les sauvegardes écrites ici ne peuvent être ni modifiées ni supprimées avant l'expiration de leur verrou — ni par un administrateur, ni par un compte compromis, ni par un rançongiciel. Chaque point de restauration est scellé pour {{days}} jours dès son arrivée, vous garantissant une dernière copie saine connue pour la restauration.",
-    "standardRepository": "Référentiel standard",
-    "standardExplainer": "Cette cible est rapide et pratique, mais les points de restauration ici peuvent être modifiés ou supprimés. Pour conserver au moins une copie verrouillée contre les modifications, ajoutez un référentiel durci ou Object Lock et dirigez-y les tâches critiques.",
     "jobsWriting": "Tâches écrivant dans ce référentiel",
     "noJobsTarget": "Aucune tâche ne cible actuellement ce référentiel.",
     "footer": {
@@ -147,7 +157,8 @@
     "toast": {
       "failed": {
         "title": "Impossible d'ajouter le référentiel",
-        "description": "L'appliance a refusé la requête — vérifiez le chemin et la capacité, puis réessayez."
+        "description": "L'appliance a refusé la requête — vérifiez le chemin et la capacité, puis réessayez.",
+        "s3Description": "L’appliance a refusé la requête — vérifiez le bucket, le point de terminaison et les clés d’accès, puis réessayez."
       },
       "shareOffline": {
         "title": "Référentiel ajouté, mais le partage est hors ligne",
@@ -155,7 +166,6 @@
       },
       "added": {
         "title": "Référentiel ajouté",
-        "immutable": "{{name}} — {{size}}, scellé immuable pendant {{days}} jours.",
         "smbDedup": "{{name}} — monté, dédupliqué, prêt à recevoir des sauvegardes.",
         "smbDirect": "{{name}} — monté, direct (sans déduplication), prêt à recevoir des sauvegardes.",
         "ready": "{{name}} — {{size}} prêts à recevoir des sauvegardes."
@@ -163,7 +173,7 @@
     },
     "trigger": "Ajouter un référentiel",
     "title": "Ajouter un référentiel",
-    "description": "Pointez AltaStor vers un stockage que vous possédez déjà. Les cibles immuables gardent les sauvegardes en lecture seule jusqu'à l'expiration de leur fenêtre de verrouillage.",
+    "description": "Indiquez les paramètres du référentiel de sauvegarde.",
     "nameLabel": "Nom",
     "namePlaceholder": "ex. AltaStor Repository",
     "typeLabel": "Type",
@@ -188,16 +198,23 @@
       }
     },
     "storageModeNote": "Désactivez la déduplication lorsque le partage est sur une appliance/un NAS de déduplication, ou lorsque des restaurations plus rapides et une charge CPU réduite comptent plus que l'espace.",
-    "immutableLabel": "Immuable (Object Lock)",
-    "makeImmutable": "Rendre ce référentiel immuable",
-    "lockWindow": "Fenêtre de verrouillage",
-    "days": "jours",
-    "immutableNote": "Les sauvegardes seront scellées et ne pourront être ni supprimées ni modifiées — même par un administrateur ou un rançongiciel — jusqu'à l'expiration de la fenêtre.",
-    "standardNote": "Stockage standard. Activez l'immuabilité pour verrouiller les points de restauration contre les modifications.",
-    "localNote": "Le stockage sur disque local ne peut pas garantir l'immuabilité — aucune application en écriture unique à ce niveau.",
-    "s3NotSupportedNote": "Le verrouillage d'objet S3 n'est pas encore intégré à cet appliance — le commutateur reste désactivé jusqu'à ce que cette prise en charge soit disponible.",
-    "encryptionNote": "Chiffrement : <1>{{value}}</1> — d'après les valeurs par défaut de Stockage dans les Paramètres.",
-    "adding": "Ajout en cours…"
+    "adding": "Ajout en cours…",
+    "nameInvalid": "Jusqu’à 125 lettres latines, chiffres, espaces, points, traits de soulignement et tirets ; commencez par une lettre ou un chiffre.",
+    "s3": {
+      "bucketLabel": "Bucket",
+      "bucketRequired": "Saisissez un nom de bucket.",
+      "regionLabel": "Région",
+      "endpointLabel": "Point de terminaison",
+      "endpointRequired": "Saisissez l’URL du point de terminaison.",
+      "prefixLabel": "Préfixe",
+      "optional": "(facultatif)",
+      "accessKeyLabel": "ID de clé d’accès",
+      "secretKeyLabel": "Clé d’accès secrète",
+      "verifyTlsLabel": "Vérifier le certificat TLS",
+      "verifyTlsAria": "Vérifier le certificat TLS du point de terminaison",
+      "test": "Tester la connexion",
+      "testing": "Test en cours…"
+    }
   },
   "delete": {
     "toast": {
@@ -210,13 +227,8 @@
         "description": "{{name}} n'a pas pu être retiré. Réessayez dans un instant."
       }
     },
-    "lockedTitle": "{{name}} est verrouillé",
     "title": "Supprimer {{name}} ?",
-    "lockedDescription": "Les points de restauration immuables de ce référentiel sont encore sous verrou de conformité.",
     "description": "Retirer un référentiel libère son stockage. Cette action est irréversible.",
-    "lockedHttp": "Verrouillé · HTTP 423",
-    "lockedBody_one": "<1>{{count}}</1> point de restauration scellé est verrouillé jusqu'au <2>{{until}}</2> — ce référentiel ne peut pas être supprimé avant l'expiration du verrou de conformité. Cette garantie est tout l'intérêt de l'immuabilité : pas même un administrateur ne peut forcer un retrait anticipé.",
-    "lockedBody_other": "<1>{{count}}</1> points de restauration scellés sont verrouillés jusqu'au <2>{{until}}</2> — ce référentiel ne peut pas être supprimé avant l'expiration du verrou de conformité. Cette garantie est tout l'intérêt de l'immuabilité : pas même un administrateur ne peut forcer un retrait anticipé.",
     "jobsBlock_one": "<1>{{count}}</1> tâche cible encore ce référentiel — réorientez-la ou supprimez-la d'abord.",
     "jobsBlock_other": "<1>{{count}}</1> tâches ciblent encore ce référentiel — réorientez-les ou supprimez-les d'abord.",
     "jobsWarning_one": "<1>{{count}}</1> tâche cible actuellement ce référentiel. Elle échouera à la prochaine exécution tant qu'elle ne sera pas réorientée vers une autre cible.",
@@ -224,75 +236,11 @@
     "typeToConfirm": "Saisissez <1>{{name}}</1> pour confirmer",
     "deleting": "Suppression en cours…"
   },
-  "evacuate": {
-    "toast": {
-      "cancel": {
-        "title": "Annulation de la migration",
-        "description": "Les points déjà déplacés restent à destination ; le reste demeure sur {{name}}, qui est de nouveau descellé."
-      },
-      "noMigration": {
-        "title": "Aucune migration en cours",
-        "description": "Elle vient peut-être de se terminer — vérifiez le résultat dans Activité."
-      },
-      "started": {
-        "title": "Migration des données démarrée"
-      },
-      "startedDescription_one": "{{count}} point de restauration est en cours de transfert vers {{dest}} — suivez la progression dans Activité. {{name}} est scellé en lecture seule pendant le déplacement.",
-      "startedDescription_other": "{{count}} points de restauration sont en cours de transfert vers {{dest}} — suivez la progression dans Activité. {{name}} est scellé en lecture seule pendant le déplacement.",
-      "complete": {
-        "title": "Migration des données terminée"
-      },
-      "completeDescription_one": "{{count}} point de restauration migré vers {{dest}} (même stockage — aucun octet à déplacer). {{name}} est désormais scellé en lecture seule.",
-      "completeDescription_other": "{{count}} points de restauration migrés vers {{dest}} (même stockage — aucun octet à déplacer). {{name}} est désormais scellé en lecture seule.",
-      "error": {
-        "title": "Impossible de migrer les données"
-      }
-    },
-    "reason": {
-      "insufficient": "{{dest}} ne dispose pas d'assez d'espace{{detail}}.",
-      "busy": "Une autre migration ou un contrôle d'intégrité est en cours — réessayez une fois terminé.",
-      "targetUnavailable": "{{dest}} ne peut pas recevoir de données pour l'instant (lecture seule, hors ligne ou en maintenance).",
-      "default": "Rien n'a été déplacé de {{name}}. Vérifiez la destination et réessayez.",
-      "retry": "Rien n'a été déplacé de {{name}}. Réessayez dans un instant."
-    },
-    "progress": {
-      "title": "Migration en cours",
-      "transferred": "{{size}} transférés",
-      "note": "Suivez les détails dans Activité. L'annulation conserve à destination chaque point déjà déplacé (leurs copies source ont disparu), laisse le reste sur {{name}} et le descelle pour que les sauvegardes puissent de nouveau y atterrir."
-    },
-    "cancelling": "Annulation en cours…",
-    "cancelMigration": "Annuler la migration",
-    "title": "Évacuer {{name}}",
-    "description": "Migrez chaque point de restauration vers un autre référentiel. Une fois le déplacement terminé, <1>{{name}}</1> est scellé <2>en lecture seule</2> afin que rien de nouveau n'y atterrisse — prêt à être mis hors service.",
-    "from": "De",
-    "to": "Vers",
-    "toMove": "{{size}} à déplacer",
-    "freeSize": "{{size}} libres",
-    "pickDestination": "Choisir une destination",
-    "destinationLabel": "Référentiel de destination",
-    "noWritable": "Aucun autre référentiel inscriptible n'est disponible pour recevoir ces données.",
-    "chooseDestination": "Choisissez où vont les données",
-    "wontFit": "{{dest}} ne dispose que de {{free}} libres — insuffisant pour {{need}}. Libérez de l'espace ou choisissez une cible plus grande.",
-    "sealed": {
-      "imported": "{{name}} est un dossier importé — ses points sont copiés vers un stockage de référentiel réel et le dossier lui-même n'est jamais modifié. Les points scellés sont rescellés à l'arrivée.",
-      "immutable": "{{dest}} est immuable — les points migrés sont rescellés à l'arrivée, de sorte que la garantie Object Lock est préservée de bout en bout.",
-      "default": "Si la destination partage le stockage physique de la source, le déplacement est instantané. Sinon, chaque point de restauration est transféré, vérifié à destination, puis retiré de la source — suivez-le en direct dans Activité. Les verrous de conformité sont respectés tout du long : les copies source scellées restent jusqu'à l'expiration de leurs verrous."
-    },
-    "migrating": "Migration en cours…",
-    "startMigration": "Démarrer la migration"
-  },
   "edit": {
-    "part": {
-      "objectLock": "Object Lock de {{days}} jours",
-      "compression": "compression {{mode}}",
-      "maintenanceOn": "mode maintenance activé",
-      "sealed": "scellé en lecture seule",
-      "unsealed": "descellé"
-    },
     "toast": {
       "saved": {
         "title": "Paramètres du référentiel enregistrés",
-        "description": "{{name}} — {{parts}}."
+        "descriptionGeneric": "Les paramètres de {{name}} ont été mis à jour."
       },
       "failed": {
         "title": "Impossible d'enregistrer les paramètres du référentiel",
@@ -301,23 +249,6 @@
     },
     "title": "Modifier le référentiel",
     "description": "Ajustez la capacité, la compression, l'immuabilité et les limites de débit. Les modifications prennent effet dès l'enregistrement.",
-    "immutableNote": "Les nouveaux points de restauration sont scellés et ne peuvent être ni modifiés ni supprimés avant l'expiration de la fenêtre. Raccourcir la fenêtre ne déverrouille jamais les points déjà scellés pour une durée plus longue.",
-    "standardNote": "Stockage standard. Activez l'immuabilité pour verrouiller les nouveaux points de restauration contre les modifications.",
-    "encryptionAtRest": "Chiffrement au repos",
-    "encryptionHint": "AES-256 pour tous les chunks stockés.",
-    "encryptAria": "Chiffrer ce référentiel au repos",
-    "throughputLimits": "Limites de débit",
-    "ioThrottleMbps": "Limitation d'E/S (MB/s)",
-    "unlimitedHint": "0 = illimité",
-    "cappedHint": "Plafonné à {{value}} MB/s",
-    "parallelWriters": "Écritures parallèles",
-    "maintenanceMode": "Mode maintenance",
-    "maintenanceHint": "Suspend les tâches et met le référentiel en lecture seule pour la maintenance.",
-    "maintenanceAria": "Mettre ce référentiel en mode maintenance",
-    "sealedReadOnly": "Scellé en lecture seule",
-    "sealedImportedHint": "Les référentiels importés sont des rattachements en lecture seule — ceci ne peut pas être descellé.",
-    "sealedHint": "Aucune nouvelle sauvegarde n'atterrit ici ; les points de restauration existants restent restaurables. Évacuer un référentiel le scelle — descellez-le pour accepter de nouveau des sauvegardes.",
-    "sealAria": "Sceller ce référentiel en lecture seule",
     "saving": "Enregistrement en cours…",
     "saveSettings": "Enregistrer les paramètres"
   }

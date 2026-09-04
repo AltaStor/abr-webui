@@ -8,6 +8,8 @@ import { motion } from "framer-motion";
 import { DesktopSidebar } from "@/components/layout/Sidebar";
 import { Topbar } from "@/components/layout/Topbar";
 import { CommandPalette } from "@/components/layout/CommandPalette";
+import { ConnectionLostBanner } from "@/components/layout/ConnectionLostBanner";
+import { IntroOverlay } from "@/components/brand/IntroOverlay";
 import { Skeleton } from "@/components/ui/skeleton";
 import { isSetupSkipped } from "@/features/setup/skip";
 import { getProvisioning } from "@/services/api.http";
@@ -107,12 +109,22 @@ export function AppShell() {
   }, [mode, ready, authStatus, mustChangePassword, navigate]);
 
   return (
-    <div className="flex h-screen overflow-hidden bg-background">
+    /* `dvh`, not `vh`: on mobile browsers `100vh` is the viewport *with the URL
+       bar retracted*, so a `h-screen` shell is taller than what is actually on
+       screen and its bottom — the last rows of a table, a wizard's footer
+       buttons — is clipped under the browser chrome with nothing to scroll,
+       because the shell itself is `overflow-hidden`. The dynamic unit tracks the
+       visible viewport instead. Same treatment the command palette already
+       uses for its list height. */
+    <div className="flex h-[100dvh] overflow-hidden bg-background">
       <DesktopSidebar />
       <div className="flex min-w-0 flex-1 flex-col">
         <Topbar />
+        <ConnectionLostBanner />
         <main className="flex-1 overflow-y-auto scroll-smooth">
-          <div className="mx-auto w-full max-w-[1760px] px-4 py-6 sm:px-6 lg:px-8">
+          {/* The content rail: flush with the viewport below the max width, a
+              pair of hairlines bounding the column above it. */}
+          <div className="mx-auto min-h-full w-full max-w-[1760px] border-x border-border px-4 py-6 sm:px-6 lg:px-8">
             <Suspense fallback={<PageFallback />}>
               {/* One gentle, consistent page settle on every route — opacity + a small
                   rise on a smooth ease-out. Keyed by pathname so it plays per navigation
@@ -132,6 +144,7 @@ export function AppShell() {
         </main>
       </div>
       <CommandPalette />
+      <IntroOverlay />
     </div>
   );
 }

@@ -12,10 +12,26 @@
     "queued": "In Warteschlange"
   },
   "sourceType": {
-    "vm": { "noun": "VM", "nounPlural": "VMs", "jobLabel": "VM-Backup" },
-    "disk": { "noun": "Datenträger", "nounPlural": "Datenträger", "jobLabel": "Datenträger-Backup" },
-    "files": { "noun": "Server", "nounPlural": "Server", "jobLabel": "Datei-Backup" },
-    "physicalHost": { "noun": "Server", "nounPlural": "Server", "jobLabel": "Backup physischer Server" }
+    "vm": {
+      "noun": "VM",
+      "nounPlural": "VMs",
+      "jobLabel": "VM-Backup"
+    },
+    "disk": {
+      "noun": "Datenträger",
+      "nounPlural": "Datenträger",
+      "jobLabel": "Datenträger-Backup"
+    },
+    "files": {
+      "noun": "Server",
+      "nounPlural": "Server",
+      "jobLabel": "Datei-Backup"
+    },
+    "physicalHost": {
+      "noun": "Server",
+      "nounPlural": "Server",
+      "jobLabel": "Backup physischer Server"
+    }
   },
   "objectCount": {
     "vm_one": "{{count}} VM",
@@ -28,9 +44,24 @@
     "physicalHost_other": "{{count}} Server"
   },
   "platform": {
-    "vmware": { "label": "VMware vSphere", "short": "vSphere", "hostTerm": "Host", "hostTermPlural": "Hosts" },
-    "proxmox": { "label": "Proxmox VE", "short": "Proxmox", "hostTerm": "Node", "hostTermPlural": "Nodes" },
-    "hyperv": { "label": "Microsoft Hyper-V", "short": "Hyper-V", "hostTerm": "Host", "hostTermPlural": "Hosts" }
+    "vmware": {
+      "label": "VMware vSphere",
+      "short": "vSphere",
+      "hostTerm": "Host",
+      "hostTermPlural": "Hosts"
+    },
+    "proxmox": {
+      "label": "Proxmox VE",
+      "short": "Proxmox",
+      "hostTerm": "Node",
+      "hostTermPlural": "Nodes"
+    },
+    "hyperv": {
+      "label": "Microsoft Hyper-V",
+      "short": "Hyper-V",
+      "hostTerm": "Host",
+      "hostTermPlural": "Hosts"
+    }
   },
   "raid": {
     "hint": {
@@ -63,7 +94,11 @@
     },
     "error": {
       "title": "Appliance konnte nicht erreicht werden",
-      "description": "Läuft das Backend (server/) auf :4980?"
+      "description": "Prüfen Sie, ob die Appliance eingeschaltet und im Netzwerk erreichbar ist, und versuchen Sie es erneut."
+    },
+    "unreachable": {
+      "title": "Appliance nicht erreichbar — Demodaten werden angezeigt",
+      "description": "Alles unten ist ein in sich abgeschlossenes Beispiel, nicht Ihre Systeme. Prüfen Sie, ob die Appliance eingeschaltet und erreichbar ist, und laden Sie neu. ⌘K → „Mit Live-Appliance verbinden“ versucht es erneut."
     }
   }
 }

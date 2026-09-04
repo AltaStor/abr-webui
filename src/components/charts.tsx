@@ -2,18 +2,22 @@
 // Copyright © 2026 Norvitex OÜ
 
 import type { ReactNode } from "react";
+import { motion } from "framer-motion";
+import { Rectangle, type RectangleProps } from "recharts";
+import { DUR, EASE_BRAND } from "@/lib/motion";
+import { cn } from "@/lib/utils";
 
 /**
  * Shared chart design system — one considered look across every recharts surface,
  * tuned to the AltaStor palette instead of the stock library defaults:
  *   · faint solid hairline grid (not the dashed "monitoring tool" grid)
- *   · muted, low-contrast axis ticks with breathing room
- *   · rich 3-stop gradient area fills
- *   · a square, slightly glassy on-brand tooltip
+ *   · muted axis ticks with breathing room
+ *   · flat, faint series fills under full-strength strokes
+ *   · a square, opaque on-brand tooltip
  *   · an emphasized marker on the latest data point
  *
  * recharts detects chart children by component *type*, so the structural pieces
- * (grid/axes/cursor/gradient) are exported as spreadable props, not wrappers.
+ * (grid/axes/cursor) are exported as spreadable props, not wrappers.
  */
 
 export const token = (name: string) => `hsl(var(--${name}))`;
@@ -22,11 +26,13 @@ export const token = (name: string) => `hsl(var(--${name}))`;
 
 export const gridProps = {
   vertical: false as const,
-  stroke: "hsl(var(--foreground) / 0.055)",
+  // The band hairline the brand uses behind drawn geometry — the same rule the
+  // page draws with, not a bespoke wash of the ink colour.
+  stroke: "hsl(var(--grid-line))",
   strokeWidth: 1,
 } as const;
 
-const AXIS_TICK = { fontSize: 10.5, fill: "hsl(var(--muted-foreground) / 0.7)" } as const;
+const AXIS_TICK = { fontSize: 10.5, fill: "hsl(var(--muted-foreground))" } as const;
 
 export const xAxisProps = (over: Record<string, unknown> = {}) => ({
   tickLine: false,
@@ -54,37 +60,132 @@ export const areaCursor = {
 };
 export const barCursor = { fill: "hsl(var(--foreground) / 0.05)" };
 
-/* --------------------------- gradient fills ----------------------------- */
+/* ------------------------- linked inspection --------------------------- */
 
-/** Vertical bar fill — full colour up top, gently deepening toward the baseline,
- *  so bars read with a little depth instead of as flat blocks. */
-export function BarGradient({ id, color }: { id: string; color: string }) {
-  return (
-    <linearGradient id={id} x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stopColor={color} stopOpacity={1} />
-      <stop offset="100%" stopColor={color} stopOpacity={0.62} />
-    </linearGradient>
-  );
+/**
+ * Motion shared by the stacked outcome charts. The selected outcome grows
+ * sideways only: height remains an honest encoding of run count, while the
+ * sibling series quiet down exactly like G5's unselected donut sectors.
+ */
+export function inspectionBarShape({
+  active,
+  quiet,
+  reduceMotion,
+}: {
+  active: boolean;
+  quiet: boolean;
+  reduceMotion: boolean;
+}) {
+  return function InspectionBarShape(shapeProps: unknown) {
+    // Recharts deliberately types custom shape callbacks as `unknown`; at
+    // runtime these are its documented Rectangle geometry/presentation props.
+    const props = shapeProps as RectangleProps;
+    const x = typeof props.x === "number" ? props.x : 0;
+    const y = typeof props.y === "number" ? props.y : 0;
+    const width = typeof props.width === "number" ? props.width : 0;
+    const height = typeof props.height === "number" ? props.height : 0;
+
+    return (
+      <motion.g
+        initial={false}
+        animate={{
+          opacity: quiet ? 0.28 : 1,
+          scaleX: reduceMotion || height <= 0 ? 1 : active ? 1.08 : 1,
+        }}
+        transition={{
+          duration: reduceMotion ? 0 : DUR.color,
+          ease: EASE_BRAND,
+        }}
+        style={{
+          transformBox: "view-box",
+          transformOrigin: `${x + width / 2}px ${y + height / 2}px`,
+        }}
+      >
+        <Rectangle {...props} isAnimationActive={false} />
+      </motion.g>
+    );
+  };
 }
 
-/** Rich 3-stop area fill: a defined top, a long soft mid, fading to nothing. */
-export function AreaGradient({
-  id,
-  color,
-  top = 0.3,
-  mid = 0.06,
-}: {
-  id: string;
+export interface ChartInspectionLegendItem<Key extends string> {
+  key: Key;
   color: string;
-  top?: number;
-  mid?: number;
+  label: string;
+  ariaLabel: string;
+}
+
+/**
+ * The keyboard/touch counterpart to linked chart hover. Pointer and focus are
+ * transient; activation pins an outcome until it is activated again.
+ */
+export function ChartInspectionLegend<Key extends string>({
+  items,
+  activeKey,
+  pinnedKey,
+  ariaLabel,
+  className,
+  onPointerKeyChange,
+  onFocusKeyChange,
+  onToggleKey,
+}: {
+  items: ChartInspectionLegendItem<Key>[];
+  activeKey: Key | null;
+  pinnedKey: Key | null;
+  ariaLabel: string;
+  className?: string;
+  onPointerKeyChange: (key: Key | null) => void;
+  onFocusKeyChange: (key: Key | null) => void;
+  onToggleKey: (key: Key) => void;
 }) {
   return (
-    <linearGradient id={id} x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stopColor={color} stopOpacity={top} />
-      <stop offset="55%" stopColor={color} stopOpacity={mid} />
-      <stop offset="100%" stopColor={color} stopOpacity={0} />
-    </linearGradient>
+    <div
+      role="group"
+      aria-label={ariaLabel}
+      onPointerLeave={() => onPointerKeyChange(null)}
+      className={cn(
+        "grid w-full grid-cols-3 items-center gap-1 sm:flex sm:w-auto sm:flex-wrap sm:justify-end",
+        className,
+      )}
+    >
+      {items.map((item) => {
+        const active = activeKey === item.key;
+
+        return (
+          <button
+            key={item.key}
+            type="button"
+            aria-label={item.ariaLabel}
+            aria-pressed={pinnedKey === item.key}
+            title={item.label}
+            onPointerEnter={() => onPointerKeyChange(item.key)}
+            onFocus={() => onFocusKeyChange(item.key)}
+            onBlur={() => onFocusKeyChange(null)}
+            onClick={(event) => {
+              onToggleKey(item.key);
+              // A pointer click should fall back to the pinned state, so a
+              // second tap can visibly clear it. Keyboard focus stays put.
+              if (event.detail > 0) {
+                onPointerKeyChange(null);
+                event.currentTarget.blur();
+              }
+            }}
+            className={cn(
+              "flex min-h-11 min-w-0 items-center justify-center gap-1.5 px-2 text-xs transition-colors duration-250",
+              active
+                ? "bg-muted/55 text-foreground"
+                : "text-muted-foreground hover:bg-muted/50 hover:text-foreground",
+            )}
+          >
+            <span
+              className="h-2 w-2.5 shrink-0"
+              style={{ backgroundColor: item.color }}
+              aria-hidden="true"
+            />
+            <span className="truncate">{item.label}</span>
+          </button>
+        );
+      })}
+    </div>
   );
 }
 
@@ -97,9 +198,9 @@ interface DotProps {
 }
 
 /**
- * A recharts `dot` renderer that marks ONLY the latest point — a filled node with
- * a soft halo, so the eye lands on "where the trend is now". Every other point
- * renders nothing.
+ * A recharts `dot` renderer that marks ONLY the latest point — a filled node
+ * inside a thin stroked ring, so the eye lands on "where the trend is now".
+ * Every other point renders nothing.
  */
 export function latestDot(color: string, lastIndex: number) {
   return function LatestDot({ cx, cy, index }: DotProps) {
@@ -108,7 +209,7 @@ export function latestDot(color: string, lastIndex: number) {
     }
     return (
       <g key={`d-${index}`}>
-        <circle cx={cx} cy={cy} r={5.5} fill={color} fillOpacity={0.16} />
+        <circle cx={cx} cy={cy} r={5.5} fill="none" stroke={color} strokeWidth={1} />
         <circle cx={cx} cy={cy} r={3} fill={color} stroke={token("card")} strokeWidth={1.5} />
       </g>
     );
@@ -156,9 +257,9 @@ export function ChartTooltip({
   if (!rows.length) return null;
   const foot = footer?.(rows) ?? null;
   return (
-    <div className="min-w-[8.5rem] border border-border/70 bg-popover/95 px-2.5 py-2 text-xs shadow-pop backdrop-blur-sm">
+    <div className="min-w-[8.5rem] border border-border bg-popover px-2.5 py-2 text-xs shadow-pop">
       {label != null && (
-        <p className="mb-1.5 font-medium text-foreground">
+        <p className="mb-1.5 font-display font-medium text-foreground">
           {labelFormatter ? labelFormatter(label) : label}
         </p>
       )}
@@ -172,16 +273,16 @@ export function ChartTooltip({
               {p.color && <span className="h-2 w-2" style={{ backgroundColor: p.color }} />}
               <span className="capitalize">{p.name}</span>
             </span>
-            <span className="nums font-semibold text-foreground">
+            <span className="nums font-display font-semibold text-foreground">
               {valueFormatter ? valueFormatter(p.value, p) : p.value}
             </span>
           </div>
         ))}
       </div>
       {foot && (
-        <div className="mt-1.5 flex items-center justify-between gap-6 border-t border-border/50 pt-1.5 text-muted-foreground">
+        <div className="mt-1.5 flex items-center justify-between gap-6 border-t border-border pt-1.5 text-muted-foreground">
           <span>{foot.label}</span>
-          <span className="nums font-semibold text-foreground">{foot.value}</span>
+          <span className="nums font-display font-semibold text-foreground">{foot.value}</span>
         </div>
       )}
     </div>

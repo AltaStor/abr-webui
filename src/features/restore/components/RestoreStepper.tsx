@@ -9,7 +9,9 @@ import { cn } from "@/lib/utils";
 export interface StepDef {
   id: number;
   label: string;
-  hint: string;
+  /** Optional second line. The restore wizard's step names stand alone; the
+   *  import wizard still qualifies each step with one. */
+  hint?: string;
 }
 
 interface RestoreStepperProps {
@@ -37,12 +39,12 @@ export function RestoreStepper({ steps, current, onStepClick }: RestoreStepperPr
               aria-current={active ? "step" : undefined}
               title={step.label}
               className={cn(
-                "group flex min-w-0 flex-1 items-center gap-3 rounded-xl border px-3 py-2.5 text-left transition-colors",
+                "group flex min-w-0 flex-1 items-center gap-3 border px-3 py-2.5 text-left transition-colors",
                 active
                   ? "border-primary/40 bg-primary/[0.06]"
                   : done
-                    ? "border-border/70 bg-card"
-                    : "border-dashed border-border/60 bg-transparent",
+                    ? "border-border bg-card"
+                    : "border-dashed border-border bg-transparent",
                 clickable && "hover:border-primary/40 hover:bg-primary/[0.04] cursor-pointer",
                 !clickable && "cursor-default",
               )}
@@ -74,7 +76,9 @@ export function RestoreStepper({ steps, current, onStepClick }: RestoreStepperPr
                 >
                   {step.label}
                 </span>
-                <span className="hidden truncate text-xs text-muted-foreground sm:block">{step.hint}</span>
+                {step.hint && (
+                  <span className="hidden truncate text-xs text-muted-foreground sm:block">{step.hint}</span>
+                )}
               </span>
             </button>
             {i < steps.length - 1 && (

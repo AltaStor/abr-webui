@@ -4,7 +4,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Trans, useTranslation } from "react-i18next";
-import { format } from "date-fns";
 import {
   AlertTriangle,
   ArrowRight,
@@ -14,7 +13,6 @@ import {
   Server,
   ServerCog,
   ShieldCheck,
-  Zap,
 } from "@/lib/icons";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -29,12 +27,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
-import { formatStorage } from "@/lib/format";
+import { formatFullDateTime, formatStorage } from "@/lib/format";
 import { qk } from "@/lib/query";
 import { PLATFORM_META } from "@/lib/platform";
-import { computeConversionPlan, platformLabel } from "@/lib/conversion";
+import { crossHypervisorRestoreBlocked } from "../refusals";
 import { useWorldStore } from "@/store/world";
-import { ConversionPlanCard } from "./ConversionPlanCard";
+import { CrossHypervisorBlockCard } from "./ConversionPlanCard";
 import type { RestorePoint, VM } from "@/types";
 
 export type RestoreDestination = "original" | "new-location";
@@ -103,11 +101,6 @@ interface ChooseModeStepProps {
   onTargetHostIdChange: (id: string) => void;
   datastore: string;
   onDatastoreChange: (v: string) => void;
-  /** What an "Automatic" host/datastore actually resolves to for the target
-   *  currently chosen. Reported up so the restore request names them outright
-   *  instead of leaving the appliance to re-derive defaults that only ever
-   *  covered the restore point's own environment. */
-  onAutoPlacementChange: (placement: { hostId: string; datastore: string }) => void;
   networkMappings: NetworkMapping[];
   onNetworkMappingsChange: (mappings: NetworkMapping[]) => void;
   powerOn: boolean;
@@ -141,15 +134,15 @@ export function ChoiceCard({
       onClick={onClick}
       aria-pressed={active}
       className={cn(
-        "group relative flex flex-col gap-2 rounded-xl border p-4 text-left transition-all",
+        "group relative flex flex-col gap-2 border p-4 text-left transition-colors duration-250",
         active
-          ? "border-primary/50 bg-primary/[0.06] shadow-sm"
-          : "border-border/70 bg-card hover:border-primary/30 hover:bg-primary/[0.03]",
+          ? "border-primary/50 bg-primary/[0.06]"
+          : "border-border bg-card hover:border-primary/30 hover:bg-primary/[0.03]",
       )}
     >
       <span
         className={cn(
-          "flex h-10 w-10 items-center justify-center rounded-lg transition-colors",
+          "flex h-10 w-10 items-center justify-center transition-colors",
           active ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground",
         )}
       >
@@ -183,7 +176,6 @@ export function ChooseModeStep({
   onTargetHostIdChange,
   datastore,
   onDatastoreChange,
-  onAutoPlacementChange,
   networkMappings,
   onNetworkMappingsChange,
   powerOn,
@@ -250,43 +242,20 @@ export function ChooseModeStep({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [nameError]);
 
-  // "Automatic" is not "anywhere": the restore lands on exactly one host, and
-  // a datastore or port group that host doesn't mount is not a choice the user
-  // can actually make — offering the whole environment just moved the failure
-  // to submit time ("Target datastore is not available on the selected host").
-  // So resolve Automatic to a concrete host and scope both lists to it.
-  // Mirrors the appliance's own rule (get_restore_context's default_host_id):
-  // the source VM's original host when the target environment still has it,
-  // otherwise that environment's first host. The appliance only computes this
-  // for the restore point's own environment, so its answer is used only there.
-  const autoHostId = useMemo(() => {
-    if (targetHostOptions.length === 0) return "";
-    if (placement?.defaultEnvironmentId === targetEnvId) {
-      const applianceChoice = targetHostOptions.find((h) => h.id === placement?.defaultHostId);
-      if (applianceChoice) return applianceChoice.id;
-    }
-    const original = placement?.originalHost?.trim().toLowerCase();
-    const sameHost = original
-      ? targetHostOptions.find((h) => h.name.trim().toLowerCase() === original)
-      : undefined;
-    return (sameHost ?? targetHostOptions[0]).id;
-  }, [targetHostOptions, targetEnvId, placement]);
-  const effectiveHostId = targetHostId || autoHostId;
-
-  // A port group lives on one host's virtual switch, so the target host
+  // A port group lives on one host's virtual switch, so a chosen target host
   // narrows the list to what that host can actually reach. Networks whose host
   // scope is unknown (empty hostIds) stay on offer everywhere — hiding them
   // would leave the user with nothing to pick on older inventory data.
   const targetNetworkOptions = useMemo(() => {
     const inEnv = (placement?.networks ?? []).filter((n) => n.environmentId === targetEnvId);
-    return effectiveHostId
-      ? inEnv.filter((n) => n.hostIds.length === 0 || n.hostIds.includes(effectiveHostId))
+    return targetHostId
+      ? inEnv.filter((n) => n.hostIds.length === 0 || n.hostIds.includes(targetHostId))
       : inEnv;
-  }, [placement, targetEnvId, effectiveHostId]);
+  }, [placement, targetEnvId, targetHostId]);
   const targetDatastoreOptions = useMemo(() => {
     const inEnv = (placement?.datastores ?? []).filter((d) => d.environmentId === targetEnvId);
-    return effectiveHostId ? inEnv.filter((d) => d.hostIds.includes(effectiveHostId)) : inEnv;
-  }, [placement, targetEnvId, effectiveHostId]);
+    return targetHostId ? inEnv.filter((d) => d.hostIds.includes(targetHostId)) : inEnv;
+  }, [placement, targetEnvId, targetHostId]);
 
   // Non-blocking heads-up only — the VM's actual on-disk usage is often well
   // under its provisioned size (thin disks, dedup), so a tight datastore isn't
@@ -310,7 +279,7 @@ export function ChooseModeStep({
   const syncedKeyRef = useRef<string | null>(null);
   useEffect(() => {
     if (!placement) return;
-    const key = `${point.id}:${targetEnvId}:${effectiveHostId}`;
+    const key = `${point.id}:${targetEnvId}:${targetHostId}`;
     if (syncedKeyRef.current === key) return;
     syncedKeyRef.current = key;
     const targetIdByName = new Map(targetNetworkOptions.map((n) => [n.name, n.id]));
@@ -326,7 +295,7 @@ export function ChooseModeStep({
       }),
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [placement, point.id, targetEnvId, effectiveHostId]);
+  }, [placement, point.id, targetEnvId, targetHostId]);
 
   // A datastore chosen under a previous host/environment may no longer be
   // valid (not mounted on the newly-selected host) — fall back to Automatic
@@ -335,7 +304,7 @@ export function ChooseModeStep({
     if (!placement || !datastore) return;
     if (!targetDatastoreOptions.some((d) => d.name === datastore)) onDatastoreChange("");
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [placement, targetEnvId, effectiveHostId]);
+  }, [placement, targetEnvId, targetHostId]);
 
   const updateNetworkTarget = (nicId: string, target: string) =>
     onNetworkMappingsChange(networkMappings.map((m) => (m.nicId === nicId ? { ...m, target } : m)));
@@ -352,51 +321,25 @@ export function ChooseModeStep({
     [environments, targetEnvId],
   );
 
-  // A conversion plan only exists for a New-location restore onto a target whose
-  // platform differs from the source. Guard every lookup.
-  const conversionPlan = useMemo(() => {
+  /* A New-location restore onto a target whose platform differs from the
+   * source's is refused: this appliance has one hypervisor plugin (vCenter),
+   * so nothing here can register the VM on another platform or convert its
+   * disks for it. RestorePage holds "Start restore" disabled on the same
+   * condition. */
+  const crossHypervisorTarget = useMemo(() => {
     if (destination !== "new-location") return undefined;
     if (!sourcePlatform || !targetEnv) return undefined;
-    if (targetEnv.hypervisor === sourcePlatform) return undefined;
-    return computeConversionPlan(sourcePlatform, targetEnv.hypervisor, vm.osFamily, vm.guestOs);
-  }, [destination, sourcePlatform, targetEnv, vm.osFamily, vm.guestOs]);
-
-  // The datastore Automatic resolves to, for the host it will actually land
-  // on. Keeping the source VM's original datastore here regardless of host was
-  // the bug: change the host and the label went on naming a datastore that
-  // host never mounted, one the dropdown below no longer even listed.
-  const autoDatastoreName = useMemo(() => {
-    if (targetDatastoreOptions.length === 0) return null;
-    const original = placement?.originalDatastore
-      ? targetDatastoreOptions.find((d) => d.name === placement.originalDatastore)
-      : undefined;
-    const applianceChoice =
-      placement?.defaultEnvironmentId === targetEnvId
-        ? targetDatastoreOptions.find((d) => d.id === placement?.defaultDatastoreId)
-        : undefined;
-    return (original ?? applianceChoice ?? targetDatastoreOptions[0]).name;
-  }, [targetDatastoreOptions, targetEnvId, placement]);
-  const autoHostName = useMemo(
-    () => targetHostOptions.find((h) => h.id === autoHostId)?.name ?? null,
-    [targetHostOptions, autoHostId],
-  );
-
-  // Hand the resolved pair up so the request carries them explicitly. Without
-  // this the appliance falls back to defaults it only computed for the restore
-  // point's own environment — which, against any other target, names a host
-  // that isn't in it.
-  useEffect(() => {
-    onAutoPlacementChange({ hostId: autoHostId, datastore: autoDatastoreName ?? "" });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [autoHostId, autoDatastoreName]);
+    if (!crossHypervisorRestoreBlocked(sourcePlatform, targetEnv.hypervisor)) return undefined;
+    return { from: sourcePlatform, to: targetEnv.hypervisor };
+  }, [destination, sourcePlatform, targetEnv]);
 
   // "Automatic" on its own doesn't say what actually happens — show the
   // concrete value it resolves to wherever one is known.
-  const hostAutoLabel = autoHostName
-    ? t("mode.targetHostAutoWithValue", { name: autoHostName })
+  const hostAutoLabel = placement?.originalHost
+    ? t("mode.targetHostAutoWithValue", { name: placement.originalHost })
     : t("mode.targetHostAuto");
-  const datastoreAutoLabel = autoDatastoreName
-    ? t("mode.datastoreAutoWithValue", { name: autoDatastoreName })
+  const datastoreAutoLabel = placement?.originalDatastore
+    ? t("mode.datastoreAutoWithValue", { name: placement.originalDatastore })
     : t("mode.datastoreAuto");
 
   return (
@@ -424,15 +367,10 @@ export function ChooseModeStep({
           </div>
           {destination === "original" && originalLocationOverwrite && (
             <div className="space-y-2">
-              <div className="flex items-start gap-2.5 rounded-lg border border-warning/30 bg-warning/[0.06] px-3 py-2.5">
+              <div className="flex items-start gap-2.5 border border-warning/30 bg-warning/[0.06] px-3 py-2.5">
                 <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-warning" />
                 <p className="text-xs text-warning-text">
-                  <Trans
-                    i18nKey="mode.originalOverwriteWarning"
-                    ns="restore"
-                    values={{ name: vm.name }}
-                    components={{ 1: <span className="font-medium" /> }}
-                  />
+                  {t("mode.originalOverwriteWarning")}
                 </p>
               </div>
               <div className="space-y-1.5">
@@ -472,8 +410,12 @@ export function ChooseModeStep({
                   ))}
                 </SelectContent>
               </Select>
-              {conversionPlan && targetEnv && (
-                <ConversionPlanCard plan={conversionPlan} targetEnvName={targetEnv.name} />
+              {crossHypervisorTarget && targetEnv && (
+                <CrossHypervisorBlockCard
+                  from={crossHypervisorTarget.from}
+                  to={crossHypervisorTarget.to}
+                  targetEnvName={targetEnv.name}
+                />
               )}
               <div className="space-y-1.5 pt-1">
                 <label htmlFor="restore-new-name" className="text-xs font-medium text-muted-foreground">
@@ -485,7 +427,7 @@ export function ChooseModeStep({
                   onChange={(e) => onNewNameChange(e.target.value)}
                   onBlur={onNameBlur}
                   placeholder={`${vm.name}-restored`}
-                  className={cn("max-w-md", showNameError && "border-danger focus-visible:ring-danger/40")}
+                  className={cn("max-w-md", showNameError && "border-danger")}
                   aria-invalid={showNameError}
                   maxLength={RESTORED_VM_NAME_MAX_LENGTH + 20}
                 />
@@ -616,7 +558,7 @@ export function ChooseModeStep({
                 )}
               </div>
 
-              <label className="flex cursor-pointer items-start justify-between gap-3 rounded-lg border border-border/70 bg-muted/20 p-3">
+              <label className="flex cursor-pointer items-start justify-between gap-3 border border-border bg-muted/20 p-3">
                 <span className="min-w-0">
                   <span className="text-sm font-medium">{t("mode.powerOn")}</span>
                   <span className="mt-0.5 block text-[11px] text-muted-foreground">{t("mode.powerOnHint")}</span>
@@ -632,7 +574,6 @@ export function ChooseModeStep({
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="text-base">{t("review.title")}</CardTitle>
-          <p className="text-sm text-muted-foreground">{t("review.subtitle")}</p>
         </CardHeader>
         <CardContent className="pt-0">
           <dl className="grid grid-cols-1 gap-x-6 gap-y-3 sm:grid-cols-2">
@@ -640,23 +581,17 @@ export function ChooseModeStep({
             <SummaryRow
               icon={ShieldCheck}
               label={t("summary.restorePoint")}
-              value={format(new Date(point.createdAt), "EEE, MMM d · HH:mm")}
+              value={formatFullDateTime(point.createdAt)}
               sub={t("restorePointSub", {
                 type: point.type === "full" ? t("point.full") : t("point.incremental"),
                 size: formatStorage(point.sizeGB),
               })}
             />
             <SummaryRow
-              icon={conversionPlan ? Zap : MapPin}
+              icon={MapPin}
               label={t("summary.recoveryMode")}
-              value={conversionPlan ? t("mode.crossPlatform") : t("mode.entireVm.title")}
-              sub={
-                destination === "original"
-                  ? t("mode.sub.original")
-                  : conversionPlan
-                    ? `${platformLabel(conversionPlan.sourcePlatform)} → ${platformLabel(conversionPlan.targetPlatform)}`
-                    : t("mode.sub.newLocation")
-              }
+              value={t("mode.entireVm.title")}
+              sub={destination === "original" ? t("mode.sub.original") : t("mode.sub.newLocation")}
             />
             <SummaryRow
               icon={MapPin}
@@ -669,11 +604,8 @@ export function ChooseModeStep({
               sub={
                 destination === "new-location" && !targetEnvId
                   ? t("mode.dest.pickTarget")
-                  : conversionPlan?.formatChange
-                    ? t("mode.dest.converted", {
-                        from: conversionPlan.sourceFormat.toUpperCase(),
-                        to: conversionPlan.targetFormat.toUpperCase(),
-                      })
+                  : crossHypervisorTarget
+                    ? t("mode.dest.blocked")
                     : undefined
               }
             />
@@ -697,13 +629,6 @@ export function ChooseModeStep({
               />
             )}
           </dl>
-
-          <div className="mt-4 space-y-2">
-            <div className="flex items-start gap-2.5 rounded-lg border border-border/70 bg-muted/30 px-3 py-2.5">
-              <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
-              <p className="text-xs text-muted-foreground">{t("cleanSource.body")}</p>
-            </div>
-          </div>
         </CardContent>
       </Card>
     </div>
@@ -726,11 +651,11 @@ export function SummaryRow({
 }) {
   return (
     <div className="flex items-start gap-3">
-      <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground">
+      <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center bg-muted text-muted-foreground">
         <Icon className="h-4 w-4" />
       </span>
       <div className="min-w-0">
-        <dt className="text-xs font-medium uppercase tracking-wider text-muted-foreground/70">{label}</dt>
+        <dt className="label-overline">{label}</dt>
         <dd className="mt-0.5 flex flex-wrap items-center gap-2 text-sm font-medium">
           <span className="truncate">{value}</span>
           {extra}

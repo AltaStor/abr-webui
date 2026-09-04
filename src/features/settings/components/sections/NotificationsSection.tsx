@@ -3,21 +3,15 @@
 
 import { useTranslation } from "react-i18next";
 import { AlertTriangle, Bell, CheckCircle2, DatabaseBackup, RotateCcw } from "@/lib/icons";
-import { toast } from "@/components/ui/sonner";
 import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
 import { useSettingsStore, type NotificationEvents } from "@/store/settings";
 import type { LucideIcon } from "@/lib/icons";
 import i18n from "@/i18n";
 import { SettingsSection } from "../SettingsSection";
-import { SaveBar } from "../controls";
-import { useDraft } from "../../lib";
+import { OfflineNotice, toastSettingSaved, useSettingsOffline } from "../controls";
 
 /* -------------------------------------------------------------------------- */
-
-interface EventsDraft {
-  events: NotificationEvents;
-}
 
 const EVENT_META: { key: keyof NotificationEvents; label: string; blurb: string; icon: LucideIcon }[] = [
   { key: "jobFailure", get label() { return i18n.t("settings:notifications.events.jobFailure.label"); }, get blurb() { return i18n.t("settings:notifications.events.jobFailure.blurb"); }, icon: AlertTriangle },
@@ -31,16 +25,19 @@ const EVENT_META: { key: keyof NotificationEvents; label: string; blurb: string;
 export function NotificationsSection() {
   const { t } = useTranslation("settings");
   const events = useSettingsStore((s) => s.notifications.events);
-
   const updateEvents = useSettingsStore((s) => s.updateEvents);
+  const offline = useSettingsOffline();
 
-  const { draft, patch, dirty, reset } = useDraft<EventsDraft>({ events });
-
-  const setEvent = (k: keyof NotificationEvents, v: boolean) => patch({ events: { ...draft.events, [k]: v } });
-
-  const save = () => {
-    updateEvents(draft.events);
-    toast.success(t("saved.title"), { description: t("notifications.savedDescription") });
+  /* This section is nothing but switches, and a switch IS the commit: by the
+     time it has moved the operator has said everything they had to say. The
+     Save / Discard bar that used to sit underneath asked them to confirm that
+     again — and let four flipped switches be lost by navigating away, since
+     nothing was written until Save. So each switch writes on change. The
+     confirmation is one coalesced toast rather than four; the choice is still
+     only RECORDED, which the notice above says plainly. */
+  const setEvent = (k: keyof NotificationEvents, v: boolean) => {
+    updateEvents({ [k]: v });
+    toastSettingSaved(t("saved.title"), t("notifications.savedDescription"));
   };
 
   return (
@@ -48,23 +45,27 @@ export function NotificationsSection() {
       title={t("notifications.events.title")}
       description={t("notifications.events.description")}
       icon={Bell}
-      footer={<SaveBar dirty={dirty} onSave={save} onDiscard={reset} />}
+      // No save bar: there is nothing here that needs one. What the bar did
+      // still matter for is the unreachable appliance, which is all that is
+      // left in the footer — and only when it happens.
+      footer={offline ? <OfflineNotice /> : undefined}
     >
       <div className="grid gap-2 py-3 sm:grid-cols-2">
         {EVENT_META.map(({ key, label, blurb, icon: Icon }) => {
-          const on = draft.events[key];
+          const on = events[key];
           return (
             <label
               key={key}
               htmlFor={`ev-${key}`}
               className={cn(
-                "flex cursor-pointer items-center gap-3 rounded-lg border p-3 transition-colors",
-                on ? "border-primary/30 bg-primary/[0.04]" : "border-border/60 hover:bg-muted/40",
+                "flex items-center gap-3 border p-3 transition-colors",
+                offline ? "cursor-not-allowed opacity-60" : "cursor-pointer",
+                on ? "border-primary/30 bg-primary/[0.04]" : "border-border hover:bg-muted/40",
               )}
             >
               <span
                 className={cn(
-                  "flex h-8 w-8 shrink-0 items-center justify-center rounded-lg",
+                  "flex h-8 w-8 shrink-0 items-center justify-center",
                   on ? "bg-primary/12 text-primary" : "bg-muted text-muted-foreground",
                 )}
               >
@@ -78,6 +79,7 @@ export function NotificationsSection() {
                 id={`ev-${key}`}
                 checked={on}
                 onCheckedChange={(v) => setEvent(key, v)}
+                disabled={offline}
                 aria-label={label}
               />
             </label>

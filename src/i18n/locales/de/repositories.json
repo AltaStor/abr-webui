@@ -1,4 +1,26 @@
 {
+  "page": {
+    "title": "Repositorys",
+    "description": "Wo Ihre Backups liegen."
+  },
+  "kpi": {
+    "totalCapacity": "Gesamtkapazität",
+    "totalCapacityHint_one": "Über {{count}} Repository",
+    "totalCapacityHint_other": "Über {{count}} Repositorys",
+    "used": "Belegt",
+    "usedHint": "{{pct}} % der Gesamtkapazität"
+  },
+  "health": {
+    "title": "Speicherzustand",
+    "reclaimable": "Rückgewinnbar",
+    "reclaimableHint": "ausstehende Garbage Collection",
+    "inMaintenance": "In Wartung",
+    "integrityIssues": "Integritätsprobleme"
+  },
+  "empty": {
+    "title": "Noch keine Repositorys",
+    "description": "Richten Sie AltaStor auf Speicher aus, den Sie bereits besitzen."
+  },
   "type": {
     "hardenedImmutable": {
       "label": "Hardened Linux · unveränderlich",
@@ -65,7 +87,6 @@
     "rescan": "Integrität erneut prüfen / verifizieren",
     "exitMaintenance": "Wartung beenden",
     "enterMaintenance": "Wartung starten",
-    "evacuate": "Evakuieren / Daten verschieben",
     "delete": "Repository löschen"
   },
   "toast": {
@@ -97,17 +118,12 @@
     "threatLocked": "Bedrohungsgesperrt",
     "maintenance": "Wartung",
     "scanningIntegrity": "Integrität wird geprüft",
-    "immutableBanner": "Unveränderlich · {{days}}-Tage-Object-Lock",
-    "standardBanner": "Standardspeicher · nicht unveränderlich",
-    "objectLocked": "Object-Lock aktiv",
     "capacityOfFree": "von {{capacity}} · {{free}} frei",
     "elasticNote": "Elastischer Speicher · keine feste Kapazität",
     "percentUsed": "{{pct}} % belegt",
     "criticallyFull": " · kritisch voll",
     "runningLow": " · wird knapp",
-    "encryptionOff": "Aus",
     "metric": {
-      "encryption": "Verschlüsselung",
       "restorePoints": "Wiederherstellungspunkte",
       "jobsWritingHere": "Jobs, die hierhin schreiben"
     }
@@ -128,13 +144,7 @@
     "elasticNote": "Elastischer Speicher · keine feste Kapazität",
     "percentUsedTrend": "{{pct}} % belegt · 14-Tage-Trend",
     "percentUsedNoTrend": "{{pct}} % belegt · noch kein Verlauf",
-    "encryption": "Verschlüsselung",
     "lastScan": "Letzte Prüfung",
-    "objectLockHint": "Object Lock: Backups hier sind schreibgeschützt, bis das Sperrfenster abläuft.",
-    "immutableWindow": "Unveränderlich · {{days}}-Tage-Object-Lock-Fenster",
-    "immutableExplainer": "Hier geschriebene Backups können bis zum Ablauf ihrer Sperre nicht geändert oder gelöscht werden — weder von einem Administrator noch von einem kompromittierten Konto oder Ransomware. Jeder Wiederherstellungspunkt wird in dem Moment, in dem er landet, für {{days}} Tage versiegelt und liefert Ihnen so eine garantiert letzte funktionsfähige Kopie zur Wiederherstellung.",
-    "standardRepository": "Standard-Repository",
-    "standardExplainer": "Dieses Ziel ist schnell und praktisch, doch Wiederherstellungspunkte hier können geändert oder gelöscht werden. Um mindestens eine Kopie gegen Änderungen zu sperren, fügen Sie ein Hardened- oder Object-Lock-Repository hinzu und leiten Sie kritische Jobs dorthin.",
     "jobsWriting": "Jobs, die in dieses Repository schreiben",
     "noJobsTarget": "Derzeit zielt kein Job auf dieses Repository.",
     "footer": {
@@ -147,7 +157,8 @@
     "toast": {
       "failed": {
         "title": "Repository konnte nicht hinzugefügt werden",
-        "description": "Die Appliance hat die Anfrage abgelehnt — prüfen Sie Pfad und Kapazität und versuchen Sie es erneut."
+        "description": "Die Appliance hat die Anfrage abgelehnt — prüfen Sie Pfad und Kapazität und versuchen Sie es erneut.",
+        "s3Description": "Die Appliance hat die Anfrage abgelehnt — prüfen Sie Bucket, Endpunkt und Zugriffsschlüssel und versuchen Sie es erneut."
       },
       "shareOffline": {
         "title": "Repository hinzugefügt, aber die Freigabe ist offline",
@@ -155,7 +166,6 @@
       },
       "added": {
         "title": "Repository hinzugefügt",
-        "immutable": "{{name}} — {{size}}, unveränderlich versiegelt für {{days}} Tage.",
         "smbDedup": "{{name}} — eingebunden, dedupliziert, bereit für Backups.",
         "smbDirect": "{{name}} — eingebunden, direkt (kein Dedup), bereit für Backups.",
         "ready": "{{name}} — {{size}} bereit für Backups."
@@ -163,7 +173,7 @@
     },
     "trigger": "Repository hinzufügen",
     "title": "Repository hinzufügen",
-    "description": "Richten Sie AltaStor auf Speicher aus, den Sie bereits besitzen. Unveränderliche Ziele halten Backups schreibgeschützt, bis ihr Sperrfenster abläuft.",
+    "description": "Legen Sie die Einstellungen des Backup-Repositorys fest.",
     "nameLabel": "Name",
     "namePlaceholder": "z. B. AltaStor Repository",
     "typeLabel": "Typ",
@@ -188,16 +198,23 @@
       }
     },
     "storageModeNote": "Deaktivieren Sie Dedup, wenn die Freigabe auf einer Dedup-Appliance/NAS liegt oder wenn schnellere Wiederherstellungen und geringere CPU-Last wichtiger sind als Platz.",
-    "immutableLabel": "Unveränderlich (Object Lock)",
-    "makeImmutable": "Dieses Repository unveränderlich machen",
-    "lockWindow": "Sperrfenster",
-    "days": "Tage",
-    "immutableNote": "Backups werden versiegelt und können bis zum Ablauf des Fensters nicht gelöscht oder geändert werden — auch nicht von einem Administrator oder durch Ransomware.",
-    "standardNote": "Standardspeicher. Aktivieren Sie die Unveränderlichkeit, um Wiederherstellungspunkte gegen Änderungen zu sperren.",
-    "localNote": "Lokaler Speicher kann Unveränderlichkeit nicht garantieren — auf dieser Ebene gibt es keine Write-once-Durchsetzung.",
-    "s3NotSupportedNote": "S3-Object-Lock ist auf diesem Gerät noch nicht angebunden — der Schalter bleibt deaktiviert, bis diese Unterstützung verfügbar ist.",
-    "encryptionNote": "Verschlüsselung: <1>{{value}}</1> — aus den Speicher-Standardwerten in den Einstellungen.",
-    "adding": "Wird hinzugefügt…"
+    "adding": "Wird hinzugefügt…",
+    "nameInvalid": "Bis zu 125 lateinische Buchstaben, Ziffern, Leerzeichen, Punkte, Unterstriche und Bindestriche; beginnen Sie mit einem Buchstaben oder einer Ziffer.",
+    "s3": {
+      "bucketLabel": "Bucket",
+      "bucketRequired": "Geben Sie einen Bucket-Namen ein.",
+      "regionLabel": "Region",
+      "endpointLabel": "Endpunkt",
+      "endpointRequired": "Geben Sie die Endpunkt-URL ein.",
+      "prefixLabel": "Präfix",
+      "optional": "(optional)",
+      "accessKeyLabel": "Zugriffsschlüssel-ID",
+      "secretKeyLabel": "Geheimer Zugriffsschlüssel",
+      "verifyTlsLabel": "TLS-Zertifikat prüfen",
+      "verifyTlsAria": "TLS-Zertifikat des Endpunkts prüfen",
+      "test": "Verbindung testen",
+      "testing": "Wird getestet…"
+    }
   },
   "delete": {
     "toast": {
@@ -210,13 +227,8 @@
         "description": "{{name}} konnte nicht entfernt werden. Versuchen Sie es gleich erneut."
       }
     },
-    "lockedTitle": "{{name}} ist gesperrt",
     "title": "{{name}} löschen?",
-    "lockedDescription": "Unveränderliche Wiederherstellungspunkte in diesem Repository unterliegen noch einer Compliance-Sperre.",
     "description": "Beim Entfernen eines Repositorys wird sein Speicher freigegeben. Dies kann nicht rückgängig gemacht werden.",
-    "lockedHttp": "Gesperrt · HTTP 423",
-    "lockedBody_one": "<1>{{count}}</1> versiegelter Wiederherstellungspunkt ist bis <2>{{until}}</2> gesperrt — dieses Repository kann erst gelöscht werden, wenn die Compliance-Sperre abläuft. Diese Garantie ist der eigentliche Sinn der Unveränderlichkeit: nicht einmal ein Administrator kann eine vorzeitige Entfernung erzwingen.",
-    "lockedBody_other": "<1>{{count}}</1> versiegelte Wiederherstellungspunkte sind bis <2>{{until}}</2> gesperrt — dieses Repository kann erst gelöscht werden, wenn die Compliance-Sperre abläuft. Diese Garantie ist der eigentliche Sinn der Unveränderlichkeit: nicht einmal ein Administrator kann eine vorzeitige Entfernung erzwingen.",
     "jobsBlock_one": "<1>{{count}}</1> Job zielt noch auf dieses Repository — richten Sie ihn zuerst neu aus oder entfernen Sie ihn.",
     "jobsBlock_other": "<1>{{count}}</1> Jobs zielen noch auf dieses Repository — richten Sie sie zuerst neu aus oder entfernen Sie sie.",
     "jobsWarning_one": "<1>{{count}}</1> Job zielt derzeit auf dieses Repository. Er wird beim nächsten Lauf fehlschlagen, bis er auf ein anderes Ziel ausgerichtet ist.",
@@ -224,75 +236,11 @@
     "typeToConfirm": "Geben Sie zur Bestätigung <1>{{name}}</1> ein",
     "deleting": "Wird gelöscht…"
   },
-  "evacuate": {
-    "toast": {
-      "cancel": {
-        "title": "Migration wird abgebrochen",
-        "description": "Bereits verschobene Punkte bleiben am Ziel; der Rest verbleibt auf {{name}}, das wieder entsiegelt wird."
-      },
-      "noMigration": {
-        "title": "Es läuft keine Migration",
-        "description": "Sie ist möglicherweise gerade abgeschlossen worden — prüfen Sie das Ergebnis unter Aktivität."
-      },
-      "started": {
-        "title": "Datenmigration gestartet"
-      },
-      "startedDescription_one": "{{count}} Wiederherstellungspunkt wird nach {{dest}} gestreamt — verfolgen Sie den Fortschritt unter Aktivität. {{name}} ist für den Verschiebevorgang schreibgeschützt versiegelt.",
-      "startedDescription_other": "{{count}} Wiederherstellungspunkte werden nach {{dest}} gestreamt — verfolgen Sie den Fortschritt unter Aktivität. {{name}} ist für den Verschiebevorgang schreibgeschützt versiegelt.",
-      "complete": {
-        "title": "Datenmigration abgeschlossen"
-      },
-      "completeDescription_one": "{{count}} Wiederherstellungspunkt nach {{dest}} migriert (gleicher Speicher — keine Bytes mussten verschoben werden). {{name}} ist jetzt schreibgeschützt versiegelt.",
-      "completeDescription_other": "{{count}} Wiederherstellungspunkte nach {{dest}} migriert (gleicher Speicher — keine Bytes mussten verschoben werden). {{name}} ist jetzt schreibgeschützt versiegelt.",
-      "error": {
-        "title": "Daten konnten nicht migriert werden"
-      }
-    },
-    "reason": {
-      "insufficient": "{{dest}} hat nicht genügend Platz{{detail}}.",
-      "busy": "Eine andere Migration oder Integritätsprüfung läuft — versuchen Sie es erneut, wenn sie abgeschlossen ist.",
-      "targetUnavailable": "{{dest}} kann derzeit keine Daten empfangen (schreibgeschützt, offline oder in Wartung).",
-      "default": "Es wurde nichts von {{name}} verschoben. Prüfen Sie das Ziel und versuchen Sie es erneut.",
-      "retry": "Es wurde nichts von {{name}} verschoben. Versuchen Sie es gleich erneut."
-    },
-    "progress": {
-      "title": "Migration läuft",
-      "transferred": "{{size}} übertragen",
-      "note": "Verfolgen Sie die Details unter Aktivität. Beim Abbrechen bleibt jeder bereits verschobene Punkt am Ziel (dessen Quellkopien sind weg), der Rest verbleibt auf {{name}}, und es wird entsiegelt, damit wieder Backups landen können."
-    },
-    "cancelling": "Wird abgebrochen…",
-    "cancelMigration": "Migration abbrechen",
-    "title": "{{name}} evakuieren",
-    "description": "Migrieren Sie jeden Wiederherstellungspunkt in ein anderes Repository. Nach Abschluss des Verschiebevorgangs wird <1>{{name}}</1> <2>schreibgeschützt</2> versiegelt, sodass nichts Neues darauf landet — bereit zur Außerbetriebnahme.",
-    "from": "Von",
-    "to": "Nach",
-    "toMove": "{{size}} zu verschieben",
-    "freeSize": "{{size}} frei",
-    "pickDestination": "Ziel auswählen",
-    "destinationLabel": "Ziel-Repository",
-    "noWritable": "Kein anderes beschreibbares Repository ist verfügbar, um diese Daten aufzunehmen.",
-    "chooseDestination": "Wählen Sie, wohin die Daten gehen",
-    "wontFit": "{{dest}} hat nur {{free}} frei — nicht genug für {{need}}. Geben Sie Platz frei oder wählen Sie ein größeres Ziel.",
-    "sealed": {
-      "imported": "{{name}} ist ein importierter Ordner — seine Punkte werden in echten Repository-Speicher herauskopiert, und der Ordner selbst wird nie verändert. Versiegelte Punkte werden bei Ankunft neu versiegelt.",
-      "immutable": "{{dest}} ist unveränderlich — migrierte Punkte werden bei Ankunft neu versiegelt, sodass die Object-Lock-Garantie durchgängig erhalten bleibt.",
-      "default": "Wenn das Ziel den physischen Speicher der Quelle teilt, erfolgt der Verschiebevorgang sofort. Andernfalls wird jeder Wiederherstellungspunkt übertragen, am Ziel verifiziert und dann von der Quelle entfernt — verfolgen Sie dies live unter Aktivität. Compliance-Sperren werden durchgehend beachtet: versiegelte Quellkopien bleiben, bis ihre Sperren ablaufen."
-    },
-    "migrating": "Wird migriert…",
-    "startMigration": "Migration starten"
-  },
   "edit": {
-    "part": {
-      "objectLock": "{{days}}-Tage-Object-Lock",
-      "compression": "{{mode}} Komprimierung",
-      "maintenanceOn": "Wartungsmodus aktiv",
-      "sealed": "schreibgeschützt versiegelt",
-      "unsealed": "entsiegelt"
-    },
     "toast": {
       "saved": {
         "title": "Repository-Einstellungen gespeichert",
-        "description": "{{name}} — {{parts}}."
+        "descriptionGeneric": "Die Einstellungen von {{name}} wurden aktualisiert."
       },
       "failed": {
         "title": "Repository-Einstellungen konnten nicht gespeichert werden",
@@ -301,23 +249,6 @@
     },
     "title": "Repository bearbeiten",
     "description": "Passen Sie Kapazität, Komprimierung, Unveränderlichkeit und Durchsatzgrenzen an. Änderungen werden wirksam, sobald Sie speichern.",
-    "immutableNote": "Neue Wiederherstellungspunkte werden versiegelt und können bis zum Ablauf des Fensters nicht geändert oder gelöscht werden. Ein Verkürzen des Fensters entsperrt niemals Punkte, die bereits länger versiegelt sind.",
-    "standardNote": "Standardspeicher. Aktivieren Sie die Unveränderlichkeit, um neue Wiederherstellungspunkte gegen Änderungen zu sperren.",
-    "encryptionAtRest": "Verschlüsselung im Ruhezustand",
-    "encryptionHint": "AES-256 für alle gespeicherten Chunks.",
-    "encryptAria": "Dieses Repository im Ruhezustand verschlüsseln",
-    "throughputLimits": "Durchsatzgrenzen",
-    "ioThrottleMbps": "E/A-Drosselung (MB/s)",
-    "unlimitedHint": "0 = unbegrenzt",
-    "cappedHint": "Begrenzt auf {{value}} MB/s",
-    "parallelWriters": "Parallele Schreibprozesse",
-    "maintenanceMode": "Wartungsmodus",
-    "maintenanceHint": "Pausiert Jobs und setzt das Repository für die Wartung schreibgeschützt.",
-    "maintenanceAria": "Dieses Repository in den Wartungsmodus versetzen",
-    "sealedReadOnly": "Schreibgeschützt versiegelt",
-    "sealedImportedHint": "Importierte Repositorys sind schreibgeschützte Anhänge — dies kann nicht entsiegelt werden.",
-    "sealedHint": "Hier landen keine neuen Backups; vorhandene Wiederherstellungspunkte bleiben wiederherstellbar. Beim Evakuieren eines Repositorys wird es versiegelt — entsiegeln Sie es, um wieder Backups anzunehmen.",
-    "sealAria": "Dieses Repository schreibgeschützt versiegeln",
     "saving": "Wird gespeichert…",
     "saveSettings": "Einstellungen speichern"
   }

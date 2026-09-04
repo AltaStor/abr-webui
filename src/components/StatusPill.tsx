@@ -17,7 +17,7 @@ export function StatusPill({ meta, size = "md", withIcon = true, className }: St
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1.5 font-medium",
+        "inline-flex items-center gap-1.5 font-display font-medium",
         toneChip(meta.tone),
         size === "sm" ? "px-2 py-0.5 text-[11px]" : "px-2.5 py-1 text-xs",
         className,

@@ -16,7 +16,15 @@ import { initReactI18next } from "react-i18next";
 import { DEFAULT_LANGUAGE, SUPPORTED_LANGUAGES } from "./languages";
 import { readInitialLanguage } from "./storage";
 
-const modules = import.meta.glob("./locales/*/*.json", { eager: true }) as Record<
+/* Only the languages the console actually offers are bundled.
+ *
+ * `locales/` holds complete, parity-checked de, fr and es translations — the
+ * fork trimmed `LANGUAGES` to English but left every file globbed in, so all
+ * four shipped in the chunk while three of them were unreachable from the UI.
+ * Re-enabling a language is two lines: add its entry to `languages.ts`, and add
+ * its folder to the glob below. Vite needs the pattern to be a literal, so this
+ * cannot derive itself from LANGUAGES. */
+const modules = import.meta.glob("./locales/en/*.json", { eager: true }) as Record<
   string,
   { default: Record<string, unknown> }
 >;

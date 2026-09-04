@@ -67,7 +67,7 @@ export type ProtectionStatus = "protected" | "warning" | "unprotected";
  * KVP is only live while it runs), so we must not guess — a Windows VM that's
  * merely switched off should never render as Linux.
  */
-export type OsFamily = "windows" | "linux" | "macos" | "unknown";
+export type OsFamily = "windows" | "linux" | "unknown";
 
 export interface VM {
   id: string;
@@ -111,16 +111,11 @@ export interface Retention {
     weekly: number;
     monthly: number;
     yearly: number;
-    /** Suspends GFS protection without discarding the configured counts. Default true. */
-    enabled?: boolean;
   };
 }
 
 export interface JobOptions {
   appAware: boolean;
-  /** AES-256 at rest. The key is the appliance's to manage — it generates and
-   *  stores one when a job turns this on, so nothing here carries a
-   *  passphrase. */
   encryption: boolean;
   /** Zstd level 0 (fastest, no compression) – 9 (smallest, most CPU). Default 3. */
   compression: number;
@@ -193,14 +188,6 @@ export interface Session {
   processedGB: number;
   transferredGB: number;
   throughputMBps: number;
-  /**
-   * Live guest READ rate (MB/s) — bytes pulled off the source, derived by
-   * diffing `processedGB` across polls the way `throughputMBps` is derived
-   * from `transferredGB`. The two are different stages and differ in size
-   * (the repo write is post-compression/dedup), so a "guest read" readout must
-   * use this one. Undefined until there are two samples to diff.
-   */
-  guestReadMBps?: number;
   vmCount: number;
   vmResults: VmRunResult[];
   /** Set for warning/failed. */
@@ -306,17 +293,8 @@ export interface RestorePoint {
   jobName: string;
   createdAt: string;
   type: RestorePointType;
-  /** What this point occupies in the repository, after compression. */
   sizeGB: number;
   repositoryId: string;
-  /** The real, uncompressed data behind `sizeGB` — what a restore writes back.
-   *  null when the appliance has no figure: points written before the data
-   *  mover reported one. */
-  logicalGB: number | null;
-  /** `sizeGB` ÷ `logicalGB`, as the mover measured it: 0.36 means the point
-   *  occupies 36% of the data it came from. Lower is better; null when
-   *  unknown. */
-  compressionRatio: number | null;
   /** Zstd level 0–9 this point was written with, or null when unknown (older
    *  catalog entries predate the field). */
   compressionLevel: number | null;
@@ -378,21 +356,12 @@ export interface RestorePlacementOptions {
   /** VMs already registered in a candidate target environment, for a
    *  best-effort client-side name-uniqueness check. */
   existingVms: RestoreExistingVmOption[];
-  /** The datastore the source VM lived on before backup. Only a starting
-   *  point for "Automatic" — it means nothing on a target host that doesn't
-   *  mount it, so never show it as the resolved value without checking. */
+  /** The datastore the source VM lived on before backup — what "Automatic"
+   *  resolves to when no target datastore is picked. */
   originalDatastore: string | null;
-  /** The host the source VM lived on before backup — see `originalDatastore`
-   *  for the same caveat about a different target environment. */
+  /** The host the source VM lived on before backup — what "Automatic"
+   *  resolves to when no target host is picked. */
   originalHost: string | null;
-  /** Host id the appliance itself resolves "Automatic" to, and the datastore
-   *  id it pairs with that host (`defaults.target_host_id` /
-   *  `target_datastore_id`). Computed for the restore point's own environment
-   *  only, so they don't apply once a different target is chosen. */
-  defaultHostId: string | null;
-  defaultDatastoreId: string | null;
-  /** Environment the two defaults above were resolved against. */
-  defaultEnvironmentId: string | null;
 }
 
 export type RepositoryType =

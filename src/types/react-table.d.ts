@@ -11,5 +11,7 @@ declare module "@tanstack/react-table" {
   interface ColumnMeta<TData extends RowData, TValue> {
     /** Explanation shown on hover over the column header. Optional everywhere. */
     tooltip?: ReactNode;
+    /** Align the header control and every cell in the column. */
+    align?: "left" | "center" | "right";
   }
 }

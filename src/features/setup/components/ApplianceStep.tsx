@@ -37,7 +37,7 @@ export function ApplianceStep({ form, info, onChange }: ApplianceStepProps) {
           placeholder="altastor-01"
           autoComplete="off"
           spellCheck={false}
-          className={cn("max-w-sm font-mono", showError && "border-danger focus-visible:ring-danger/40")}
+          className={cn("max-w-sm font-mono", showError && "border-danger")}
           aria-invalid={showError}
         />
         {showError ? (
@@ -49,7 +49,7 @@ export function ApplianceStep({ form, info, onChange }: ApplianceStepProps) {
 
       <div className="space-y-2">
         <Label>{t("appliance.networkLabel")}</Label>
-        <div className="flex items-center gap-2.5 rounded-lg border border-border/70 bg-muted/20 px-3 py-2.5 text-sm">
+        <div className="flex items-center gap-2.5 border border-border bg-muted/20 px-3 py-2.5 text-sm">
           <Network className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
           <span className="text-muted-foreground">
             <Trans

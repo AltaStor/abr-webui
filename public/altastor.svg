@@ -1,6 +1,13 @@
-<svg width="32" height="32" viewBox="0 0 96 96" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <path d="M0 0 H78 L96 18 V96 H18 L0 78 Z" fill="#A5D3E8" />
-  <polygon points="38,52 58,52 68,63 58,74 38,74 28,63" fill="#0D1114" opacity="0.32" />
-  <polygon points="38,37 58,37 68,48 58,59 38,59 28,48" fill="#0D1114" opacity="0.6" />
-  <polygon points="38,22 58,22 68,33 58,44 38,44 28,33" fill="#0D1114" />
+<!-- Favicon only. The viewBox is inset 2 units on every side, scaling the mark
+     ~6% against a tab's 16px slot: the hexagon is taller than it is wide and
+     already spans the full height at 0 0 73 73, so the frame is the only place
+     left to take size from. The two vertices lose ~0.5px at real size, which no
+     tab renders. Do not copy this inset into the in-app mark
+     (src/assets/brand/altastor-mark.svg), which is laid out, not fitted. -->
+<svg width="32" height="32" viewBox="2 2 69 69" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <path d="M36.5 0L68.1099 18.25V54.75L36.5 73L4.89007 54.75V18.25L36.5 0Z" fill="#EEF3F6"/>
+  <path d="M36.5 6.5L62.4808 21.5V51.5L36.5 66.5L10.5192 51.5V21.5L36.5 6.5Z" fill="#0C1013"/>
+  <rect width="22.6252" height="22.6252" transform="matrix(0.866025 0.5 -0.866025 0.5 36.5 36.5825)" fill="#3179C4"/>
+  <rect width="22.6252" height="22.6252" transform="matrix(0.866025 0.5 -0.866025 0.5 36.5 25.3103)" fill="#ADD3ED"/>
+  <rect width="22.6252" height="22.6252" transform="matrix(0.866025 0.5 -0.866025 0.5 36.5 13.9978)" fill="#EEF3F6"/>
 </svg>

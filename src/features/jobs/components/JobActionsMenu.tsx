@@ -2,7 +2,7 @@
 // Copyright © 2026 Norvitex OÜ
 
 import { useTranslation } from "react-i18next";
-import { DatabaseBackup, MoreHorizontal, Pause, Pencil, Play, Trash2 } from "@/lib/icons";
+import { DatabaseBackup, MoreHorizontal, Pencil, Play, Power, Trash2 } from "@/lib/icons";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -74,7 +74,9 @@ export function JobActionsMenu({ job, onRun, onRunFull, onEdit, onToggleEnabled,
             onToggleEnabled(disabled);
           }}
         >
-          {disabled ? <Play className="h-4 w-4" /> : <Pause className="h-4 w-4" />}
+          {/* Power, not Play/Pause: transport belongs to "Run now" / "Stop run"
+              above, and this menu used to draw Play for both of them. */}
+          <Power className="h-4 w-4" />
           {disabled ? t("common:actions.enable") : t("common:actions.disable")}
         </DropdownMenuItem>
         <DropdownMenuSeparator />

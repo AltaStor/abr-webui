@@ -63,6 +63,18 @@
       "hint": "en todas las ejecuciones"
     }
   },
+  "inProgress": {
+    "heading": "Trabajos en curso",
+    "sr": {
+      "none": "No hay ejecuciones activas.",
+      "one": "{{job}} en ejecución.",
+      "many": "{{count}} ejecuciones en curso."
+    },
+    "idle": "No hay ejecuciones activas en este momento.",
+    "nextScheduled": "Próxima ejecución programada {{when}} ({{abs}}).",
+    "processing": "Procesando {{name}}",
+    "elapsed": "Transcurrido"
+  },
   "feed": {
     "columns": {
       "status": "Estado",
@@ -87,7 +99,7 @@
   "row": {
     "progressLabel": "Progreso de {{kind}} de {{job}}",
     "aria": {
-      "started": "iniciado {{time}}",
+      "started": "iniciado {{time}} ({{abs}})",
       "percentComplete": "{{percent}} por ciento completado",
       "ranIn": "ejecutado en {{duration}}",
       "objects_one": "{{count}} objeto",
@@ -112,14 +124,14 @@
       "duration": "Duración",
       "read": "Leído",
       "transferred": "Transferido",
-      "guestRead": "Vel. lectura invitado",
       "throughput": "Rendimiento"
     },
     "table": {
       "result": "Resultado",
       "read": "Leído",
       "sent": "Enviado",
-      "duration": "Duración"
+      "duration": "Duración",
+      "pending": "Pendiente"
     },
     "log": "Registro",
     "footer": {
@@ -128,6 +140,10 @@
       "deleted": "Trabajo eliminado — historial conservado",
       "openRestore": "Abrir restauración",
       "openJob": "Abrir trabajo"
+    },
+    "backupType": {
+      "full": "Completa",
+      "incremental": "Incremental"
     }
   }
 }

@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { formatDateTime, formatRelative, formatStorage } from "@/lib/format";
-import { compressionRatioLabel, pointTypeTooltip } from "@/lib/restore-points";
+import { pointTypeTooltip } from "@/lib/restore-points";
 import type { RestorePoint } from "@/types";
 
 /**
@@ -36,7 +36,7 @@ export function RestorePointItem({
     <li className={cn("group flex items-center gap-3 py-2.5", unavailable && "opacity-60")}>
       <span
         className={cn(
-          "flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-[11px] font-semibold uppercase",
+          "flex h-8 w-8 shrink-0 items-center justify-center text-[11px] font-semibold uppercase",
           point.type === "full" ? "bg-primary/12 text-primary" : "bg-muted text-muted-foreground",
         )}
       >
@@ -79,30 +79,10 @@ export function RestorePointItem({
         </p>
       </div>
       {/* sizeGB is 0 for points the catalog couldn't measure (e.g. pre-fix
-          history) — render nothing rather than claim a measured "0 B" backup.
-          It is the STORED size; the real data behind it goes underneath. */}
+          history) — render nothing rather than claim a measured "0 B" backup. */}
       {point.sizeGB > 0 && (
-        <span
-          className="hidden shrink-0 text-right sm:block"
-          title={
-            point.logicalGB != null
-              ? t("point.storedTitle", {
-                  logical: formatStorage(point.logicalGB, 1),
-                  stored: formatStorage(point.sizeGB, 1),
-                })
-              : undefined
-          }
-        >
-          <span className="nums block text-sm text-muted-foreground">
-            {formatStorage(point.sizeGB, 1)}
-          </span>
-          {point.logicalGB != null && (
-            <span className="nums block text-[11px] text-muted-foreground/80">
-              {t("point.fromLogical", { size: formatStorage(point.logicalGB, 1) })}
-              {compressionRatioLabel(point.compressionRatio) &&
-                ` · ${compressionRatioLabel(point.compressionRatio)}`}
-            </span>
-          )}
+        <span className="nums hidden shrink-0 text-sm text-muted-foreground sm:block">
+          {formatStorage(point.sizeGB, 1)}
         </span>
       )}
       <div className="flex shrink-0 items-center gap-0.5">

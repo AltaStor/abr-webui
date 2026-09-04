@@ -1,8 +1,9 @@
 {
   "greeting": {
-    "morning": "Buenos días",
-    "afternoon": "Buenas tardes",
-    "evening": "Buenas noches"
+    "morning": "Buenos días, {{name}}",
+    "afternoon": "Buenas tardes, {{name}}",
+    "evening": "Buenas noches, {{name}}",
+    "plain": "Bienvenido de nuevo"
   },
   "header": {
     "loading": "Cargando estado de protección…",
@@ -19,22 +20,12 @@
     "coverage": {
       "label": "Cobertura de protección",
       "hint": "{{protected}} de {{total}} VMs protegidas",
-      "drill": "{{count}} sin proteger →"
-    },
-    "rpo": {
-      "label": "Cumplimiento de RPO",
-      "hint": "{{count}} VMs fuera de su ventana de RPO",
-      "drill": "Revisar VMs obsoletas →"
+      "drill": "{{count}} sin proteger"
     },
     "success": {
       "label": "Tasa de éxito en 24 h",
       "hint": "{{runs}} ejecuciones · {{failed}} fallidas",
-      "drill": "Ver actividad →"
-    },
-    "immutable": {
-      "label": "Almacenamiento inmutable",
-      "hint": "{{count}} repositorios reforzados",
-      "drill": "Gestionar repositorios →"
+      "drill": "Actividad"
     }
   },
   "activity": {
@@ -53,17 +44,18 @@
   },
   "live": {
     "title": "Actividad en vivo",
-    "allActivity": "Toda la actividad",
+    "allActivity": "Actividad",
     "statusNone": "No hay ejecuciones de copia de seguridad activas.",
     "statusOne": "{{name}} en ejecución.",
     "statusMany": "{{count}} ejecuciones de copia de seguridad en curso.",
     "emptyNoRuns": "No hay ejecuciones activas en este momento.",
-    "emptyNextScheduled": "Próxima programada {{when}}.",
+    "emptyNextScheduled": "Próxima programada {{when}} ({{abs}}).",
     "progressLabel": "Progreso de {{kind}} de {{name}}",
     "staging": "Leyendo y preparando el origen",
     "processing": "Procesando {{name}}",
     "stagingShort": "preparando…",
-    "recentCompletions": "Finalizaciones recientes"
+    "recentCompletions": "Finalizaciones recientes",
+    "recentEmpty": "Todavía no hay ejecuciones finalizadas."
   },
   "storage": {
     "title": "Almacenamiento e inmutabilidad",
@@ -71,8 +63,17 @@
     "ofFree": "de {{total}} · {{free}} libres",
     "usedAcross_one": "{{percent}} % utilizado en {{count}} repositorio",
     "usedAcross_other": "{{percent}} % utilizado en {{count}} repositorios",
-    "immutablePercent": "{{percent}} % de las VMs protegidas son inmutables",
-    "hardened_one": "{{count}} repositorio reforzado que aplica ventanas de bloqueo de objetos. 0 intentos de manipulación en 24 h.",
-    "hardened_other": "{{count}} repositorios reforzados que aplican ventanas de bloqueo de objetos. 0 intentos de manipulación en 24 h."
+    "capacityUnknown": "Capacidad no informada",
+    "storedAcross_one": "Almacenado en {{count}} repositorio",
+    "storedAcross_other": "Almacenado en {{count}} repositorios",
+    "repoCapacityUnknown": "Sin capacidad informada",
+    "tip": {
+      "shareAria": "Almacenamiento utilizado por repositorio",
+      "share": "{{used}} almacenados · {{percent}} % de {{total}}",
+      "usedOfFree": "{{used}} de {{capacity}} · {{free}} libres",
+      "runningLow": "Quedándose sin espacio",
+      "criticallyFull": "Crítico de lleno",
+      "noCapacity": "Sin barra de uso: el proveedor no informa capacidad"
+    }
   }
 }

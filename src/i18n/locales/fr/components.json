@@ -6,12 +6,6 @@
     "previousPage": "Page précédente",
     "nextPage": "Page suivante"
   },
-  "immutable": {
-    "chip": "Immuable",
-    "chipDays": "Immuable · {{days}} j",
-    "lockedUntil": "Verrouillé jusqu’au {{date}}",
-    "lockedGeneric": "Copie immuable — verrouillée jusqu’à l’expiration de sa fenêtre"
-  },
   "pipeline": {
     "title": "Pipeline",
     "bottleneck": "Goulot d’étranglement : {{label}}",
@@ -23,9 +17,18 @@
       "target": "Cible (référentiel)"
     },
     "stage": {
-      "source": { "label": "Source", "sub": "lecture invité" },
-      "network": { "label": "Réseau", "sub": "sur le LAN" },
-      "target": { "label": "Cible", "sub": "référentiel · physique" },
+      "source": {
+        "label": "Source",
+        "sub": "lecture invité"
+      },
+      "network": {
+        "label": "Réseau",
+        "sub": "sur le LAN"
+      },
+      "target": {
+        "label": "Cible",
+        "sub": "référentiel · physique"
+      },
       "replicaLabel": "Réplica",
       "replicaSub": "→ disque virtuel",
       "networkReplicaSub": "vers la cible · liaison",

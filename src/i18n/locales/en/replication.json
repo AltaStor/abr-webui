@@ -11,10 +11,23 @@
       "replicas": "Replicas",
       "inSync": "In sync",
       "failedOver": "Failed over",
+      "outOfRpo": "Out of RPO",
       "acrossJobs_one": "Across {{count}} replication job",
       "acrossJobs_other": "Across {{count}} replication jobs",
+      "withinRpo": "Within RPO · avg lag {{lag}}",
       "servingDr": "Replicas serving in DR",
-      "noActiveFailovers": "No active failovers"
+      "noActiveFailovers": "No active failovers",
+      "allReady": "All replicas ready",
+      "someSyncing": "Some replicas still syncing",
+      "lagPastTarget": "Lag past target — drifting or breached",
+      "allWithinTarget": "All replicas within target"
+    },
+    "jobsSection": {
+      "title": "Replication jobs",
+      "subtitle": "Each job resyncs its replicas on a schedule.",
+      "replicaCount_one": "{{count}} replica",
+      "replicaCount_other": "{{count}} replicas",
+      "lastRun": "last run {{when}}"
     },
     "tabs": {
       "jobs": "Jobs",
@@ -31,7 +44,9 @@
   },
   "health": {
     "error": "Error",
+    "breach": "RPO breach",
     "failover": "Failover",
+    "drifting": "Drifting",
     "syncing": "Syncing",
     "inSync": "In sync"
   },
@@ -81,8 +96,8 @@
     "toast": {
       "started": {
         "title": "Started {{name}}",
-        "description": "Watch the sync stream live in Activity.",
-        "watch": "Watch"
+        "description": "Watch the sync stream live on the job's page.",
+        "watch": "Open job"
       },
       "paused": {
         "title": "{{name}} is paused",
@@ -191,6 +206,7 @@
     "replicatedVm": "Replicated VM",
     "route": "Route",
     "state": "State",
+    "rpoLag": "RPO lag",
     "lastSync": "Last sync",
     "size": "Size",
     "crossPlatform": "cross-platform"
@@ -201,6 +217,11 @@
     "source": "{{platform}} source",
     "target": "{{platform}} target",
     "crossPlatform": "Cross-platform · {{source}} → {{target}} (converted on failover)",
+    "lagLabel": "Replication lag (RPO)",
+    "targetLag": "target {{duration}}",
+    "within": "Within RPO",
+    "drifting": "Drifting",
+    "breached": "Breached",
     "lastSync": "Last sync",
     "recoveryPoints": "Recovery points",
     "replicaSize": "Replica size",

@@ -9,8 +9,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ProgressBar } from "@/components/ProgressBar";
 import { StatusPill } from "@/components/StatusPill";
-import { SESSION_META } from "@/lib/status";
-import { formatDuration, formatRelative, formatStorage, formatThroughput } from "@/lib/format";
+import { TimeStamp } from "@/components/TimeStamp";
+import { SESSION_META, toneFg } from "@/lib/status";
+import { formatDateTime, formatDuration, formatRelative, formatStorage, formatThroughput } from "@/lib/format";
 import { useWorldStore } from "@/store/world";
 import { runKind } from "@/features/activity/lib";
 
@@ -54,18 +55,32 @@ export function LiveActivityPanel() {
         <p className="sr-only" aria-live="polite">
           {liveStatus}
         </p>
-        <AnimatePresence mode="popLayout" initial={false}>
+        {/* Not mode="popLayout": it lifts an exiting child out of flow and only
+            drops it once its exit resolves, and this panel re-renders on every
+            progress tick — so a render landing mid-exit stranded the callback
+            and left the child mounted, absolutely positioned and sized to its
+            content. They accumulated, overflowed the page sideways, and the
+            same desync left arriving children frozen at their initial opacity.
+            The default mode plus `layout` gives the same settling reflow. */}
+        <AnimatePresence initial={false}>
           {running.length === 0 ? (
             <motion.div
               key="idle"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="flex items-center gap-3 rounded-lg border border-dashed border-border/70 px-4 py-5 text-sm text-muted-foreground"
+              className="flex items-center gap-3 border border-dashed border-border px-4 py-5 text-sm text-muted-foreground"
             >
               <Radio className="h-5 w-5" />
               <span>
                 {t("live.emptyNoRuns")}
-                {nextRun && <span className="ml-1">{t("live.emptyNextScheduled", { when: formatRelative(new Date(nextRun).toISOString()) })}</span>}
+                {nextRun && (
+                  <span className="ml-1">
+                    {t("live.emptyNextScheduled", {
+                      when: formatRelative(new Date(nextRun).toISOString()),
+                      abs: formatDateTime(new Date(nextRun).toISOString()),
+                    })}
+                  </span>
+                )}
               </span>
             </motion.div>
           ) : (
@@ -79,7 +94,7 @@ export function LiveActivityPanel() {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.98 }}
                   aria-busy
-                  className="rounded-lg border border-info/30 bg-info/[0.04] p-3"
+                  className="border border-info/30 bg-info/[0.04] p-3"
                 >
                   <div className="flex items-center justify-between gap-2">
                     <div className="flex min-w-0 items-center gap-2">
@@ -117,8 +132,11 @@ export function LiveActivityPanel() {
         </AnimatePresence>
 
         <div className="mt-1">
-          <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/70">{t("live.recentCompletions")}</p>
+          <p className="label-overline mb-1.5">{t("live.recentCompletions")}</p>
           <div className="space-y-0.5">
+            {recent.length === 0 && (
+              <p className="px-2 py-1.5 text-sm text-muted-foreground">{t("live.recentEmpty")}</p>
+            )}
             {recent.map((s) => {
               const meta = SESSION_META[s.status];
               const Icon = meta.icon;
@@ -126,17 +144,16 @@ export function LiveActivityPanel() {
                 <Link
                   key={s.id}
                   to={`/jobs/${s.jobId}`}
-                  className="flex items-center gap-3 rounded-md px-2 py-1.5 transition-colors hover:bg-muted/50"
+                  className="flex items-center gap-3 px-2 py-1.5 transition-colors hover:bg-muted/50"
                 >
-                  <Icon
-                    className={`h-4 w-4 shrink-0 ${
-                      meta.tone === "success" ? "text-success" : meta.tone === "warning" ? "text-warning" : "text-danger"
-                    }`}
-                  />
+                  {/* The tone is the status map's verdict — reading it through
+                      `toneFg` keeps a non-verdict status (muted, info) from
+                      falling through a chained ternary and painting red. */}
+                  <Icon className={`h-4 w-4 shrink-0 ${toneFg(meta.tone)}`} />
                   <span className="min-w-0 flex-1 truncate text-sm">{s.jobName}</span>
                   <span className="nums hidden shrink-0 text-xs text-muted-foreground sm:block">{formatStorage(s.processedGB)}</span>
                   <span className="nums hidden shrink-0 text-xs text-muted-foreground md:block">{formatDuration(s.durationSec)}</span>
-                  <span className="nums shrink-0 text-xs text-muted-foreground">{formatRelative(s.finishedAt)}</span>
+                  <TimeStamp value={s.finishedAt} size="xs" align="right" className="shrink-0" />
                 </Link>
               );
             })}

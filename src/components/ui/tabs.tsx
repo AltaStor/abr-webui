@@ -14,7 +14,7 @@ export const TabsList = React.forwardRef<
   <TabsPrimitive.List
     ref={ref}
     className={cn(
-      "inline-flex h-9 items-center justify-center rounded-lg bg-muted/60 p-1 text-muted-foreground",
+      "inline-flex h-auto w-full items-center justify-start gap-6 border-b border-border bg-transparent p-0",
       className,
     )}
     {...props}
@@ -29,8 +29,10 @@ export const TabsTrigger = React.forwardRef<
   <TabsPrimitive.Trigger
     ref={ref}
     className={cn(
-      "inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-md px-3 py-1 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50",
-      "data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-sm",
+      // -mb-px lands the trigger's rule on the list hairline, so the active
+      // underline replaces that hairline instead of stacking below it.
+      "-mb-px inline-flex items-center justify-center gap-1.5 whitespace-nowrap border-b-2 border-transparent py-2 font-display text-sm font-medium text-muted-foreground transition-colors duration-250 hover:text-foreground disabled:pointer-events-none disabled:opacity-50",
+      "data-[state=active]:border-primary data-[state=active]:text-foreground",
       className,
     )}
     {...props}
@@ -42,10 +44,6 @@ export const TabsContent = React.forwardRef<
   React.ElementRef<typeof TabsPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof TabsPrimitive.Content>
 >(({ className, ...props }, ref) => (
-  <TabsPrimitive.Content
-    ref={ref}
-    className={cn("mt-4 focus-visible:outline-none", className)}
-    {...props}
-  />
+  <TabsPrimitive.Content ref={ref} className={cn("mt-4", className)} {...props} />
 ));
 TabsContent.displayName = "TabsContent";

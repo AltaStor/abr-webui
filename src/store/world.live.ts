@@ -27,7 +27,6 @@ import type {
 } from "@/store/world.types";
 import { applyReadState, persistAllAlertsRead, persistAlertRead } from "@/store/notifications.persist";
 import { segmentChainPoints } from "@/lib/restore-points";
-import { restoreRunName } from "@/lib/format";
 
 /** Debounce window for per-(event, id) fetch coalescing. */
 const COALESCE_MS = 300;
@@ -88,27 +87,20 @@ function eventId(ev: ApplianceEventMessage, key: string): string | null {
 }
 
 /**
- * Fallback naming for restore sessions the orchestrator couldn't name itself.
- *
- * A restore carries no job, so mapSession names it from the task's own
- * `vm_name`/`source_vm_name` (see _session_vm_names in abr_v41.py). Sessions
- * recorded before those fields existed have neither, and fall back to the
- * bare "Restore" label — for those, resolve the VM name from the hydrated
- * inventory here, where both the session and the vms list are in hand.
- *
- * Sessions the orchestrator DID name are left untouched: overwriting a real
- * target VM name ("testVM-restore") with the source VM's inventory name would
- * undo the correct naming mapSession already applied.
+ * Restore sessions carry no job (the appliance never creates one for a
+ * restore task), so the appliance can only give the mapper a placeholder
+ * name ("—") — resolve the real VM name from the hydrated inventory here,
+ * where both the session and the vms list are in hand.
  */
 function withRestoreVmName(session: Session, vms: VM[]): Session {
   if (session.type !== "restore") return session;
   const result = session.vmResults[0];
-  if (result?.vmName && result.vmName !== result.vmId) return session;
   const vmName = vms.find((v) => v.id === result?.vmId)?.name;
   if (!vmName) return session;
+  const jobName = `Restore · ${vmName}`;
   return {
     ...session,
-    jobName: restoreRunName(vmName),
+    jobName,
     vmResults: session.vmResults.map((r) => (r === result ? { ...r, vmName } : r)),
   };
 }
@@ -163,60 +155,25 @@ export function createLiveDriver(handle: WorldHandle): WorldDriver {
    * (still an honest rate), and the computed rate is *held* — not reset to
    * mapSession's 0 — on ticks where no new bytes have landed yet.
    */
-  interface RateSample {
-    gb: number;
-    at: number;
-    mbps: number;
-  }
-
-  /**
-   * One counter's running rate. The anchor in `samples` only advances when the
-   * counter actually moves, so a jump is averaged over the whole time since it
-   * last did (still an honest rate) and the previous rate is HELD on ticks
-   * where nothing new landed. A first sample has nothing to diff and reads 0.
-   */
-  const advanceRate = (samples: Map<string, RateSample>, key: string, gb: number, now: number): number => {
-    const prev = samples.get(key);
-    if (!prev) {
-      samples.set(key, { gb, at: now, mbps: 0 });
-      return 0;
-    }
-    const deltaGB = gb - prev.gb;
-    if (deltaGB <= 0) return prev.mbps;
-    const dtSec = (now - prev.at) / 1000;
-    const mbps = dtSec > 0 ? Math.round((deltaGB * 1024) / dtSec) : prev.mbps;
-    samples.set(key, { gb, at: now, mbps });
-    return mbps;
-  };
-
-  // Two independent counters, two independent rates — they measure different
-  // stages and are NOT interchangeable: processedGB is guest bytes READ off the
-  // source, transferredGB is what actually landed in the repository (smaller,
-  // after compression + dedup). Labelling one with the other's number is how
-  // "Guest read rate" ended up reporting the repo write rate.
-  const throughputSamples = new Map<string, RateSample>();
-  const guestReadSamples = new Map<string, RateSample>();
+  const throughputSamples = new Map<string, { gb: number; at: number; mbps: number }>();
   const withThroughput = (session: Session): Session => {
     if (session.status !== "running") {
       throughputSamples.delete(session.id);
-      guestReadSamples.delete(session.id);
-      const finished: Session = { ...session };
-      if (session.durationSec > 0) {
-        if (session.transferredGB > 0) {
-          finished.throughputMBps = Math.round((session.transferredGB * 1024) / session.durationSec);
-        }
-        if (session.processedGB > 0) {
-          finished.guestReadMBps = Math.round((session.processedGB * 1024) / session.durationSec);
-        }
-      }
-      return finished;
+      if (session.transferredGB <= 0 || session.durationSec <= 0) return session;
+      return { ...session, throughputMBps: Math.round((session.transferredGB * 1024) / session.durationSec) };
     }
     const now = Date.now();
-    return {
-      ...session,
-      throughputMBps: advanceRate(throughputSamples, session.id, session.transferredGB, now),
-      guestReadMBps: advanceRate(guestReadSamples, session.id, session.processedGB, now),
-    };
+    const prev = throughputSamples.get(session.id);
+    if (!prev) {
+      throughputSamples.set(session.id, { gb: session.transferredGB, at: now, mbps: 0 });
+      return session;
+    }
+    const deltaGB = session.transferredGB - prev.gb;
+    if (deltaGB <= 0) return { ...session, throughputMBps: prev.mbps };
+    const dtSec = (now - prev.at) / 1000;
+    const mbps = dtSec > 0 ? Math.round((deltaGB * 1024) / dtSec) : prev.mbps;
+    throughputSamples.set(session.id, { gb: session.transferredGB, at: now, mbps });
+    return { ...session, throughputMBps: mbps };
   };
 
   /* --------------------------- bump plumbing ---------------------------- */
@@ -307,10 +264,6 @@ export function createLiveDriver(handle: WorldHandle): WorldDriver {
       api.listReplicas().catch(() => []),
     ]);
     const namedSessions = sessions.map((s) => withThroughput(withRestoreVmName(s, vms)));
-    // api.listJobs no longer fetches the session list itself (it used to, which
-    // meant every poll pulled the whole history twice) — attach each job's run
-    // history from the list this hydrate already has.
-    const jobsWithRuns = api.withJobRunStats(jobs, namedSessions);
     // Logs only for sessions still running — finished ones lazy-load on demand.
     const running = namedSessions.filter((s) => s.status === "running");
     const logs = await Promise.all(
@@ -338,7 +291,7 @@ export function createLiveDriver(handle: WorldHandle): WorldDriver {
       environments,
       hosts,
       vms,
-      jobs: jobsWithRuns,
+      jobs,
       sessions: namedSessions,
       restorePoints,
       repositories,
@@ -894,10 +847,10 @@ export function createLiveDriver(handle: WorldHandle): WorldDriver {
             // We already know the source VM name from the request itself —
             // no need to wait on a vms lookup for the session we just started.
             const named: Session =
-              session.type === "restore" && !session.vmResults.some((r) => r.vmName)
+              session.type === "restore"
                 ? {
                     ...session,
-                    jobName: restoreRunName(input.vmName),
+                    jobName: `Restore · ${input.vmName}`,
                     vmResults: session.vmResults.map((r) => ({ ...r, vmName: input.vmName })),
                   }
                 : session;
@@ -926,9 +879,6 @@ export function createLiveDriver(handle: WorldHandle): WorldDriver {
           existingVms: [],
           originalDatastore: null,
           originalHost: null,
-          defaultHostId: null,
-          defaultDatastoreId: null,
-          defaultEnvironmentId: null,
         };
       }
     },

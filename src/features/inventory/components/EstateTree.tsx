@@ -3,7 +3,8 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { ChevronRight, Cloud, Cluster, MapPin, MoreHorizontal, Pencil, RefreshCw, Trash2, Tower, type LucideIcon } from "@/lib/icons";
+import { ChevronRight, Cluster, MapPin, MoreHorizontal, Pencil, RefreshCw, Trash2, Tower, type LucideIcon } from "@/lib/icons";
+import { PLATFORM_LOGO } from "@/lib/platform-glyphs";
 import { cn } from "@/lib/utils";
 import { StatusDot } from "@/components/StatusPill";
 import { Button } from "@/components/ui/button";
@@ -17,11 +18,42 @@ import type { Environment, HostStatus } from "@/types";
 import type { NodeKind, Rollup, TreeNode } from "../topology";
 
 const KIND_ICON: Record<Exclude<NodeKind, "vm">, LucideIcon> = {
-  platform: Cloud,
   datacenter: MapPin,
   cluster: Cluster,
   host: Tower,
 };
+
+/**
+ * A node's icon: the base glyph says WHAT it is — a site, a cluster, a host —
+ * and the platform logo rides it as a corner chip on clusters and hosts.
+ *
+ * Platform used to be a tree tier instead. As structure it was misleading (a
+ * site can mix platforms) and, on this orchestrator, vacuous: it registers
+ * vCenter and standalone ESXi, both VMware, so the tier could only ever be one
+ * node wrapping the whole estate. As a mark it is what it always was — an
+ * attribute of the machine. A datacenter carries no chip: its children may
+ * differ, and the tinted site treatment already separates it.
+ */
+function NodeGlyph({ node }: { node: TreeNode }) {
+  const Base = KIND_ICON[node.kind as Exclude<NodeKind, "vm">];
+  const isSite = node.kind === "datacenter";
+  const Logo = !isSite && node.hypervisor ? PLATFORM_LOGO[node.hypervisor] : null;
+  return (
+    <span
+      className={cn(
+        "relative flex h-6 w-6 shrink-0 items-center justify-center",
+        isSite ? "bg-info-subtle text-info" : "bg-muted text-muted-foreground",
+      )}
+    >
+      <Base className="h-3.5 w-3.5" />
+      {Logo && (
+        <span className="absolute -bottom-[3px] -right-[3px] flex h-3.5 w-3.5 items-center justify-center bg-card text-foreground ring-1 ring-border">
+          <Logo className="h-2.5 w-2.5" />
+        </span>
+      )}
+    </span>
+  );
+}
 
 const HOST_STATUS_TONE: Record<HostStatus, string> = {
   online: "success",
@@ -33,7 +65,7 @@ const HOST_STATUS_TONE: Record<HostStatus, string> = {
  *  leaves — are visible without expanding each branch by hand. */
 function defaultOpen(nodes: TreeNode[], acc: Set<string>): Set<string> {
   for (const n of nodes) {
-    if (n.kind === "platform" || n.kind === "datacenter" || n.kind === "cluster") {
+    if (n.kind === "datacenter" || n.kind === "cluster") {
       acc.add(n.key);
       defaultOpen(n.children, acc);
     }
@@ -207,8 +239,8 @@ export function EstateTree({
             onFocus={() => setFocusedKey(node.key)}
             style={{ paddingLeft: pad }}
             className={cn(
-              "group flex w-full cursor-pointer items-center gap-1.5 rounded-md py-1.5 pr-2 text-left transition-colors",
-              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/25 focus-visible:ring-offset-0",
+              "group flex w-full cursor-pointer items-center gap-1.5 py-1.5 pr-2 text-left transition-colors",
+              "",
               "[@media(pointer:coarse)]:min-h-[40px]",
               selected ? "bg-primary/[0.08]" : "hover:bg-muted/50",
             )}
@@ -250,7 +282,6 @@ function BranchRow({
   onDeleteEnvironment: (environment: Environment) => void;
 }) {
   const { t } = useTranslation("inventory");
-  const Icon = KIND_ICON[node.kind as Exclude<NodeKind, "vm">];
   const env = node.environment;
   return (
     <>
@@ -263,7 +294,7 @@ function BranchRow({
             e.stopPropagation();
             onToggle(node.key);
           }}
-          className="flex h-6 w-5 shrink-0 items-center justify-center rounded text-muted-foreground transition-colors hover:text-foreground"
+          className="flex h-6 w-5 shrink-0 items-center justify-center text-muted-foreground transition-colors hover:text-foreground"
         >
           <ChevronRight className={cn("h-3.5 w-3.5 transition-transform", expanded && "rotate-90")} />
         </button>
@@ -271,14 +302,7 @@ function BranchRow({
         <span className="w-5 shrink-0" />
       )}
 
-      <span
-        className={cn(
-          "flex h-6 w-6 shrink-0 items-center justify-center rounded-md",
-          node.kind === "platform" ? "bg-primary/12 text-primary" : node.kind === "datacenter" ? "bg-info-subtle text-info" : "bg-muted text-muted-foreground",
-        )}
-      >
-        <Icon className="h-3.5 w-3.5" />
-      </span>
+      <NodeGlyph node={node} />
 
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-1.5">

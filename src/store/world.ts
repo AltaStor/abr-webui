@@ -16,6 +16,7 @@
  */
 import { create } from "zustand";
 import { toast } from "sonner";
+import i18n from "@/i18n";
 import { apiErrorMessage, isVersionMismatchError } from "@/services/api.http";
 import { createLiveDriver } from "./world.live";
 import { createSimDriver } from "./world.sim";
@@ -87,9 +88,6 @@ export const useWorldStore = create<WorldState>(() => ({
       existingVms: [],
       originalDatastore: null,
       originalHost: null,
-      defaultHostId: null,
-      defaultDatastoreId: null,
-      defaultEnvironmentId: null,
     }),
   deleteRestorePoint: (id, segmentId) =>
     driver?.actions.deleteRestorePoint(id, segmentId) ??
@@ -149,9 +147,8 @@ async function activate(mode: WorldMode, allowFallback: boolean): Promise<void> 
     }
     if (mode === "live" && allowFallback) {
       console.warn("[world] appliance unreachable — falling back to demo simulation:", err);
-      toast.info("Appliance unreachable — showing the built-in demo world", {
-        description:
-          "Start the backend (server/) and switch back via ⌘K → “Connect to live appliance”.",
+      toast.info(i18n.t("domain:worldMode.unreachable.title"), {
+        description: i18n.t("domain:worldMode.unreachable.description"),
         duration: 8000,
       });
       await activate("sim", false);

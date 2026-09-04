@@ -54,10 +54,10 @@ export function SettingsRail({ active, onSelect }: SettingsRailProps) {
                 onClick={() => onSelect(s.key)}
                 aria-current={isActive ? "page" : undefined}
                 className={cn(
-                  "inline-flex shrink-0 items-center gap-1.5 rounded-lg border px-3 py-2 text-sm font-medium transition-colors",
+                  "inline-flex shrink-0 items-center gap-1.5 border px-3 py-2 font-display text-sm font-medium transition-colors duration-250",
                   isActive
                     ? "border-primary/30 bg-primary/[0.08] text-foreground"
-                    : "border-border/60 text-muted-foreground hover:bg-muted/50 hover:text-foreground",
+                    : "border-border text-muted-foreground hover:bg-muted/50 hover:text-foreground",
                 )}
               >
                 <Icon className="h-4 w-4" />
@@ -81,13 +81,13 @@ export function SettingsRail({ active, onSelect }: SettingsRailProps) {
                 onClick={() => onSelect(s.key)}
                 aria-current={isActive ? "page" : undefined}
                 className={cn(
-                  "group flex w-full items-start gap-2.5 rounded-lg px-3 py-2 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                  "group flex w-full items-start gap-2.5 px-3 py-2 text-left transition-colors duration-250",
                   isActive ? "bg-primary/[0.08]" : "hover:bg-muted/50",
                 )}
               >
                 <span
                   className={cn(
-                    "mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-md transition-colors",
+                    "mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center transition-colors duration-250",
                     isActive
                       ? "bg-primary/15 text-primary"
                       : "bg-muted text-muted-foreground group-hover:text-foreground",
@@ -96,7 +96,7 @@ export function SettingsRail({ active, onSelect }: SettingsRailProps) {
                   <Icon className="h-4 w-4" />
                 </span>
                 <span className="min-w-0">
-                  <span className={cn("block text-sm font-medium", isActive ? "text-foreground" : "text-foreground/90")}>
+                  <span className={cn("block font-display text-sm font-medium", isActive ? "text-foreground" : "text-foreground/90")}>
                     {s.label}
                   </span>
                   <span className="block truncate text-xs text-muted-foreground">{s.blurb}</span>

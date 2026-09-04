@@ -105,17 +105,13 @@ export function LiveThroughput({ value, active, height = 48, tone = "info", clas
       ctx.lineCap = "round";
       ctx.stroke();
 
-      // The glowing write head at the leading (right) edge.
+      // The write head at the leading (right) edge — a solid node, no halo.
       const hx = xAt(WINDOW - 1);
       const hy = yAt(buf[WINDOW - 1]);
-      ctx.save();
-      ctx.shadowColor = line;
-      ctx.shadowBlur = 8;
       ctx.fillStyle = line;
       ctx.beginPath();
       ctx.arc(hx - 1.5, hy, 2.4, 0, Math.PI * 2);
       ctx.fill();
-      ctx.restore();
     };
 
     // ---- Static path (reduced motion): one calm line, redrawn on value change ----

@@ -9,11 +9,13 @@
   "export": {
     "menuLabel": "Protokolle exportieren",
     "supportBundle": "Support-Paket",
-    "systemLog": "Systemprotokoll (.log)"
+    "systemLog": "Vollständiges Systemprotokoll (.log)"
   },
   "toast": {
     "exportedSystem_one": "{{count}} Systemprotokollzeile exportiert",
     "exportedSystem_other": "{{count}} Systemprotokollzeilen exportiert",
+    "exportedSystemFiltered_one": "{{count}} gefilterte Protokollzeile exportiert",
+    "exportedSystemFiltered_other": "{{count}} gefilterte Protokollzeilen exportiert",
     "exportedSupportBundle": "Support-Paket heruntergeladen",
     "exportSupportBundleFailed": "Support-Paket konnte nicht erstellt werden"
   },
@@ -26,11 +28,14 @@
   },
   "system": {
     "sources": "Quellen",
+    "sourcesGroupLabel": "Protokollquellen – beliebig viele zum Filtern auswählen",
+    "sourcesAllShown": "alle {{total}} angezeigt",
+    "sourcesSomeShown": "{{selected}} von {{total}} angezeigt",
     "searchLabel": "Systemprotokollmeldungen durchsuchen",
     "searchPlaceholder": "Meldungen durchsuchen…",
     "liveTail": "Live-Verfolgung",
     "toggleLiveTail": "Live-Verfolgung umschalten",
-    "downloadLog": ".log herunterladen",
+    "downloadLog": "Gefiltert herunterladen (.log)",
     "lineCount_one": "{{formatted}} Zeile",
     "lineCount_other": "{{formatted}} Zeilen",
     "filteredToSources_one": " · gefiltert nach {{count}} Quelle",

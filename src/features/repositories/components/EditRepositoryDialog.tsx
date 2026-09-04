@@ -87,8 +87,8 @@ function EditRepositoryForm({ repo, onClose }: { repo: Repository; onClose: () =
 
   return (
     <form onSubmit={handleSubmit}>
-      <DialogHeader className="border-b border-border/70 p-6 pb-5">
-        <div className="mb-1 flex h-10 w-10 items-center justify-center rounded-lg bg-muted text-muted-foreground">
+      <DialogHeader className="border-b border-border p-6 pb-5">
+        <div className="mb-1 flex h-10 w-10 items-center justify-center bg-muted text-muted-foreground">
           <Wrench className="h-5 w-5" />
         </div>
         <DialogTitle>{t("edit.title")}</DialogTitle>
@@ -107,7 +107,7 @@ function EditRepositoryForm({ repo, onClose }: { repo: Repository; onClose: () =
         </div>
       </div>
 
-      <DialogFooter className="border-t border-border/70 p-6 pt-4">
+      <DialogFooter className="border-t border-border p-6 pt-4">
         <DialogClose asChild>
           <Button type="button" variant="ghost">
             {t("common:actions.cancel")}

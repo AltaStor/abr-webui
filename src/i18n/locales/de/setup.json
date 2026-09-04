@@ -99,22 +99,6 @@
     "nameLabel": "Repository-Name",
     "namePlaceholder": "Gehärtetes Repository",
     "nameError": "Vergeben Sie einen Namen für das Repository.",
-    "immutability": {
-      "label": "Unveränderlichkeit",
-      "description": "Jeder Wiederherstellungspunkt wird sofort beim Eintreffen versiegelt – keine Änderungen, keine Löschungen, bis seine Sperre abläuft. Ransomware, die die Appliance erreicht, findet nichts zum Überschreiben.",
-      "daysLabel": "Sperrfenster (Tage)",
-      "daysHint": "Jeder Wiederherstellungspunkt bleibt nach dem Eintreffen so viele Tage versiegelt (1–3650).",
-      "modeLabel": "Modus",
-      "modeAria": "Unveränderlichkeitsmodus",
-      "compliance": {
-        "title": "Compliance",
-        "description": "Niemand kann vorzeitig entsperren – auch keine Administratoren. Die Sperre überdauert gestohlene Anmeldedaten."
-      },
-      "governance": {
-        "title": "Governance",
-        "description": "Administratoren können das Entsperren erzwingen; jede Übersteuerung wird protokolliert."
-      }
-    },
     "encryption": {
       "label": "Verschlüsselung (AES-256)",
       "description": "Wiederherstellungspunkte werden im Ruhezustand verschlüsselt. Ein gestohlener Datenträger ist ein Ziegelstein, kein Datenleck."
@@ -132,7 +116,8 @@
     "credentialLabel": "Anmeldedaten-Referenz",
     "credentialHint": "z. B. vault:secret/hv-lab – Geheimnisse landen niemals im Manifest.",
     "partialWarning": "Füllen Sie jedes Feld aus oder leeren Sie die Zeile – unvollständige Zeilen werden nicht angewendet.",
-    "addAnother": "Weitere hinzufügen"
+    "addAnother": "Weitere hinzufügen",
+    "vmwareOnly": "Hier können nur VMware vCenter und eigenständige ESXi-Hosts hinzugefügt werden. Diese Appliance kann Hyper-V- und Proxmox-Umgebungen registrieren, aber noch würde keine Ausführung dagegen gelingen."
   },
   "review": {
     "title": "Prüfung",
@@ -151,8 +136,6 @@
     "layout": "Layout",
     "layoutAutomatic": "Automatisch (zur Anwendungszeit geplant)",
     "name": "Name",
-    "immutability": "Unveränderlichkeit",
-    "immutabilityValue": "{{days}}-Tage-Sperren · {{mode}}",
     "off": "Aus",
     "encryption": "Verschlüsselung",
     "encryptionValue": "AES-256 im Ruhezustand",

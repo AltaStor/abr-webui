@@ -32,12 +32,20 @@ import { useWorldStore } from "@/store/world";
 import type { RepositoryType, S3ConnectionTestResult } from "@/types";
 import { REPO_TYPE_META, REPOSITORY_NAME_MAX_LENGTH, REPOSITORY_NAME_PATTERN } from "./repoMeta";
 
-const TYPE_OPTIONS: RepositoryType[] = ["object-lock-s3", "local"];
+/**
+ * The only two backends the orchestrator can create: `createRepository` maps
+ * the console type onto the wire type, and only "s3" and "local" have a
+ * complete form here. "nfs" is on the wire but has no share/credential fields
+ * in this dialog, and "hardened-immutable" has no wire type at all — it would
+ * be sent as a plain "local" and read straight back as one.
+ */
+const TYPE_OPTIONS = ["object-lock-s3", "local"] as const satisfies readonly RepositoryType[];
+type OfferedRepositoryType = (typeof TYPE_OPTIONS)[number];
 
-const PATH_PLACEHOLDER: Record<RepositoryType, string> = {
-  "hardened-immutable": "/mnt/vault/hardened",
+/** Keyed on what's actually offered — a placeholder for a type the dialog
+ *  can't create is dead text that outlives the reason it was written. */
+const PATH_PLACEHOLDER: Record<OfferedRepositoryType, string> = {
   "object-lock-s3": "s3://your-bucket-name",
-  nfs: "nfs://nas01.local/backups",
   local: "/var/vault/backups",
 };
 
@@ -52,7 +60,7 @@ export function AddRepositoryDialog() {
   const testS3Connection = useWorldStore((s) => s.testS3Connection);
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
-  const [type, setType] = useState<RepositoryType>("object-lock-s3");
+  const [type, setType] = useState<OfferedRepositoryType>("object-lock-s3");
   const [path, setPath] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
@@ -66,10 +74,17 @@ export function AddRepositoryDialog() {
   const [verifyTls, setVerifyTls] = useState(true);
   const [testing, setTesting] = useState(false);
   const [testResult, setTestResult] = useState<S3ConnectionTestResult | null>(null);
+  // A required field is only *wrong* once the operator has been to it and left
+  // it empty. Without this the dialog opened with the endpoint already outlined
+  // in red and a refusal underneath it, before anything had been asked for.
+  const [touched, setTouched] = useState<{ bucket?: boolean; endpoint?: boolean }>({});
+  const touch = (field: "bucket" | "endpoint") => () => setTouched((prev) => ({ ...prev, [field]: true }));
 
   const isS3 = type === "object-lock-s3";
   const bucketValid = bucket.trim().length > 0;
   const endpointValid = endpointUrl.trim().length > 0;
+  const showBucketError = Boolean(touched.bucket) && !bucketValid;
+  const showEndpointError = Boolean(touched.endpoint) && !endpointValid;
   const nameTrimmed = name.trim();
   const nameValid =
     nameTrimmed === "" ||
@@ -95,6 +110,7 @@ export function AddRepositoryDialog() {
     setVerifyTls(true);
     setTesting(false);
     setTestResult(null);
+    setTouched({});
   }
 
   // Any change to the S3 settings invalidates a prior test result — it spoke
@@ -152,7 +168,7 @@ export function AddRepositoryDialog() {
     if (!repo) {
       toast.error(t("add.toast.failed.title"), {
         description: isS3
-          ? "The appliance refused the request — check the bucket, endpoint and credentials, then try again."
+          ? t("add.toast.failed.s3Description")
           : t("add.toast.failed.description"),
       });
       return;
@@ -200,7 +216,7 @@ export function AddRepositoryDialog() {
               placeholder={t("add.namePlaceholder")}
               maxLength={REPOSITORY_NAME_MAX_LENGTH}
               aria-invalid={!nameValid}
-              className={cn(!nameValid && "border-danger focus-visible:ring-danger/40")}
+              className={cn(!nameValid && "border-danger")}
               autoFocus
             />
             {!nameValid && <p className="text-xs text-danger">{t("add.nameInvalid")}</p>}
@@ -208,7 +224,7 @@ export function AddRepositoryDialog() {
 
           <div className="space-y-1.5">
             <Label htmlFor="repo-type">{t("add.typeLabel")}</Label>
-            <Select value={type} onValueChange={(v) => setType(v as RepositoryType)}>
+            <Select value={type} onValueChange={(v) => setType(v as OfferedRepositoryType)}>
               <SelectTrigger id="repo-type">
                 <SelectValue />
               </SelectTrigger>
@@ -223,20 +239,23 @@ export function AddRepositoryDialog() {
           </div>
 
           {isS3 ? (
-            <div className="space-y-3 rounded-lg border border-border/70 bg-muted/30 p-3">
+            <div className="space-y-3 border border-border bg-muted/30 p-3">
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
-                  <Label htmlFor="repo-bucket">Bucket</Label>
+                  <Label htmlFor="repo-bucket">{t("add.s3.bucketLabel")}</Label>
                   <Input
                     id="repo-bucket"
                     value={bucket}
                     onChange={(e) => withResultCleared(setBucket)(e.target.value)}
+                    onBlur={touch("bucket")}
                     placeholder="my-backup-bucket"
-                    className="nums"
+                    aria-invalid={showBucketError}
+                    className={cn("nums", showBucketError && "border-danger")}
                   />
+                  {showBucketError && <p className="text-xs text-danger">{t("add.s3.bucketRequired")}</p>}
                 </div>
                 <div className="space-y-1.5">
-                  <Label htmlFor="repo-region">Region</Label>
+                  <Label htmlFor="repo-region">{t("add.s3.regionLabel")}</Label>
                   <Input
                     id="repo-region"
                     value={region}
@@ -248,21 +267,23 @@ export function AddRepositoryDialog() {
               </div>
 
               <div className="space-y-1.5">
-                <Label htmlFor="repo-endpoint">Endpoint URL</Label>
+                <Label htmlFor="repo-endpoint">{t("add.s3.endpointLabel")}</Label>
                 <Input
                   id="repo-endpoint"
                   value={endpointUrl}
                   onChange={(e) => withResultCleared(setEndpointUrl)(e.target.value)}
+                  onBlur={touch("endpoint")}
                   placeholder="https://s3.example.com"
-                  aria-invalid={!endpointValid}
-                  className={cn("nums", !endpointValid && "border-danger focus-visible:ring-danger/40")}
+                  aria-invalid={showEndpointError}
+                  className={cn("nums", showEndpointError && "border-danger")}
                 />
-                {!endpointValid && <p className="text-xs text-danger">Required — the S3-compatible endpoint to connect to.</p>}
+                {showEndpointError && <p className="text-xs text-danger">{t("add.s3.endpointRequired")}</p>}
               </div>
 
               <div className="space-y-1.5">
                 <Label htmlFor="repo-prefix">
-                  Prefix <span className="text-muted-foreground">(optional)</span>
+                  {t("add.s3.prefixLabel")}{" "}
+                  <span className="text-muted-foreground">{t("add.s3.optional")}</span>
                 </Label>
                 <Input
                   id="repo-prefix"
@@ -275,7 +296,7 @@ export function AddRepositoryDialog() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
-                  <Label htmlFor="repo-access-key">Access key</Label>
+                  <Label htmlFor="repo-access-key">{t("add.s3.accessKeyLabel")}</Label>
                   <Input
                     id="repo-access-key"
                     value={accessKey}
@@ -286,7 +307,7 @@ export function AddRepositoryDialog() {
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <Label htmlFor="repo-secret-key">Secret key</Label>
+                  <Label htmlFor="repo-secret-key">{t("add.s3.secretKeyLabel")}</Label>
                   <Input
                     id="repo-secret-key"
                     type="password"
@@ -301,17 +322,17 @@ export function AddRepositoryDialog() {
 
               <div className="flex items-center justify-between gap-3">
                 <Label htmlFor="repo-verify-tls" className="text-xs text-muted-foreground">
-                  Verify TLS certificate
+                  {t("add.s3.verifyTlsLabel")}
                 </Label>
                 <Switch
                   id="repo-verify-tls"
                   checked={verifyTls}
                   onCheckedChange={(checked) => withResultCleared(setVerifyTls)(checked)}
-                  aria-label="Verify the endpoint TLS certificate"
+                  aria-label={t("add.s3.verifyTlsAria")}
                 />
               </div>
 
-              <div className="space-y-2 border-t border-border/60 pt-3">
+              <div className="space-y-2 border-t border-border pt-3">
                 <Button
                   type="button"
                   variant="outline"
@@ -325,12 +346,12 @@ export function AddRepositoryDialog() {
                   ) : (
                     <Wifi className="h-4 w-4" />
                   )}
-                  {testing ? "Testing connection…" : "Test connection"}
+                  {testing ? t("add.s3.testing") : t("add.s3.test")}
                 </Button>
                 {testResult && (
                   <div
                     className={cn(
-                      "flex items-start gap-2 rounded-lg px-3 py-2.5 text-xs",
+                      "flex items-start gap-2 px-3 py-2.5 text-xs",
                       testResult.ok
                         ? "bg-success-subtle text-success-text"
                         : "bg-danger-subtle text-danger-text",

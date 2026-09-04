@@ -13,7 +13,6 @@ import {
   Info,
   MemoryStick,
   Server,
-  ShieldCheck,
   Terminal,
 } from "@/lib/icons";
 import { Button } from "@/components/ui/button";
@@ -138,31 +137,24 @@ export function AboutSection() {
   return (
     <div className="space-y-4">
       {/* Brand lockup */}
-      <div className="relative overflow-hidden rounded-xl border border-border/70 bg-card shadow-card">
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-0 opacity-[0.07]"
-          style={{
-            background:
-              "radial-gradient(600px 200px at 15% -20%, hsl(28 74% 56%), transparent), radial-gradient(600px 220px at 90% 120%, hsl(190 72% 47%), transparent)",
-          }}
-        />
+      <div className="relative overflow-hidden border border-border bg-card ">
+        {/* The brand's own ambient geometry — hairline crosshatch in ink, which
+            reads in both themes and stays on-token. What stood here was two
+            radial blobs in a hardcoded amber and cyan, neither of which is a
+            colour this console owns. */}
+        <div aria-hidden className="basalt-lattice pointer-events-none absolute inset-0" />
         <div className="relative flex flex-col gap-4 p-6 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-4">
             <Logo className="scale-125 pl-1" />
           </div>
           <div className="sm:text-right">
             <p className="text-sm font-medium">{t("about.brand.tagline")}</p>
-            <p className="mt-0.5 flex items-center gap-1.5 text-xs text-muted-foreground sm:justify-end">
-              <ShieldCheck className="h-3.5 w-3.5 text-immutable" />
-              {t("about.brand.openSource")}
-            </p>
           </div>
         </div>
       </div>
 
       {/* Identity grid */}
-      <SettingsSection title={t("about.appliance.title")} description={t("about.appliance.description")} icon={Server}>
+      <SettingsSection title={t("about.appliance.title")} icon={Server}>
         <div className="grid gap-x-8 gap-y-1 py-2 sm:grid-cols-2">
           {identity.map(({ icon: Icon, label, value, mono }) => (
             <div
@@ -177,27 +169,13 @@ export function AboutSection() {
             </div>
           ))}
         </div>
-        {!loading && !info && (
-          <div
-            className={
-              failed
-                ? "mb-3 flex items-start gap-2 rounded-lg border border-warning/30 bg-warning-subtle px-3 py-2.5 text-[13px] leading-relaxed text-warning-text"
-                : "mb-3 flex items-start gap-2 rounded-lg border border-border/60 bg-muted/30 px-3 py-2.5 text-[13px] leading-relaxed text-muted-foreground"
-            }
-          >
-            {failed ? (
-              <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
-            ) : (
-              <Info className="mt-0.5 h-4 w-4 shrink-0" />
-            )}
-            <span className="flex-1">
-              {failed ? t("about.appliance.probeFailed") : t("about.appliance.noAppliance")}
-            </span>
-            {failed && (
-              <Button variant="outline" size="sm" onClick={retryProbe}>
-                {t("common:actions.retry")}
-              </Button>
-            )}
+        {!loading && !info && failed && (
+          <div className="mb-3 flex items-start gap-2 border border-warning/30 bg-warning-subtle px-3 py-2.5 text-[13px] leading-relaxed text-warning-text">
+            <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+            <span className="flex-1">{t("about.appliance.probeFailed")}</span>
+            <Button variant="outline" size="sm" onClick={retryProbe}>
+              {t("common:actions.retry")}
+            </Button>
           </div>
         )}
       </SettingsSection>
@@ -205,21 +183,9 @@ export function AboutSection() {
       {/* License + links */}
       <SettingsSection
         title={t("about.license.title")}
-        description={t("about.license.description")}
         icon={FileText}
         flush
       >
-        <div className="flex items-center gap-3 border-b border-border/50 px-5 py-4">
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-immutable-subtle text-immutable">
-            <ShieldCheck className="h-4 w-4" />
-          </span>
-          <div>
-            <div className="text-sm font-medium">{t("about.license.openSourceTitle")}</div>
-            <p className="text-xs text-muted-foreground">
-              {t("about.license.openSourceBlurb")}
-            </p>
-          </div>
-        </div>
         <ul className="divide-y divide-border/50">
           {LINKS.map((link) => (
             <li key={link.href}>
@@ -229,7 +195,7 @@ export function AboutSection() {
                 rel="noreferrer noopener"
                 className="group flex items-center gap-3 px-5 py-3.5 transition-colors hover:bg-muted/40"
               >
-                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground">
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center bg-muted text-muted-foreground">
                   <FileText className="h-4 w-4" />
                 </span>
                 <div className="min-w-0 flex-1">
@@ -242,15 +208,6 @@ export function AboutSection() {
           ))}
         </ul>
       </SettingsSection>
-
-      <div className="flex justify-center pt-1 text-xs text-muted-foreground">
-        <Button variant="link" size="sm" asChild>
-          <a href="https://github.com/altastor/altastor/releases" target="_blank" rel="noreferrer noopener">
-            {t("about.releaseNotes")}
-            <ExternalLink className="h-3 w-3" />
-          </a>
-        </Button>
-      </div>
     </div>
   );
 }

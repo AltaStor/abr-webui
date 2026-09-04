@@ -2,6 +2,7 @@
 // Copyright © 2026 Norvitex OÜ
 
 import { useEffect, useRef, useState } from "react";
+import { cn } from "@/lib/utils";
 
 interface CountUpProps {
   value: number;
@@ -45,10 +46,16 @@ export function CountUp({ value, format = (n) => `${Math.round(n)}`, durationMs 
     };
   }, [value, durationMs]);
 
+  /* The display face carries no `tnum` feature, so a value whose digit COUNT
+   * changes mid-animation would reflow the box (and shove whatever sits beside
+   * it). Reserving the settled string's width up front holds the box still: a
+   * count-up never renders more characters than it ends with. */
+  const settled = format(value);
+
   return (
-    <span className={className}>
+    <span className={cn("nums inline-block", className)} style={{ minWidth: `${settled.length}ch` }}>
       <span aria-hidden="true">{format(display)}</span>
-      <span className="sr-only">{format(value)}</span>
+      <span className="sr-only">{settled}</span>
     </span>
   );
 }

@@ -86,7 +86,7 @@ export function DeleteEnvironmentDialog({ environment, open, onOpenChange }: Del
     <Dialog open={open} onOpenChange={(o) => (deleting ? undefined : onOpenChange(o))}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <div className="mb-1 flex h-10 w-10 items-center justify-center rounded-lg bg-danger-subtle text-danger">
+          <div className="mb-1 flex h-10 w-10 items-center justify-center bg-danger-subtle text-danger">
             <Trash2 className="h-5 w-5" />
           </div>
           <DialogTitle>{t("removeEnvironment.title", { name: environment.name })}</DialogTitle>
@@ -101,7 +101,7 @@ export function DeleteEnvironmentDialog({ environment, open, onOpenChange }: Del
         </DialogHeader>
 
         {blockingJobs && blockingJobs.length > 0 && (
-          <div className="flex items-start gap-2.5 rounded-lg border border-danger/30 bg-danger-subtle px-3 py-2.5">
+          <div className="flex items-start gap-2.5 border border-danger/30 bg-danger-subtle px-3 py-2.5">
             <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-danger" />
             <div className="space-y-1 text-xs text-danger">
               <Trans
@@ -122,7 +122,7 @@ export function DeleteEnvironmentDialog({ environment, open, onOpenChange }: Del
           </div>
         )}
         {!blockingJobs && referencingJobs.length > 0 && (
-          <div className="flex items-start gap-2.5 rounded-lg border border-warning/30 bg-warning-subtle px-3 py-2.5">
+          <div className="flex items-start gap-2.5 border border-warning/30 bg-warning-subtle px-3 py-2.5">
             <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-warning-text" />
             <div className="space-y-1 text-xs text-warning-text">
               <Trans
@@ -143,7 +143,7 @@ export function DeleteEnvironmentDialog({ environment, open, onOpenChange }: Del
           </div>
         )}
         {error && (
-          <div className="flex items-start gap-2.5 rounded-lg border border-danger/30 bg-danger-subtle px-3 py-2.5">
+          <div className="flex items-start gap-2.5 border border-danger/30 bg-danger-subtle px-3 py-2.5">
             <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-danger" />
             <p className="text-xs text-danger">{error}</p>
           </div>

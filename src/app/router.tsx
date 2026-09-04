@@ -5,6 +5,7 @@ import { lazy, Suspense } from "react";
 import { createBrowserRouter, Navigate, useLocation } from "react-router-dom";
 import { AppShell } from "./AppShell";
 import { RouteError } from "./RouteError";
+import { FeatureUnavailable } from "@/components/FeatureUnavailable";
 
 /** Redirect old standalone /backups bookmarks to the "Backups" tab now living
  *  on the Jobs page. */
@@ -71,9 +72,19 @@ export const router = createBrowserRouter([
       { path: "jobs", element: <JobsPage /> },
       { path: "jobs/new", element: <Navigate to="/jobs/new/backup" replace /> },
       { path: "jobs/new/backup", element: <CreateJobPage kind="backup" /> },
-      // Replication has no orchestrator support — the wizard is hidden and the
-      // route falls back to the one job kind that is wired up.
-      { path: "jobs/new/replication", element: <Navigate to="/jobs/new/backup" replace /> },
+      // Replication has no orchestrator support. The wizard is hidden, and this
+      // route says so rather than quietly handing back the backup wizard —
+      // someone who asked for a replication job would otherwise fill in a
+      // backup job without noticing the substitution.
+      {
+        path: "jobs/new/replication",
+        element: (
+          <FeatureUnavailable
+            titleKey="featureUnavailable.replication.title"
+            descriptionKey="featureUnavailable.replication.description"
+          />
+        ),
+      },
       { path: "jobs/:jobId", element: <JobDetailPage /> },
       { path: "jobs/:jobId/edit", element: <CreateJobPage /> },
       // The standalone Backups page is now the "Backups" tab on Jobs.
@@ -87,9 +98,18 @@ export const router = createBrowserRouter([
       { path: "inventory/:vmId", element: <VmDetailPage /> },
       { path: "repositories", element: <RepositoriesPage /> },
       // Hidden: no orchestrator backing. Replication (replicas, failover/
-      // failback) is unimplemented server-side, so the page is unreachable and
-      // stale links land on the dashboard.
-      { path: "replication", element: <Navigate to="/" replace /> },
+      // failback) is unimplemented server-side, so the page is off the nav —
+      // but a stale bookmark gets an explanation instead of a silent bounce to
+      // the dashboard, which reads as the console losing the page.
+      {
+        path: "replication",
+        element: (
+          <FeatureUnavailable
+            titleKey="featureUnavailable.replication.title"
+            descriptionKey="featureUnavailable.replication.description"
+          />
+        ),
+      },
       // Logs & Audit has no audit-trail backing on the orchestrator yet, so it
       // renders from locally-generated data instead of an appliance feed (see
       // its `mock.ts`) — reachable, just not appliance-sourced. Live per-job

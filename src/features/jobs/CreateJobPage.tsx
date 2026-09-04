@@ -17,12 +17,12 @@ import {
   Sliders,
 } from "@/lib/icons";
 import { PageHeader } from "@/components/PageHeader";
-import { TimeField } from "@/components/TimeField";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Slider } from "@/components/ui/slider";
+import { TimeField } from "@/components/ui/time-field";
 import {
   Select,
   SelectContent,
@@ -91,7 +91,6 @@ interface FormState {
   gfsWeekly: number;
   gfsMonthly: number;
   gfsYearly: number;
-  gfsEnabled: boolean;
   // Replication target
   targetEnvironmentId: string;
   targetHostId: string;
@@ -164,6 +163,7 @@ function JobWizard({
   existingJob?: BackupJob;
 }) {
   const { t } = useTranslation("jobs");
+  const { t: tNav } = useTranslation("nav");
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   // "Protect" from Inventory/VM detail deep-links here with the target VM so
@@ -207,7 +207,6 @@ function JobWizard({
         gfsWeekly: existingJob.retention.gfs?.weekly ?? 0,
         gfsMonthly: existingJob.retention.gfs?.monthly ?? 0,
         gfsYearly: existingJob.retention.gfs?.yearly ?? 0,
-        gfsEnabled: existingJob.retention.gfs?.enabled ?? true,
         targetEnvironmentId: existingJob.replicaTarget?.environmentId ?? "",
         targetHostId: existingJob.replicaTarget?.hostId ?? AUTO_HOST,
         namePrefix: existingJob.replicaTarget?.namePrefix ?? DEFAULT_NAME_PREFIX,
@@ -226,7 +225,6 @@ function JobWizard({
       gfsWeekly: 0,
       gfsMonthly: 0,
       gfsYearly: 0,
-      gfsEnabled: true,
       targetEnvironmentId: "",
       targetHostId: AUTO_HOST,
       namePrefix: DEFAULT_NAME_PREFIX,
@@ -348,7 +346,7 @@ function JobWizard({
     // GFS long-term retention is a backup-only concept — replicas keep N points, no archival tail.
     const gfs =
       !isReplication && (form.gfsWeekly || form.gfsMonthly || form.gfsYearly)
-        ? { weekly: form.gfsWeekly, monthly: form.gfsMonthly, yearly: form.gfsYearly, enabled: form.gfsEnabled }
+        ? { weekly: form.gfsWeekly, monthly: form.gfsMonthly, yearly: form.gfsYearly }
         : undefined;
 
     // The schema still requires a repositoryId for replication jobs; keep the current
@@ -430,7 +428,6 @@ function JobWizard({
     vmCount: selected.size,
     totalSizeGB,
     effectiveMBps,
-    compressionLevel: form.options.compression,
     repository,
     scheduleLabel: scheduleLabel(schedule),
     retentionLabel: isReplication
@@ -439,7 +436,7 @@ function JobWizard({
           keepDays: form.keepDays,
           gfs:
             form.gfsWeekly || form.gfsMonthly || form.gfsYearly
-              ? { weekly: form.gfsWeekly, monthly: form.gfsMonthly, yearly: form.gfsYearly, enabled: form.gfsEnabled }
+              ? { weekly: form.gfsWeekly, monthly: form.gfsMonthly, yearly: form.gfsYearly }
               : undefined,
         }),
     firstRunLabel: firstRunLabel(form),
@@ -464,10 +461,14 @@ function JobWizard({
       <PageHeader
         backTo={
           editMode
-            ? { href: `/jobs/${jobId}`, label: "Job" }
+            // Name the destination, and name it through i18n: these were
+            // hardcoded English, so every non-EN locale read "Backup" under a
+            // sidebar saying "Sauvegarde". The edit crumb points at a page
+            // titled with the job's own name, so it carries that name.
+            ? { href: `/jobs/${jobId}`, label: existingJob?.name ?? tNav("backups") }
             : isReplication
-              ? { href: "/replication", label: "Replication" }
-              : { href: "/jobs", label: "Jobs" }
+              ? { href: "/replication", label: tNav("replication") }
+              : { href: "/jobs", label: tNav("backups") }
         }
         title={
           isReplication
@@ -507,7 +508,7 @@ function JobWizard({
                 // Plain ASCII, no em-dash: this is an example of a name the API
                 // will actually accept (see DEFAULT_JOB_NAME above).
                 placeholder={t("create.jobNamePlaceholder")}
-                className={cn(showNameError && "border-danger focus-visible:ring-danger/40")}
+                className={cn(showNameError && "border-danger")}
                 aria-invalid={showNameError}
               />
               {showNameError && <p className="text-xs text-danger">{nameErrorMessage}</p>}
@@ -643,7 +644,7 @@ function JobWizard({
                   </SelectContent>
                 </Select>
                 {repository && (
-                  <div className="flex items-center justify-between gap-3 rounded-lg bg-muted/30 px-3 py-2 text-xs">
+                  <div className="flex items-center justify-between gap-3 bg-muted/30 px-3 py-2 text-xs">
                     <span className="flex items-center gap-2">
                       <span className="text-muted-foreground">{repository.path}</span>
                     </span>
@@ -675,17 +676,11 @@ function JobWizard({
                 <div className="flex flex-wrap items-end gap-3">
                   <div className="space-y-1.5">
                     <Label htmlFor="run-time">{t("create.atTime")}</Label>
-                    {/* 24-hour by construction — see TimeField. A native time
-                        input renders in the browser's locale, which put a
-                        12-hour picker next to a 24-hour summary on the same
-                        page. */}
                     <TimeField
                       id="run-time"
                       value={form.atTime}
                       onChange={(v) => set("atTime", v)}
-                      className="w-24"
-                      hourLabel={t("create.timeField.hour")}
-                      minuteLabel={t("create.timeField.minute")}
+                      className="w-36"
                     />
                   </div>
                   {form.preset === "weekly" && (
@@ -698,7 +693,7 @@ function JobWizard({
                             type="button"
                             onClick={() => set("dayOfWeek", i)}
                             className={cn(
-                              "h-9 w-10 rounded-md border text-xs font-medium transition-colors",
+                              "h-9 w-10 border font-display text-xs font-medium transition-colors",
                               form.dayOfWeek === i
                                 ? "border-primary/40 bg-primary/15 text-primary"
                                 : "border-border text-muted-foreground hover:text-foreground",
@@ -753,7 +748,7 @@ function JobWizard({
                   className="flex-1"
                   aria-label={isReplication ? t("create.retentionAriaReplication") : t("create.retentionAriaBackup")}
                 />
-                <span className="nums w-14 shrink-0 text-right text-sm font-medium">
+                <span className="nums w-14 shrink-0 text-right font-display text-sm font-medium">
                   {isReplication ? form.keepDays : t("create.daysShort", { count: form.keepDays })}
                 </span>
               </div>
@@ -773,7 +768,7 @@ function JobWizard({
               className="flex w-full items-center justify-between p-5 text-left"
               aria-expanded={advancedOpen}
             >
-              <span className="flex items-center gap-2 text-base font-semibold">
+              <span className="flex items-center gap-2 font-display text-base font-semibold">
                 <Settings2 className="h-4 w-4 text-muted-foreground" />
                 {t("create.advanced")}
                 <span className="text-xs font-normal text-muted-foreground">{t("create.advancedHint")}</span>
@@ -789,7 +784,7 @@ function JobWizard({
                   transition={{ duration: 0.2 }}
                   className="overflow-hidden"
                 >
-                  <div className="space-y-4 border-t border-border/60 p-5">
+                  <div className="space-y-4 border-t border-border p-5">
                     <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                       <ToggleRow
                         label={t("create.opt.encryption")}
@@ -815,7 +810,7 @@ function JobWizard({
                             className="flex-1"
                             aria-label={t("settings.compression")}
                           />
-                          <span className="nums w-4 text-right text-sm font-medium">{form.options.compression}</span>
+                          <span className="nums w-4 text-right font-display text-sm font-medium">{form.options.compression}</span>
                         </div>
                         <p className="text-[11px] text-muted-foreground">{t("create.opt.compressionHint")}</p>
                       </div>
@@ -838,14 +833,6 @@ function JobWizard({
                           <GfsInput label={t("create.gfsWeekly")} value={form.gfsWeekly} onChange={(v) => set("gfsWeekly", v)} />
                           <GfsInput label={t("create.gfsMonthly")} value={form.gfsMonthly} onChange={(v) => set("gfsMonthly", v)} />
                           <GfsInput label={t("create.gfsYearly")} value={form.gfsYearly} onChange={(v) => set("gfsYearly", v)} />
-                        </div>
-                        <div className="mt-3">
-                          <ToggleRow
-                            label={t("create.gfsEnabled")}
-                            hint={t("create.gfsEnabledHint")}
-                            checked={form.gfsEnabled}
-                            onChange={(v) => set("gfsEnabled", v)}
-                          />
                         </div>
                       </div>
                     )}
@@ -879,15 +866,15 @@ function JobWizard({
 function WizardSkeleton({ title }: { title: string }) {
   return (
     <div className="space-y-4" aria-busy="true" aria-label={title}>
-      <div className="h-8 w-56 animate-pulse rounded bg-muted" />
+      <div className="h-8 w-56 animate-pulse bg-muted" />
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-12">
         <div className="space-y-4 lg:col-span-8">
           {[0, 1, 2].map((i) => (
-            <div key={i} className="h-32 animate-pulse rounded-xl bg-muted/50" />
+            <div key={i} className="h-32 animate-pulse bg-muted/50" />
           ))}
         </div>
         <div className="lg:col-span-4">
-          <div className="h-80 animate-pulse rounded-xl bg-muted/50" />
+          <div className="h-80 animate-pulse bg-muted/50" />
         </div>
       </div>
     </div>
@@ -902,7 +889,7 @@ function HelpHint({ label, term }: { label: string; term: string }) {
       <button
         type="button"
         aria-label={t("create.whatIs", { term })}
-        className="inline-flex shrink-0 text-muted-foreground/70 transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
+        className="inline-flex shrink-0 text-muted-foreground/70 transition-colors hover:text-foreground"
       >
         <HelpCircle className="h-3.5 w-3.5" />
       </button>
@@ -929,7 +916,7 @@ function PresetChip({
       onClick={onClick}
       aria-pressed={active}
       className={cn(
-        "flex flex-col items-start gap-0.5 rounded-lg border p-3 text-left transition-colors",
+        "flex flex-col items-start gap-0.5 border p-3 text-left transition-colors",
         active ? "border-primary/40 bg-primary/10" : "border-border hover:border-border hover:bg-muted/40",
       )}
     >
@@ -959,7 +946,7 @@ function ToggleRow({
   onChange: (v: boolean) => void;
 }) {
   return (
-    <label className="flex cursor-pointer items-start justify-between gap-3 rounded-lg border border-border/70 bg-muted/20 p-3">
+    <label className="flex cursor-pointer items-start justify-between gap-3 border border-border bg-muted/20 p-3">
       <span className="min-w-0">
         <span className="flex items-center gap-1.5 text-sm font-medium">
           {label}

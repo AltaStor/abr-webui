@@ -2,10 +2,21 @@
 // Copyright © 2026 Norvitex OÜ
 
 /**
- * Cross-hypervisor restore planning — pure logic shared by the console (to
- * preview the conversion before a restore) and the appliance (to execute it).
- * No React / DOM / Node imports so both sides can load it: the server imports
- * this file by relative path, the console via the "@/lib/conversion" alias.
+ * Cross-hypervisor restore planning.
+ *
+ * ORPHANED, deliberately kept. Nothing in this repository imports it: its one
+ * consumer was the restore wizard's conversion-plan card, which was removed
+ * because the plan it drew was a client-side guess for a conversion this
+ * orchestrator cannot perform — one hypervisor plugin
+ * (`python/srv/plugins/vcenter`), no disk-format conversion, no driver
+ * injection. The wizard now refuses a cross-platform target instead of
+ * promising one (see features/restore/refusals.ts).
+ *
+ * The algorithm is left in place as the reference for whoever builds the real
+ * thing; it costs nothing at runtime, since an unimported module is dropped
+ * from the bundle. Its previous header claimed the appliance imported this
+ * file by relative path — true of the Node control plane in the other
+ * appliance line, never of the Python orchestrator here.
  */
 import type {
   ConversionConfidence,

@@ -1,8 +1,9 @@
 {
   "greeting": {
-    "morning": "Good morning",
-    "afternoon": "Good afternoon",
-    "evening": "Good evening"
+    "morning": "Good morning, {{name}}",
+    "afternoon": "Good afternoon, {{name}}",
+    "evening": "Good evening, {{name}}",
+    "plain": "Welcome back"
   },
   "header": {
     "loading": "Loading protection posture…",
@@ -19,12 +20,12 @@
     "coverage": {
       "label": "Protection coverage",
       "hint": "{{protected}} of {{total}} VMs protected",
-      "drill": "{{count}} unprotected →"
+      "drill": "{{count}} unprotected"
     },
     "success": {
       "label": "24h success rate",
       "hint": "{{runs}} runs · {{failed}} failed",
-      "drill": "View activity →"
+      "drill": "Activity"
     }
   },
   "activity": {
@@ -43,23 +44,36 @@
   },
   "live": {
     "title": "Live activity",
-    "allActivity": "All activity",
+    "allActivity": "Activity",
     "statusNone": "No active backup runs.",
     "statusOne": "{{name}} running.",
     "statusMany": "{{count}} backup runs in progress.",
     "emptyNoRuns": "No active runs right now.",
-    "emptyNextScheduled": "Next scheduled {{when}}.",
+    "emptyNextScheduled": "Next scheduled {{when}} ({{abs}}).",
     "progressLabel": "{{name}} {{kind}} progress",
     "staging": "Reading & staging source",
     "processing": "Processing {{name}}",
     "stagingShort": "staging…",
-    "recentCompletions": "Recent completions"
+    "recentCompletions": "Recent completions",
+    "recentEmpty": "No runs have finished yet."
   },
   "storage": {
     "title": "Storage",
     "repositories": "Repositories",
     "ofFree": "of {{total}} · {{free}} free",
     "usedAcross_one": "{{percent}}% used across {{count}} repository",
-    "usedAcross_other": "{{percent}}% used across {{count}} repositories"
+    "usedAcross_other": "{{percent}}% used across {{count}} repositories",
+    "capacityUnknown": "Capacity not reported",
+    "storedAcross_one": "Stored across {{count}} repository",
+    "storedAcross_other": "Stored across {{count}} repositories",
+    "repoCapacityUnknown": "No capacity reported",
+    "tip": {
+      "shareAria": "Storage used by repository",
+      "share": "{{used}} stored · {{percent}}% of {{total}}",
+      "usedOfFree": "{{used}} of {{capacity}} · {{free}} free",
+      "runningLow": "Running low",
+      "criticallyFull": "Critically full",
+      "noCapacity": "No fill to show — the provider reports no capacity"
+    }
   }
 }

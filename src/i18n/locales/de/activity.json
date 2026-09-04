@@ -63,6 +63,18 @@
       "hint": "über alle Läufe"
     }
   },
+  "inProgress": {
+    "heading": "Jobs in Bearbeitung",
+    "sr": {
+      "none": "Keine aktiven Läufe.",
+      "one": "{{job}} läuft.",
+      "many": "{{count}} Läufe in Bearbeitung."
+    },
+    "idle": "Derzeit keine aktiven Läufe.",
+    "nextScheduled": "Nächster geplanter Lauf {{when}} ({{abs}}).",
+    "processing": "{{name}} wird verarbeitet",
+    "elapsed": "Vergangen"
+  },
   "feed": {
     "columns": {
       "status": "Status",
@@ -87,7 +99,7 @@
   "row": {
     "progressLabel": "{{job}} {{kind}} Fortschritt",
     "aria": {
-      "started": "gestartet {{time}}",
+      "started": "gestartet {{time}} ({{abs}})",
       "percentComplete": "{{percent}} Prozent abgeschlossen",
       "ranIn": "abgeschlossen in {{duration}}",
       "objects_one": "{{count}} Objekt",
@@ -112,14 +124,14 @@
       "duration": "Dauer",
       "read": "Gelesen",
       "transferred": "Übertragen",
-      "guestRead": "Gast-Leserate",
       "throughput": "Durchsatz"
     },
     "table": {
       "result": "Ergebnis",
       "read": "Gelesen",
       "sent": "Gesendet",
-      "duration": "Dauer"
+      "duration": "Dauer",
+      "pending": "Ausstehend"
     },
     "log": "Protokoll",
     "footer": {
@@ -128,6 +140,10 @@
       "deleted": "Job gelöscht — Verlauf erhalten",
       "openRestore": "Wiederherstellung öffnen",
       "openJob": "Job öffnen"
+    },
+    "backupType": {
+      "full": "Vollständig",
+      "incremental": "Inkrementell"
     }
   }
 }

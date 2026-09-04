@@ -37,7 +37,8 @@
     "unsavedChanges": "Modifications non enregistrées",
     "saveChanges": "Enregistrer les modifications",
     "removeItem": "Supprimer {{value}}",
-    "saveUnavailable": "Appliance injoignable — enregistrement désactivé"
+    "saveUnavailable": "Appliance injoignable — enregistrement désactivé",
+    "saveLocally": "Enregistrer dans ce navigateur"
   },
   "units": {
     "cores": "cœurs"
@@ -70,6 +71,20 @@
       "blue": "Bleu",
       "violet": "Violet",
       "amber": "Ambre"
+    },
+    "density": {
+      "label": "Densité",
+      "description": "Le mode compact resserre les lignes de tableau et les espacements.",
+      "comfortable": "Confortable",
+      "compact": "Compact"
+    },
+    "reduceMotion": {
+      "label": "Réduire les animations",
+      "description": "Minimiser les animations et les transitions dans toute la console."
+    },
+    "autoCollapse": {
+      "label": "Réduire automatiquement la barre latérale",
+      "description": "Réduire la barre de navigation à des icônes sur les fenêtres plus étroites."
     }
   },
   "notifications": {
@@ -84,10 +99,6 @@
       "jobSuccess": {
         "label": "Réussite de tâche",
         "blurb": "Une exécution se termine proprement"
-      },
-      "immutabilityViolation": {
-        "label": "Violation d’immuabilité",
-        "blurb": "La suppression d’un point scellé est refusée"
       },
       "capacityWarning": {
         "label": "Avertissement de capacité",
@@ -216,13 +227,11 @@
   },
   "about": {
     "brand": {
-      "tagline": "Des sauvegardes gravées dans la pierre.",
-      "openSource": "Libre et open source · immuable par conception"
+      "tagline": "Des sauvegardes gravées dans la pierre."
     },
     "appliance": {
-      "title": "Appliance",
-      "description": "Identité et matériel de ce nœud.",
-      "applianceName": "Nom de l’appliance",
+      "title": "Serveur de sauvegarde",
+      "applianceName": "Nom du serveur de sauvegarde",
       "hostname": "Nom d’hôte",
       "version": "Version",
       "build": "Build",
@@ -231,14 +240,10 @@
       "uptime": "Temps de fonctionnement",
       "cpu": "CPU",
       "memory": "Mémoire",
-      "noAppliance": "Les détails matériels sont rapportés par une appliance connectée.",
       "probeFailed": "Impossible de lire les détails matériels depuis l'appliance. Les champs qu'elle rapporte s'affichent en « — »."
     },
     "license": {
-      "title": "Licence et ressources",
-      "description": "AltaStor est un logiciel libre et open source.",
-      "openSourceTitle": "Libre et open source",
-      "openSourceBlurb": "Aucune licence par siège, aucun frais par VM. Auto-hébergé et libre d’inspection."
+      "title": "Ressources"
     },
     "links": {
       "documentation": {
@@ -253,8 +258,7 @@
         "label": "Communauté",
         "blurb": "Posez des questions et partagez vos configurations"
       }
-    },
-    "releaseNotes": "Notes de version"
+    }
   },
   "createToken": {
     "copyTitle": "Copiez votre jeton",

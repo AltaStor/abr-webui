@@ -37,7 +37,6 @@
     "noRunsThisDay": "Aucune exécution enregistrée ni planifiée ce jour-là.",
     "scheduledRun": "Exécution planifiée",
     "railTitle": "Planification",
-    "achievesRpo": "Atteint le RPO",
     "retention": "Rétention",
     "nextRun": "Prochaine exécution",
     "notScheduled": "Non planifié",
@@ -46,18 +45,10 @@
     "customSchedule": "Planification personnalisée",
     "noRunsProjected": "Aucune exécution projetée."
   },
-  "rpo": {
-    "hours_one": "{{count}} heure",
-    "hours_other": "{{count}} heures",
-    "weekly": "7 jours",
-    "custom": "Personnalisé",
-    "daily": "24 heures"
-  },
   "retention": {
     "days_one": "{{count}} jour",
     "days_other": "{{count}} jours",
-    "withGfs": "{{base}} · GFS {{tail}}",
-    "suspended": "{{label}} (suspendu)"
+    "withGfs": "{{base}} · GFS {{tail}}"
   },
   "type": {
     "replication": "Réplication",
@@ -73,7 +64,8 @@
     "off": "Désactivé"
   },
   "status": {
-    "disabled": "Désactivée"
+    "disabled": "Désactivée",
+    "neverRun": "Jamais exécutée"
   },
   "objects": {
     "disks": "Disques",
@@ -136,6 +128,7 @@
   },
   "lastRun": {
     "title": "Dernière exécution",
+    "finishedAt": "{{rel}} · {{abs}}",
     "avgPrefix": "Moy.",
     "kindReplication": "Réplication de VM",
     "kindBackup": "sauvegarde"
@@ -151,7 +144,7 @@
   },
   "page": {
     "title": "Sauvegarde",
-    "description": "Vos planifications de sauvegarde et chaque point de restauration qu’elles ont produit.",
+    "description": "Toutes les tâches de sauvegarde et les points de restauration associés.",
     "addJob": "Ajouter une tâche de sauvegarde",
     "addJobNeedsBoth": "Connectez un environnement et ajoutez un dépôt avant de créer une tâche de sauvegarde.",
     "addJobNeedsEnv": "Connectez un environnement avant de créer une tâche de sauvegarde.",
@@ -212,7 +205,8 @@
     "scheduleHint": "Quand la tâche démarre d’elle-même. Les tâches désactivées conservent leur planification mais l’ignorent.",
     "repositoryHint": "Où sont stockées les sauvegardes de cette tâche. Un bouclier signale un référentiel immuable.",
     "successRate": "Taux de réussite",
-    "successRateHint": "Pourcentage d’exécutions réussies, calculé sur un maximum de 8 exécutions terminées récentes."
+    "successRateHint": "Pourcentage d’exécutions réussies, calculé sur un maximum de 8 exécutions terminées récentes.",
+    "objectsHint": "Nombre de VM, disques, ensembles de fichiers ou serveurs physiques protégés par cette tâche."
   },
   "stats": {
     "totalJobs": "Total des tâches",
@@ -223,7 +217,7 @@
     "avgSuccess": "Taux de réussite moyen",
     "acrossActive": "Sur l’ensemble des tâches actives",
     "nextRun": "Prochaine exécution",
-    "scheduled": "Planifié",
+    "scheduled": "Planifié · {{abs}}",
     "nothingQueued": "Rien en file d’attente"
   },
   "toolbar": {
@@ -234,10 +228,7 @@
   "bulk": {
     "selected": "{{count}} sélectionné(s)",
     "run": "Exécuter",
-    "clearSelection": "Effacer la sélection",
-    "disableAllAlreadyDisabled": "Toutes les tâches sélectionnées sont déjà désactivées",
-    "disableAppliesTo_one": "Désactive {{count}} tâche active ; les {{total}} autres sélectionnées sont déjà désactivées",
-    "disableAppliesTo_other": "Désactive {{count}} tâches actives sur les {{total}} sélectionnées ; les autres sont déjà désactivées"
+    "clearSelection": "Effacer la sélection"
   },
   "empty": {
     "noJobs": {
@@ -259,10 +250,10 @@
   },
   "toast": {
     "started": "{{name}} démarrée",
-    "startedDesc": "Suivez-la en direct dans Activité.",
-    "startedFullDesc": "Sauvegarde complète démarrée — suivez-la en direct dans Activité.",
+    "startedDesc": "Suivez-la en direct sur la page de la tâche.",
+    "startedFullDesc": "Sauvegarde complète démarrée — suivez-la en direct sur la page de la tâche.",
     "startedBelow": "Diffusion en direct ci-dessous.",
-    "watch": "Suivre",
+    "watch": "Ouvrir la tâche",
     "jobDisabled": "{{name}} est désactivée",
     "jobAlreadyRunning": "{{name}} est déjà en cours",
     "enableToRun": "Activez la tâche pour l’exécuter.",
@@ -290,8 +281,9 @@
     "bulkDeleted_other": "{{count}} tâches supprimées",
     "bulkDeletedPartial": "{{deleted}} tâche(s) sur {{total}} supprimée(s)",
     "bulkDeletedPartialDesc": "L’appliance n’a pas confirmé les autres — elles sont inchangées.",
-    "bulkDisabledSkipped_one": "{{count}} était déjà désactivée.",
-    "bulkDisabledSkipped_other": "{{count}} étaient déjà désactivées."
+    "runRefused": "Impossible de démarrer {{name}}",
+    "runRefusedDesc": "L’appliance n’a pas démarré l’exécution et n’a donné aucune raison. Réessayez dans un instant.",
+    "runRefusedDisabledDesc": "La tâche est désactivée — activez-la pour l’exécuter."
   },
   "delete": {
     "titleOne": "Supprimer cette tâche ?",
@@ -315,10 +307,7 @@
     "objects": "Objets",
     "inScope": "{{noun}} dans le périmètre",
     "repository": "Référentiel",
-    "immutable": "Immuable",
-    "standard": "Standard",
     "nextRun": "Prochaine exécution",
-    "scheduled": "Planifié",
     "notScheduled": "Non planifié",
     "retention": "Rétention",
     "daysValue": "{{count}} jours",
@@ -392,7 +381,6 @@
     "estSeedWindow": "Fenêtre d’amorçage estimée",
     "estBackupWindow": "Fenêtre de sauvegarde estimée",
     "schedule": "Planification",
-    "achievesRpo": "Atteint le RPO",
     "firstRun": "Première exécution",
     "retention": "Rétention",
     "target": "Cible",
@@ -401,9 +389,6 @@
     "repository": "Référentiel",
     "readyToFailOver": "Prêt pour le basculement",
     "readyToFailOverBody": "Chaque exécution resynchronise une réplique prête à démarrer sur l’hôte cible. En cas de sinistre, vous la mettez sous tension pour continuer à fonctionner pendant que la source se rétablit.",
-    "immutable": "Immuable",
-    "immutableBody": "Les points de restauration sont verrouillés pendant {{days}} jours — ils ne peuvent être modifiés ni supprimés avant l’expiration de la fenêtre.",
-    "immutableOff": "L’immuabilité est désactivée pour cette tâche. Activez-la et choisissez un référentiel durci pour verrouiller les points de restauration contre toute modification.",
     "saveChanges": "Enregistrer les modifications",
     "createReplication": "Créer une tâche de réplication",
     "createJob": "Créer la tâche",
@@ -458,10 +443,8 @@
     "healthWeekly": "Hebdomadaire · {{time}}",
     "healthMonthly": "Mensuel · {{time}}",
     "healthOff": "Désactivé — vérifications manuelles disponibles",
-    "summary": "Un résumé en lecture seule de la configuration de cette tâche.",
     "scheduleTitle": "Planification",
     "runs": "Exécutions",
-    "rpoTarget": "Objectif RPO",
     "backupWindow": "Fenêtre de sauvegarde",
     "anytime": "À tout moment",
     "throttle": "Limitation",
@@ -473,7 +456,6 @@
     "gfsMonthly": "Mensuel (GFS)",
     "gfsYearly": "Annuel (GFS)",
     "noGfs": "Aucune rétention à long terme (GFS) configurée.",
-    "gfsSuspended": "Suspendu",
     "repositoryTitle": "Référentiel",
     "freeOf": "{{free}} libre sur {{total}}",
     "pathsTitle": "Chemins",
@@ -483,8 +465,6 @@
     "appAware": "Compatible applications",
     "appAwareHint": "VSS / pré-gel",
     "encryption": "Chiffrement",
-    "immutable": "Immuable",
-    "immutableHint": "Verrouillage d’objet",
     "deduplication": "Déduplication",
     "deduplicationHint": "Au niveau bloc",
     "compression": "Compression",
@@ -564,7 +544,6 @@
     "newRepoData": "nouvelles données du référentiel",
     "measuredNewRepoData": "nouvelles données du référentiel mesurées",
     "measuredNewData": "nouvelles données mesurées",
-    "immutableWord": "immuable",
     "footer": "Les nouvelles données du référentiel correspondent à l’écriture marginale des points complets. Les blocs partagés avec des sauvegardes antérieures restent comptabilisés dans la capacité du référentiel, et non à l’encontre d’une seule VM.",
     "removedBadge": "supprimé",
     "usable": "{{count}} utilisable(s)",
@@ -573,14 +552,14 @@
     "incompleteCount": "{{count}} incomplet(s)",
     "groupTitleAll": "Données logiques sur les points de restauration complets de cet objet et les nouvelles données de référentiel qu’ils ont introduites",
     "groupTitlePartial": "Données logiques sur les points de restauration complets de cet objet ; les mesures d’écriture du référentiel sont incomplètes",
-    "latest": "le plus récent {{rel}}",
+    "latest": "le plus récent {{rel}} ({{abs}})",
     "unavailable": "{{count}} indisponible(s)",
     "restore": "Restaurer"
   },
   "backupsTab": {
     "removedTip": "La source de cette sauvegarde n’est pas dans l’inventaire (supprimée, ou importée depuis une autre appliance). Rajoutez la même source — pour les VM Hyper-V, les identifiants sont stables — et ces points se restaurent normalement.",
     "emptyTitle": "Aucune sauvegarde stockée pour le moment",
-    "emptyDescription": "Au fur et à mesure de l’exécution de vos tâches, les points de restauration qu’elles créent sont répertoriés ici — regroupés par la VM, le disque ou le serveur qu’ils protègent. Les points restent répertoriés même si leur tâche est supprimée par la suite. Vous pouvez également importer des sauvegardes réalisées par une autre appliance.",
+    "emptyDescription": "Au fur et à mesure de l’exécution de vos tâches, les points de restauration qu’elles créent sont répertoriés ici — regroupés par tâche, puis par la VM que chacune protège. Les points restent répertoriés même après la suppression de leur tâche.",
     "import": "Importer des sauvegardes",
     "summaryAcross_one": "point de restauration sur <1>{{objectCount}}</1> {{objects}}",
     "summaryAcross_other": "points de restauration sur <1>{{objectCount}}</1> {{objects}}",
@@ -602,7 +581,49 @@
     "sourceRemoved": "source supprimée",
     "logicalShort": "{{size}} logique",
     "deleteAllTip": "Supprimer tous les points de restauration de {{name}}",
-    "deleteAll": "Tout supprimer"
+    "deleteAll": "Tout supprimer",
+    "summaryPoints_one": "point de restauration sur <1>{{jobCount}}</1> {{jobs}}, <2>{{vmCount}}</2> {{vms}}",
+    "summaryPoints_other": "points de restauration sur <1>{{jobCount}}</1> {{jobs}}, <2>{{vmCount}}</2> {{vms}}",
+    "jobNoun_one": "tâche",
+    "jobNoun_other": "tâches",
+    "vmNoun_one": "VM",
+    "vmNoun_other": "VM",
+    "vmCount_one": "{{count}} VM",
+    "vmCount_other": "{{count}} VM",
+    "logicalTitle": "Données logiques capturées sur ces points de restauration, avant déduplication et compression",
+    "sortLabel": "Trier les points de restauration par date",
+    "newestFirst": "Plus récents d’abord",
+    "oldestFirst": "Plus anciens d’abord",
+    "restoreVmAria": "Restaurer {{vm}} depuis {{job}}",
+    "deleteVmAria": "Supprimer la sauvegarde de {{vm}} issue de {{job}}",
+    "deleteVmTip": "Supprimer la sauvegarde de cette VM issue de cette tâche",
+    "kpi": {
+      "points": "Points de restauration",
+      "acrossObjects": "Sur {{jobs}} travaux · {{vms}} VM",
+      "sizeUnrecorded": "Le catalogue n’enregistre pas encore les tailles"
+    }
+  },
+  "point": {
+    "offlineTip": "Le référentiel de ce point de restauration est hors ligne — il ne peut pas être lu tant que le référentiel n’est pas de nouveau en ligne.",
+    "unavailable": "Indisponible",
+    "encrypted": "Chiffré",
+    "encryptedTip": "Les données de cette sauvegarde sont chiffrées au repos",
+    "compression": "Niveau de compression {{level}}",
+    "restoreAria": "Restaurer ce point"
+  },
+  "deleteBackup": {
+    "title": "Supprimer la sauvegarde ?",
+    "description": "Cela supprime tous les points de restauration que <1>{{vm}}</1> possède depuis <2>{{job}}</2> — la sauvegarde complète et chaque incrément qui y est chaîné.",
+    "pointsCount_one": "{{count}} point de restauration",
+    "pointsCount_other": "{{count}} points de restauration",
+    "warning": "Cette action est irréversible. <1>{{vm}}</1> ne pourra plus être restaurée à partir de ces points une fois qu’ils auront disparu.",
+    "confirm": "Supprimer la sauvegarde",
+    "deleting": "Suppression…",
+    "successTitle": "Sauvegarde supprimée",
+    "successDesc_one": "{{count}} point de restauration supprimé pour {{name}}.",
+    "successDesc_other": "{{count}} points de restauration supprimés pour {{name}}.",
+    "errorTitle": "Impossible de supprimer la sauvegarde",
+    "errorUnreachable": "Appliance injoignable"
   },
   "scope": {
     "searchVmsPlaceholder": "Rechercher des VM par nom…",
@@ -705,7 +726,7 @@
     "vm": {
       "title": "Nouvelle tâche de sauvegarde",
       "editTitle": "Modifier la tâche de sauvegarde",
-      "description": "Choisissez ce qu’il faut sauvegarder, où le stocker et à quelle fréquence. Les valeurs par défaut sont préremplies — ajustez selon vos besoins.",
+      "description": "Choisissez ce qu’il faut sauvegarder et où le stocker, puis configurez la planification. Ajustez les paramètres préconfigurés selon vos besoins.",
       "scopeError": "Sélectionnez au moins une VM à sauvegarder."
     },
     "disk": {
@@ -778,7 +799,7 @@
     "descPlaceholderReplication": "par ex. Maintient la couche SQL à chaud sur le site de reprise",
     "descPlaceholderBackup": "par ex. Protection nocturne de la couche SQL de production",
     "whatToReplicate": "Quoi répliquer",
-    "whatToBackUp": "Quoi sauvegarder",
+    "whatToBackUp": "Sélectionner les objets à sauvegarder",
     "replicateTo": "Répliquer vers",
     "targetEnvironment": "Environnement cible",
     "chooseTargetEnv": "Choisissez un environnement cible",
@@ -788,33 +809,32 @@
     "hostSpec": "{{cores}} cœurs · {{ram}} RAM",
     "replicaPrefix": "Préfixe du nom de la réplique",
     "replicasNamed": "Les répliques sont nommées <1>{{example}}</1>.",
-    "whereToStore": "Où le stocker",
-    "immutableSuffix": "· immuable",
+    "whereToStore": "Sélectionner le référentiel",
     "freeSuffix": "{{free}} libre",
-    "howOften": "À quelle fréquence",
+    "howOften": "Définir une planification",
     "preset": {
       "hourly": "Toutes les heures",
-      "hourlyRpo": "RPO 1 h",
       "every4h": "Toutes les 4 h",
-      "every4hRpo": "RPO 4 h",
       "daily": "Quotidien",
-      "dailyRpo": "RPO 24 h",
       "weekly": "Hebdomadaire",
-      "weeklyRpo": "RPO 7 j"
+      "hourlySub": "Toutes les heures",
+      "every4hSub": "Toutes les 4 heures",
+      "dailySub": "Une fois par jour",
+      "weeklySub": "Une fois par semaine"
     },
     "atTime": "À l’heure",
     "onDay": "Le jour",
     "recoveryPointsToKeep": "Points de récupération à conserver",
-    "howLongToKeep": "Durée de conservation",
+    "howLongToKeep": "Définir la rétention",
     "retentionAriaReplication": "Points de récupération à conserver sur la réplique",
     "retentionAriaBackup": "Jours à conserver",
     "daysShort": "{{count}} j",
     "keepReplicaNote_one": "Conserver {{count}} point de récupération sur la réplique — des snapshots vers lesquels revenir avant un basculement.",
     "keepReplicaNote_other": "Conserver {{count}} points de récupération sur la réplique — des snapshots vers lesquels revenir avant un basculement.",
-    "keepBackupNote_one": "Conserver les sauvegardes pendant {{count}} jour avant leur expiration.",
-    "keepBackupNote_other": "Conserver les sauvegardes pendant {{count}} jours avant leur expiration.",
+    "keepBackupNote_one": "Conserver les sauvegardes pendant {{count}} jour avant leur suppression automatique.",
+    "keepBackupNote_other": "Conserver les sauvegardes pendant {{count}} jours avant leur suppression automatique.",
     "advanced": "Paramètres avancés",
-    "advancedHint": "— facultatif, valeurs par défaut intelligentes appliquées",
+    "advancedHint": "(Valeurs par défaut appliquées)",
     "opt": {
       "appAware": "Traitement compatible applications",
       "appAwareHint": "Scripts VSS et pré-gel pour un SQL/Exchange cohérent",
@@ -823,31 +843,23 @@
       "encryption": "Chiffrement (AES-256)",
       "encryptionHintReplication": "Chiffrer les données de la réplique au repos",
       "encryptionHintBackup": "Chiffrer les points de restauration au repos",
-      "immutability": "Immuabilité",
-      "immutabilityHint": "Verrouille les points de restauration pour qu’ils ne puissent être ni modifiés ni supprimés",
       "dedup": "Déduplication",
       "dedupHint": "Déduplication au niveau bloc pour économiser de l’espace",
       "compressionTerm": "compression",
-      "compressionHelp": "0 est le plus rapide et ne compresse pas ; 9 réduit le plus les points de restauration mais consomme plus de CPU. La valeur par défaut est 3, un compromis entre taille et vitesse.",
-      "compressionHint": "À gauche c'est plus rapide, à droite ça compresse plus. Par défaut : 3."
+      "compressionHelp": "Permet d’ajuster le niveau de compression pour équilibrer la taille des sauvegardes, la vitesse de traitement et l’utilisation du CPU.\n0 = aucune compression, traitement le plus rapide\n9 = plus d’économie de données, utilisation du CPU plus élevée",
+      "compressionHint": "Les niveaux de compression faibles sont plus rapides ; les niveaux élevés économisent plus d’espace et de bande passante. Par défaut : 3."
     },
     "syncWindow": "Fenêtre de synchronisation",
     "throttleLabel": "Limitation (MB/s)",
     "gfsTitle": "Rétention à long terme GFS",
     "gfsTerm": "Rétention GFS",
-    "gfsHelp": "Grandfather-father-son : conservez des copies hebdomadaires, mensuelles et annuelles supplémentaires pour l’archivage à long terme, en plus de vos points de restauration quotidiens.",
+    "gfsHelp": "Grandfather-father-son (GFS) : conservez des copies hebdomadaires, mensuelles et annuelles supplémentaires pour l’archivage à long terme, en plus de vos points de restauration quotidiens.",
     "gfsDescription": "Copies d’archivage facultatives conservées au-delà de la rétention régulière ci-dessus. Laissez à 0 pour ignorer.",
     "gfsWeekly": "Hebdomadaire",
     "gfsMonthly": "Mensuel",
     "gfsYearly": "Annuel",
-    "gfsEnabled": "Protection active",
-    "gfsEnabledHint": "Suspendez pour mettre en pause l’archivage GFS sans perdre les quantités configurées",
     "loadingJob": "Chargement de la tâche",
     "whatIs": "Qu’est-ce que {{term}} ?",
-    "jobNameInvalid": "Le nom du job doit commencer par une lettre ou un chiffre et ne contenir que des lettres latines, des chiffres, des espaces, des points, des tirets bas ou des traits d'union.",
-    "timeField": {
-      "hour": "Heure",
-      "minute": "Minute"
-    }
+    "jobNameInvalid": "Le nom du job doit commencer par une lettre ou un chiffre et ne contenir que des lettres latines, des chiffres, des espaces, des points, des tirets bas ou des traits d'union."
   }
 }

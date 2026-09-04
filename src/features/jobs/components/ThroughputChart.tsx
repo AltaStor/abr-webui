@@ -8,7 +8,6 @@ import { EmptyState } from "@/components/EmptyState";
 import { Gauge } from "@/lib/icons";
 import { formatDateTime, formatThroughput } from "@/lib/format";
 import {
-  AreaGradient,
   ChartTooltip,
   areaCursor,
   gridProps,
@@ -35,7 +34,6 @@ export function ThroughputChart({ sessions, accent }: { sessions: Session[]; acc
     .map((s) => ({ ts: s.startedAt, throughput: s.throughputMBps }));
 
   const avg = data.length ? Math.round(data.reduce((a, d) => a + d.throughput, 0) / data.length) : 0;
-  const gradId = `tp-grad-${accent}`;
 
   return (
     <Card className="flex h-full flex-col">
@@ -53,9 +51,6 @@ export function ThroughputChart({ sessions, accent }: { sessions: Session[]; acc
         ) : (
           <ResponsiveContainer width="100%" height={200}>
             <AreaChart data={data} margin={{ top: 8, right: 8, left: -20, bottom: 0 }}>
-              <defs>
-                <AreaGradient id={gradId} color={color} />
-              </defs>
               <CartesianGrid {...gridProps} />
               <XAxis dataKey="ts" tickFormatter={(v: string) => formatDateTime(v)} {...xAxisProps({ tick: { fontSize: 10, fill: "hsl(var(--muted-foreground) / 0.7)" } })} />
               <YAxis tickFormatter={(v: number) => `${v}`} {...yAxisProps({ width: 42 })} />
@@ -75,7 +70,8 @@ export function ThroughputChart({ sessions, accent }: { sessions: Session[]; acc
                 stroke={color}
                 strokeWidth={2}
                 strokeLinecap="round"
-                fill={`url(#${gradId})`}
+                fill={color}
+                fillOpacity={0.08}
                 dot={latestDot(color, data.length - 1)}
                 activeDot={{ r: 4, fill: color, stroke: "hsl(var(--card))", strokeWidth: 1.5 }}
                 isAnimationActive={false}

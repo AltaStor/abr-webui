@@ -9,11 +9,13 @@
   "export": {
     "menuLabel": "Exportar registros",
     "supportBundle": "Paquete de soporte",
-    "systemLog": "Registro del sistema (.log)"
+    "systemLog": "Registro del sistema completo (.log)"
   },
   "toast": {
     "exportedSystem_one": "{{count}} línea de registro del sistema exportada",
     "exportedSystem_other": "{{count}} líneas de registro del sistema exportadas",
+    "exportedSystemFiltered_one": "{{count}} línea de registro filtrada exportada",
+    "exportedSystemFiltered_other": "{{count}} líneas de registro filtradas exportadas",
     "exportedSupportBundle": "Paquete de soporte descargado",
     "exportSupportBundleFailed": "No se pudo generar el paquete de soporte"
   },
@@ -26,11 +28,14 @@
   },
   "system": {
     "sources": "Fuentes",
+    "sourcesGroupLabel": "Fuentes del registro: seleccione tantas como necesite para filtrar",
+    "sourcesAllShown": "las {{total}} mostradas",
+    "sourcesSomeShown": "{{selected}} de {{total}} mostradas",
     "searchLabel": "Buscar en los mensajes del registro del sistema",
     "searchPlaceholder": "Buscar mensajes…",
     "liveTail": "Seguimiento en vivo",
     "toggleLiveTail": "Alternar seguimiento en vivo",
-    "downloadLog": "Descargar .log",
+    "downloadLog": "Descargar lo filtrado (.log)",
     "lineCount_one": "{{formatted}} línea",
     "lineCount_other": "{{formatted}} líneas",
     "filteredToSources_one": " · filtrado a {{count}} fuente",

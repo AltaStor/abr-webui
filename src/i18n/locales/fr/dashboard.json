@@ -1,8 +1,9 @@
 {
   "greeting": {
-    "morning": "Bonjour",
-    "afternoon": "Bon après-midi",
-    "evening": "Bonsoir"
+    "morning": "Bonjour, {{name}}",
+    "afternoon": "Bon après-midi, {{name}}",
+    "evening": "Bonsoir, {{name}}",
+    "plain": "Bon retour"
   },
   "header": {
     "loading": "Chargement de l'état de protection…",
@@ -19,22 +20,12 @@
     "coverage": {
       "label": "Couverture de protection",
       "hint": "{{protected}} VM sur {{total}} protégées",
-      "drill": "{{count}} non protégées →"
-    },
-    "rpo": {
-      "label": "Conformité RPO",
-      "hint": "{{count}} VM hors de leur fenêtre RPO",
-      "drill": "Examiner les VM obsolètes →"
+      "drill": "{{count}} non protégées"
     },
     "success": {
       "label": "Taux de réussite sur 24 h",
       "hint": "{{runs}} exécutions · {{failed}} en échec",
-      "drill": "Voir l'activité →"
-    },
-    "immutable": {
-      "label": "Stockage immuable",
-      "hint": "{{count}} référentiels renforcés",
-      "drill": "Gérer les référentiels →"
+      "drill": "Activité"
     }
   },
   "activity": {
@@ -53,17 +44,18 @@
   },
   "live": {
     "title": "Activité en direct",
-    "allActivity": "Toute l'activité",
+    "allActivity": "Activité",
     "statusNone": "Aucune exécution de sauvegarde active.",
     "statusOne": "{{name}} en cours.",
     "statusMany": "{{count}} exécutions de sauvegarde en cours.",
     "emptyNoRuns": "Aucune exécution active pour le moment.",
-    "emptyNextScheduled": "Prochaine planifiée {{when}}.",
+    "emptyNextScheduled": "Prochaine planifiée {{when}} ({{abs}}).",
     "progressLabel": "Progression {{kind}} de {{name}}",
     "staging": "Lecture et préparation de la source",
     "processing": "Traitement de {{name}}",
     "stagingShort": "préparation…",
-    "recentCompletions": "Achèvements récents"
+    "recentCompletions": "Achèvements récents",
+    "recentEmpty": "Aucune exécution terminée pour le moment."
   },
   "storage": {
     "title": "Stockage et immuabilité",
@@ -71,8 +63,17 @@
     "ofFree": "sur {{total}} · {{free}} libres",
     "usedAcross_one": "{{percent}} % utilisés sur {{count}} référentiel",
     "usedAcross_other": "{{percent}} % utilisés sur {{count}} référentiels",
-    "immutablePercent": "{{percent}} % des VM protégées sont immuables",
-    "hardened_one": "{{count}} référentiel renforcé appliquant des fenêtres de verrouillage d'objet. 0 tentative d'altération en 24 h.",
-    "hardened_other": "{{count}} référentiels renforcés appliquant des fenêtres de verrouillage d'objet. 0 tentative d'altération en 24 h."
+    "capacityUnknown": "Capacité non communiquée",
+    "storedAcross_one": "Stocké sur {{count}} référentiel",
+    "storedAcross_other": "Stocké sur {{count}} référentiels",
+    "repoCapacityUnknown": "Aucune capacité communiquée",
+    "tip": {
+      "shareAria": "Stockage utilisé par référentiel",
+      "share": "{{used}} stockés · {{percent}} % sur {{total}}",
+      "usedOfFree": "{{used}} sur {{capacity}} · {{free}} libres",
+      "runningLow": "Bientôt saturé",
+      "criticallyFull": "Saturation critique",
+      "noCapacity": "Pas de jauge — le fournisseur ne communique aucune capacité"
+    }
   }
 }

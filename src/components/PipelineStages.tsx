@@ -60,9 +60,9 @@ export function PipelineStages({ session }: { session: Session }) {
   const bottleneck = p.bottleneck ?? null;
 
   return (
-    <div className="rounded-lg border border-border/60 bg-muted/20 p-3">
+    <div className="border border-border bg-muted/20 p-3">
       <div className="mb-2 flex items-center justify-between">
-        <span className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/70">
+        <span className="label-overline flex items-center gap-1.5">
           <Activity className="h-3 w-3" /> {t("pipeline.title")}
         </span>
         {bottleneck ? (
@@ -73,7 +73,7 @@ export function PipelineStages({ session }: { session: Session }) {
             <AlertTriangle className="h-3 w-3" /> {t("pipeline.bottleneck", { label: BOTTLENECK_LABEL[bottleneck].label })}
           </span>
         ) : (
-          <span className="text-[11px] text-muted-foreground/50" title={t("pipeline.bottleneckHint")}>
+          <span className="text-[11px] text-muted-foreground" title={t("pipeline.bottleneckHint")}>
             {t("pipeline.bottleneckNone")}
           </span>
         )}
@@ -104,7 +104,7 @@ export function PipelineStages({ session }: { session: Session }) {
         ))}
       </div>
 
-      <p className="mt-2 text-[11px] leading-snug text-muted-foreground/70">
+      <p className="mt-2 text-[11px] leading-snug text-muted-foreground">
         {p.logicalProcessedMBps !== undefined && p.logicalProcessedMBps > 0 ? (
           session.backupType === "incremental" ? (
             <Trans
@@ -152,11 +152,11 @@ function StageCard({
   return (
     <div
       className={cn(
-        "flex min-w-0 flex-1 flex-col rounded-md border px-2.5 py-2",
-        isBottleneck ? "border-warning/40 bg-warning/[0.06]" : "border-border/60 bg-card/40",
+        "flex min-w-0 flex-1 flex-col border px-2.5 py-2",
+        isBottleneck ? "border-warning/40 bg-warning/[0.06]" : "border-border bg-card/40",
       )}
     >
-      <span className="flex items-center gap-1 text-[10px] font-medium uppercase tracking-wide text-muted-foreground/70">
+      <span className="label-overline flex items-center gap-1">
         <Icon className="h-3 w-3" /> {label}
       </span>
       <span className="nums mt-1 truncate text-sm font-semibold text-foreground">
@@ -172,7 +172,7 @@ function StageCard({
       </span>
       <div className="mt-1.5 h-1 overflow-hidden bg-border/50">
         <div
-          className={cn("h-full transition-all", isBottleneck ? "bg-warning" : "bg-info")}
+          className={cn("h-full transition-[width] duration-250", isBottleneck ? "bg-warning" : "bg-info")}
           style={{ width: `${fillPct}%` }}
         />
       </div>

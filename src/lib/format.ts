@@ -16,21 +16,6 @@ export function formatStorage(gb: number, digits = 1): string {
   return `${trimZero((gb / 1024 / 1024).toFixed(digits))} PB`;
 }
 
-/**
- * Display name for a restore run. A restore has no backing job (the appliance
- * never creates one), so the Activity feed's RUN column would otherwise show
- * the "—" placeholder for every restore. Naming it after the VM it produces
- * makes restores identifiable in the feed without opening the log.
- *
- * Shared by the API mapper and the live store so both spell it identically —
- * a session named one way on first fetch and another on the next poll would
- * flicker in the feed.
- */
-export function restoreRunName(vmName: string | undefined | null): string {
-  const name = (vmName ?? "").trim();
-  return name ? `Restore · ${name}` : "Restore";
-}
-
 /** Throughput in MB/s with sensible scaling. */
 export function formatThroughput(mbps: number): string {
   if (mbps >= 1024) return `${(mbps / 1024).toFixed(1)} GB/s`;
@@ -73,6 +58,20 @@ export function formatRelative(iso: string | null | undefined): string {
   const diff = date.getTime() - now;
   const abs = formatDistanceToNowStrict(date, { addSuffix: false });
   return diff > 0 ? `in ${abs}` : `${abs} ago`;
+}
+
+/** Distance with no direction word — "4 hours", not "in 4 hours". For a
+ *  countdown whose label already points the way.
+ *
+ *  A moment that has already passed keeps its suffix: the label only points
+ *  forward, so dropping the direction on an overdue run would print it as an
+ *  upcoming one. `nextRunAt` sits in the past for the whole of a run and for
+ *  any job whose backup window is shut, so this is the common case. */
+export function formatCountdown(iso: string | null | undefined): string {
+  if (!iso) return "Never";
+  const date = new Date(iso);
+  if (date.getTime() <= Date.now()) return formatRelative(iso);
+  return formatDistanceToNowStrict(date);
 }
 
 export function formatClock(iso: string | null | undefined): string {

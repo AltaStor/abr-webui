@@ -6,21 +6,17 @@
   "actions": {
     "continue": "Continuer",
     "startOver": "Recommencer",
-    "viewInActivity": "Voir dans Activité",
     "startAnother": "Démarrer une autre restauration"
   },
   "steps": {
     "source": {
-      "label": "Choisir la source",
-      "hint": "Quoi récupérer"
+      "label": "Sélectionner l’objet à récupérer"
     },
     "point": {
-      "label": "Point de restauration",
-      "hint": "Point dans le temps"
+      "label": "Sélectionner le point de restauration"
     },
     "recover": {
-      "label": "Récupérer",
-      "hint": "Mode et confirmation"
+      "label": "Récupérer"
     }
   },
   "stepper": {
@@ -94,8 +90,8 @@
   "filesSelected_one": "{{count}} fichier sélectionné",
   "filesSelected_other": "{{count}} fichiers sélectionnés",
   "chooseVm": {
-    "title": "Quelle VM souhaitez-vous récupérer ?",
-    "subtitle": "Choisissez n'importe quelle machine protégée. Nous afficherons ensuite ses points de restauration — rien ne change tant que vous ne confirmez pas.",
+    "title": "Sélectionnez la VM que vous souhaitez récupérer",
+    "subtitle": "Sélectionnez n’importe quelle machine protégée. La liste des points de restauration s’affichera ensuite.",
     "searchPlaceholder": "Rechercher par nom ou OS…",
     "searchAria": "Rechercher des VM protégées",
     "noMatch": {
@@ -108,8 +104,8 @@
     "unknownEnv": "Environnement inconnu"
   },
   "chooseHost": {
-    "title": "Quel serveur souhaitez-vous récupérer ?",
-    "subtitle": "Choisissez n'importe quel serveur physique protégé. Nous afficherons ensuite ses points de restauration — rien ne change tant que vous ne confirmez pas.",
+    "title": "Sélectionnez le serveur que vous souhaitez récupérer",
+    "subtitle": "Sélectionnez n’importe quel serveur physique protégé. La liste des points de restauration s’affichera ensuite.",
     "searchPlaceholder": "Rechercher par nom ou OS…",
     "searchAria": "Rechercher des serveurs physiques protégés",
     "noMatch": {
@@ -122,8 +118,8 @@
     "agentLabel": "agent {{status}}"
   },
   "chooseDisk": {
-    "title": "Quel disque souhaitez-vous récupérer ?",
-    "subtitle": "Choisissez n'importe quel disque protégé — virtuel ou physique. Nous afficherons ensuite ses points de restauration — rien ne change tant que vous ne confirmez pas.",
+    "title": "Sélectionnez le disque que vous souhaitez récupérer",
+    "subtitle": "Sélectionnez n’importe quel disque protégé — virtuel ou physique. La liste des points de restauration s’affichera ensuite.",
     "searchPlaceholder": "Rechercher par disque, périphérique, VM ou serveur…",
     "searchAria": "Rechercher des disques protégés",
     "noMatch": {
@@ -146,8 +142,6 @@
     "countFor_other": "{{count}} points de restauration pour <1>{{name}}</1>.",
     "allUnreachable": "Aucun ne peut être sélectionné tant que son référentiel est hors ligne.",
     "mostRecentSelected": "Le plus récent est sélectionné pour vous.",
-    "immutableCallout_one": "<1>{{count}} point de restauration immuable</1> est verrouillé au niveau de la couche de stockage — il ne peut être ni modifié ni supprimé jusqu'à l'expiration du verrou, il est donc réputé sain.",
-    "immutableCallout_other": "<1>{{count}} points de restauration immuables</1> sont verrouillés au niveau de la couche de stockage — ils ne peuvent être ni modifiés ni supprimés jusqu'à l'expiration du verrou, ils sont donc réputés sains.",
     "unreachableCallout_one": "<1>{{count}} point de restauration</1> est inaccessible — son référentiel est hors ligne. Les sauvegardes existent toujours, mais ne peuvent pas être restaurées tant que le référentiel n'est pas de nouveau en ligne.",
     "unreachableCallout_other": "<1>{{count}} points de restauration</1> sont inaccessibles — leur référentiel est hors ligne. Les sauvegardes existent toujours, mais ne peuvent pas être restaurées tant que le référentiel n'est pas de nouveau en ligne.",
     "blockedCallout_one": "<1>{{count}} point de restauration</1> a échoué à un contrôle d'intégrité des fichiers ou n'est pas entièrement écrit, il est donc visible ici mais ne peut pas être restauré.",
@@ -184,15 +178,12 @@
       "corrupt": "Corrompu — bloqué",
       "unavailable": "Contrôle indisponible",
       "notVerified": "Non vérifié"
-    },
-    "fromLogical": "sur {{size}}",
-    "storedTitle": "{{logical}} de données stockées sous {{stored}}"
+    }
   },
   "howToRecover": "Comment souhaitez-vous récupérer ?",
-  "whereLand": "Où doit-il atterrir ?",
+  "whereLand": "Choisir l’emplacement",
   "review": {
-    "title": "Vérifier et confirmer",
-    "subtitle": "Un dernier coup d'œil. Rien n'a encore changé."
+    "title": "Vérifier et confirmer"
   },
   "summary": {
     "machine": "Machine",
@@ -206,11 +197,6 @@
     "powerState": "État d’alimentation"
   },
   "restorePointSub": "{{type}} · {{size}}",
-  "cleanSource": {
-    "immutableData": "La source est une copie immuable et verrouillée au niveau objet — elle n'a pas pu être modifiée depuis son scellement, donc les données que vous récupérez sont saines.",
-    "immutableFiles": "La source est une copie immuable et verrouillée au niveau objet — elle n'a pas pu être modifiée depuis son scellement, donc les fichiers que vous récupérez sont sains.",
-    "nonImmutable": "Nous lisons la sauvegarde sans jamais la toucher, donc la source à partir de laquelle vous récupérez reste intacte."
-  },
   "mode": {
     "subtitle": "Choisissez de restaurer la machine entière ou seulement quelques fichiers. Vous confirmerez avant toute exécution.",
     "entireVm": {
@@ -227,11 +213,11 @@
     },
     "original": {
       "title": "Emplacement d'origine",
-      "desc": "Restaure la VM sous son nom, son hôte et son datastore d'origine. Si cette VM existe encore, elle est écrasée sur place une fois la restauration entièrement écrite — vous confirmerez avant toute exécution."
+      "desc": "Restaure la VM sous son nom, son hôte et son datastore d’origine. Si la VM existe encore, elle est écrasée sur place une fois la restauration entièrement écrite."
     },
     "newLocation": {
       "title": "Nouvel emplacement",
-      "desc": "Restaurez en tant que copie sur un autre hôte — sûr pour les tests ou les vérifications côte à côte."
+      "desc": "Restaure la VM en tant que copie sur un autre hôte. Utilisez cette option pour des tests, des vérifications côte à côte ou une migration."
     },
     "instantCallout": "L'invité démarre sur son propre hôte directement depuis le référentiel via iSCSI — les blocs se chargent à mesure qu'il les lit, il fonctionne donc en quelques secondes sans copie complète. Les écritures atterrissent dans une surcouche temporaire, de sorte que la sauvegarde reste immuable. Ignorez-la lorsque vous avez terminé pour libérer le disque.",
     "targetEnv": "Environnement cible",
@@ -248,9 +234,10 @@
       "selectTarget": "Sélectionnez une cible…",
       "pickTarget": "Choisissez un environnement cible ci-dessus",
       "converted": "Converti {{from}} → {{to}}",
-      "bootsOn": "Démarre sur l'hôte de {{name}}"
+      "bootsOn": "Démarre sur l'hôte de {{name}}",
+      "blocked": "Cette appliance ne peut pas restaurer vers un autre hyperviseur."
     },
-    "originalOverwriteWarning": "Ceci restaure <1>{{name}}</1> sur place, sur son hôte et son datastore actuels. Une fois chaque disque entièrement écrit, la VM qui y est actuellement en cours d'exécution est détruite et remplacée — cette action est irréversible.",
+    "originalOverwriteWarning": "Cette opération écrasera la VM existante sur son hôte et son datastore actuels une fois tous les disques restaurés. Cette action est irréversible.",
     "originalOverwriteConfirmLabel": "Tapez <1>{{name}}</1> pour confirmer l'écrasement",
     "restoredVmName": "Nom de la VM restaurée",
     "restoredVmNameHint": "Laissez vide pour utiliser <1>{{name}}</1>.",
@@ -278,7 +265,7 @@
     "networkMapEnvNone": "Aucun commutateur virtuel n'a été découvert dans cet environnement. Relancez l'analyse de l'inventaire et réessayez.",
     "networkMapHint": "Les réseaux source proviennent des cartes réseau de la VM elle-même ; la liste cible n'affiche que les commutateurs virtuels de l'hôte sélectionné, et celui du même nom est sélectionné automatiquement — choisissez-en un autre dans la liste si besoin.",
     "powerOn": "Allumer après la restauration",
-    "powerOnHint": "Démarre la VM restaurée dès que la restauration est terminée.",
+    "powerOnHint": "Démarre la VM dès que la restauration est terminée.",
     "powerOnYes": "S’allume après la restauration",
     "powerOnNo": "Reste éteinte"
   },
@@ -364,6 +351,12 @@
       "high": "Confiance élevée",
       "medium": "Confiance moyenne",
       "low": "Confiance faible"
+    },
+    "blocked": {
+      "title": "Cette cible ne peut pas recevoir la copie",
+      "body": "Déplacer cette VM de {{from}} vers {{to}} suppose de convertir ses disques et d’adapter l’invité, ce que cette appliance ne sait pas faire. Choisissez une cible sous {{from}}.",
+      "notBuilt": "Pas encore implémenté",
+      "unaffected": "La sauvegarde elle-même reste intacte. Elle demeure restaurable à l’emplacement d’origine et vers toute cible exécutant le même hyperviseur que l’originale."
     }
   },
   "instant": {
@@ -391,6 +384,68 @@
     "status": {
       "discarded": "Ignorée",
       "booting": "Démarrage"
+    }
+  },
+  "refusal": {
+    "pointUnavailable": {
+      "title": "Ce point de restauration ne peut pas être lu",
+      "desc": "L’appliance possède ce point mais refuse de l’ouvrir — il peut être scellé, purgé, ou stocké sur un support hors ligne. Choisissez un autre point, ou remettez ce stockage en ligne."
+    },
+    "pointMissing": {
+      "title": "Ce point de restauration n’existe plus",
+      "desc": "Le point, sa copie dans le référentiel ou son manifeste n’est plus là. Choisissez un autre point dans la liste — il a pu être purgé depuis le chargement de cet assistant."
+    },
+    "targetUnreachable": {
+      "title": "L’environnement cible n’a pas répondu",
+      "desc": "L’appliance est enregistrée auprès de cet environnement mais ne parvient pas à le joindre pour l’instant, elle ne peut donc pas y placer la VM. Vérifiez l’hôte et les identifiants de l’environnement, puis réessayez."
+    },
+    "targetNotScanned": {
+      "title": "L’environnement cible n’a pas été analysé",
+      "desc": "Il n’a aucun hôte découvert, il n’y a donc nulle part où placer la VM. Réanalysez-le depuis l’Inventaire, puis relancez la restauration."
+    },
+    "targetMissing": {
+      "title": "Cet environnement cible n’existe plus",
+      "desc": "L’appliance ne connaît plus l’environnement proposé par cet assistant. Recommencez et choisissez une cible dans la liste actuelle."
+    },
+    "placementMissing": {
+      "title": "L’emplacement choisi n’existe plus",
+      "desc": "L’hôte, le datastore ou le réseau sélectionné dans l’assistant n’est plus là. Revenez à l’étape précédente et choisissez-les dans la liste actuelle."
+    },
+    "nameTaken": {
+      "title": "Ce nom est déjà pris",
+      "desc": "Une VM portant ce nom existe déjà dans l’environnement cible. Choisissez un autre nom et relancez la restauration."
+    },
+    "originalVmGone": {
+      "title": "La VM d'origine a disparu",
+      "desc": "Elle a été supprimée après le chargement de cet assistant — il ne reste donc rien à restaurer sur place. Recommencez pour la restaurer en tant que nouvelle VM."
+    },
+    "notEnoughSpace": {
+      "title": "Espace insuffisant sur le datastore",
+      "desc": "Le datastore cible n'a pas assez d'espace libre pour cette restauration."
+    },
+    "unsupported": {
+      "title": "Cette restauration n’est pas prise en charge",
+      "desc": "Le mode ou l’option demandé par l’assistant n’est pas implémenté sur cette appliance, rien n’a donc été démarré. Essayez un autre mode de restauration."
+    },
+    "rejected": {
+      "title": "L'appliance a refusé la restauration",
+      "desc": "Elle a donné une raison pour laquelle cette console n’a pas de formulation propre. Rien n’a été démarré."
+    },
+    "signedOut": {
+      "title": "Votre session a pris fin",
+      "desc": "L’appliance n’accepte plus cette session : la restauration n’a jamais été tentée. Reconnectez-vous, puis réessayez."
+    },
+    "versionMismatch": {
+      "title": "Les versions de la console et de l’appliance diffèrent",
+      "desc": "Elles parlent des versions d’API différentes, la restauration n’a donc pas été envoyée. Mettez à jour la console ou l’appliance pour les aligner sur la même version."
+    },
+    "unreachable": {
+      "title": "Impossible de joindre l'appliance",
+      "desc": "La restauration n'a pas été démarrée. Vérifiez le backend et réessayez."
+    },
+    "noSession": {
+      "title": "La restauration n’a pas démarré",
+      "desc": "L’appliance a accepté la demande mais n’a nommé aucune session de restauration : rien n’est en cours. Vérifiez Activité, puis réessayez."
     }
   }
 }

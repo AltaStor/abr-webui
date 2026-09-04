@@ -28,7 +28,20 @@ interface HypervisorsStepProps {
   onChange: (rows: HypervisorRow[]) => void;
 }
 
-const TYPES = Object.keys(HYPERVISOR_LABEL) as EnvironmentType[];
+/**
+ * Only the platforms this appliance can actually back up.
+ *
+ * The orchestrator will happily *register* a Hyper-V or Proxmox inventory and
+ * even discover its VMs — but every run against one fails with "unsupported
+ * hypervisor kind", so offering them here would let the operator finish the
+ * wizard holding a registration that can never produce a backup. They are kept
+ * out of the picker (the same call the Inventory "Add environment" dialog
+ * makes), and the step says so rather than being quietly short.
+ *
+ * `HYPERVISOR_LABEL` still covers all four types: it also labels environments
+ * that already exist. This list is what the wizard is willing to create.
+ */
+const TYPES: EnvironmentType[] = ["vcenter", "esxi-standalone"];
 
 export function HypervisorsStep({ rows, onChange }: HypervisorsStepProps) {
   const { t } = useTranslation("setup");
@@ -41,13 +54,17 @@ export function HypervisorsStep({ rows, onChange }: HypervisorsStepProps) {
     <div className="space-y-5">
       <StepHeader title={t("hypervisors.title")} description={t("hypervisors.description")} />
 
+      <p className="border-l-2 border-border pl-3 text-xs text-muted-foreground">
+        {t("hypervisors.vmwareOnly")}
+      </p>
+
       <div className="space-y-3">
         {rows.map((row, i) => {
           const partial = !isBlankRow(row) && !isCompleteRow(row);
           return (
-            <div key={row.id} className="rounded-lg border border-border/70 bg-muted/20 p-4">
+            <div key={row.id} className="border border-border bg-muted/20 p-4">
               <div className="mb-3 flex items-center justify-between gap-2">
-                <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                <p className="label-overline">
                   {t("hypervisors.environmentN", { n: i + 1 })}
                 </p>
                 <Button

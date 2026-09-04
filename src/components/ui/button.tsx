@@ -7,28 +7,28 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 active:scale-[0.98] select-none",
+  "inline-flex select-none items-center justify-center gap-2 whitespace-nowrap font-display text-sm font-medium transition-colors duration-250 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
   {
     variants: {
       variant: {
-        default:
-          "bg-primary text-primary-foreground shadow-sm hover:bg-primary/90 hover:shadow-[0_2px_16px_-4px_hsl(var(--primary)/0.6)]",
+        default: "bg-primary text-primary-foreground hover:bg-primary/90",
         secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80",
+        // The quiet button carries a real stroke that takes the accent on hover;
+        // it never fills, so it stays subordinate to the primary action beside it.
         outline:
-          "border border-border bg-transparent hover:bg-accent hover:text-accent-foreground",
+          "border border-muted-foreground/60 bg-transparent hover:border-primary hover:text-primary",
         ghost: "hover:bg-accent hover:text-accent-foreground",
         subtle: "bg-muted/60 text-foreground hover:bg-muted",
-        destructive:
-          "bg-destructive text-destructive-foreground hover:bg-destructive/90 shadow-sm",
-        success: "bg-success text-success-foreground hover:bg-success/90 shadow-sm",
-        link: "text-primary underline-offset-4 hover:underline",
+        destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90",
+        success: "bg-success text-success-foreground hover:bg-success/90",
+        link: "text-primary hover:text-foreground",
       },
       size: {
         default: "h-9 px-4 py-2",
-        sm: "h-8 rounded-md px-3 text-xs",
-        lg: "h-11 rounded-lg px-6 text-[0.95rem]",
+        sm: "h-8 px-3 text-xs",
+        lg: "h-11 px-6 text-base",
         icon: "h-9 w-9 tap-target",
-        "icon-sm": "h-8 w-8 rounded-md tap-target",
+        "icon-sm": "h-8 w-8 tap-target",
       },
     },
     defaultVariants: { variant: "default", size: "default" },

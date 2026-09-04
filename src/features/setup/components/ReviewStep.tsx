@@ -28,8 +28,8 @@ function ReviewGroup({
 }) {
   const { t } = useTranslation("common");
   return (
-    <section className="rounded-lg border border-border/70">
-      <div className="flex items-center justify-between border-b border-border/60 px-4 py-2.5">
+    <section className="border border-border">
+      <div className="flex items-center justify-between border-b border-border px-4 py-2.5">
         <h3 className="text-sm font-semibold">{title}</h3>
         <Button variant="link" size="sm" className="h-auto p-0" onClick={() => onEdit(step)}>
           {t("actions.edit")}

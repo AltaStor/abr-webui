@@ -22,8 +22,6 @@
   },
   "filters": {
     "byProtection": "Nach Schutzstatus filtern",
-    "title": "Filter",
-    "active": "Filter, {{count}} aktiv",
     "clear": "Filter zurücksetzen",
     "environment": "Umgebung",
     "os": "Betriebssystem",
@@ -35,7 +33,6 @@
     "allOs": "Alle Betriebssysteme",
     "windows": "Windows",
     "linux": "Linux",
-    "macos": "macOS",
     "unknown": "Unbekannt",
     "anyPower": "Beliebiger Zustand"
   },
@@ -64,7 +61,12 @@
     "lastBackup": "Letztes Backup",
     "points": "Punkte",
     "server": "Server",
-    "agentStatus": "Agent {{status}}"
+    "agentStatus": "Agent {{status}}",
+    "vmSizeHint": "Gesamte bereitgestellte Festplattenkapazität dieser VM. Der Orchestrator meldet keinen belegten Speicher pro VM — dies ist also der zugewiesene, nicht der beschriebene Platz.",
+    "backupSizeHint": "Gesamtgröße aller für diese VM gespeicherten Wiederherstellungspunkte, nach Deduplizierung und Komprimierung.",
+    "protectionHint": "Aktueller Schutzstatus, basierend auf Backup-Abdeckung und Wiederherstellungspunkten.",
+    "lastBackupHint": "Wann das letzte Backup abgeschlossen wurde.",
+    "pointsHint": "Anzahl der für diese VM gespeicherten Wiederherstellungspunkte."
   },
   "actions": {
     "restore": "Wiederherstellen",
@@ -107,13 +109,20 @@
     "physicalHost": "Physischer Server"
   },
   "coverage": {
-    "protected": "geschützt",
     "vms": "VMs",
     "sources": "Quellen",
     "running": "aktiv",
     "vmsRunning": "VMs aktiv",
-    "immutablySealed": "unveränderlich versiegelt",
-    "summary": "<b>{{protected}}</b> von <n>{{total}}</n> {{noun}} · <n>{{running}}</n> {{runningLabel}}"
+    "summary": "<b>{{protected}}</b> von <n>{{total}}</n> {{noun}} · <n>{{running}}</n> {{runningLabel}}",
+    "card": {
+      "coverage": "Schutzabdeckung",
+      "coverageHint": "{{protected}} von {{total}} {{noun}} · {{running}} {{runningLabel}}",
+      "ofEstate_one": "{{count}} {{noun}}",
+      "ofEstate_other": "{{count}} {{noun}}",
+      "exposed": "Ungeschützte Daten",
+      "exposedHint_one": "Über {{count}} ungeschützte oder gefährdete {{noun}}",
+      "exposedHint_other": "Über {{count}} ungeschützte oder gefährdete {{noun}}"
+    }
   },
   "estate": {
     "navigator": "Bestandsnavigator",
@@ -124,7 +133,8 @@
     "settingsFor": "Einstellungen für {{name}}",
     "empty": "leer",
     "protectedSr": "geschützt",
-    "description": "Ihre virtuelle Umgebung — Plattformen, Rechenzentren, Cluster und Hosts. Sehen Sie Kapazität, Konnektivität und genau, wo jede VM läuft."
+    "description": "Ihre virtuelle Umgebung — Plattformen, Rechenzentren, Cluster und Hosts. Sehen Sie Kapazität, Konnektivität und genau, wo jede VM läuft.",
+    "resizeLabel": "Breite des Bestandsbereichs ändern"
   },
   "agent": {
     "connected": "Verbunden",
@@ -138,8 +148,7 @@
   },
   "os": {
     "windows": "Windows",
-    "linux": "Linux",
-    "macos": "macOS"
+    "linux": "Linux"
   },
   "size": {
     "storageUsedAria": "Speicher zu {{pct}}% belegt"
@@ -152,16 +161,13 @@
     "nounServer": "Server",
     "sublineUnreachable_one": "{{count}} Wiederherstellungspunkt liegt auf Offline-Speicher und kann derzeit nicht wiederhergestellt werden — er ist nicht verloren und wird wieder verfügbar, sobald das Repository online ist.",
     "sublineUnreachable_other": "{{count}} Wiederherstellungspunkte liegen auf Offline-Speicher und können derzeit nicht wiederhergestellt werden — sie sind nicht verloren und werden wieder verfügbar, sobald das Repository online ist.",
-    "sublineImmutable": "Der neueste Wiederherstellungspunkt ist unveränderlich und kann weder geändert noch gelöscht werden.",
     "sublineHealthy": "Die Wiederherstellungspunkte sind fehlerfrei. Fügen Sie ein unveränderliches Repository hinzu, um sie vor Änderungen zu schützen.",
     "sublineProtect": "Fügen Sie sie zu einem Backup-Job hinzu, um mit dem Schutz zu beginnen.",
     "lastBackup": "Letztes Backup",
-    "restorePoints": "Wiederherstellungspunkte",
-    "immutable": "Unveränderlich",
-    "notCovered": "Nicht abgedeckt"
+    "restorePoints": "Wiederherstellungspunkte"
   },
   "detail": {
-    "backToInventory": "Zurück zum Inventar",
+    "backToInventory": "Zurück zum Bestand",
     "noPointsTitle": "Keine Wiederherstellungspunkte",
     "unreachableTitle_one": "{{unreachable}} von {{count}} Wiederherstellungspunkt nicht erreichbar",
     "unreachableTitle_other": "{{unreachable}} von {{count}} Wiederherstellungspunkten nicht erreichbar",
@@ -180,7 +186,7 @@
     "alreadyRunning": "{{job}} läuft bereits",
     "alreadyRunningDesc": "Diese VM wird gerade gesichert.",
     "location": "Standort",
-    "topology": "Topologie",
+    "topology": "Bestand",
     "specs": "Spezifikationen",
     "powerState": "Betriebszustand",
     "vcpus": "vCPUs",
@@ -193,7 +199,8 @@
     "noJob": "Noch kein Backup-Job schützt diese VM. Sie ist derzeit ungeschützt.",
     "restorePoints": "Wiederherstellungspunkte",
     "noPointsDesc": "Führen Sie ein Backup aus, um den ersten wiederherstellbaren Punkt für diese VM zu erstellen.",
-    "recentActivity": "Letzte Aktivität"
+    "recentActivity": "Letzte Aktivität",
+    "unknownPlatform": "Unbekannte Plattform"
   },
   "hostDetail": {
     "notFoundTitle": "Server nicht gefunden",
@@ -281,19 +288,15 @@
       "unavailable": "Prüfung nicht verfügbar",
       "unavailableTip": "Die Integritätsprüfung der Backup-Dateien konnte diesen Wiederherstellungspunkt nicht lesen.",
       "notVerified": "Nicht verifiziert"
-    },
-    "fromLogical": "aus {{size}}",
-    "storedTitle": "{{logical}} Daten, gespeichert als {{stored}}"
+    }
   },
   "calendar": {
     "pointsCount_one": "{{count}} Wiederherstellungspunkt",
     "pointsCount_other": "{{count}} Wiederherstellungspunkte",
     "includesFullSuffix": " · enthält ein Voll-Backup",
-    "immutablePoint": "Unveränderlicher Punkt",
     "noPointDay": "Kein Wiederherstellungspunkt an diesem Tag",
     "legendFull": "Enthält Voll-Backup",
     "legendIncremental": "Nur inkrementell",
-    "legendImmutable": "Unveränderlich",
     "legendGap": "Lücke",
     "noPoints": "Keine Punkte",
     "noPointsDay": "An diesem Tag wurden keine Wiederherstellungspunkte erstellt. Wählen Sie einen hervorgehobenen Tag, um dessen Punkte anzuzeigen."
@@ -306,51 +309,13 @@
     "alreadyDesc": "Dieses Backup existiert nicht mehr.",
     "errorTitle": "Backup konnte nicht gelöscht werden",
     "errorDesc": "Das Backup konnte nicht entfernt werden. Versuchen Sie es gleich erneut.",
-    "sealedTitle": "Dieser Wiederherstellungspunkt ist versiegelt",
     "title": "Dieses Backup löschen?",
-    "sealedDesc": "Unveränderliche Punkte sind auf der Speicherebene gesperrt und können erst entfernt werden, wenn die Sperre abläuft.",
     "desc": "Dadurch werden alle Wiederherstellungspunkte dieses Backups dauerhaft entfernt — vollständige und inkrementelle zusammen. Dies kann nicht rückgängig gemacht werden. Ein einzelner Punkt kann nicht für sich allein gelöscht werden.",
     "pointCount_one": "{{count}} Wiederherstellungspunkt",
     "pointCount_other": "{{count}} Wiederherstellungspunkte",
     "range": "{{from}} – {{to}}",
-    "lockedBadge": "Gesperrt · HTTP 423",
-    "sealedUntil": "Versiegelt bis <1>{{date}}</1>. Unveränderlichkeit ist der Kern des Ransomware-Schutzes — nicht einmal ein Administrator kann einen versiegelten Punkt entfernen, bevor seine Sperre abläuft.",
     "recoverWarn": "Nach dem Entfernen können Sie <1>{{name}}</1> zu keinem Zeitpunkt in diesem Backup mehr wiederherstellen.",
     "confirm": "Backup löschen",
-    "deleting": "Wird gelöscht…"
-  },
-  "deleteAll": {
-    "successTitle_one": "{{count}} Wiederherstellungspunkt gelöscht",
-    "successTitle_other": "{{count}} Wiederherstellungspunkte gelöscht",
-    "successDesc_one": "Über {{count}} VM entfernt. Der Speicher wird bei der nächsten Bereinigung freigegeben.",
-    "successDesc_other": "Über {{count}} VMs entfernt. Der Speicher wird bei der nächsten Bereinigung freigegeben.",
-    "warningTitle": "{{deleted}} von {{considered}} Wiederherstellungspunkten gelöscht",
-    "warningCompliance": "{{count}} compliance-gesperrte behalten",
-    "warningGovernance": "{{count}} governance-gesperrte behalten",
-    "infoTitle": "Nichts gelöscht",
-    "infoDesc": "Jeder ausgewählte Wiederherstellungspunkt ist durch eine aktive Unveränderlichkeitssperre versiegelt.",
-    "errorTitle": "Wiederherstellungspunkte konnten nicht gelöscht werden",
-    "errorDesc": "Die Appliance hat das Löschen nicht bestätigt. Es wurde nichts entfernt — versuchen Sie es erneut.",
-    "title": "Alle Wiederherstellungspunkte löschen?",
-    "description": "Dadurch wird jeder wiederherstellbare Punkt für {{label}} dauerhaft entfernt. Dies kann nicht rückgängig gemacht werden.",
-    "thisVm": "diese VM",
-    "scopeVms_one": "{{count}} VM",
-    "scopeVms_other": "{{count}} VMs",
-    "vmsLabel": "VMs",
-    "pointsToDelete": "Zu löschende Punkte",
-    "pointsCount": "{{willDelete}} von {{total}}",
-    "complianceHeading_one": "{{count}} compliance-gesperrter Punkt wird behalten",
-    "complianceHeading_other": "{{count}} compliance-gesperrte Punkte werden behalten",
-    "complianceBody": "Unveränderlichkeit im Compliance-Modus kann von niemandem überschrieben werden — diese Punkte bleiben, bis ihre Sperren ablaufen.",
-    "overrideHeading": "Governance-Sperre überschreiben",
-    "overrideBody_one": "{{count}} Punkt unterliegt einer Governance-Sperre. Aktivieren Sie dies, um ihn vor Ablauf der Sperre zwangsweise zu löschen. Dies wird auditiert.",
-    "overrideBody_other": "{{count}} Punkte unterliegen einer Governance-Sperre. Aktivieren Sie dies, um sie vor Ablauf der Sperre zwangsweise zu löschen. Dies wird auditiert.",
-    "governanceKeptHeading_one": "{{count}} governance-gesperrter Punkt wird behalten",
-    "governanceKeptHeading_other": "{{count}} governance-gesperrte Punkte werden behalten",
-    "governanceKeptBody_one": "Das zwangsweise Löschen ist in den Sicherheitseinstellungen deaktiviert, daher kann die Governance-Sperre hier nicht überschrieben werden. Dieser Punkt bleibt, bis die Sperre abläuft — aktivieren Sie das Admin-Zwangslöschen, um sie zu überschreiben.",
-    "governanceKeptBody_other": "Das zwangsweise Löschen ist in den Sicherheitseinstellungen deaktiviert, daher kann die Governance-Sperre hier nicht überschrieben werden. Diese Punkte bleiben, bis die Sperre abläuft — aktivieren Sie das Admin-Zwangslöschen, um sie zu überschreiben.",
-    "confirm_one": "{{count}} Punkt löschen",
-    "confirm_other": "{{count}} Punkte löschen",
     "deleting": "Wird gelöscht…"
   },
   "addPhysical": {
@@ -372,7 +337,10 @@
   },
   "sourceSettings": {
     "fallbackTitle": "Quelle",
-    "description": "Inventar erneut scannen, entfernen oder Agenten aktualisieren."
+    "description": "Inventar erneut scannen, entfernen oder Agenten aktualisieren.",
+    "edit": "Bearbeiten",
+    "rescan": "Erneut scannen",
+    "remove": "Umgebung entfernen"
   },
   "removeEnvironment": {
     "title": "{{name}} entfernen?",
@@ -392,5 +360,77 @@
         "description": "Die Umgebung konnte nicht entfernt werden. Versuchen Sie es in Kürze erneut."
       }
     }
+  },
+  "addEnvironment": {
+    "title": "Umgebung hinzufügen",
+    "description": "Registrieren Sie einen VMware vCenter Server oder einen eigenständigen ESXi-Host, damit AltaStor dessen VMs erkennen und schützen kann.",
+    "platformLabel": "Plattform",
+    "type": {
+      "vcenter": {
+        "label": "VMware vCenter",
+        "hint": "vCenter Server, der einen oder mehrere ESXi-Hosts verwaltet."
+      },
+      "esxiStandalone": {
+        "label": "VMware ESXi (eigenständig)",
+        "hint": "Ein einzelner ESXi-Host, direkt verwaltet."
+      }
+    },
+    "nameLabel": "Name",
+    "addressLabel": "Adresse",
+    "addressInvalid": "Geben Sie einen gültigen FQDN oder eine IP-Adresse ein — ohne Protokoll, Pfad oder Leerzeichen.",
+    "portLabel": "Port",
+    "usernameLabel": "Benutzername",
+    "passwordLabel": "Passwort",
+    "skipTlsLabel": "TLS-Überprüfung überspringen",
+    "skipTlsHint": "Selbstsignierte Zertifikate akzeptieren (in Laborumgebungen üblich).",
+    "submit": "Registrieren & erkennen",
+    "error": "Der Orchestrator hat die Registrierung abgelehnt. Prüfen Sie Adresse und Anmeldedaten.",
+    "toast": {
+      "registered": "{{platform}} registriert",
+      "registeredDesc": "VMs auf {{endpoint}} werden erkannt…",
+      "discoveryFailed": "{{platform}} registriert, aber die Erkennung ist fehlgeschlagen"
+    }
+  },
+  "editEnvironment": {
+    "addressInvalid": "Geben Sie einen gültigen FQDN oder eine IP-Adresse ein — ohne Protokoll, Pfad oder Leerzeichen.",
+    "addressLabel": "Adresse",
+    "nameLabel": "Name",
+    "passwordLabel": "Passwort",
+    "portLabel": "Port",
+    "usernameLabel": "Benutzername",
+    "skipTlsHint": "Selbstsignierte Zertifikate akzeptieren (in Laborumgebungen üblich).",
+    "skipTlsLabel": "TLS-Überprüfung überspringen",
+    "description": "Aktualisieren Sie die Verbindungsdaten, mit denen AltaStor diese Umgebung erreicht.",
+    "passwordPlaceholder": "Leer lassen, um das aktuelle Passwort zu behalten",
+    "usernamePlaceholder": "Leer lassen, um den aktuellen Benutzernamen zu behalten",
+    "save": "Änderungen speichern",
+    "saving": "Wird gespeichert…",
+    "title": "{{name}} bearbeiten",
+    "toast": {
+      "saved": {
+        "title": "Umgebung aktualisiert",
+        "description": "{{name}} wurde aktualisiert."
+      },
+      "failed": {
+        "description": "Die Umgebung konnte nicht aktualisiert werden. Versuchen Sie es gleich noch einmal."
+      }
+    }
+  },
+  "rescan": {
+    "tooltip": "Holt neu erkannte Hosts und VMs aus allen verbundenen Umgebungen.",
+    "running": "Wird neu gescannt…",
+    "doneTitle": "Neuscan abgeschlossen",
+    "doneDesc_one": "{{count}} Umgebung aktualisiert.",
+    "doneDesc_other": "{{count}} Umgebungen aktualisiert.",
+    "failedTitle": "Neuscan fehlgeschlagen",
+    "failedDesc_one": "Die Appliance konnte {{count}} Umgebung nicht erreichen — es wurde nichts aktualisiert.",
+    "failedDesc_other": "Die Appliance konnte {{count}} Umgebungen nicht erreichen — es wurde nichts aktualisiert.",
+    "partialTitle": "Neuscan teilweise abgeschlossen",
+    "partialDesc": "{{ok}} von {{total}} Umgebungen wurden aktualisiert; die übrigen konnte die Appliance nicht erreichen.",
+    "oneDoneTitle": "{{name}} neu gescannt",
+    "oneDoneDesc_one": "{{count}} VM gefunden.",
+    "oneDoneDesc_other": "{{count}} VMs gefunden.",
+    "oneFailedTitle": "{{name}} konnte nicht neu gescannt werden",
+    "oneFailedDesc": "Die Appliance konnte die Umgebung nicht erreichen — ihr Bestand bleibt unverändert."
   }
 }

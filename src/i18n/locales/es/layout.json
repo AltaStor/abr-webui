@@ -20,7 +20,12 @@
     "runJobLabel": "Ejecutar · {{name}}",
     "started": "«{{name}}» iniciado",
     "startedDescription": "Sigue su progreso en vivo en Actividad.",
-    "alreadyRunning": "«{{name}}» ya se está ejecutando o está desactivado."
+    "alreadyRunning": "«{{name}}» ya se está ejecutando.",
+    "alreadyRunningDescription": "Deja que termine primero la ejecución actual.",
+    "jobDisabled": "«{{name}}» está desactivado",
+    "jobDisabledDescription": "Habilita el trabajo para ejecutarlo.",
+    "runRefused": "No se pudo iniciar «{{name}}»",
+    "runRefusedDescription": "La appliance no inició la ejecución ni indicó el motivo. Vuelve a intentarlo desde la página del trabajo."
   },
   "topbar": {
     "openMenu": "Abrir menú",
@@ -52,5 +57,9 @@
     "title": "Versión de API incompatible",
     "fallback": "Las versiones de API de la consola y la appliance son incompatibles. Recarga la página cuando finalice la implementación o contacta a tu administrador.",
     "reload": "Recargar"
+  },
+  "offline": {
+    "title": "Se perdió el contacto con la appliance.",
+    "body": "Nada de esta página se está actualizando: ejecuciones, capacidad y alertas son las del momento de la caída. Reconectando en segundo plano."
   }
 }

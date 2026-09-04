@@ -17,7 +17,6 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { formatDuration, formatStorage } from "@/lib/format";
 import type { Repository } from "@/types";
-import { compressionSpeedFactor } from "../lib";
 
 /** Present only for replication jobs; drives the target-host recap on the right rail. */
 export interface SummaryReplication {
@@ -33,12 +32,8 @@ export interface SummaryData {
   totalSizeGB: number;
   /** Effective MB/s used for the backup-window estimate — measured from recent
    *  real runs when available (see CreateJobPage), so the estimate reflects this
-   *  appliance's actual throughput instead of a hardcoded rate. Assumed to have
-   *  been measured at BASELINE_COMPRESSION_LEVEL; `compressionLevel` scales it. */
+   *  appliance's actual throughput instead of a hardcoded rate. */
   effectiveMBps: number;
-  /** zstd level the job will run at. Compression is inline and CPU-bound, so
-   *  the level moves the window: higher = smaller output but slower. */
-  compressionLevel: number;
   repository?: Repository;
   scheduleLabel: string;
   retentionLabel: string;
@@ -62,21 +57,15 @@ export function JobSummaryPanel({ data, editMode, submitting, onCreate, onCreate
   // Estimate window from the effective throughput measured on recent real runs
   // (falls back to a realistic default before there's any history) — not a
   // hardcoded 500 MB/s, which made a real 1-hour full read as ~15 min.
-  //
-  // Then scale by the chosen compression level: the mover compresses inline, so
-  // the level is a real throughput lever and the window has to respond when the
-  // operator drags the slider. Without this the estimate sat frozen at every
-  // level, implying compression were free.
-  const measured = data.effectiveMBps > 0 ? data.effectiveMBps : 120;
-  const rate = measured * compressionSpeedFactor(data.compressionLevel);
-  const estSeconds = data.totalSizeGB > 0 && rate > 0 ? (data.totalSizeGB * 1024) / rate : 0;
+  const rate = data.effectiveMBps > 0 ? data.effectiveMBps : 120;
+  const estSeconds = data.totalSizeGB > 0 ? (data.totalSizeGB * 1024) / rate : 0;
   const valid = data.errors.length === 0;
   const isReplication = !!data.replication;
 
   return (
     <Card className="overflow-hidden">
-      <div className="border-b border-border/60 bg-muted/20 px-4 py-3">
-        <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/70">
+      <div className="border-b border-border bg-muted/20 px-4 py-3">
+        <p className="label-overline">
           {editMode ? t("summary.reviewChanges") : t("summary.yourNewJob")}
         </p>
         <p className="mt-0.5 truncate text-sm font-semibold">{data.name || t("summary.untitled")}</p>
@@ -135,7 +124,7 @@ export function JobSummaryPanel({ data, editMode, submitting, onCreate, onCreate
 
         {isReplication && (
           /* DR reassurance — a warm replica, ready to fail over */
-          <div className="flex items-start gap-2 rounded-lg border border-info/25 bg-info/[0.05] p-2.5 text-xs">
+          <div className="flex items-start gap-2 border border-info/25 bg-info/[0.05] p-2.5 text-xs">
             <CopyPlus className="mt-0.5 h-4 w-4 shrink-0 text-info" />
             <div className="space-y-1">
               <p className="font-medium text-info">{t("summary.readyToFailOver")}</p>
@@ -148,7 +137,7 @@ export function JobSummaryPanel({ data, editMode, submitting, onCreate, onCreate
 
         {/* Validation */}
         {!valid && (
-          <div className="space-y-1 rounded-lg border border-danger/30 bg-danger-subtle/60 p-2.5">
+          <div className="space-y-1 border border-danger/30 bg-danger-subtle/60 p-2.5">
             {data.errors.map((err) => (
               <p key={err} className="flex items-center gap-1.5 text-xs text-danger">
                 <AlertCircle className="h-3.5 w-3.5 shrink-0" />

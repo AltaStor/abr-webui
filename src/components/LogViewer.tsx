@@ -11,6 +11,16 @@ import { Button } from "./ui/button";
 import { EmptyState } from "./EmptyState";
 import { Terminal } from "@/lib/icons";
 
+/* `--terminal` is near-black in BOTH themes, so nothing drawn on it may follow
+ * the page theme. `debug` and `info` are not verdicts, so they are plain
+ * terminal ink at two opacities (6.5:1 and 11:1 on the surface). `warn`,
+ * `error` and `success` keep their semantic tokens — but the surrounding
+ * elements are pinned to the palette drawn for a dark ground (see the `dark`
+ * class below), so those tokens resolve to their dark rungs whichever theme the
+ * console is in: warn 9.2:1, error 5.4:1, success 12.0:1 on `--terminal`.
+ * Reading them from the light palette instead gave 5.2 / 3.5 / 3.5, and the
+ * `-text` rungs would have been worse still (3.2 / 2.9 / 2.6) because on light
+ * the `-text` rung is the *darker* one. */
 const LEVEL_CLASS: Record<LogLevel, string> = {
   debug: "text-[hsl(var(--terminal-foreground))]/60",
   info: "text-[hsl(var(--terminal-foreground))]/80",
@@ -61,18 +71,26 @@ export function LogViewer({ lines, className, height = 320, live }: LogViewerPro
   }, [filtered, autoScroll]);
 
   return (
-    <div className={cn("flex flex-col overflow-hidden rounded-lg border border-border bg-[hsl(var(--terminal))]", className)}>
-      <div className="flex items-center justify-between border-b border-border/70 bg-white/[0.04] px-3 py-1.5 text-[hsl(var(--terminal-foreground))]">
+    <div className={cn("flex flex-col overflow-hidden border border-border bg-[hsl(var(--terminal))]", className)}>
+      {/* The toolbar tint and its rule are drawn from the terminal's own ink, so
+          they stay a lift on the dark surface in both themes. `dark` pins the
+          subtree to the palette drawn for a dark ground — the terminal is one,
+          in either theme — so the "live" marker, the ghost buttons' hover and
+          every semantic token inside resolve to rungs that are legible here
+          rather than to the light theme's dark inks. The outer container is
+          deliberately left out of it: its border separates the terminal from the
+          page, so it stays on the page's theme. */}
+      <div className="dark flex items-center justify-between border-b border-[hsl(var(--terminal-foreground)/0.12)] bg-[hsl(var(--terminal-foreground)/0.05)] px-3 py-1.5 text-[hsl(var(--terminal-foreground))]">
         <div className="flex items-center gap-1">
           {FILTERS.map((f) => (
             <button
               key={f.key}
               onClick={() => setFilter(f.key)}
               className={cn(
-                "rounded-md px-2 py-0.5 text-xs font-medium transition-colors",
+                "px-2 py-0.5 font-display text-xs font-medium transition-colors duration-250",
                 filter === f.key
-                  ? "bg-white/10 text-[hsl(var(--terminal-foreground))]"
-                  : "text-[hsl(var(--terminal-foreground))]/55 hover:text-[hsl(var(--terminal-foreground))]",
+                  ? "bg-[hsl(var(--terminal-foreground)/0.12)] text-[hsl(var(--terminal-foreground))]"
+                  : "text-[hsl(var(--terminal-foreground))]/70 hover:text-[hsl(var(--terminal-foreground))]",
               )}
             >
               {f.label}
@@ -112,7 +130,7 @@ export function LogViewer({ lines, className, height = 320, live }: LogViewerPro
       </div>
       <div
         ref={scrollRef}
-        className="overflow-y-auto px-3 py-2 font-mono text-xs leading-relaxed"
+        className="dark overflow-y-auto px-3 py-2 font-mono text-xs leading-relaxed"
         style={{ height }}
       >
         {filtered.length === 0 ? (
@@ -120,10 +138,21 @@ export function LogViewer({ lines, className, height = 320, live }: LogViewerPro
         ) : (
           filtered.map((l) => (
             <div key={l.id} className="flex gap-2 whitespace-pre-wrap py-0.5 animate-fade-up">
-              <span className="shrink-0 select-none text-[hsl(var(--terminal-foreground))]/45">{formatClock(l.ts)}</span>
+              {/* /55 rather than /45: the timestamp is small text and has to
+                  clear AA (5.6:1 here, where /45 gave 4.10:1), while staying
+                  well behind the message at /80. */}
+              <span className="shrink-0 select-none text-[hsl(var(--terminal-foreground))]/55">{formatClock(l.ts)}</span>
               <span className={cn("shrink-0 select-none font-semibold", LEVEL_CLASS[l.level])}>{LEVEL_LABEL[l.level]}</span>
               <span className={cn("min-w-0", LEVEL_CLASS[l.level])}>
-                {l.vmName && <span className="text-primary/90">[{l.vmName}] </span>}
+                {/* The source prefix names which object emitted the line — it is
+                    a label, not a verdict, so it takes plain terminal ink at full
+                    strength (17:1) and separates from the message by weight
+                    rather than by hue. It used to wear `--primary`, which the
+                    operator can repoint from Settings → Appearance and which on
+                    light resolved to a dark ice that measured 3.3:1 here. */}
+                {l.vmName && (
+                  <span className="font-medium text-[hsl(var(--terminal-foreground))]">[{l.vmName}] </span>
+                )}
                 {l.message}
               </span>
             </div>

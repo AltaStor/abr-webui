@@ -78,39 +78,9 @@ function makeSvg(displayName: string, children: ReactElement[]): LucideIcon {
   return Comp;
 }
 
-const BASE20 = {
-  xmlns: "http://www.w3.org/2000/svg",
-  viewBox: "0 0 20 20",
-  fill: "none",
-};
-
-/**
- * Dashboard glyph set — exported by design as 20x20 paths with per-path
- * stroke-linecap/-linejoin (mixed square/round/unset within one icon), unlike
- * the 24x24 Lucide set above where those are uniform per icon. No root-level
- * default is set for either, so an `El` that omits one falls through to the
- * SVG spec's own initial value (butt / miter) exactly as authored.
- */
-function makeGlyph(els: El[], displayName: string): LucideIcon {
-  const Comp = forwardRef<SVGSVGElement, AppIconProps>((props, ref) => {
-    const { size, color, strokeWidth, className, ...rest } = props;
-    return createElement(
-      "svg",
-      {
-        ref,
-        ...BASE20,
-        width: size ?? 24,
-        height: size ?? 24,
-        stroke: color ?? "currentColor",
-        strokeWidth: strokeWidth ?? 1.25,
-        className: className ? `shrink-0 ${className}` : "shrink-0",
-        ...rest,
-      },
-      ...els.map(({ t, ...attrs }, i) => createElement(t, { key: i, ...attrs })),
-    );
-  });
-  Comp.displayName = displayName;
-  return Comp;
+/** `[tag, attrs]` pairs → keyed children, for the composed marks below. */
+function els(list: Array<[string, Record<string, string | number>]>): ReactElement[] {
+  return list.map(([tag, attrs], i) => createElement(tag, { key: i, ...attrs }));
 }
 
 /* ----- app name → Lucide glyph (rendered straight) ----- */
@@ -157,7 +127,6 @@ export const Layers = makeLucide([{"t":"path","d":"M12.83 2.18a2 2 0 0 0-1.66 0L
 export const LayoutDashboard = makeLucide([{"t":"rect","width":"7","height":"9","x":"3","y":"3"},{"t":"rect","width":"7","height":"5","x":"14","y":"3"},{"t":"rect","width":"7","height":"9","x":"14","y":"12"},{"t":"rect","width":"7","height":"5","x":"3","y":"16"}], "LayoutDashboard"); // lucide: layout-dashboard
 export const Loader2 = makeLucide([{"t":"path","d":"M21 12a9 9 0 1 1-6.219-8.56"}], "Loader2"); // lucide: loader-2
 export const Lock = makeLucide([{"t":"rect","width":"18","height":"11","x":"3","y":"11"},{"t":"path","d":"M7 11V7a5 5 0 0 1 10 0v4"}], "Lock"); // lucide: lock
-export const LockOpen = makeLucide([{"t":"rect","width":"18","height":"11","x":"3","y":"11"},{"t":"path","d":"M7 11V7a5 5 0 0 1 9.9-1"}], "LockOpen"); // lucide: lock-open
 export const LockKeyhole = makeLucide([{"t":"circle","cx":"12","cy":"16","r":"1"},{"t":"rect","x":"3","y":"10","width":"18","height":"12"},{"t":"path","d":"M7 10V7a5 5 0 0 1 10 0v3"}], "LockKeyhole"); // lucide: lock-keyhole
 export const MapPin = makeLucide([{"t":"path","d":"M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"},{"t":"circle","cx":"12","cy":"10","r":"3"}], "MapPin"); // lucide: map-pin
 export const MemoryStick = makeLucide([{"t":"path","d":"M12 12v-2"},{"t":"path","d":"M12 18v-2"},{"t":"path","d":"M16 12v-2"},{"t":"path","d":"M16 18v-2"},{"t":"path","d":"M2 11h1.5"},{"t":"path","d":"M20 18v-2"},{"t":"path","d":"M20.5 11H22"},{"t":"path","d":"M4 18v-2"},{"t":"path","d":"M8 12v-2"},{"t":"path","d":"M8 18v-2"},{"t":"rect","x":"2","y":"6","width":"20","height":"10"}], "MemoryStick"); // lucide: memory-stick
@@ -236,7 +205,185 @@ export const Hand = makeLucide([{"t":"path","d":"M18 11V6a2 2 0 0 0-2-2a2 2 0 0 
 export const Power = makeLucide([{"t":"path","d":"M12 2v10"},{"t":"path","d":"M18.4 6.6a9 9 0 1 1-12.77.04"}], "Power"); // lucide: power
 export const Rocket = makeLucide([{"t":"path","d":"M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"},{"t":"path","d":"M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09"},{"t":"path","d":"M9 12a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.4 22.4 0 0 1-4 2z"},{"t":"path","d":"M9 12H4s.55-3.03 2-4c1.62-1.08 5 .05 5 .05"}], "Rocket"); // lucide: rocket
 
-/* ----- dashboard glyph set (design-provided 20x20 paths) ----- */
+/* ----- Figma "hand-picked" set: glyphs the design uses that the app lacked ----- */
+export const SquareActivity = makeLucide([{"t":"rect","width":"18","height":"18","x":"3","y":"3"},{"t":"path","d":"M17 12h-2l-2 5-2-10-2 5H7"}], "SquareActivity"); // lucide: square-activity
+export const PcCase = makeLucide([{"t":"rect","width":"14","height":"20","x":"5","y":"2"},{"t":"path","d":"M15 14h.01"},{"t":"path","d":"M9 6h6"},{"t":"path","d":"M9 10h6"}], "PcCase"); // lucide: pc-case
+export const ShieldX = makeLucide([{"t":"path","d":"M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"},{"t":"path","d":"m14.5 9.5-5 5"},{"t":"path","d":"m9.5 9.5 5 5"}], "ShieldX"); // lucide: shield-x
+export const Building2 = makeLucide([{"t":"path","d":"M10 12h4"},{"t":"path","d":"M10 8h4"},{"t":"path","d":"M14 21v-3a2 2 0 0 0-4 0v3"},{"t":"path","d":"M6 10H4a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2"},{"t":"path","d":"M6 21V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v16"}], "Building2"); // lucide: building-2
+export const ChevronsRight = makeLucide([{"t":"path","d":"m6 17 5-5-5-5"},{"t":"path","d":"m13 17 5-5-5-5"}], "ChevronsRight"); // lucide: chevrons-right
+export const Bug = makeLucide([{"t":"path","d":"M12 20v-9"},{"t":"path","d":"M14 7a4 4 0 0 1 4 4v3a6 6 0 0 1-12 0v-3a4 4 0 0 1 4-4z"},{"t":"path","d":"M14.12 3.88 16 2"},{"t":"path","d":"M21 21a4 4 0 0 0-3.81-4"},{"t":"path","d":"M21 5a4 4 0 0 1-3.55 3.97"},{"t":"path","d":"M22 13h-4"},{"t":"path","d":"M3 21a4 4 0 0 1 3.81-4"},{"t":"path","d":"M3 5a4 4 0 0 0 3.55 3.97"},{"t":"path","d":"M6 13H2"},{"t":"path","d":"m8 2 1.88 1.88"},{"t":"path","d":"M9 7.13V6a3 3 0 1 1 6 0v1.13"}], "Bug"); // lucide: bug
+export const Presentation = makeLucide([{"t":"path","d":"M2 3h20"},{"t":"path","d":"M21 3v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V3"},{"t":"path","d":"m7 21 5-5 5 5"}], "Presentation"); // lucide: presentation
+export const Clipboard = makeLucide([{"t":"rect","width":"8","height":"4","x":"8","y":"2"},{"t":"path","d":"M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"}], "Clipboard"); // lucide: clipboard
+export const DatabaseArrowDown = makeLucide([{"t":"path","d":"m16 19 3 3 3-3"},{"t":"path","d":"M19 16v6"},{"t":"path","d":"M21 12.536V5"},{"t":"path","d":"M3 12A9 3 0 0 0 15.182 14.806"},{"t":"path","d":"M3 5V19A9 3 0 0 0 13.318 21.968"}], "DatabaseArrowDown"); // lucide: database-arrow-down
+
+/* ----- custom straight glyph (no Lucide equivalent) ----- */
+/** Three host towers side by side = a cluster. */
+export const Cluster = makeSvg(
+  "Cluster",
+  [3.5, 10, 16.5].flatMap((x, i) => [
+    createElement("rect", { key: `c${i}`, x, y: 5, width: 4, height: 14 }),
+    createElement("line", { key: `v${i}`, x1: x + 1, y1: 8.2, x2: x + 3, y2: 8.2 }),
+  ]),
+);
+
+/* ----- composed marks lifted from the Figma icon sheet ----- */
+/** A circle struck through, the slash rising left-to-right.
+ *  Figma: `Status/Failed` — geometry exported from the file, not redrawn. */
+export const CircleSlash = makeSvg(
+  "CircleSlash",
+  els([
+    ["path", { d: "M20.1 12C20.1 7.53 16.47 3.9 12 3.9C7.53 3.9 3.9 7.53 3.9 12C3.9 16.47 7.53 20.1 12 20.1C16.47 20.1 20.1 16.47 20.1 12Z" }],
+    ["path", { d: "M17.53 6.47L6.47 17.53" }],
+  ]),
+);
+
+/** An eight-point chamfered seal around a check — the angular
+ *  counterpart to Lucide's rounded `badge-check`.
+ *  Figma: `Feature/Compliance` — geometry exported from the file, not redrawn. */
+export const SealCheck = makeSvg(
+  "SealCheck",
+  els([
+    ["path", { d: "M18.46 14.67L21.15 12L18.46 9.33V5.54H14.69L12 2.85L9.33 5.54H5.54V9.33L2.85 12L5.54 14.67V18.46H9.33L12 21.15L14.69 18.46H18.46V14.67Z" }],
+    ["path", { d: "M14.51 10.75L11.41 13.86L9.54 11.99" }],
+  ]),
+);
+
+/** A speedometer: domed dial on a flat base, three ticks, hub and needle.
+ *  Figma: `Feature/Throughput` — geometry exported from the file, not redrawn. */
+export const Throughput = makeSvg(
+  "Throughput",
+  els([
+    ["path", { d: "M22.41 14.31C22.41 16.45 21.76 18.45 20.65 20.1H3.35C2.24 18.45 1.59 16.45 1.59 14.31C1.59 8.56 6.25 3.9 12 3.9C17.75 3.9 22.41 8.56 22.41 14.31Z", strokeLinecap: "butt" }],
+    ["path", { d: "M12 4.37V6.24" }],
+    ["path", { d: "M20.09 14.32H22.19" }],
+    ["path", { d: "M2.04 14.32H3.91" }],
+    ["path", { d: "M13.63 11.53C14.54 12.44 14.54 13.89 13.63 14.8C12.73 15.7 11.27 15.7 10.37 14.8C9.46 13.89 9.46 12.44 10.37 11.53C11.27 10.63 12.73 10.63 13.63 11.53Z" }],
+    ["path", { d: "M15.94 9.22L13.63 11.53" }],
+  ]),
+);
+
+/** A crate opened at the top-right for a cloud. Figma hands the crate over
+ *  as an outline rather than a centre line, so it is filled and given a hairline
+ *  stroke that brings it back to the 1.8 weight its neighbours are drawn at.
+ *  Figma: `Object/VM cloud` — geometry exported from the file, not redrawn. */
+export const BoxCloud = makeSvg(
+  "BoxCloud",
+  els([
+    ["path", { d: "M12.36 3.24L13.89 4.1C13.57 4.48 13.33 4.93 13.17 5.41L11.99 4.76L6.02 8.09L11.99 11.55L12.74 11.12C13.23 11.47 13.84 11.67 14.49 11.67H14.78L12.74 12.85V18.82L18.54 15.6V11.67H20.04V16.48L19.65 16.7L12.36 20.76L11.99 20.96L11.63 20.76L4.35 16.7L3.97 16.48V7.52L4.35 7.3L11.63 3.24L11.99 3.04L12.36 3.24ZM5.47 15.6L11.24 18.82V12.85L5.47 9.5V15.6Z", fill: "currentColor", strokeWidth: 0.3 }],
+    ["path", { d: "M14.76 9.91H19.3C20.41 9.91 21.32 9.05 21.39 7.94C21.45 6.84 20.64 5.86 19.54 5.74C19.21 4.58 18.06 3.82 16.85 4C15.65 4.17 14.76 5.2 14.76 6.42C13.79 6.42 13.01 7.2 13.01 8.17C13.01 9.13 13.79 9.91 14.76 9.91Z" }],
+  ]),
+);
+
+/** A store cut away on the right for a padlock.
+ *  Figma: `Object/Immutable storage` — geometry exported from the file, not redrawn. */
+export const DatabaseLock = makeSvg(
+  "DatabaseLock",
+  els([
+    ["path", { d: "M5.02 12C5.02 12.47 5.41 12.93 6.15 13.33C6.9 13.73 7.96 14.05 9.22 14.26" }],
+    ["path", { d: "M20.14 9.73V6.73" }],
+    ["path", { d: "M5.02 6.79V17.88C5.02 18.42 5.55 18.96 6.53 19.39C7.51 19.83 8.89 20.15 10.45 20.3" }],
+    ["path", { d: "M12.58 8.64C16.76 8.64 20.14 7.51 20.14 6.12C20.14 4.73 16.76 3.6 12.58 3.6C8.4 3.6 5.02 4.73 5.02 6.12C5.02 7.51 8.4 8.64 12.58 8.64Z" }],
+    ["path", { d: "M20.14 20.3H13.42V14.7H20.14V20.3Z" }],
+    ["path", { d: "M14.82 14.7V13.79C14.82 12.95 15.46 12.19 16.4 12.03C17.65 11.82 18.75 12.66 18.75 13.72V14.7" }],
+  ]),
+);
+
+/** A cog wedged open by a play triangle. The cut ends are butt-capped, as
+ *  in the file — square caps would grow them back over the wedge.
+ *  Figma: `In-cell tag/Manual run` — geometry exported from the file, not redrawn. */
+export const CogPlay = makeSvg(
+  "CogPlay",
+  els([
+    ["path", { d: "M18.87 10.5L19.99 9.63L18.04 6.27L16.74 6.8C16 6.12 15.11 5.61 14.14 5.3L13.94 3.9H10.06L9.86 5.3C8.89 5.61 8 6.12 7.26 6.8L5.96 6.27L4.01 9.63L5.13 10.5C5.02 10.98 4.97 11.48 4.97 12C4.97 12.52 5.02 13.02 5.13 13.5L4.01 14.37L5.96 17.73L7.26 17.2C8 17.88 8.89 18.39 9.86 18.7L10.06 20.1H12", strokeLinecap: "butt" }],
+    ["path", { d: "M12 14.8C10.45 14.8 9.2 13.55 9.2 12C9.2 10.45 10.45 9.2 12 9.2", strokeLinecap: "butt" }],
+    ["path", { d: "M14.07 14.86L14.07 9.93L20.59 14.86L14.07 19.4L14.07 14.86Z" }],
+  ]),
+);
+
+/** A store whose band is dashed — an incremental holds only the
+ *  changed blocks. Butt caps throughout, or the sheet's square caps would close
+ *  the dashes' gaps and read as solid. The band itself is an outline (see BoxCloud).
+ *  Figma: `In-cell tag/Incremental` — geometry exported from the file, not redrawn. */
+export const DatabaseDashed = makeSvg(
+  "DatabaseDashed",
+  els([
+    ["path", { d: "M4.55 12.62V17.85C4.55 18.51 5.33 19.14 6.73 19.61C8.13 20.07 10.02 20.34 12 20.34C13.98 20.34 15.87 20.07 17.27 19.61C18.67 19.14 19.45 18.51 19.45 17.85V12.62", strokeLinecap: "butt", strokeLinejoin: "round" }],
+    ["path", { d: "M12 9.1C16.12 9.1 19.45 7.89 19.45 6.38C19.45 4.88 16.12 3.66 12 3.66C7.88 3.66 4.55 4.88 4.55 6.38C4.55 7.89 7.88 9.1 12 9.1Z", strokeDasharray: "2.4 1.2", strokeLinecap: "butt" }],
+    ["path", { d: "M4.55 8.92V11.42", strokeLinecap: "butt" }],
+    ["path", { d: "M19.45 8.92V11.42", strokeLinecap: "butt" }],
+    ["path", { d: "M13.46 14.48L13.51 15.23C13.04 15.26 12.55 15.28 12.06 15.28C11.56 15.28 11.07 15.26 10.6 15.23L10.65 14.48L10.7 13.73C11.14 13.76 11.59 13.78 12.06 13.78C12.52 13.78 12.97 13.76 13.41 13.73L13.46 14.48ZM6.82 12.94C7.5 13.21 8.37 13.44 9.36 13.59L9.26 14.33L9.15 15.07C8.06 14.91 7.07 14.66 6.26 14.33L6.54 13.64L6.82 12.94ZM17.57 13.64L17.85 14.33C17.04 14.66 16.05 14.91 14.97 15.07L14.86 14.33L14.75 13.59C15.75 13.44 16.61 13.21 17.29 12.94L17.57 13.64Z", fill: "currentColor", strokeWidth: 0.3, strokeLinecap: "butt" }],
+  ]),
+);
+
+/** An open folder with a bar across the front panel.
+ *  Figma: `Sidebar/Inventory` — geometry exported from the file, not redrawn. */
+export const FolderOpenMinus = makeSvg(
+  "FolderOpenMinus",
+  els([
+    ["path", { d: "M20.51 20.1H3.51C3.25 17.13 2.98 14.15 2.74 11.18H21.26L20.51 20.1Z" }],
+    ["path", { d: "M5.11 11.18V3.9H10.63L12.66 6.66H18.9V11.18" }],
+    ["path", { d: "M9.92 16.04H14.09" }],
+  ]),
+);
+
+/** A presentation board carrying a trend line.
+ *  Figma: `Sidebar/Reports` — geometry exported from the file, not redrawn. */
+export const PresentationChart = makeSvg(
+  "PresentationChart",
+  els([
+    ["path", { d: "M19.45 3.71H4.54V16.14H19.45V3.71Z" }],
+    ["path", { d: "M3.42 3.71L20.58 3.71" }],
+    ["path", { d: "M8.68 20.29L11.99 18.63V16.14" }],
+    ["path", { d: "M15.31 20.29L11.99 18.63" }],
+    ["path", { d: "M8.26 11.17L11.25 8.69L12.74 11.17L15.72 8.69" }],
+  ]),
+);
+
+/** A clipboard with two ruled lines — a log page.
+ *  Figma: `Sidebar/Logs` — geometry exported from the file, not redrawn. */
+export const ClipboardLines = makeSvg(
+  "ClipboardLines",
+  els([
+    ["path", { d: "M19.2 5.72V20.1H4.8V5.72H8.76V7.34H15.24V5.72H19.2Z" }],
+    ["path", { d: "M15.24 3.9H8.76V7.34H15.24V3.9Z" }],
+    ["path", { d: "M8.76 12.1H12" }],
+    ["path", { d: "M8.76 15.34H15.24" }],
+  ]),
+);
+
+/* ----- Dashboard glyph set (design-provided 20×20 paths) -----
+   These four came with the production dashboard and have no Lucide
+   equivalent at the same optical weight, so they survive the icon-set
+   swap unchanged. */
+/** The 20×20 frame those design-provided paths were drawn on. */
+const BASE20 = {
+  xmlns: "http://www.w3.org/2000/svg",
+  viewBox: "0 0 20 20",
+  fill: "none",
+};
+
+function makeGlyph(els: El[], displayName: string): LucideIcon {
+  const Comp = forwardRef<SVGSVGElement, AppIconProps>((props, ref) => {
+    const { size, color, strokeWidth, className, ...rest } = props;
+    return createElement(
+      "svg",
+      {
+        ref,
+        ...BASE20,
+        width: size ?? 24,
+        height: size ?? 24,
+        stroke: color ?? "currentColor",
+        strokeWidth: strokeWidth ?? 1.25,
+        className: className ? `shrink-0 ${className}` : "shrink-0",
+        ...rest,
+      },
+      ...els.map(({ t, ...attrs }, i) => createElement(t, { key: i, ...attrs })),
+    );
+  });
+  Comp.displayName = displayName;
+  return Comp;
+}
+
 export const IconProtected = makeGlyph([
   {"t":"path","d":"M12.4348 15.7174L9.99992 16.75L7.56499 15.7174C5.68822 14.9221 4.41843 13.143 4.27192 11.1127L3.89517 5.88702C5.63176 5.12481 9.99992 3.25 9.99992 3.25C9.99992 3.25 14.576 5.19878 16.1047 5.88004L15.7279 11.1057C15.5814 13.136 14.3116 14.9221 12.4348 15.7174Z","strokeMiterlimit":"10","strokeLinecap":"square"},
   {"t":"path","d":"M7.96265 9.96856L9.34408 11.3639L12.0371 8.64993","strokeMiterlimit":"10","strokeLinecap":"square"},
@@ -246,20 +393,6 @@ export const IconOk = makeGlyph([
   {"t":"path","d":"M16.7501 10C16.7501 6.27208 13.728 3.25 10.0001 3.25C6.27216 3.25 3.25009 6.27208 3.25009 10C3.25009 13.7279 6.27216 16.75 10.0001 16.75C13.728 16.75 16.7501 13.7279 16.7501 10Z","strokeLinecap":"square"},
   {"t":"path","d":"M7.13119 10L9.04817 11.9103L12.8687 8.08301","strokeLinecap":"square"},
 ], "IconOk");
-
-export const IconThreatDetection = makeGlyph([
-  {"t":"path","d":"M10.2498 15.9012V11.099","strokeLinecap":"square","strokeLinejoin":"round"},
-  {"t":"path","d":"M11.5549 7.61111C12.2474 7.61111 12.9115 7.88621 13.4012 8.37588C13.8908 8.86555 14.1659 9.52968 14.1659 10.2222V12.1805C14.1659 13.2192 13.7533 14.2154 13.0188 14.9499C12.2843 15.6844 11.2881 16.0971 10.2493 16.0971C9.21058 16.0971 8.21438 15.6844 7.47988 14.9499C6.74537 14.2154 6.33273 13.2192 6.33273 12.1805V10.2222C6.33273 9.52968 6.60783 8.86555 7.0975 8.37588C7.58717 7.88621 8.2513 7.61111 8.9438 7.61111H11.5549Z","strokeLinecap":"round","strokeLinejoin":"round"},
-  {"t":"path","d":"M11.3578 4.6475L12.8605 3.2359","strokeLinejoin":"round"},
-  {"t":"path","d":"M16.1243 16.7498C16.1251 16.0783 15.8671 15.4323 15.4039 14.946C14.991 14.5125 14.501 14.2435 13.9116 14.166","strokeLinecap":"square","strokeLinejoin":"round"},
-  {"t":"path","d":"M16.1249 6.30557C16.1242 6.94669 15.8876 7.56512 15.4602 8.04304C15.0884 8.45887 14.5947 8.74303 14.0531 8.85734","strokeLinecap":"square","strokeLinejoin":"round"},
-  {"t":"path","d":"M16.7776 11.5277H14.1665","strokeLinecap":"square","strokeLinejoin":"round"},
-  {"t":"path","d":"M4.37454 16.7499C4.37379 16.0783 4.63179 15.4323 5.09495 14.9461C5.5092 14.5112 5.96732 14.2784 6.55875 14.2019","strokeLinecap":"square","strokeLinejoin":"round"},
-  {"t":"path","d":"M4.37454 6.30557C4.37528 6.94669 4.61187 7.56512 5.03922 8.04304C5.4255 8.47501 5.94322 8.76489 6.50963 8.86988","strokeLinecap":"square","strokeLinejoin":"round"},
-  {"t":"path","d":"M6.33302 11.5277H3.72195","strokeLinecap":"square","strokeLinejoin":"round"},
-  {"t":"path","d":"M7.63864 3.2359L9.12674 4.75567","strokeLinejoin":"round"},
-  {"t":"path","d":"M8.29169 7.31435V6.57672C8.29169 6.05735 8.49801 5.55925 8.86526 5.192C9.23251 4.82474 9.73061 4.61842 10.25 4.61842C10.7694 4.61842 11.2675 4.82474 11.6347 5.192C12.002 5.55925 12.2083 6.05735 12.2083 6.57672V7.31435","strokeLinecap":"round","strokeLinejoin":"round"},
-], "IconThreatDetection");
 
 export const IconBackup = makeGlyph([
   {"t":"path","d":"M3.35 10C3.34899 10.3914 3.67616 10.7751 4.2946 11.1078C4.91304 11.4406 5.79813 11.709 6.85 11.883","strokeLinecap":"square"},
@@ -275,15 +408,11 @@ export const IconActivity = makeGlyph([
   {"t":"path","d":"M5.49773 9.99991H6.99621L8.49473 7.00291L11.4917 13.0037L13.1117 10.0067H14.4955","strokeLinecap":"square"},
 ], "IconActivity");
 
-/* ----- custom straight glyph (no Lucide equivalent) ----- */
-/** Three host towers side by side = a cluster. */
-export const Cluster = makeSvg(
-  "Cluster",
-  [3.5, 10, 16.5].flatMap((x, i) => [
-    createElement("rect", { key: `c${i}`, x, y: 5, width: 4, height: 14 }),
-    createElement("line", { key: `v${i}`, x1: x + 1, y1: 8.2, x2: x + 3, y2: 8.2 }),
-  ]),
-);
 
 /* ----- OS brand logos (react-icons / Font Awesome brands), for VM glyphs ----- */
-export { FaWindows as WindowsLogo, FaLinux as LinuxLogo, FaApple as AppleLogo } from "react-icons/fa6";
+export { FaWindows as WindowsLogo, FaLinux as LinuxLogo } from "react-icons/fa6";
+
+/* ----- Virtualization platform logos (Simple Icons), for hosts & clusters -----
+   VMware uses a custom "boxes" glyph (see lib/platform-glyphs); Hyper-V reuses
+   the Windows mark (WindowsLogo above). */
+export { SiProxmox as ProxmoxLogo } from "react-icons/si";

@@ -10,14 +10,15 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { AlertTriangle, Loader2, LogOut } from "@/lib/icons";
+import { Loader2, LogOut } from "@/lib/icons";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "@/components/ui/sonner";
 import { useAuthStore } from "@/store/auth";
 import { useWorldStore } from "@/store/world";
-import { AuthLayout } from "./components/AuthLayout";
+import { AuthFailureNotice, AuthLayout } from "./components/AuthLayout";
+import { authFailureKey, classifyChangePasswordError } from "./authFailure";
 
 const MIN_PASSWORD_LENGTH = 8;
 
@@ -43,6 +44,10 @@ export default function ChangePasswordPage() {
     else if (!mustChangePassword) navigate("/", { replace: true });
   }, [mode, status, mustChangePassword, navigate]);
 
+  /* Same treatment as sign-in: the store's single English string becomes
+   * console-owned, translated copy, with the appliance's wording underneath. */
+  const failure = classifyChangePasswordError(error);
+
   const currentError = touched && current === "" ? t("changePassword.currentRequired") : null;
   const nextError =
     touched && next.length < MIN_PASSWORD_LENGTH ? t("changePassword.tooShort", { count: MIN_PASSWORD_LENGTH }) : null;
@@ -67,11 +72,12 @@ export default function ChangePasswordPage() {
   return (
     <AuthLayout title={t("changePassword.title")} subtitle={t("changePassword.subtitle")}>
       <form className="space-y-4" onSubmit={onSubmit} noValidate>
-        {error && (
-          <div className="flex items-center gap-2 border border-danger/30 bg-danger-subtle px-3 py-2 text-sm text-danger-text">
-            <AlertTriangle className="h-4 w-4 shrink-0" />
-            <span className="min-w-0">{error}</span>
-          </div>
+        {failure && (
+          <AuthFailureNotice
+            title={t(authFailureKey("changePassword", failure.failure, "title"))}
+            body={t(authFailureKey("changePassword", failure.failure, "desc"))}
+            detail={failure.detail}
+          />
         )}
 
         <div className="space-y-1.5">

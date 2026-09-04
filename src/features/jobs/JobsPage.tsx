@@ -10,8 +10,9 @@ import {
   Activity,
   CalendarClock,
   Layers,
-  Pause,
+  Loader2,
   Play,
+  Power,
   Plus,
   Search,
   Trash2,
@@ -20,6 +21,9 @@ import {
 import { PageHeader } from "@/components/PageHeader";
 import { DataTable } from "@/components/DataTable";
 import { StatusPill } from "@/components/StatusPill";
+import { TimeStamp } from "@/components/TimeStamp";
+import { KpiBand } from "@/components/KpiBand";
+import { KpiCard } from "@/components/KpiCard";
 import { EmptyState } from "@/components/EmptyState";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -35,8 +39,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Hint } from "@/components/ui/tooltip";
 import { toast } from "@/components/ui/sonner";
 import { cn } from "@/lib/utils";
-import { formatDateTime, formatDuration, formatFullDateTime, formatRelative } from "@/lib/format";
-import { SESSION_META } from "@/lib/status";
+import { formatCountdown, formatDateTime, formatDuration, formatFullDateTime, formatRelative } from "@/lib/format";
+import { JOB_DISABLED_META, lastRunMeta } from "@/lib/status";
+import { JobDisabledMark } from "./components/JobDisabledMark";
 import { apiErrorMessage } from "@/services/api.http";
 import { useWorldStore } from "@/store/world";
 import type { BackupJob, Repository, Session } from "@/types";
@@ -214,22 +219,14 @@ export default function JobsPage() {
     });
     setRowSelection({});
   };
-  // Only the still-active jobs in a selection are worth disabling: sending the
-  // rest to the appliance changes nothing and made the toast report a count of
-  // jobs it hadn't touched. The bulk bar greys the action out when there are no
-  // targets at all, and says how many it covers when the selection is mixed.
-  const disableTargets = selectedJobs.filter((j) => j.state !== "disabled");
   const bulkDisable = async () => {
-    if (disableTargets.length === 0) return;
-    const alreadyDisabled = selectedJobs.length - disableTargets.length;
-    const skippedNote = alreadyDisabled > 0 ? t("toast.bulkDisabledSkipped", { count: alreadyDisabled }) : "";
-    const results = await Promise.allSettled(disableTargets.map((job) => setJobEnabled(job.id, false)));
+    const results = await Promise.allSettled(selectedJobs.map((job) => setJobEnabled(job.id, false)));
     const disabled = results.filter((r) => r.status === "fulfilled").length;
-    if (disabled === disableTargets.length) {
-      toast.success(t("toast.bulkDisabled", { count: disabled }), skippedNote ? { description: skippedNote } : undefined);
+    if (disabled === selectedJobs.length) {
+      toast.success(t("toast.bulkDisabled", { count: disabled }));
     } else {
-      toast.warning(t("toast.bulkDisabledPartial", { disabled, total: disableTargets.length }), {
-        description: [t("toast.bulkDisabledPartialDesc"), skippedNote].filter(Boolean).join(" "),
+      toast.warning(t("toast.bulkDisabledPartial", { disabled, total: selectedJobs.length }), {
+        description: t("toast.bulkDisabledPartialDesc"),
       });
     }
     setRowSelection({});
@@ -285,20 +282,35 @@ export default function JobsPage() {
         id: "name",
         header: t("table.job"),
         meta: { tooltip: t("table.jobHint") },
-        accessorFn: (j) => `${j.name} ${j.scopeSummary}`,
+        /* The chip has to be searchable too, or filtering the table hides the very
+         * rows the reader was looking for. */
+        accessorFn: (j) => `${j.name} ${j.scopeSummary}${j.state === "disabled" ? ` ${JOB_DISABLED_META.label}` : ""}`,
         cell: ({ row }) => {
           const job = row.original;
           const { icon: TypeIcon, label } = jobTypeMeta(job.type);
+          /* Enablement rides with the job's identity, not with its last result —
+             that column is about the run, and only the run. It reads as the whole
+             row going quiet (see `rowClassName`), so the accent drops out here
+             too; the mark beside the name is what survives greyscale. */
+          const off = job.state === "disabled";
           return (
             <div className="flex items-center gap-2.5">
               <span
-                className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-muted/60"
+                className="flex h-7 w-7 shrink-0 items-center justify-center bg-muted/60"
                 title={label}
               >
-                <TypeIcon className="h-3.5 w-3.5" style={{ color: accentColor(job.accent) }} aria-label={label} />
+                <TypeIcon
+                  className={cn("h-3.5 w-3.5", off && "text-muted-foreground")}
+                  style={off ? undefined : { color: accentColor(job.accent) }}
+                  aria-label={label}
+                />
               </span>
               <div className="min-w-0">
-                <span className="block truncate font-medium">{job.name}</span>
+                <span className="flex items-center gap-1.5">
+                  <span className="truncate font-medium">{job.name}</span>
+                  {/* Icon alone: the Schedule column already prints the word for these rows. */}
+                  {off && <JobDisabledMark showLabel={false} />}
+                </span>
                 <p className="truncate text-xs text-muted-foreground">{job.scopeSummary}</p>
               </div>
             </div>
@@ -309,17 +321,10 @@ export default function JobsPage() {
         id: "status",
         header: t("table.lastRunStatus"),
         meta: { tooltip: t("table.lastRunStatusHint") },
-        accessorFn: (j) => (j.state === "disabled" ? "disabled" : j.lastStatus ?? "queued"),
-        cell: ({ row }) => {
-          const job = row.original;
-          if (job.state === "disabled") {
-            return (
-              <StatusPill meta={{ label: t("status.disabled"), tone: "muted", icon: Pause }} size="sm" />
-            );
-          }
-          const meta = SESSION_META[job.lastStatus ?? "queued"];
-          return <StatusPill meta={meta} size="sm" />;
-        },
+        /* Outcome only — disabling a job must not rewrite the history of its runs,
+         * for the sort key any more than for the pill. */
+        accessorFn: (j) => j.lastStatus ?? "",
+        cell: ({ row }) => <StatusPill meta={lastRunMeta(row.original.lastStatus)} size="sm" />,
       },
       {
         id: "schedule",
@@ -361,7 +366,7 @@ export default function JobsPage() {
                 >
                   <span
                     tabIndex={0}
-                    className="nums block whitespace-nowrap text-[11px] text-muted-foreground/70"
+                    className="nums block whitespace-nowrap text-[11px] text-muted-foreground"
                   >
                     {t("table.lastRunRunningSince", { value: formatDateTime(startedAt) })}
                   </span>
@@ -389,7 +394,7 @@ export default function JobsPage() {
               >
                 <span
                   tabIndex={0}
-                  className="nums block whitespace-nowrap text-[11px] text-muted-foreground/70"
+                  className="nums block whitespace-nowrap text-[11px] text-muted-foreground"
                 >
                   {formatDateTime(session?.startedAt)} → {formatDateTime(job.lastRunAt)}
                 </span>
@@ -403,10 +408,11 @@ export default function JobsPage() {
         header: t("table.nextRun"),
         meta: { tooltip: t("table.nextRunHint") },
         accessorFn: (j) => (j.nextRunAt ? new Date(j.nextRunAt).getTime() : Number.MAX_SAFE_INTEGER),
+        // Relative answers "how soon"; the absolute answers "which slot" — the
+        // pair the Last run column already prints, so a schedule reads the same
+        // way in both directions.
         cell: ({ row }) => (
-          <span className="nums text-sm text-muted-foreground">
-            {row.original.nextRunAt ? formatRelative(row.original.nextRunAt) : t("common:generic.na")}
-          </span>
+          <TimeStamp value={row.original.nextRunAt} fallback={t("common:generic.na")} />
         ),
       },
       {
@@ -482,24 +488,34 @@ export default function JobsPage() {
 
         <TabsContent value="jobs" className="space-y-4">
       {/* Summary strip */}
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-        <StatTile icon={Layers} tone="text-foreground" label={t("stats.totalJobs")} value={String(jobs.length)} hint={t("stats.activeCount", { count: activeJobs.length })} />
-        <StatTile
-          icon={Activity}
-          tone={runningCount ? "text-info" : "text-muted-foreground"}
+      <KpiBand className="sm:grid-cols-3 xl:grid-cols-3">
+        <KpiCard
+          icon={Layers}
+          tone="neutral"
+          label={t("stats.totalJobs")}
+          value={jobs.length}
+          hint={t("stats.activeCount", { count: activeJobs.length })}
+        />
+        <KpiCard
+          icon={runningCount ? Loader2 : Activity}
+          iconSpin={runningCount > 0}
+          tone={runningCount ? "info" : "muted"}
           label={t("stats.runningNow")}
-          value={String(runningCount)}
+          value={runningCount}
           hint={runningCount ? t("stats.streamingLive") : t("stats.idle")}
-          pulse={runningCount > 0}
         />
-        <StatTile
+        <KpiCard
           icon={CalendarClock}
-          tone="text-foreground"
+          tone={nextRunAt ? "neutral" : "muted"}
           label={t("stats.nextRun")}
-          value={nextRunAt ? formatRelative(new Date(nextRunAt).toISOString()).replace("in ", "") : t("common:generic.na")}
-          hint={nextRunAt ? t("stats.scheduled") : t("stats.nothingQueued")}
+          value={nextRunAt ? formatCountdown(new Date(nextRunAt).toISOString()) : t("common:generic.na")}
+          hint={
+            nextRunAt
+              ? t("stats.scheduled", { abs: formatDateTime(new Date(nextRunAt).toISOString()) })
+              : t("stats.nothingQueued")
+          }
         />
-      </div>
+      </KpiBand>
 
       {/* Toolbar */}
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
@@ -532,7 +548,7 @@ export default function JobsPage() {
         <motion.div
           initial={{ opacity: 0, y: -6 }}
           animate={{ opacity: 1, y: 0 }}
-          className="flex flex-wrap items-center gap-2 rounded-xl border border-primary/30 bg-primary/[0.06] px-3 py-2"
+          className="flex flex-wrap items-center gap-2 border border-primary/30 bg-primary/[0.06] px-3 py-2"
         >
           <span className="text-sm font-medium">
             {t("bulk.selected", { count: selectedIds.length })}
@@ -542,11 +558,12 @@ export default function JobsPage() {
             <Play className="h-3.5 w-3.5" />
             {t("bulk.run")}
           </Button>
-          <BulkDisableButton
-            targetCount={disableTargets.length}
-            selectedCount={selectedIds.length}
-            onClick={bulkDisable}
-          />
+          <Button variant="ghost" size="sm" onClick={bulkDisable}>
+            {/* Power, not Pause: Play/Pause is the transport pair, and bulkRun
+                sits right beside this with Play. */}
+            <Power className="h-3.5 w-3.5" />
+            {t("common:actions.disable")}
+          </Button>
           <Button variant="ghost" size="sm" className="text-danger hover:text-danger" onClick={() => setBulkDeleteOpen(true)}>
             <Trash2 className="h-3.5 w-3.5" />
             {t("common:actions.delete")}
@@ -562,15 +579,17 @@ export default function JobsPage() {
         data={filtered}
         getRowId={(j) => j.id}
         onRowClick={(j) => navigate(`/jobs/${j.id}`)}
+        /* A switched-off job goes quiet across the whole row rather than wearing
+           a chip in the name cell. Muted ink, not opacity: the row still has to
+           clear AA, and its last run's outcome stays in full colour — disabling
+           a job does not rewrite the history of its runs. */
+        rowClassName={(j) => (j.state === "disabled" ? "text-muted-foreground" : undefined)}
         globalFilter={search}
         enableRowSelection
         rowSelection={rowSelection}
         onRowSelectionChange={setRowSelection}
         initialSorting={[{ id: "status", desc: false }]}
         pageSize={12}
-        // `search` already resets the page through `globalFilter`; the status
-        // chips filter `data` before the table sees it, so they need this.
-        resetPageKey={statusFilter}
         emptyState={
           jobs.length === 0 ? (
             <EmptyState
@@ -645,95 +664,21 @@ function AddJobButton({
   // pass through to it — so hovering a disabled Add job button still explains why.
   return (
     <Hint label={blockedReason}>
-      <span tabIndex={0} className="inline-flex cursor-not-allowed rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
+      <span tabIndex={0} className="inline-flex cursor-not-allowed">
         {button}
       </span>
     </Hint>
   );
 }
 
-/* --------------------------- bulk disable -------------------------------- */
-/** Disable only ever applies to the selected jobs that are still active, so it
- *  goes inactive once every selected job is already disabled, and says how many
- *  it will actually touch when the selection is mixed. */
-function BulkDisableButton({
-  targetCount,
-  selectedCount,
-  onClick,
-}: {
-  targetCount: number;
-  selectedCount: number;
-  onClick: () => void;
-}) {
-  const { t } = useTranslation("jobs");
-  const blocked = targetCount === 0;
-  const button = (
-    <Button variant="ghost" size="sm" onClick={onClick} disabled={blocked}>
-      <Pause className="h-3.5 w-3.5" />
-      {t("common:actions.disable")}
-    </Button>
-  );
-
-  if (blocked) {
-    // A disabled <button> has pointer-events: none (see button.tsx), so it
-    // never fires the hover/focus events the tooltip trigger listens for -- the
-    // same wrapping span AddJobButton above uses carries them instead.
-    return (
-      <Hint label={t("bulk.disableAllAlreadyDisabled")}>
-        <span tabIndex={0} className="inline-flex cursor-not-allowed rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
-          {button}
-        </span>
-      </Hint>
-    );
-  }
-  if (targetCount === selectedCount) return button;
-  return (
-    <Hint label={t("bulk.disableAppliesTo", { count: targetCount, total: selectedCount })}>{button}</Hint>
-  );
-}
-
 /* ------------------------------ stat tile ------------------------------- */
-function StatTile({
-  icon: Icon,
-  label,
-  value,
-  hint,
-  tone,
-  pulse,
-}: {
-  icon: typeof Layers;
-  label: string;
-  value: string;
-  hint: string;
-  tone: string;
-  pulse?: boolean;
-}) {
-  return (
-    <div className="flex items-center gap-3 rounded-xl border border-border/70 bg-card p-3.5 shadow-card">
-      <span className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-muted/50">
-        <Icon className={cn("h-4 w-4", tone)} />
-        {pulse && (
-          <span className="absolute -right-0.5 -top-0.5 flex h-2 w-2">
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-info opacity-75" />
-            <span className="relative inline-flex h-2 w-2 rounded-full bg-info" />
-          </span>
-        )}
-      </span>
-      <div className="min-w-0">
-        <p className="text-xs text-muted-foreground">{label}</p>
-        <p className={cn("nums truncate text-lg font-semibold leading-tight", tone)}>{value}</p>
-        <p className="truncate text-[11px] text-muted-foreground/80">{hint}</p>
-      </div>
-    </div>
-  );
-}
 
 /* --------------------------- tab count badge ---------------------------- */
 function TabCount({ value, active }: { value: number; active: boolean }) {
   return (
     <span
       className={cn(
-        "nums ml-0.5 min-w-[1.25rem] rounded px-1 py-0.5 text-[11px] font-semibold tabular-nums",
+        "nums ml-0.5 min-w-[1.25rem] px-1 py-0.5 text-[11px] font-semibold tabular-nums",
         active ? "bg-primary/15 text-primary" : "bg-muted text-muted-foreground",
       )}
     >

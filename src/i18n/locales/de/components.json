@@ -6,12 +6,6 @@
     "previousPage": "Vorherige Seite",
     "nextPage": "Nächste Seite"
   },
-  "immutable": {
-    "chip": "Unveränderlich",
-    "chipDays": "Unveränderlich · {{days}} T",
-    "lockedUntil": "Gesperrt bis {{date}}",
-    "lockedGeneric": "Unveränderliche Kopie – gesperrt, bis ihr Zeitfenster abläuft"
-  },
   "pipeline": {
     "title": "Pipeline",
     "bottleneck": "Engpass: {{label}}",
@@ -23,9 +17,18 @@
       "target": "Ziel (Repository)"
     },
     "stage": {
-      "source": { "label": "Quelle", "sub": "Gast-Lesevorgang" },
-      "network": { "label": "Netzwerk", "sub": "über das LAN" },
-      "target": { "label": "Ziel", "sub": "Repository · physisch" },
+      "source": {
+        "label": "Quelle",
+        "sub": "Gast-Lesevorgang"
+      },
+      "network": {
+        "label": "Netzwerk",
+        "sub": "über das LAN"
+      },
+      "target": {
+        "label": "Ziel",
+        "sub": "Repository · physisch"
+      },
       "replicaLabel": "Replikat",
       "replicaSub": "→ virtuelle Festplatte",
       "networkReplicaSub": "zum Ziel · Leitung",

@@ -116,7 +116,8 @@
     "credentialLabel": "Credential reference",
     "credentialHint": "e.g. vault:secret/hv-lab — secrets never live in the manifest.",
     "partialWarning": "Fill every field or clear the row — partial rows aren't applied.",
-    "addAnother": "Add another"
+    "addAnother": "Add another",
+    "vmwareOnly": "Only VMware vCenter and standalone ESXi can be added here. This appliance can register Hyper-V and Proxmox environments, but no run against one would succeed yet."
   },
   "review": {
     "title": "Review",

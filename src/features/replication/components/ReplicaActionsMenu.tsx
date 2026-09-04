@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 // Copyright © 2026 Norvitex OÜ
 
+import { useTranslation } from "react-i18next";
 import { History, MoreHorizontal, Power, RotateCw } from "@/lib/icons";
 import { Button } from "@/components/ui/button";
 import {
@@ -36,6 +37,7 @@ export function ReplicaActionsMenu({
   replica,
   triggerSize = "sm",
 }: ReplicaActionsMenuProps) {
+  const { t } = useTranslation("replication");
   const inFailover = replica.state === "failover";
   const canFailover = replica.state !== "failover" && replica.state !== "seeding";
 
@@ -45,7 +47,7 @@ export function ReplicaActionsMenu({
         <Button
           variant="ghost"
           size={triggerSize === "sm" ? "icon-sm" : "icon"}
-          aria-label={`Manage ${replica.replicaName}`}
+          aria-label={t("menu.manage", { name: replica.replicaName })}
           onClick={(e) => e.stopPropagation()}
         >
           <MoreHorizontal className="h-4 w-4" />
@@ -56,18 +58,18 @@ export function ReplicaActionsMenu({
           <>
             <DropdownMenuItem onSelect={onFailback}>
               <RotateCw className="h-4 w-4" />
-              Fail back to source
+              {t("menu.failbackToSource")}
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem destructive onSelect={onUndoFailover}>
               <History className="h-4 w-4" />
-              Undo failover
+              {t("menu.undoFailover")}
             </DropdownMenuItem>
           </>
         ) : (
           <DropdownMenuItem onSelect={onFailover} disabled={!canFailover}>
             <Power className="h-4 w-4" />
-            {canFailover ? "Fail over…" : "Seeding — can't fail over"}
+            {canFailover ? t("menu.failover") : t("menu.seedingCantFailover")}
           </DropdownMenuItem>
         )}
       </DropdownMenuContent>

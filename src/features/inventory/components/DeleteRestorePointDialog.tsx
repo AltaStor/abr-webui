@@ -93,7 +93,7 @@ export function DeleteRestorePointDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <div className="mb-1 flex h-10 w-10 items-center justify-center rounded-lg bg-danger-subtle text-danger">
+          <div className="mb-1 flex h-10 w-10 items-center justify-center bg-danger-subtle text-danger">
             <Trash2 className="h-5 w-5" />
           </div>
           <DialogTitle>{t("deleteOne.title")}</DialogTitle>
@@ -101,7 +101,7 @@ export function DeleteRestorePointDialog({
         </DialogHeader>
 
         {/* Segment summary — the full backup and every incremental chained onto it. */}
-        <div className="rounded-lg border border-border/70 bg-muted/30 p-3">
+        <div className="border border-border bg-muted/30 p-3">
           <div className="flex items-center justify-between text-sm">
             <span className="font-medium">{t("deleteOne.pointCount", { count: segment.length })}</span>
             <span className="nums text-muted-foreground">{formatStorage(sizeGB, 1)}</span>

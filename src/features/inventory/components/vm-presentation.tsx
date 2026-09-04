@@ -22,6 +22,5 @@ export const POWER_META: Record<
 export function osFamilyLabel(family: OsFamily): string {
   if (family === "windows") return i18n.t("inventory:os.windows");
   if (family === "linux") return i18n.t("inventory:os.linux");
-  if (family === "macos") return i18n.t("inventory:os.macos");
   return i18n.t("common:generic.unknown");
 }

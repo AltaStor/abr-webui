@@ -10,14 +10,17 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { AlertTriangle, Eye, EyeOff, Loader2, Lock } from "@/lib/icons";
+import { Eye, EyeOff, Loader2, Lock } from "@/lib/icons";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuthStore } from "@/store/auth";
+import { INTRO_FLAG } from "@/components/brand/IntroOverlay";
 import { useSettingsStore } from "@/store/settings";
 import { useWorldStore } from "@/store/world";
-import { AuthLayout } from "./components/AuthLayout";
+import { AuthFailureNotice, AuthLayout } from "./components/AuthLayout";
+import { DEMO_PASSWORD } from "@/mock/auth";
+import { authFailureKey, classifyLoginError } from "./authFailure";
 
 export default function LoginPage() {
   const { t } = useTranslation("auth");
@@ -47,14 +50,28 @@ export default function LoginPage() {
   // The demo simulation has no backend to authenticate against — never trap
   // it behind a login screen it can't satisfy.
   useEffect(() => {
-    if (mode !== "live") navigate(from ?? "/", { replace: true });
-  }, [mode, navigate, from]);
+    /* `?demo-login` holds this form on screen in the demo world. It began as
+     * scaffolding for reviewing the sign-in UI without a live appliance, but
+     * Topbar's sign-out now depends on it: the auth gate is live-only, so
+     * without the flag a demo sign-out bounces straight back to the dashboard
+     * and reads as a no-op. Read per-navigation, not once at module load, or a
+     * client-side transition carrying the flag never sees it. Without the flag
+     * the normal bounce still runs, so a plain demo boot lands on the dashboard
+     * as before. */
+    const previewInDemo = new URLSearchParams(location.search).has("demo-login");
+    if (mode !== "live" && !previewInDemo) navigate(from ?? "/", { replace: true });
+  }, [mode, navigate, from, location.search]);
 
   // Already signed in (e.g. a restored session, or a direct hit on /login) —
   // don't show the form at all.
   useEffect(() => {
     if (status === "signed-in") navigate(mustChangePassword ? "/change-password" : (from ?? "/"), { replace: true });
   }, [status, mustChangePassword, navigate, from]);
+
+  /* The store hands back one English string. Turn it into copy this console
+   * owns and this operator's language carries, keeping the appliance's own
+   * sentence as supporting detail rather than as the headline. */
+  const failure = classifyLoginError(error);
 
   const nameError = touched && name.trim() === "" ? t("login.usernameRequired") : null;
   const passwordError = touched && password === "" ? t("login.passwordRequired") : null;
@@ -63,17 +80,38 @@ export default function LoginPage() {
     e.preventDefault();
     setTouched(true);
     if (name.trim() === "" || password === "") return;
-    await login(name, password, sessionDurationSec);
+    const ok = await login(name, password, sessionDurationSec);
+    // Arm the sign-in intro. Only this form writes the flag, so a restored
+    // session or a plain reload never replays it; the shell consumes it on mount.
+    if (ok) {
+      try {
+        sessionStorage.setItem(INTRO_FLAG, "1");
+      } catch {
+        /* storage may be unavailable; the intro is a flourish, not a step */
+      }
+    }
   };
 
   return (
     <AuthLayout title={t("login.title")} subtitle={t("login.subtitle")}>
       <form className="space-y-4" onSubmit={onSubmit} noValidate>
-        {error && (
-          <div className="flex items-center gap-2 border border-danger/30 bg-danger-subtle px-3 py-2 text-sm text-danger-text">
-            <AlertTriangle className="h-4 w-4 shrink-0" />
-            <span className="min-w-0">{error}</span>
-          </div>
+        {/* The demo simulation answers this form itself and accepts any
+            username, so the one thing a visitor cannot guess is the password.
+            Never rendered against a live appliance. */}
+        {mode !== "live" && (
+          <p className="border border-border bg-muted/25 px-3 py-2.5 text-xs leading-relaxed text-muted-foreground">
+            Demo environment — any username works (e.g.{" "}
+            <span className="font-mono">henry.morgan@altastor.com</span>) with the password{" "}
+            <span className="font-mono">{DEMO_PASSWORD}</span>.
+          </p>
+        )}
+
+        {failure && (
+          <AuthFailureNotice
+            title={t(authFailureKey("login", failure.failure, "title"))}
+            body={t(authFailureKey("login", failure.failure, "desc"))}
+            detail={failure.detail}
+          />
         )}
 
         <div className="space-y-1.5">

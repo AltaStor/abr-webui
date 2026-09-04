@@ -1,4 +1,26 @@
 {
+  "page": {
+    "title": "Repositorios",
+    "description": "Donde residen sus copias de seguridad."
+  },
+  "kpi": {
+    "totalCapacity": "Capacidad total",
+    "totalCapacityHint_one": "En {{count}} repositorio",
+    "totalCapacityHint_other": "En {{count}} repositorios",
+    "used": "Utilizado",
+    "usedHint": "{{pct}} % de la capacidad total"
+  },
+  "health": {
+    "title": "Estado del almacenamiento",
+    "reclaimable": "Recuperable",
+    "reclaimableHint": "garbage collection pendiente",
+    "inMaintenance": "En mantenimiento",
+    "integrityIssues": "Problemas de integridad"
+  },
+  "empty": {
+    "title": "Aún no hay repositorios",
+    "description": "Apunte AltaStor al almacenamiento que ya posee."
+  },
   "type": {
     "hardenedImmutable": {
       "label": "Linux reforzado · inmutable",
@@ -65,7 +87,6 @@
     "rescan": "Reanalizar / verificar integridad",
     "exitMaintenance": "Salir de mantenimiento",
     "enterMaintenance": "Entrar en mantenimiento",
-    "evacuate": "Evacuar / mover datos",
     "delete": "Eliminar repositorio"
   },
   "toast": {
@@ -97,17 +118,12 @@
     "threatLocked": "Bloqueado por amenaza",
     "maintenance": "Mantenimiento",
     "scanningIntegrity": "Analizando integridad",
-    "immutableBanner": "Inmutable · Object Lock de {{days}} días",
-    "standardBanner": "Almacenamiento estándar · no inmutable",
-    "objectLocked": "Object Lock activo",
     "capacityOfFree": "de {{capacity}} · {{free}} libres",
     "elasticNote": "Almacenamiento elástico · sin capacidad fija",
     "percentUsed": "{{pct}} % usado",
     "criticallyFull": " · crítico de lleno",
     "runningLow": " · quedándose sin espacio",
-    "encryptionOff": "Desactivado",
     "metric": {
-      "encryption": "Cifrado",
       "restorePoints": "Puntos de restauración",
       "jobsWritingHere": "Trabajos que escriben aquí"
     }
@@ -128,13 +144,7 @@
     "elasticNote": "Almacenamiento elástico · sin capacidad fija",
     "percentUsedTrend": "{{pct}} % usado · tendencia de 14 días",
     "percentUsedNoTrend": "{{pct}} % usado · sin historial todavía",
-    "encryption": "Cifrado",
     "lastScan": "Último análisis",
-    "objectLockHint": "Object Lock: las copias de seguridad aquí son de solo lectura hasta que expire la ventana de bloqueo.",
-    "immutableWindow": "Inmutable · ventana de Object Lock de {{days}} días",
-    "immutableExplainer": "Las copias de seguridad escritas aquí no pueden modificarse ni eliminarse hasta que expire su bloqueo — ni por un administrador, ni por una cuenta comprometida, ni por ransomware. Cada punto de restauración se sella durante {{days}} días en el momento en que llega, garantizándole una última copia correcta conocida a partir de la cual recuperarse.",
-    "standardRepository": "Repositorio estándar",
-    "standardExplainer": "Este destino es rápido y cómodo, pero los puntos de restauración aquí pueden modificarse o eliminarse. Para mantener al menos una copia bloqueada frente a cambios, añada un repositorio reforzado o con Object Lock y dirija allí los trabajos críticos.",
     "jobsWriting": "Trabajos que escriben en este repositorio",
     "noJobsTarget": "Actualmente ningún trabajo tiene como destino este repositorio.",
     "footer": {
@@ -147,7 +157,8 @@
     "toast": {
       "failed": {
         "title": "No se pudo añadir el repositorio",
-        "description": "La appliance rechazó la solicitud — compruebe la ruta y la capacidad, y vuelva a intentarlo."
+        "description": "La appliance rechazó la solicitud — compruebe la ruta y la capacidad, y vuelva a intentarlo.",
+        "s3Description": "La appliance rechazó la solicitud — compruebe el bucket, el endpoint y las claves de acceso, y vuelva a intentarlo."
       },
       "shareOffline": {
         "title": "Repositorio añadido, pero el recurso compartido está sin conexión",
@@ -155,7 +166,6 @@
       },
       "added": {
         "title": "Repositorio añadido",
-        "immutable": "{{name}} — {{size}}, sellado como inmutable durante {{days}} días.",
         "smbDedup": "{{name}} — montado, deduplicado, listo para recibir copias de seguridad.",
         "smbDirect": "{{name}} — montado, directo (sin deduplicación), listo para recibir copias de seguridad.",
         "ready": "{{name}} — {{size}} listos para recibir copias de seguridad."
@@ -163,7 +173,7 @@
     },
     "trigger": "Añadir repositorio",
     "title": "Añadir repositorio",
-    "description": "Apunte AltaStor al almacenamiento que ya posee. Los destinos inmutables mantienen las copias de seguridad en solo lectura hasta que expire su ventana de bloqueo.",
+    "description": "Especifique la configuración del repositorio de copia de seguridad.",
     "nameLabel": "Nombre",
     "namePlaceholder": "p. ej. AltaStor Repository",
     "typeLabel": "Tipo",
@@ -188,16 +198,23 @@
       }
     },
     "storageModeNote": "Desactive la deduplicación cuando el recurso compartido esté en una appliance/NAS de deduplicación, o cuando unas restauraciones más rápidas y una menor CPU importen más que el espacio.",
-    "immutableLabel": "Inmutable (Object Lock)",
-    "makeImmutable": "Hacer este repositorio inmutable",
-    "lockWindow": "Ventana de bloqueo",
-    "days": "días",
-    "immutableNote": "Las copias de seguridad se sellarán y no podrán eliminarse ni alterarse — ni siquiera por un administrador o ransomware — hasta que expire la ventana.",
-    "standardNote": "Almacenamiento estándar. Active la inmutabilidad para bloquear los puntos de restauración frente a cambios.",
-    "localNote": "El almacenamiento en disco local no puede garantizar la inmutabilidad — no hay aplicación de escritura única en esta capa.",
-    "s3NotSupportedNote": "El bloqueo de objetos S3 aún no está integrado en este appliance — el interruptor permanece desactivado hasta que esa compatibilidad esté disponible.",
-    "encryptionNote": "Cifrado: <1>{{value}}</1> — según los valores predeterminados de Almacenamiento en Ajustes.",
-    "adding": "Añadiendo…"
+    "adding": "Añadiendo…",
+    "nameInvalid": "Hasta 125 letras latinas, números, espacios, puntos, guiones bajos y guiones; empiece por una letra o un número.",
+    "s3": {
+      "bucketLabel": "Bucket",
+      "bucketRequired": "Introduzca un nombre de bucket.",
+      "regionLabel": "Región",
+      "endpointLabel": "Endpoint",
+      "endpointRequired": "Introduzca la URL del endpoint.",
+      "prefixLabel": "Prefijo",
+      "optional": "(opcional)",
+      "accessKeyLabel": "ID de clave de acceso",
+      "secretKeyLabel": "Clave de acceso secreta",
+      "verifyTlsLabel": "Verificar el certificado TLS",
+      "verifyTlsAria": "Verificar el certificado TLS del endpoint",
+      "test": "Probar la conexión",
+      "testing": "Probando…"
+    }
   },
   "delete": {
     "toast": {
@@ -210,13 +227,8 @@
         "description": "No se pudo eliminar {{name}}. Vuelva a intentarlo en un momento."
       }
     },
-    "lockedTitle": "{{name}} está bloqueado",
     "title": "¿Eliminar {{name}}?",
-    "lockedDescription": "Los puntos de restauración inmutables de este repositorio siguen bajo un bloqueo de cumplimiento.",
     "description": "Eliminar un repositorio libera su almacenamiento. Esto no se puede deshacer.",
-    "lockedHttp": "Bloqueado · HTTP 423",
-    "lockedBody_one": "<1>{{count}}</1> punto de restauración sellado está bloqueado hasta el <2>{{until}}</2> — este repositorio no puede eliminarse hasta que expire el bloqueo de cumplimiento. Esta garantía es el sentido mismo de la inmutabilidad: ni siquiera un administrador puede forzar una eliminación anticipada.",
-    "lockedBody_other": "<1>{{count}}</1> puntos de restauración sellados están bloqueados hasta el <2>{{until}}</2> — este repositorio no puede eliminarse hasta que expire el bloqueo de cumplimiento. Esta garantía es el sentido mismo de la inmutabilidad: ni siquiera un administrador puede forzar una eliminación anticipada.",
     "jobsBlock_one": "<1>{{count}}</1> trabajo aún tiene como destino este repositorio — rediríjalo o elimínelo primero.",
     "jobsBlock_other": "<1>{{count}}</1> trabajos aún tienen como destino este repositorio — rediríjalos o elimínelos primero.",
     "jobsWarning_one": "<1>{{count}}</1> trabajo tiene actualmente como destino este repositorio. Fallará en la próxima ejecución hasta que se redirija a otro destino.",
@@ -224,75 +236,11 @@
     "typeToConfirm": "Escriba <1>{{name}}</1> para confirmar",
     "deleting": "Eliminando…"
   },
-  "evacuate": {
-    "toast": {
-      "cancel": {
-        "title": "Cancelando la migración",
-        "description": "Los puntos ya movidos permanecen en el destino; el resto sigue en {{name}}, que vuelve a quedar sin sellar."
-      },
-      "noMigration": {
-        "title": "No hay ninguna migración en curso",
-        "description": "Puede que acabe de terminar — compruebe el resultado en Actividad."
-      },
-      "started": {
-        "title": "Migración de datos iniciada"
-      },
-      "startedDescription_one": "{{count}} punto de restauración se está transmitiendo a {{dest}} — siga el progreso en Actividad. {{name}} está sellado en solo lectura durante el traslado.",
-      "startedDescription_other": "{{count}} puntos de restauración se están transmitiendo a {{dest}} — siga el progreso en Actividad. {{name}} está sellado en solo lectura durante el traslado.",
-      "complete": {
-        "title": "Migración de datos completada"
-      },
-      "completeDescription_one": "Se migró {{count}} punto de restauración a {{dest}} (mismo almacenamiento — no fue necesario mover bytes). {{name}} ahora está sellado en solo lectura.",
-      "completeDescription_other": "Se migraron {{count}} puntos de restauración a {{dest}} (mismo almacenamiento — no fue necesario mover bytes). {{name}} ahora está sellado en solo lectura.",
-      "error": {
-        "title": "No se pudieron migrar los datos"
-      }
-    },
-    "reason": {
-      "insufficient": "{{dest}} no tiene espacio suficiente{{detail}}.",
-      "busy": "Se está ejecutando otra migración o comprobación de estado — vuelva a intentarlo cuando termine.",
-      "targetUnavailable": "{{dest}} no puede recibir datos en este momento (solo lectura, sin conexión o en mantenimiento).",
-      "default": "No se movió nada de {{name}}. Compruebe el destino y vuelva a intentarlo.",
-      "retry": "No se movió nada de {{name}}. Vuelva a intentarlo en un momento."
-    },
-    "progress": {
-      "title": "Migración en curso",
-      "transferred": "{{size}} transferidos",
-      "note": "Siga los detalles en Actividad. Cancelar conserva en el destino cada punto ya movido (sus copias de origen han desaparecido), deja el resto en {{name}} y lo desprecinta para que las copias de seguridad puedan volver a llegar."
-    },
-    "cancelling": "Cancelando…",
-    "cancelMigration": "Cancelar migración",
-    "title": "Evacuar {{name}}",
-    "description": "Migre cada punto de restauración a otro repositorio. Cuando el traslado finalice, <1>{{name}}</1> se sella en <2>solo lectura</2> para que no llegue nada nuevo — listo para retirarse de servicio.",
-    "from": "Desde",
-    "to": "Hacia",
-    "toMove": "{{size}} por mover",
-    "freeSize": "{{size}} libres",
-    "pickDestination": "Elegir un destino",
-    "destinationLabel": "Repositorio de destino",
-    "noWritable": "No hay ningún otro repositorio con permiso de escritura disponible para recibir estos datos.",
-    "chooseDestination": "Elija adónde van los datos",
-    "wontFit": "{{dest}} solo tiene {{free}} libres — insuficiente para {{need}}. Libere espacio o elija un destino mayor.",
-    "sealed": {
-      "imported": "{{name}} es una carpeta importada — sus puntos se copian a almacenamiento de repositorio real y la carpeta en sí nunca se modifica. Los puntos sellados se vuelven a sellar al llegar.",
-      "immutable": "{{dest}} es inmutable — los puntos migrados se vuelven a sellar al llegar, de modo que la garantía de Object Lock se preserva de extremo a extremo.",
-      "default": "Si el destino comparte el almacenamiento físico del origen, el traslado es instantáneo. De lo contrario, cada punto de restauración se transmite, se verifica en el destino y luego se elimina del origen — sígalo en directo en Actividad. Los bloqueos de cumplimiento se respetan en todo momento: las copias de origen selladas permanecen hasta que expiren sus bloqueos."
-    },
-    "migrating": "Migrando…",
-    "startMigration": "Iniciar migración"
-  },
   "edit": {
-    "part": {
-      "objectLock": "Object Lock de {{days}} días",
-      "compression": "compresión {{mode}}",
-      "maintenanceOn": "modo de mantenimiento activado",
-      "sealed": "sellado en solo lectura",
-      "unsealed": "sin sellar"
-    },
     "toast": {
       "saved": {
         "title": "Ajustes del repositorio guardados",
-        "description": "{{name}} — {{parts}}."
+        "descriptionGeneric": "Se han actualizado los ajustes de {{name}}."
       },
       "failed": {
         "title": "No se pudieron guardar los ajustes del repositorio",
@@ -301,23 +249,6 @@
     },
     "title": "Editar repositorio",
     "description": "Ajuste la capacidad, la compresión, la inmutabilidad y los límites de rendimiento. Los cambios surten efecto en cuanto guarda.",
-    "immutableNote": "Los nuevos puntos de restauración se sellan y no pueden alterarse ni eliminarse hasta que expire la ventana. Acortar la ventana nunca desbloquea puntos ya sellados durante más tiempo.",
-    "standardNote": "Almacenamiento estándar. Active la inmutabilidad para bloquear los nuevos puntos de restauración frente a cambios.",
-    "encryptionAtRest": "Cifrado en reposo",
-    "encryptionHint": "AES-256 para todos los chunks almacenados.",
-    "encryptAria": "Cifrar este repositorio en reposo",
-    "throughputLimits": "Límites de rendimiento",
-    "ioThrottleMbps": "Limitación de E/S (MB/s)",
-    "unlimitedHint": "0 = ilimitado",
-    "cappedHint": "Limitado a {{value}} MB/s",
-    "parallelWriters": "Escritores paralelos",
-    "maintenanceMode": "Modo de mantenimiento",
-    "maintenanceHint": "Pausa los trabajos y pone el repositorio en solo lectura para su mantenimiento.",
-    "maintenanceAria": "Poner este repositorio en modo de mantenimiento",
-    "sealedReadOnly": "Sellado en solo lectura",
-    "sealedImportedHint": "Los repositorios importados son adjuntos de solo lectura — esto no se puede desprecintar.",
-    "sealedHint": "Aquí no llegan copias de seguridad nuevas; los puntos de restauración existentes siguen siendo restaurables. Evacuar un repositorio lo sella — desprecíntelo para volver a aceptar copias de seguridad.",
-    "sealAria": "Sellar este repositorio en solo lectura",
     "saving": "Guardando…",
     "saveSettings": "Guardar ajustes"
   }

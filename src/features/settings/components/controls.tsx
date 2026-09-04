@@ -6,8 +6,10 @@ import { useTranslation } from "react-i18next";
 import { AlertTriangle, Check, Plus, X } from "@/lib/icons";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { toast } from "@/components/ui/sonner";
 import { cn } from "@/lib/utils";
 import { useSettingsStore } from "@/store/settings";
+import { SETTINGS_ARE_LOCAL_ONLY } from "@/services/api.http";
 
 /* ----------------------------------------------------------------------------
  * Segmented control — a pill group of mutually-exclusive options.
@@ -26,6 +28,8 @@ interface SegmentedProps<T extends string> {
   "aria-label": string;
   className?: string;
   size?: "sm" | "md";
+  /** Lock the whole group — the current value still reads, nothing can change it. */
+  disabled?: boolean;
 }
 
 export function Segmented<T extends string>({
@@ -34,6 +38,7 @@ export function Segmented<T extends string>({
   options,
   className,
   size = "md",
+  disabled,
   ...rest
 }: SegmentedProps<T>) {
   return (
@@ -41,7 +46,8 @@ export function Segmented<T extends string>({
       role="radiogroup"
       aria-label={rest["aria-label"]}
       className={cn(
-        "inline-flex w-full items-center gap-1 rounded-lg border border-border/70 bg-muted/40 p-1",
+        "inline-flex w-full items-center gap-1 border border-border bg-muted/40 p-1",
+        disabled && "opacity-50",
         className,
       )}
     >
@@ -53,12 +59,16 @@ export function Segmented<T extends string>({
             type="button"
             role="radio"
             aria-checked={active}
+            disabled={disabled}
             onClick={() => onChange(opt.value)}
             className={cn(
-              "inline-flex flex-1 items-center justify-center gap-1.5 rounded-md font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+              // The selected segment is carried by the raised surface plus its
+              // own hairline; every segment holds a transparent border so
+              // selection never shifts the row.
+              "inline-flex flex-1 items-center justify-center gap-1.5 border border-transparent font-display font-medium transition-colors duration-250 disabled:cursor-not-allowed",
               size === "sm" ? "px-2 py-1 text-xs" : "px-3 py-1.5 text-[13px]",
               active
-                ? "bg-card text-foreground shadow-sm"
+                ? "border-border bg-card text-foreground"
                 : "text-muted-foreground hover:text-foreground",
             )}
           >
@@ -122,14 +132,14 @@ export function ChipList({
           {values.map((v) => (
             <span
               key={v}
-              className="nums inline-flex items-center gap-1 rounded-md border border-border/70 bg-muted/40 py-0.5 pl-2 pr-1 text-xs text-foreground"
+              className="nums inline-flex items-center gap-1 border border-border bg-muted/40 py-0.5 pl-2 pr-1 text-xs text-foreground"
             >
               {v}
               <button
                 type="button"
                 onClick={() => remove(v)}
                 aria-label={t("controls.removeItem", { value: v })}
-                className="rounded p-0.5 text-muted-foreground transition-colors hover:bg-danger-subtle hover:text-danger-text"
+                className="p-0.5 text-muted-foreground transition-colors duration-250 hover:bg-danger-subtle hover:text-danger-text"
               >
                 <X className="h-3 w-3" />
               </button>
@@ -149,7 +159,7 @@ export function ChipList({
           }}
           placeholder={placeholder}
           aria-label={ariaLabel}
-          className={cn("h-9", !valid && "border-danger/60 focus-visible:ring-danger/40", inputClassName)}
+          className={cn("h-9", !valid && "border-danger/60", inputClassName)}
         />
         <Button
           type="button"
@@ -215,8 +225,56 @@ export function SaveBar({ dirty, onSave, onDiscard, saveDisabled }: SaveBarProps
       </Button>
       <Button size="sm" onClick={onSave} disabled={!dirty || saveDisabled || offline}>
         <Check className="h-3.5 w-3.5" />
-        {t("controls.saveChanges")}
+        {/* "Save in this browser" while the appliance has no settings endpoint:
+            the button does exactly that, and a plain "Save changes" would be
+            the console taking credit for a round trip that never happened. */}
+        {SETTINGS_ARE_LOCAL_ONLY ? t("controls.saveLocally") : t("controls.saveChanges")}
       </Button>
     </>
   );
+}
+
+/* ----------------------------------------------------------------------------
+ * Instant commit — for a section whose controls ARE the commit.
+ *
+ * A switch is finished the moment it is flipped: there is nothing left to
+ * type, so a Save button underneath it asks the operator to confirm a decision
+ * they have already expressed — and, worse, lets four flipped switches be lost
+ * by navigating away. Those sections write on change and carry no save bar.
+ * Two things the bar used to carry still have to be:
+ *
+ *  - the offline gate. `persist()` refuses to PUT until a hydrate has actually
+ *    succeeded, so a change made while the appliance is unreachable reaches
+ *    this browser's cache and nothing else. The bar disabled Save for exactly
+ *    that; `useSettingsOffline` lets a section disable its controls instead,
+ *    with `OfflineNotice` saying why.
+ *  - the confirmation. `toastSettingSaved` reuses one toast id, so flipping
+ *    four switches replaces one notice four times rather than stacking four
+ *    interruptions in the corner.
+ * -------------------------------------------------------------------------- */
+
+/** True when the last settings fetch failed — nothing can reach the appliance. */
+export function useSettingsOffline(): boolean {
+  return useSettingsStore((s) => s.syncStatus === "unreachable");
+}
+
+/** The save bar's offline warning, for a section that no longer has one. */
+export function OfflineNotice() {
+  const { t } = useTranslation("settings");
+  return (
+    <span
+      role="status"
+      className="mr-auto inline-flex items-center gap-1.5 text-xs font-medium text-danger-text"
+    >
+      <AlertTriangle className="h-3.5 w-3.5" />
+      {t("controls.saveUnavailable")}
+    </span>
+  );
+}
+
+/** One id for every instant commit, so consecutive changes coalesce. */
+const INSTANT_SAVE_TOAST = "settings-instant-save";
+
+export function toastSettingSaved(title: string, description?: string): void {
+  toast.success(title, { id: INSTANT_SAVE_TOAST, description, duration: 2500 });
 }

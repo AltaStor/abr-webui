@@ -63,6 +63,18 @@
       "hint": "sur toutes les exécutions"
     }
   },
+  "inProgress": {
+    "heading": "Tâches en cours",
+    "sr": {
+      "none": "Aucune exécution active.",
+      "one": "{{job}} en cours.",
+      "many": "{{count}} exécutions en cours."
+    },
+    "idle": "Aucune exécution active pour le moment.",
+    "nextScheduled": "Prochaine exécution planifiée {{when}} ({{abs}}).",
+    "processing": "Traitement de {{name}}",
+    "elapsed": "Écoulé"
+  },
   "feed": {
     "columns": {
       "status": "Statut",
@@ -87,7 +99,7 @@
   "row": {
     "progressLabel": "Progression {{kind}} de {{job}}",
     "aria": {
-      "started": "démarré {{time}}",
+      "started": "démarré {{time}} ({{abs}})",
       "percentComplete": "{{percent}} pour cent terminé",
       "ranIn": "exécuté en {{duration}}",
       "objects_one": "{{count}} objet",
@@ -112,14 +124,14 @@
       "duration": "Durée",
       "read": "Lu",
       "transferred": "Transféré",
-      "guestRead": "Débit lecture invité",
       "throughput": "Débit"
     },
     "table": {
       "result": "Résultat",
       "read": "Lu",
       "sent": "Envoyé",
-      "duration": "Durée"
+      "duration": "Durée",
+      "pending": "En attente"
     },
     "log": "Journal",
     "footer": {
@@ -128,6 +140,10 @@
       "deleted": "Tâche supprimée — historique conservé",
       "openRestore": "Ouvrir la restauration",
       "openJob": "Ouvrir la tâche"
+    },
+    "backupType": {
+      "full": "Complète",
+      "incremental": "Incrémentielle"
     }
   }
 }

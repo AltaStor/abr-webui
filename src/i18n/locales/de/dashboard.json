@@ -1,8 +1,9 @@
 {
   "greeting": {
-    "morning": "Guten Morgen",
-    "afternoon": "Guten Tag",
-    "evening": "Guten Abend"
+    "morning": "Guten Morgen, {{name}}",
+    "afternoon": "Guten Tag, {{name}}",
+    "evening": "Guten Abend, {{name}}",
+    "plain": "Willkommen zurück"
   },
   "header": {
     "loading": "Schutzstatus wird geladen…",
@@ -19,22 +20,12 @@
     "coverage": {
       "label": "Schutzabdeckung",
       "hint": "{{protected}} von {{total}} VMs geschützt",
-      "drill": "{{count}} ungeschützt →"
-    },
-    "rpo": {
-      "label": "RPO-Konformität",
-      "hint": "{{count}} VMs außerhalb ihres RPO-Fensters",
-      "drill": "Veraltete VMs prüfen →"
+      "drill": "{{count}} ungeschützt"
     },
     "success": {
       "label": "Erfolgsquote (24 h)",
       "hint": "{{runs}} Durchläufe · {{failed}} fehlgeschlagen",
-      "drill": "Aktivität anzeigen →"
-    },
-    "immutable": {
-      "label": "Unveränderlicher Speicher",
-      "hint": "{{count}} gehärtete Repositorys",
-      "drill": "Repositorys verwalten →"
+      "drill": "Aktivität"
     }
   },
   "activity": {
@@ -53,17 +44,18 @@
   },
   "live": {
     "title": "Live-Aktivität",
-    "allActivity": "Alle Aktivitäten",
+    "allActivity": "Aktivität",
     "statusNone": "Keine aktiven Backup-Durchläufe.",
     "statusOne": "{{name}} läuft.",
     "statusMany": "{{count}} Backup-Durchläufe in Bearbeitung.",
     "emptyNoRuns": "Derzeit keine aktiven Durchläufe.",
-    "emptyNextScheduled": "Nächster geplant {{when}}.",
+    "emptyNextScheduled": "Nächster geplant {{when}} ({{abs}}).",
     "progressLabel": "{{name}} {{kind}} Fortschritt",
     "staging": "Quelle wird gelesen und bereitgestellt",
     "processing": "{{name}} wird verarbeitet",
     "stagingShort": "wird bereitgestellt…",
-    "recentCompletions": "Kürzlich abgeschlossen"
+    "recentCompletions": "Kürzlich abgeschlossen",
+    "recentEmpty": "Noch keine abgeschlossenen Durchläufe."
   },
   "storage": {
     "title": "Speicher & Unveränderlichkeit",
@@ -71,8 +63,17 @@
     "ofFree": "von {{total}} · {{free}} frei",
     "usedAcross_one": "{{percent}} % belegt in {{count}} Repository",
     "usedAcross_other": "{{percent}} % belegt in {{count}} Repositorys",
-    "immutablePercent": "{{percent}} % der geschützten VMs sind unveränderlich",
-    "hardened_one": "{{count}} gehärtetes Repository mit erzwungenen Object-Lock-Fenstern. 0 Manipulationsversuche in 24 h.",
-    "hardened_other": "{{count}} gehärtete Repositorys mit erzwungenen Object-Lock-Fenstern. 0 Manipulationsversuche in 24 h."
+    "capacityUnknown": "Kapazität nicht gemeldet",
+    "storedAcross_one": "Gespeichert in {{count}} Repository",
+    "storedAcross_other": "Gespeichert in {{count}} Repositorys",
+    "repoCapacityUnknown": "Keine Kapazität gemeldet",
+    "tip": {
+      "shareAria": "Belegter Speicher je Repository",
+      "share": "{{used}} belegt · {{percent}} % von {{total}}",
+      "usedOfFree": "{{used}} von {{capacity}} · {{free}} frei",
+      "runningLow": "Wird knapp",
+      "criticallyFull": "Kritisch voll",
+      "noCapacity": "Keine Füllanzeige — der Anbieter meldet keine Kapazität"
+    }
   }
 }

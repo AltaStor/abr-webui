@@ -30,7 +30,7 @@ export function DeleteJobDialog({ open, onOpenChange, label, count = 1, onConfir
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <div className="mb-1 flex h-10 w-10 items-center justify-center rounded-lg bg-danger-subtle text-danger">
+          <div className="mb-1 flex h-10 w-10 items-center justify-center bg-danger-subtle text-danger">
             <AlertTriangle className="h-5 w-5" />
           </div>
           <DialogTitle>

@@ -97,26 +97,27 @@ const config: Config = {
         full: "9999px",
       },
       fontFamily: {
+        // IBM Plex Sans — body copy, captions, supporting content.
         sans: [
-          "Inter Variable",
-          "Inter",
+          "IBM Plex Sans",
           "ui-sans-serif",
           "system-ui",
           "-apple-system",
           "Segoe UI",
           "sans-serif",
         ],
-        // Outfit — geometric display face for the wordmark & screen titles.
-        // Falls back to Inter/system so layout survives if the web font stalls.
+        // Chakra Petch — headings, subheadings, labels-of-record and numerals.
+        // Note: no Cyrillic coverage, so a future Ukrainian locale falls back to
+        // the body stack for headings.
         display: [
-          "Outfit",
-          "Inter Variable",
-          "Inter",
+          "Chakra Petch",
+          "IBM Plex Sans",
           "ui-sans-serif",
           "system-ui",
           "sans-serif",
         ],
-        // JetBrains Mono — tabular metrics, micro-labels, code, TUI parity.
+        // JetBrains Mono — data tokens (paths, IDs, sizes, CLI) and terminal
+        // surfaces only. It never sets a UI label.
         mono: [
           "JetBrains Mono",
           "ui-monospace",
@@ -126,11 +127,21 @@ const config: Config = {
           "monospace",
         ],
       },
+      // Depth is a hairline or the one raised surface — never a shadow. `pop`
+      // is the sole exception, and only for layers that genuinely float above
+      // the page (menus, dialogs, toasts).
       boxShadow: {
-        elevation: "var(--shadow-elevation)",
-        card: "var(--shadow-card)",
         pop: "var(--shadow-pop)",
-        glow: "0 0 0 1px hsl(var(--primary) / 0.3), 0 0 22px -6px hsl(var(--primary) / 0.4)",
+      },
+      // The brand's motion timings: .25s for colour, .3s for menus and arrows,
+      // .45s for art. `settle` is the draw/settle curve the website uses.
+      transitionTimingFunction: {
+        settle: "cubic-bezier(0.16, 1, 0.3, 1)",
+        brand: "cubic-bezier(0.2, 0.7, 0.2, 1)",
+      },
+      transitionDuration: {
+        250: "250ms",
+        450: "450ms",
       },
       keyframes: {
         "accordion-down": {
@@ -141,21 +152,9 @@ const config: Config = {
           from: { height: "var(--radix-accordion-content-height)" },
           to: { height: "0" },
         },
-        shimmer: {
-          "100%": { transform: "translateX(100%)" },
-        },
-        "pulse-ring": {
-          "0%": { boxShadow: "0 0 0 0 hsl(var(--info) / 0.5)" },
-          "70%": { boxShadow: "0 0 0 6px hsl(var(--info) / 0)" },
-          "100%": { boxShadow: "0 0 0 0 hsl(var(--info) / 0)" },
-        },
         "fade-up": {
           from: { opacity: "0", transform: "translateY(6px)" },
           to: { opacity: "1", transform: "translateY(0)" },
-        },
-        marquee: {
-          from: { backgroundPosition: "0 0" },
-          to: { backgroundPosition: "40px 0" },
         },
         // Streaming-backup motion: soft light bands flowing toward the write head.
         "data-flow": {
@@ -171,10 +170,7 @@ const config: Config = {
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
-        shimmer: "shimmer 1.6s infinite",
-        "pulse-ring": "pulse-ring 1.8s cubic-bezier(0.4,0,0.6,1) infinite",
         "fade-up": "fade-up 0.25s ease-out both",
-        marquee: "marquee 1s linear infinite",
         "data-flow": "data-flow 1.1s linear infinite",
         comet: "comet 1.2s ease-in-out infinite",
       },

@@ -17,8 +17,17 @@
       "withinRpo": "Dentro del RPO · retraso medio {{lag}}",
       "servingDr": "Réplicas en servicio en recuperación ante desastres",
       "noActiveFailovers": "Sin conmutaciones activas",
+      "allReady": "Todas las réplicas listas",
+      "someSyncing": "Algunas réplicas aún se sincronizan",
       "lagPastTarget": "Retraso por encima del objetivo: desviándose o incumplido",
       "allWithinTarget": "Todas las réplicas dentro del objetivo"
+    },
+    "jobsSection": {
+      "title": "Trabajos de replicación",
+      "subtitle": "Cada trabajo resincroniza sus réplicas según su programación.",
+      "replicaCount_one": "{{count}} réplica",
+      "replicaCount_other": "{{count}} réplicas",
+      "lastRun": "última ejecución {{when}}"
     },
     "tabs": {
       "jobs": "Trabajos",
@@ -87,8 +96,8 @@
     "toast": {
       "started": {
         "title": "{{name}} iniciado",
-        "description": "Vea el flujo de sincronización en directo en Actividad.",
-        "watch": "Ver"
+        "description": "Vea el flujo de sincronización en directo en la página del trabajo.",
+        "watch": "Abrir trabajo"
       },
       "paused": {
         "title": "{{name}} está en pausa",

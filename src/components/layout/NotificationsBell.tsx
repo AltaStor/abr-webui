@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { AlertOctagon, AlertTriangle, Bell, CheckCircle2, Info, ShieldAlert } from "@/lib/icons";
 import { cn } from "@/lib/utils";
-import { formatRelative } from "@/lib/format";
+import { formatDateTime, formatRelative } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { EmptyState } from "@/components/EmptyState";
@@ -50,11 +50,11 @@ export function NotificationsBell() {
         </Button>
       </PopoverTrigger>
       <PopoverContent align="end" className="w-[380px] p-0">
-        <div className="flex items-center justify-between border-b border-border/70 px-4 py-3">
+        <div className="flex items-center justify-between border-b border-border px-4 py-3">
           <div className="flex items-center gap-2">
             <span className="text-sm font-semibold">{t("notifications.title")}</span>
             {activeThreats > 0 && (
-              <span className="inline-flex items-center gap-1 rounded-md bg-danger-subtle px-1.5 py-0.5 text-[11px] font-medium text-danger">
+              <span className="inline-flex items-center gap-1 bg-danger-subtle px-1.5 py-0.5 text-[11px] font-medium text-danger">
                 <ShieldAlert className="h-3 w-3" />
                 {t("notifications.threats", { count: activeThreats })}
               </span>
@@ -73,6 +73,14 @@ export function NotificationsBell() {
             alerts.map((a) => {
               const S = SEV[a.severity];
               const Icon = S.icon;
+              // The appliance's problem-areas feed carries no separate headline:
+              // `listAlerts` synthesises the title by truncating the message at
+              // 64 characters, so title and message are the same sentence — the
+              // first copy cut mid-word. Where the message already opens with
+              // the title, render the message once instead of twice.
+              const heading = a.title.trim();
+              const body = a.message.trim();
+              const duplicated = heading !== "" && body.startsWith(heading);
               return (
                 <button
                   key={a.id}
@@ -84,12 +92,18 @@ export function NotificationsBell() {
                 >
                   <Icon className={cn("mt-0.5 h-4 w-4 shrink-0", S.cls)} />
                   <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2">
-                      <p className="truncate text-sm font-medium">{a.title}</p>
-                      {!a.read && <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />}
+                    <div className="flex items-start gap-2">
+                      <p className={cn("text-sm font-medium", duplicated ? "line-clamp-3" : "truncate")}>
+                        {duplicated ? body : heading}
+                      </p>
+                      {!a.read && <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />}
                     </div>
-                    <p className="mt-0.5 line-clamp-2 text-xs text-muted-foreground">{a.message}</p>
-                    <p className="mt-1 text-[11px] text-muted-foreground/70">{formatRelative(a.createdAt)}</p>
+                    {!duplicated && body !== "" && (
+                      <p className="mt-0.5 line-clamp-2 text-xs text-muted-foreground">{body}</p>
+                    )}
+                    <p className="nums mt-1 text-[11px] text-muted-foreground">
+                      {formatRelative(a.createdAt)} · {formatDateTime(a.createdAt)}
+                    </p>
                   </div>
                 </button>
               );

@@ -21,15 +21,18 @@ export function PageHeader({ title, description, icon: Icon, actions, backTo, cl
         {backTo && (
           <Link
             to={backTo.href}
-            className="mb-2 inline-flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
+            className="mb-2 inline-flex max-w-full items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
           >
-            <ChevronLeft className="h-4 w-4" />
-            {backTo.label}
+            <ChevronLeft className="h-4 w-4 shrink-0" />
+            {/* The label is not always a short page name — a back link can name
+                the object the operator came from — so it truncates rather than
+                pushing the header wider than its column. */}
+            <span className="truncate">{backTo.label}</span>
           </Link>
         )}
         <div className="flex items-center gap-2.5">
           {Icon && (
-            <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/12 text-primary">
+            <span className="flex h-9 w-9 items-center justify-center bg-primary/12 text-primary">
               <Icon className="h-5 w-5" />
             </span>
           )}

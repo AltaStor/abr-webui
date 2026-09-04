@@ -24,7 +24,10 @@ export function ProtectionFilterChips({ value, counts, total, onChange }: Protec
     <div
       role="group"
       aria-label={t("filters.byProtection")}
-      className="inline-flex flex-wrap items-center gap-1 rounded-lg border border-border/70 bg-card p-1 shadow-card"
+      /* min-h-9, not h-9: the chips settle on the one control height the header
+         and the rest of the toolbar share, but the group still has to grow when
+         four chips wrap onto a second line on a narrow viewport. */
+      className="inline-flex min-h-9 flex-wrap items-center gap-1 border border-border bg-card p-0.5"
     >
       <Chip active={value === "all"} onClick={() => onChange("all")}>
         <span className="text-sm font-medium">{t("common:generic.all")}</span>
@@ -61,7 +64,7 @@ function Chip({
       aria-pressed={active}
       onClick={onClick}
       className={cn(
-        "tap-target inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 transition-colors",
+        "tap-target inline-flex items-center gap-1.5 px-2.5 py-1 transition-colors",
         active ? "bg-muted text-foreground" : "text-muted-foreground hover:bg-muted/50 hover:text-foreground",
       )}
     >
@@ -74,7 +77,7 @@ function Count({ active, children }: { active: boolean; children: React.ReactNod
   return (
     <span
       className={cn(
-        "nums rounded px-1 text-xs font-semibold tabular-nums",
+        "nums px-1 text-xs font-semibold tabular-nums",
         active ? "bg-background/70 text-foreground" : "text-muted-foreground",
       )}
     >

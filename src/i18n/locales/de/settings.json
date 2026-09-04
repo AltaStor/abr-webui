@@ -37,7 +37,8 @@
     "unsavedChanges": "Nicht gespeicherte Änderungen",
     "saveChanges": "Änderungen speichern",
     "removeItem": "{{value}} entfernen",
-    "saveUnavailable": "Appliance nicht erreichbar — Speichern deaktiviert"
+    "saveUnavailable": "Appliance nicht erreichbar — Speichern deaktiviert",
+    "saveLocally": "In diesem Browser speichern"
   },
   "units": {
     "cores": "Kerne"
@@ -70,6 +71,20 @@
       "blue": "Blau",
       "violet": "Violett",
       "amber": "Bernstein"
+    },
+    "density": {
+      "label": "Dichte",
+      "description": "Kompakt verringert Zeilenhöhe und Abstände in Tabellen.",
+      "comfortable": "Komfortabel",
+      "compact": "Kompakt"
+    },
+    "reduceMotion": {
+      "label": "Bewegung reduzieren",
+      "description": "Animationen und Übergänge in der gesamten Konsole minimieren."
+    },
+    "autoCollapse": {
+      "label": "Seitenleiste automatisch einklappen",
+      "description": "Die Navigationsleiste in schmaleren Fenstern auf Symbole reduzieren."
     }
   },
   "notifications": {
@@ -84,10 +99,6 @@
       "jobSuccess": {
         "label": "Job erfolgreich",
         "blurb": "Ein Lauf wird sauber abgeschlossen"
-      },
-      "immutabilityViolation": {
-        "label": "Unveränderlichkeitsverletzung",
-        "blurb": "Das Löschen eines versiegelten Punkts wird verweigert"
       },
       "capacityWarning": {
         "label": "Kapazitätswarnung",
@@ -216,13 +227,11 @@
   },
   "about": {
     "brand": {
-      "tagline": "Backups in Stein gemeißelt.",
-      "openSource": "Frei & quelloffen · unveränderlich by design"
+      "tagline": "Backups in Stein gemeißelt."
     },
     "appliance": {
-      "title": "Appliance",
-      "description": "Identität und Hardware dieses Knotens.",
-      "applianceName": "Appliance-Name",
+      "title": "Backup-Server",
+      "applianceName": "Name des Backup-Servers",
       "hostname": "Hostname",
       "version": "Version",
       "build": "Build",
@@ -231,14 +240,10 @@
       "uptime": "Betriebszeit",
       "cpu": "CPU",
       "memory": "Arbeitsspeicher",
-      "noAppliance": "Hardware-Details werden von einer verbundenen Appliance gemeldet.",
       "probeFailed": "Hardware-Details konnten nicht von der Appliance gelesen werden. Von ihr gemeldete Felder erscheinen als „—“."
     },
     "license": {
-      "title": "Lizenz & Ressourcen",
-      "description": "AltaStor ist freie und quelloffene Software.",
-      "openSourceTitle": "Frei & quelloffen",
-      "openSourceBlurb": "Keine Lizenzplätze, keine Gebühren pro VM. Selbst gehostet und für Sie einsehbar."
+      "title": "Ressourcen"
     },
     "links": {
       "documentation": {
@@ -253,8 +258,7 @@
         "label": "Community",
         "blurb": "Fragen stellen & Setups teilen"
       }
-    },
-    "releaseNotes": "Versionshinweise"
+    }
   },
   "createToken": {
     "copyTitle": "Kopieren Sie Ihr Token",

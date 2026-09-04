@@ -10,10 +10,12 @@ import { DataTable } from "@/components/DataTable";
 import { StatusPill } from "@/components/StatusPill";
 import { EmptyState } from "@/components/EmptyState";
 import { Hint } from "@/components/ui/tooltip";
-import { formatRelative, formatStorage } from "@/lib/format";
+import { formatStorage } from "@/lib/format";
+import { TimeStamp } from "@/components/TimeStamp";
 import { PROTECTION_META } from "@/lib/status";
 import { useWorldStore } from "@/store/world";
 import type { BackupJob, ProtectionStatus, VM } from "@/types";
+import type { VmDetailOrigin } from "@/features/inventory/VmDetailPage";
 import { VmIcon } from "@/features/inventory/components/VmIcon";
 import { osFamilyLabel } from "@/features/inventory/components/vm-presentation";
 
@@ -28,7 +30,10 @@ function ScopeLine({ job, resolved }: { job: BackupJob; resolved: number }) {
   return (
     <p className="text-xs text-muted-foreground">
       <span className="nums font-medium text-foreground">{resolved}</span>{" "}
-      {resolved === 1 ? t("objects.virtualMachine") : t("objects.vms")} {t("objects.inScopeSummary", { summary: job.scopeSummary })}
+      {/* `objects.virtualMachine` is the column heading ("Virtual machine"); the
+          counted noun is `vmNoun`, so the line reads "1 VM" / "3 VMs" in one
+          register instead of switching to the long form at exactly one. */}
+      {resolved === 1 ? t("objects.vmNoun") : t("objects.vms")} {t("objects.inScopeSummary", { summary: job.scopeSummary })}
       {missing > 0 && (
         <span className="text-warning">
           {" "}
@@ -144,9 +149,7 @@ export function JobObjectsTab({ job }: Props) {
           const bv = b.original.lastBackupAt ? new Date(b.original.lastBackupAt).getTime() : 0;
           return av - bv;
         },
-        cell: ({ row }) => (
-          <span className="nums text-sm text-muted-foreground">{formatRelative(row.original.lastBackupAt)}</span>
-        ),
+        cell: ({ row }) => <TimeStamp value={row.original.lastBackupAt} />,
       },
       {
         accessorKey: "restorePointCount",
@@ -166,7 +169,11 @@ export function JobObjectsTab({ job }: Props) {
         columns={columns}
         data={scopeVms}
         getRowId={(v) => v.id}
-        onRowClick={(v) => navigate(`/inventory/${v.id}`)}
+        // Clicking a row leaves the job for the VM's own page. The trip is
+        // announced in that page's back link, which needs to know where it came
+        // from — carried in navigation state, not in the URL, so the address of
+        // a VM page is the same however it was reached.
+        onRowClick={(v) => navigate(`/inventory/${v.id}`, { state: { fromJobId: job.id } satisfies VmDetailOrigin })}
         initialSorting={[{ id: "protection", desc: true }]}
         pageSize={10}
         emptyState={

@@ -17,8 +17,17 @@
       "withinRpo": "Dans le RPO · décalage moyen {{lag}}",
       "servingDr": "Réplicas actifs en reprise après sinistre",
       "noActiveFailovers": "Aucun basculement actif",
+      "allReady": "Tous les réplicas sont prêts",
+      "someSyncing": "Certains réplicas se synchronisent encore",
       "lagPastTarget": "Décalage au-delà de la cible — dérive ou dépassement",
       "allWithinTarget": "Tous les réplicas dans la cible"
+    },
+    "jobsSection": {
+      "title": "Tâches de réplication",
+      "subtitle": "Chaque tâche resynchronise ses réplicas selon sa planification.",
+      "replicaCount_one": "{{count}} réplica",
+      "replicaCount_other": "{{count}} réplicas",
+      "lastRun": "dernière exécution {{when}}"
     },
     "tabs": {
       "jobs": "Tâches",
@@ -87,8 +96,8 @@
     "toast": {
       "started": {
         "title": "{{name}} démarrée",
-        "description": "Suivez le flux de synchronisation en direct dans l'Activité.",
-        "watch": "Suivre"
+        "description": "Suivez le flux de synchronisation en direct sur la page de la tâche.",
+        "watch": "Ouvrir la tâche"
       },
       "paused": {
         "title": "{{name}} est en pause",

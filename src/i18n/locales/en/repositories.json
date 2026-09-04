@@ -1,4 +1,26 @@
 {
+  "page": {
+    "title": "Repositories",
+    "description": "Where your backups live."
+  },
+  "kpi": {
+    "totalCapacity": "Total capacity",
+    "totalCapacityHint_one": "Across {{count}} repository",
+    "totalCapacityHint_other": "Across {{count}} repositories",
+    "used": "Used",
+    "usedHint": "{{pct}}% of total capacity"
+  },
+  "health": {
+    "title": "Storage health",
+    "reclaimable": "Reclaimable",
+    "reclaimableHint": "pending garbage collection",
+    "inMaintenance": "In maintenance",
+    "integrityIssues": "Integrity issues"
+  },
+  "empty": {
+    "title": "No repositories yet",
+    "description": "Point AltaStor at storage you already own."
+  },
   "type": {
     "hardenedImmutable": {
       "label": "Hardened Linux repository",
@@ -135,7 +157,8 @@
     "toast": {
       "failed": {
         "title": "Couldn't add repository",
-        "description": "The appliance refused the request — check the path and capacity, then try again."
+        "description": "The appliance refused the request — check the path and capacity, then try again.",
+        "s3Description": "The appliance refused the request — check the bucket, endpoint, and access keys, then try again."
       },
       "shareOffline": {
         "title": "Repository added, but the share is offline",
@@ -150,7 +173,7 @@
     },
     "trigger": "Add repository",
     "title": "Add repository",
-    "description": "Point AltaStor at storage you already own.",
+    "description": "Specify the backup repository settings.",
     "nameLabel": "Name",
     "namePlaceholder": "e.g. AltaStor Repository",
     "nameInvalid": "Use up to 125 Latin letters, numbers, spaces, dots, underscores, or hyphens — starting with a letter or number.",
@@ -176,7 +199,22 @@
       }
     },
     "storageModeNote": "Turn dedup off when the share is on a dedup appliance/NAS, or when faster restores and lower CPU matter more than space.",
-    "adding": "Adding…"
+    "adding": "Adding…",
+    "s3": {
+      "bucketLabel": "Bucket",
+      "bucketRequired": "Enter a bucket name.",
+      "regionLabel": "Region",
+      "endpointLabel": "Endpoint",
+      "endpointRequired": "Enter the endpoint URL.",
+      "prefixLabel": "Prefix",
+      "optional": "(optional)",
+      "accessKeyLabel": "Access key ID",
+      "secretKeyLabel": "Secret access key",
+      "verifyTlsLabel": "Verify TLS certificate",
+      "verifyTlsAria": "Verify the endpoint’s TLS certificate",
+      "test": "Test connection",
+      "testing": "Testing…"
+    }
   },
   "delete": {
     "toast": {

@@ -7,14 +7,15 @@ import { cn } from "@/lib/utils";
 import { StatusPill } from "@/components/StatusPill";
 import { ProgressBar } from "@/components/ProgressBar";
 import { SESSION_META } from "@/lib/status";
-import { formatDuration, formatRelative, formatStorage } from "@/lib/format";
+import { formatDateTime, formatDuration, formatRelative, formatStorage } from "@/lib/format";
+import { TimeStamp } from "@/components/TimeStamp";
 import i18n from "@/i18n";
 import type { Session } from "@/types";
-import { runKind, runKindIcon, runKindTone } from "../lib";
+import { runKind, runKindIcon } from "../lib";
 
 /** Grid template shared by the header and every row so columns line up. */
 export const ROW_GRID =
-  "grid grid-cols-[8.5rem_minmax(12rem,1.6fr)_6rem_5.5rem_5rem_5rem_6rem] items-center gap-x-4";
+  "grid grid-cols-[8.5rem_minmax(12rem,1.6fr)_7.5rem_5.5rem_5rem_5rem_6rem] items-center gap-x-4";
 
 const TRIGGER_META: Record<Session["triggeredBy"], { label: string; icon: typeof Hand }> = {
   schedule: { get label() { return i18n.t("activity:trigger.schedule"); }, icon: CalendarClock },
@@ -36,7 +37,7 @@ export function RunRow({ session: s, onOpen }: { session: Session; onOpen: (sess
     s.jobName,
     runKind(s),
     trigger.label,
-    t("row.aria.started", { time: formatRelative(s.startedAt) }),
+    t("row.aria.started", { time: formatRelative(s.startedAt), abs: formatDateTime(s.startedAt) }),
     running
       ? t("row.aria.percentComplete", { percent: Math.round(s.progress) })
       : t("row.aria.ranIn", { duration: formatDuration(s.durationSec) }),
@@ -59,7 +60,7 @@ export function RunRow({ session: s, onOpen }: { session: Session; onOpen: (sess
         }
       }}
       className={cn(
-        "cursor-pointer px-4 py-2.5 text-sm transition-colors hover:bg-muted/40",
+        "cursor-pointer px-4 py-2.5 text-sm transition-colors duration-250 hover:bg-muted/40",
         running && "bg-info/[0.035]",
       )}
     >
@@ -72,20 +73,15 @@ export function RunRow({ session: s, onOpen }: { session: Session; onOpen: (sess
         {/* Run kind icon + job name + trigger */}
         <div className="flex min-w-0 items-center gap-2.5">
           <span
-            className={cn(
-              "flex h-7 w-7 shrink-0 items-center justify-center rounded-md",
-              runKindTone(s),
-            )}
+            className="flex h-7 w-7 shrink-0 items-center justify-center bg-muted/60"
             title={runKind(s)}
           >
-            <KindIcon className="h-3.5 w-3.5" />
+            <KindIcon className="h-3.5 w-3.5 text-muted-foreground" />
           </span>
           <div className="min-w-0">
-            <span className="block truncate font-medium" title={s.jobName}>
-              {s.jobName}
-            </span>
+            <span className="block truncate font-medium">{s.jobName}</span>
             <div className="mt-0.5 flex items-center gap-1.5 text-[11px] text-muted-foreground">
-              <span className="font-medium">{runKind(s)}</span>
+              <span>{runKind(s)}</span>
               <span className="text-muted-foreground/40">·</span>
               <span className="inline-flex items-center gap-1">
                 <TriggerIcon className="h-3 w-3" />
@@ -95,10 +91,9 @@ export function RunRow({ session: s, onOpen }: { session: Session; onOpen: (sess
           </div>
         </div>
 
-        {/* Started */}
-        <span className="nums truncate text-xs text-muted-foreground" title={s.startedAt}>
-          {formatRelative(s.startedAt)}
-        </span>
+        {/* Started. The raw ISO string used to sit in this cell's title
+            attribute, which is neither readable nor in the operator's format. */}
+        <TimeStamp value={s.startedAt} size="xs" />
 
         {/* Duration */}
         <span className="nums text-xs text-muted-foreground">

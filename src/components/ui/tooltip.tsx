@@ -18,7 +18,7 @@ export const TooltipContent = React.forwardRef<
       ref={ref}
       sideOffset={sideOffset}
       className={cn(
-        "z-50 max-w-xs overflow-hidden rounded-md border border-border bg-popover px-2.5 py-1.5 text-pretty text-xs text-popover-foreground shadow-pop",
+        "z-50 max-w-xs overflow-hidden whitespace-pre-line border border-border bg-popover px-2.5 py-1.5 text-pretty text-xs text-popover-foreground shadow-pop",
         "data-[state=delayed-open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=delayed-open]:fade-in-0 data-[state=delayed-open]:zoom-in-95",
         className,
       )}
@@ -53,7 +53,7 @@ export function HeaderHint({
       <TooltipTrigger asChild>
         <button
           type="button"
-          className="inline-flex cursor-help rounded-sm text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          className="inline-flex cursor-help text-left"
           onClick={() => setOpen(true)}
         >
           {children}

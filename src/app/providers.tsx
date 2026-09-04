@@ -30,8 +30,17 @@ function ApiVersionBanner() {
     >
       <AlertTriangle className="h-5 w-5 shrink-0 text-danger" />
       <div className="min-w-0 flex-1">
-        <div className="text-sm font-medium text-danger-text">{t("apiVersionBanner.title")}</div>
-        <p className="text-xs text-danger-text/80">{apiVersionError || t("apiVersionBanner.fallback")}</p>
+        <div className="font-display text-sm font-semibold text-danger-text">
+          {t("apiVersionBanner.title")}
+        </div>
+        {/* The console's own explanation leads. `apiVersionError` is the
+            version-comparison sentence api.http.ts synthesizes — raw English
+            with the two version numbers in it, which is the useful part but
+            not something a French or German operator should be told first. */}
+        <p className="text-xs text-danger-text/80">{t("apiVersionBanner.fallback")}</p>
+        {apiVersionError && (
+          <p className="mt-0.5 text-xs text-danger-text/70">{apiVersionError}</p>
+        )}
       </div>
       <Button
         variant="outline"

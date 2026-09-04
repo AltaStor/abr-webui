@@ -1,21 +1,14 @@
 // SPDX-License-Identifier: Apache-2.0
 // Copyright © 2026 Norvitex OÜ
 
-import { ChevronRight, Lock, LockOpen, RotateCcw, Server, ServerOff, Trash2 } from "@/lib/icons";
+import { useTranslation } from "react-i18next";
+import { ChevronRight, Lock, RotateCcw, Server, ServerOff, Trash2 } from "@/lib/icons";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { formatDateTime, formatRelative, formatStorage } from "@/lib/format";
-import {
-  compressionRatioLabel,
-  pointTypeTooltip,
-  type RestorePointJobVmGroup,
-} from "@/lib/restore-points";
+import { pointTypeTooltip, type RestorePointJobVmGroup } from "@/lib/restore-points";
 import type { RestorePoint } from "@/types";
-
-/** Hover explanation for a full/incremental type badge on the row's repository being offline. */
-const OFFLINE_TIP =
-  "This restore point's repository is offline — it can't be read until the repository comes back online.";
 
 /**
  * One VM within a job's expanded tree: a header row (name, stats, restore,
@@ -33,6 +26,7 @@ export function BackupJobVmRow({
   offlineRepoIds,
   restoreBlockedReason,
   onRestore,
+  onRestorePoint,
   onDelete,
 }: {
   jobName: string;
@@ -43,18 +37,22 @@ export function BackupJobVmRow({
   offlineRepoIds: Set<string>;
   /** Why restore is disabled — e.g. the source VM is gone from inventory. */
   restoreBlockedReason?: string;
+  /** The VM-level action: recover this machine, wizard picks the newest point. */
   onRestore: () => void;
+  /** The point-level action. Distinct on purpose — an operator who opens the
+   *  tree and picks a three-day-old point is usually doing so *because* the
+   *  newest one is the problem, so handing them the newest is the one
+   *  substitution this button must never make. */
+  onRestorePoint: (point: RestorePoint) => void;
   onDelete: () => void;
 }) {
+  const { t } = useTranslation("jobs");
+  /** Hover explanation for a row whose repository is offline. */
+  const offlineTip = t("point.offlineTip");
   const unreachable = vm.points.filter((p) => offlineRepoIds.has(p.repositoryId)).length;
   const allUnreachable = unreachable === vm.points.length;
   const restoreDisabled = allUnreachable || restoreBlockedReason !== undefined;
   const orderedPoints = sortDir === "asc" ? [...vm.points].reverse() : vm.points;
-  // Encryption at rest, summarised for the collapsed row. "Partly" is a real
-  // and important state — a job whose encryption setting changed mid-history
-  // leaves older points in the clear, which a plain on/off badge would hide.
-  const encryption: "none" | "partial" | "all" =
-    vm.encryptedCount === 0 ? "none" : vm.encryptedCount === vm.points.length ? "all" : "partial";
 
   return (
     <li>
@@ -72,7 +70,7 @@ export function BackupJobVmRow({
               isOpen && "rotate-90",
             )}
           />
-          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-muted/60 text-muted-foreground">
+          <span className="flex h-7 w-7 shrink-0 items-center justify-center bg-muted/60 text-muted-foreground">
             <Server className="h-3.5 w-3.5" />
           </span>
           <span className="min-w-0 flex-1">
@@ -84,66 +82,33 @@ export function BackupJobVmRow({
                   className="shrink-0 font-normal text-muted-foreground"
                   title={restoreBlockedReason}
                 >
-                  source removed
-                </Badge>
-              )}
-              {encryption !== "none" && (
-                <Badge
-                  variant="outline"
-                  className={cn(
-                    "shrink-0 gap-1 font-normal",
-                    encryption === "all" ? "text-muted-foreground" : "border-warning/40 text-warning-text",
-                  )}
-                  title={
-                    encryption === "all"
-                      ? `All ${vm.points.length} restore point${vm.points.length === 1 ? "" : "s"} are encrypted at rest`
-                      : `${vm.encryptedCount} of ${vm.points.length} restore points are encrypted at rest — the rest are stored unencrypted`
-                  }
-                >
-                  <Lock className="h-3 w-3" />
-                  {encryption === "all" ? "Encrypted" : `Encrypted ${vm.encryptedCount}/${vm.points.length}`}
-                </Badge>
-              )}
-              {encryption === "none" && (
-                <Badge
-                  variant="outline"
-                  className="shrink-0 gap-1 font-normal text-muted-foreground/70"
-                  title="This VM's restore points are stored unencrypted"
-                >
-                  <LockOpen className="h-3 w-3" />
-                  Not encrypted
+                  {t("backupsTab.sourceRemoved")}
                 </Badge>
               )}
             </span>
             <span className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-muted-foreground">
-              <span className="nums">
-                {vm.points.length} point{vm.points.length === 1 ? "" : "s"}
-              </span>
-              {vm.storedGB > 0 && (
+              <span className="nums">{t("rp.pointsShort", { count: vm.points.length })}</span>
+              {vm.logicalGB > 0 && (
                 <>
                   <span aria-hidden>·</span>
-                  <span className="nums">{formatStorage(vm.storedGB)} stored</span>
-                </>
-              )}
-              {vm.logicalGB != null && (
-                <>
-                  <span aria-hidden>·</span>
-                  <span
-                    className="nums"
-                    title="The real, uncompressed data these restore points hold"
-                  >
-                    from {formatStorage(vm.logicalGB)}
-                    {compressionRatioLabel(vm.compressionRatio) &&
-                      ` (${compressionRatioLabel(vm.compressionRatio)})`}
+                  <span className="nums">
+                    {t("backupsTab.logicalShort", { size: formatStorage(vm.logicalGB) })}
                   </span>
                 </>
               )}
               <span aria-hidden>·</span>
-              <span>latest {formatRelative(vm.latest)}</span>
+              <span>
+                {t("rp.latest", {
+                  rel: formatRelative(vm.latest),
+                  abs: formatDateTime(vm.latest),
+                })}
+              </span>
               {unreachable > 0 && (
                 <>
                   <span aria-hidden>·</span>
-                  <span className="text-warning-text">{unreachable} unavailable</span>
+                  <span className="text-warning-text">
+                    {t("rp.unavailable", { count: unreachable })}
+                  </span>
                 </>
               )}
             </span>
@@ -153,8 +118,8 @@ export function BackupJobVmRow({
           <Button
             variant="ghost"
             size="icon-sm"
-            aria-label={`Restore ${vm.name} from ${jobName}`}
-            title={restoreBlockedReason ?? (allUnreachable ? OFFLINE_TIP : "Restore")}
+            aria-label={t("backupsTab.restoreVmAria", { vm: vm.name, job: jobName })}
+            title={restoreBlockedReason ?? (allUnreachable ? offlineTip : t("rp.restore"))}
             className="text-muted-foreground"
             onClick={onRestore}
             disabled={restoreDisabled}
@@ -164,8 +129,8 @@ export function BackupJobVmRow({
           <Button
             variant="ghost"
             size="icon-sm"
-            aria-label={`Delete ${vm.name}'s backup from ${jobName}`}
-            title="Delete this VM's backup from this job"
+            aria-label={t("backupsTab.deleteVmAria", { vm: vm.name, job: jobName })}
+            title={t("backupsTab.deleteVmTip")}
             className="text-muted-foreground/70 hover:bg-danger/10 hover:text-danger"
             onClick={onDelete}
           >
@@ -174,14 +139,14 @@ export function BackupJobVmRow({
         </div>
       </div>
       {isOpen && (
-        <ul className="ml-11 divide-y divide-border/60 border-t border-border/60 pr-3">
+        <ul className="ml-11 divide-y divide-border/60 border-t border-border pr-3">
           {orderedPoints.map((point) => (
             <BackupPointRow
               key={point.id}
               point={point}
               unavailable={offlineRepoIds.has(point.repositoryId)}
               restoreBlockedReason={restoreBlockedReason}
-              onRestore={onRestore}
+              onRestore={() => onRestorePoint(point)}
             />
           ))}
         </ul>
@@ -201,12 +166,14 @@ function BackupPointRow({
   restoreBlockedReason?: string;
   onRestore: () => void;
 }) {
+  const { t } = useTranslation("jobs");
+  const offlineTip = t("point.offlineTip");
   const restoreDisabled = unavailable || restoreBlockedReason !== undefined;
   return (
     <li className={cn("flex items-center gap-3 py-2", unavailable && "opacity-60")}>
       <span
         className={cn(
-          "flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-[10px] font-semibold uppercase",
+          "flex h-7 w-7 shrink-0 items-center justify-center text-[10px] font-semibold uppercase",
           point.type === "full" ? "bg-primary/12 text-primary" : "bg-muted text-muted-foreground",
         )}
       >
@@ -226,57 +193,39 @@ function BackupPointRow({
             <Badge
               variant="outline"
               className="gap-1 border-warning/40 font-normal text-warning-text"
-              title={OFFLINE_TIP}
+              title={offlineTip}
             >
               <ServerOff className="h-3 w-3" />
-              Unavailable
+              {t("point.unavailable")}
             </Badge>
           )}
           {point.encrypted && (
             <Badge
               variant="outline"
               className="gap-1 font-normal text-muted-foreground"
-              title="This backup's data is encrypted at rest"
+              title={t("point.encryptedTip")}
             >
               <Lock className="h-3 w-3" />
-              Encrypted
+              {t("point.encrypted")}
             </Badge>
           )}
         </div>
         <p className="text-xs text-muted-foreground">
           {formatRelative(point.createdAt)}
-          {point.compressionLevel != null && ` · Compression level ${point.compressionLevel}`}
+          {point.compressionLevel != null &&
+            ` · ${t("point.compression", { level: point.compressionLevel })}`}
         </p>
       </div>
       {point.sizeGB > 0 && (
-        // Stored size leads — it is what the repository is actually holding —
-        // with the real data it came from underneath, so the two are read
-        // together rather than one being mistaken for the other.
-        <span
-          className="hidden shrink-0 text-right sm:block"
-          title={
-            point.logicalGB != null
-              ? `${formatStorage(point.logicalGB, 1)} of data stored as ${formatStorage(point.sizeGB, 1)}`
-              : "Stored size in the repository"
-          }
-        >
-          <span className="nums block text-sm text-muted-foreground">
-            {formatStorage(point.sizeGB, 1)}
-          </span>
-          {point.logicalGB != null && (
-            <span className="nums block text-[11px] text-muted-foreground/80">
-              from {formatStorage(point.logicalGB, 1)}
-              {compressionRatioLabel(point.compressionRatio) &&
-                ` · ${compressionRatioLabel(point.compressionRatio)}`}
-            </span>
-          )}
+        <span className="nums hidden shrink-0 text-sm text-muted-foreground sm:block">
+          {formatStorage(point.sizeGB, 1)}
         </span>
       )}
       <Button
         variant="ghost"
         size="icon-sm"
-        aria-label="Restore this point"
-        title={unavailable ? OFFLINE_TIP : (restoreBlockedReason ?? "Restore")}
+        aria-label={t("point.restoreAria")}
+        title={unavailable ? offlineTip : (restoreBlockedReason ?? t("rp.restore"))}
         className="shrink-0 text-muted-foreground"
         onClick={onRestore}
         disabled={restoreDisabled}

@@ -10,8 +10,9 @@ import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/EmptyState";
 import { VmIcon } from "@/features/inventory/components/VmIcon";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useListMaxHeight } from "../useListMaxHeight";
 import { cn } from "@/lib/utils";
-import { formatRelative } from "@/lib/format";
+import { formatDateTime, formatRelative } from "@/lib/format";
 import { useWorldStore } from "@/store/world";
 import type { VM } from "@/types";
 
@@ -25,6 +26,7 @@ export function ChooseVmStep({ onSelect }: ChooseVmStepProps) {
   const vms = useWorldStore((s) => s.vms);
   const environments = useWorldStore((s) => s.environments);
   const [query, setQuery] = useState("");
+  const { ref: listRef, maxHeight } = useListMaxHeight<HTMLDivElement>();
 
   const envName = useMemo(
     () => Object.fromEntries(environments.map((e) => [e.id, e.name])),
@@ -95,7 +97,7 @@ export function ChooseVmStep({ onSelect }: ChooseVmStepProps) {
             />
           )
         ) : (
-          <ScrollArea className="-mx-1 max-h-[26rem] px-1">
+          <ScrollArea ref={listRef} style={{ maxHeight }} className="-mx-1 px-1">
             <ul className="space-y-1.5">
               {filtered.map((vm) => (
                 <li key={vm.id}>
@@ -103,8 +105,8 @@ export function ChooseVmStep({ onSelect }: ChooseVmStepProps) {
                     type="button"
                     onClick={() => onSelect(vm)}
                     className={cn(
-                      "group flex w-full items-center gap-3 rounded-lg border border-border/70 bg-card px-3 py-2.5 text-left transition-all",
-                      "hover:border-primary/40 hover:bg-primary/[0.04] hover:shadow-sm",
+                      "group flex w-full items-center gap-3 border border-border bg-card px-3 py-2.5 text-left transition-colors duration-250",
+                      "hover:border-primary/60 hover:bg-primary/[0.04]",
                     )}
                   >
                     <VmIcon vm={vm} />
@@ -126,6 +128,13 @@ export function ChooseVmStep({ onSelect }: ChooseVmStepProps) {
                       <span className="nums text-xs text-muted-foreground">
                         {t("lastBackup", { time: formatRelative(vm.lastBackupAt) })}
                       </span>
+                      {/* Which backup, not just how fresh — this list is sorted by a
+                          timestamp the operator otherwise never sees. */}
+                      {vm.lastBackupAt && (
+                        <span className="nums text-[11px] text-muted-foreground">
+                          {formatDateTime(vm.lastBackupAt)}
+                        </span>
+                      )}
                     </span>
                     <ArrowRight className="h-4 w-4 shrink-0 text-muted-foreground/50 transition-transform group-hover:translate-x-0.5 group-hover:text-primary" />
                   </button>

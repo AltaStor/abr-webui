@@ -11,15 +11,6 @@ export function simChainId(jobId: string, vmId: string, repositoryId: string): s
   return `chain::${jobId}::${vmId}::${repositoryId}`;
 }
 
-/** Plausible stored ÷ logical for the demo world, where nothing is really
- *  compressed. The appliance measures the real thing per backup (abr-vmdk-tool
- *  reports it); this only has to move the right way with the level so the
- *  Backups tab has something honest-looking to render. */
-export function simCompressionRatio(compressionLevel: number): number {
-  if (compressionLevel <= 0) return 1;
-  return Math.round(Math.max(0.28, 0.82 - compressionLevel * 0.06) * 1000) / 1000;
-}
-
 /**
  * Shared copy explaining that restore points are self-contained to restore:
  * "full" vs "incremental" describes how much data that run *ingested* (via
@@ -55,7 +46,7 @@ export interface RestorePointSegment {
   full: RestorePoint | null;
   /** Every point in the segment, newest first. */
   points: RestorePoint[];
-  storedGB: number;
+  logicalGB: number;
   /** createdAt of the newest point in the segment. */
   latest: string;
 }
@@ -84,7 +75,7 @@ export function segmentChainPoints(chainPoints: RestorePoint[]): RestorePointSeg
       id: points[0].id,
       full: points.find((p) => p.type === "full") ?? null,
       points: newestFirst,
-      storedGB: points.reduce((a, p) => a + p.sizeGB, 0),
+      logicalGB: points.reduce((a, p) => a + p.sizeGB, 0),
       latest: newestFirst[0].createdAt,
     };
   });
@@ -107,25 +98,11 @@ export interface RestorePointJobVmGroup {
    *  key a chain), more than one only if the job's target repository changed
    *  over this VM's history. Deleting the VM-from-job removes every one. */
   chainIds: string[];
-  /** What these points occupy in their repositories, after compression. Named
-   *  for what it is: this used to be called `logicalGB` and rendered as
-   *  "N logical", which was the stored figure wearing the wrong label. */
-  storedGB: number;
-  /** The real, uncompressed data behind `storedGB`, summed over the points
-   *  that report it. null when none do (older catalog entries). */
-  logicalGB: number | null;
-  /** `storedGB` ÷ `logicalGB` across these points, or null when unknown. */
-  compressionRatio: number | null;
+  logicalGB: number;
   /** createdAt of the newest point. */
   latest: string;
   /** Distinct repositories these points physically live in. */
   repositoryIds: string[];
-  /** How many of these points are encrypted at rest. Surfaced on the collapsed
-   *  row so encryption status is visible without expanding every VM — and so a
-   *  chain that is only PARTLY encrypted (the job's setting was changed
-   *  mid-history) is distinguishable from a fully encrypted one, which a plain
-   *  boolean would hide. */
-  encryptedCount: number;
 }
 
 /** One job's stored restore points, grouped by the VMs it protects. */
@@ -142,35 +119,9 @@ export interface RestorePointJobGroup {
   vms: RestorePointJobVmGroup[];
   /** Every point across every VM in this job, for aggregate stats. */
   points: RestorePoint[];
-  storedGB: number;
-  logicalGB: number | null;
-  compressionRatio: number | null;
+  logicalGB: number;
   /** createdAt of the newest point across every VM. */
   latest: string;
-}
-
-/** A compression ratio as the share of the original the backup occupies:
- *  0.356 -> "36%". Lower is better. null for anything unmeasured, so callers
- *  render nothing rather than a misleading "0%" or "100%". */
-export function compressionRatioLabel(ratio: number | null | undefined): string | null {
-  if (ratio == null || !Number.isFinite(ratio) || ratio <= 0) return null;
-  return `${Math.round(ratio * 100)}%`;
-}
-
-/** Sum the real (uncompressed) size over a set of points, and the ratio the
- *  stored bytes represent against it. Only the points that actually report a
- *  logical size contribute — a mixed set (some written before the mover
- *  reported one) yields the ratio for the part we can measure rather than a
- *  figure skewed by counting the rest as zero. */
-function aggregateLogical(points: RestorePoint[]): {
-  logicalGB: number | null;
-  compressionRatio: number | null;
-} {
-  const measured = points.filter((p) => p.logicalGB != null && p.logicalGB > 0);
-  if (measured.length === 0) return { logicalGB: null, compressionRatio: null };
-  const logicalGB = measured.reduce((a, p) => a + (p.logicalGB as number), 0);
-  const storedGB = measured.reduce((a, p) => a + p.sizeGB, 0);
-  return { logicalGB, compressionRatio: logicalGB > 0 ? storedGB / logicalGB : null };
 }
 
 /**
@@ -213,11 +164,9 @@ export function groupRestorePointsByJob(
             removed: vm === undefined,
             points: sorted,
             chainIds: [...new Set(sorted.map((p) => p.chainId))],
-            storedGB: sorted.reduce((a, p) => a + p.sizeGB, 0),
-            ...aggregateLogical(sorted),
+            logicalGB: sorted.reduce((a, p) => a + p.sizeGB, 0),
             latest: sorted[0].createdAt,
             repositoryIds: [...new Set(sorted.map((p) => p.repositoryId))],
-            encryptedCount: sorted.filter((p) => p.encrypted).length,
           };
         })
         .sort((a, b) => a.name.localeCompare(b.name));
@@ -227,8 +176,7 @@ export function groupRestorePointsByJob(
         orphaned: !jobById.has(jobId),
         vms,
         points: jobPoints,
-        storedGB: jobPoints.reduce((a, p) => a + p.sizeGB, 0),
-        ...aggregateLogical(jobPoints),
+        logicalGB: jobPoints.reduce((a, p) => a + p.sizeGB, 0),
         latest: vms.reduce((a, v) => (v.latest > a ? v.latest : a), vms[0].latest),
       };
     })

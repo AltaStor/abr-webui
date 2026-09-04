@@ -48,8 +48,7 @@
   "retention": {
     "days_one": "{{count}} day",
     "days_other": "{{count}} days",
-    "withGfs": "{{base}} · GFS {{tail}}",
-    "suspended": "{{label}} (suspended)"
+    "withGfs": "{{base}} · GFS {{tail}}"
   },
   "type": {
     "replication": "Replication",
@@ -65,7 +64,8 @@
     "off": "Off"
   },
   "status": {
-    "disabled": "Disabled"
+    "disabled": "Disabled",
+    "neverRun": "Never run"
   },
   "objects": {
     "disks": "Disks",
@@ -128,6 +128,7 @@
   },
   "lastRun": {
     "title": "Last run",
+    "finishedAt": "{{rel}} · {{abs}}",
     "avgPrefix": "Avg",
     "kindReplication": "VM replication",
     "kindBackup": "backup"
@@ -143,7 +144,7 @@
   },
   "page": {
     "title": "Backup",
-    "description": "Your backup schedules and every restore point they've produced.",
+    "description": "All backup jobs and associated restore points.",
     "addJob": "Add backup job",
     "addJobNeedsBoth": "Connect an environment and add a repository before creating a backup job.",
     "addJobNeedsEnv": "Connect an environment before creating a backup job.",
@@ -204,7 +205,8 @@
     "scheduleHint": "When the job starts on its own. Disabled jobs keep their schedule but skip it.",
     "repositoryHint": "Where this job’s backups are stored.",
     "successRate": "Success rate",
-    "successRateHint": "Percentage of successful runs, based on up to the 8 most recent completed runs."
+    "successRateHint": "Percentage of successful runs, based on up to the 8 most recent completed runs.",
+    "objectsHint": "Number of VMs, disks, file sets, or physical servers this job protects."
   },
   "stats": {
     "totalJobs": "Total jobs",
@@ -215,7 +217,7 @@
     "avgSuccess": "Avg success rate",
     "acrossActive": "Across active jobs",
     "nextRun": "Next run",
-    "scheduled": "Scheduled",
+    "scheduled": "Scheduled · {{abs}}",
     "nothingQueued": "Nothing queued"
   },
   "toolbar": {
@@ -226,10 +228,7 @@
   "bulk": {
     "selected": "{{count}} selected",
     "run": "Run",
-    "clearSelection": "Clear selection",
-    "disableAllAlreadyDisabled": "Every selected job is already disabled",
-    "disableAppliesTo_one": "Disables {{count}} active job; the other {{total}} selected are already disabled",
-    "disableAppliesTo_other": "Disables {{count}} active jobs of the {{total}} selected; the rest are already disabled"
+    "clearSelection": "Clear selection"
   },
   "empty": {
     "noJobs": {
@@ -251,10 +250,10 @@
   },
   "toast": {
     "started": "Started {{name}}",
-    "startedDesc": "Watch it stream live in Activity.",
-    "startedFullDesc": "Full backup started — watch it stream live in Activity.",
+    "startedDesc": "Watch it stream live on the job's page.",
+    "startedFullDesc": "Full backup started — watch it stream live on the job's page.",
     "startedBelow": "Streaming live below.",
-    "watch": "Watch",
+    "watch": "Open job",
     "jobDisabled": "{{name}} is disabled",
     "jobAlreadyRunning": "{{name}} is already running",
     "enableToRun": "Enable the job to run it.",
@@ -282,8 +281,9 @@
     "bulkDeleted_other": "Deleted {{count}} jobs",
     "bulkDeletedPartial": "Deleted {{deleted}} of {{total}} jobs",
     "bulkDeletedPartialDesc": "The appliance didn't confirm the rest — they are untouched.",
-    "bulkDisabledSkipped_one": "{{count}} was already disabled.",
-    "bulkDisabledSkipped_other": "{{count}} were already disabled."
+    "runRefused": "Couldn’t start {{name}}",
+    "runRefusedDesc": "The appliance didn’t start the run and gave no reason. Try again in a moment.",
+    "runRefusedDisabledDesc": "The job is disabled — enable it to run it."
   },
   "delete": {
     "titleOne": "Delete this job?",
@@ -308,7 +308,6 @@
     "inScope": "{{noun}} in scope",
     "repository": "Repository",
     "nextRun": "Next run",
-    "scheduled": "Scheduled",
     "notScheduled": "Not scheduled",
     "retention": "Retention",
     "daysValue": "{{count}} days",
@@ -444,7 +443,6 @@
     "healthWeekly": "Weekly · {{time}}",
     "healthMonthly": "Monthly · {{time}}",
     "healthOff": "Off — manual checks available",
-    "summary": "A read-only summary of how this job is configured.",
     "scheduleTitle": "Schedule",
     "runs": "Runs",
     "backupWindow": "Backup window",
@@ -458,7 +456,6 @@
     "gfsMonthly": "Monthly (GFS)",
     "gfsYearly": "Yearly (GFS)",
     "noGfs": "No long-term (GFS) retention configured.",
-    "gfsSuspended": "Suspended",
     "repositoryTitle": "Repository",
     "freeOf": "{{free}} free of {{total}}",
     "pathsTitle": "Paths",
@@ -555,14 +552,14 @@
     "incompleteCount": "{{count}} incomplete",
     "groupTitleAll": "Logical data across this object’s complete restore points and the new repository data they introduced",
     "groupTitlePartial": "Logical data across this object’s complete restore points; repository-write measurements are incomplete",
-    "latest": "latest {{rel}}",
+    "latest": "latest {{rel}} ({{abs}})",
     "unavailable": "{{count}} unavailable",
     "restore": "Restore"
   },
   "backupsTab": {
     "removedTip": "The source of this backup isn't in inventory (removed, or imported from another appliance). Re-add the same source — for Hyper-V VMs the IDs are stable — and these points restore normally.",
     "emptyTitle": "No backups stored yet",
-    "emptyDescription": "As your jobs run, the restore points they create are listed here — grouped by the VM, disk, or server they protect. Points stay listed even if their job is later deleted. You can also import backups made by another appliance.",
+    "emptyDescription": "As your jobs run, the restore points they create are listed here — grouped by job, then by the VM each protects. Points stay listed even after their job is deleted.",
     "import": "Import backups",
     "summaryAcross_one": "restore point across <1>{{objectCount}}</1> {{objects}}",
     "summaryAcross_other": "restore points across <1>{{objectCount}}</1> {{objects}}",
@@ -584,7 +581,49 @@
     "sourceRemoved": "source removed",
     "logicalShort": "{{size}} logical",
     "deleteAllTip": "Delete all restore points for {{name}}",
-    "deleteAll": "Delete all"
+    "deleteAll": "Delete all",
+    "summaryPoints_one": "restore point across <1>{{jobCount}}</1> {{jobs}}, <2>{{vmCount}}</2> {{vms}}",
+    "summaryPoints_other": "restore points across <1>{{jobCount}}</1> {{jobs}}, <2>{{vmCount}}</2> {{vms}}",
+    "jobNoun_one": "job",
+    "jobNoun_other": "jobs",
+    "vmNoun_one": "VM",
+    "vmNoun_other": "VMs",
+    "vmCount_one": "{{count}} VM",
+    "vmCount_other": "{{count}} VMs",
+    "logicalTitle": "Logical data captured across these restore points, before deduplication and compression",
+    "sortLabel": "Sort restore points by time",
+    "newestFirst": "Newest first",
+    "oldestFirst": "Oldest first",
+    "restoreVmAria": "Restore {{vm}} from {{job}}",
+    "deleteVmAria": "Delete {{vm}}'s backup from {{job}}",
+    "deleteVmTip": "Delete this VM's backup from this job",
+    "kpi": {
+      "points": "Restore points",
+      "acrossObjects": "Across {{jobs}} jobs · {{vms}} VMs",
+      "sizeUnrecorded": "The catalog does not record sizes yet"
+    }
+  },
+  "point": {
+    "offlineTip": "This restore point's repository is offline — it can't be read until the repository comes back online.",
+    "unavailable": "Unavailable",
+    "encrypted": "Encrypted",
+    "encryptedTip": "This backup's data is encrypted at rest",
+    "compression": "Compression level {{level}}",
+    "restoreAria": "Restore this point"
+  },
+  "deleteBackup": {
+    "title": "Delete backup?",
+    "description": "This removes every restore point <1>{{vm}}</1> has from <2>{{job}}</2> — the full backup and every incremental chained onto it.",
+    "pointsCount_one": "{{count}} restore point",
+    "pointsCount_other": "{{count}} restore points",
+    "warning": "This can't be undone. <1>{{vm}}</1> won't be recoverable from these points once they're gone.",
+    "confirm": "Delete backup",
+    "deleting": "Deleting…",
+    "successTitle": "Backup deleted",
+    "successDesc_one": "{{count}} restore point removed for {{name}}.",
+    "successDesc_other": "{{count}} restore points removed for {{name}}.",
+    "errorTitle": "Couldn't delete backup",
+    "errorUnreachable": "Appliance unreachable"
   },
   "scope": {
     "searchVmsPlaceholder": "Search VMs by name…",
@@ -687,7 +726,7 @@
     "vm": {
       "title": "New backup job",
       "editTitle": "Edit backup job",
-      "description": "Pick what to back up, where to store it, and how often. Defaults are pre-filled — adjust what you need.",
+      "description": "Select what to back up, where to store the backups, and configure the schedule. Adjust the preconfigured settings as needed.",
       "scopeError": "Select at least one VM to back up."
     },
     "disk": {
@@ -760,7 +799,7 @@
     "descPlaceholderReplication": "e.g. Keeps the SQL tier warm at the DR site",
     "descPlaceholderBackup": "e.g. Nightly protection for the production SQL tier",
     "whatToReplicate": "What to replicate",
-    "whatToBackUp": "What to back up",
+    "whatToBackUp": "Select objects to back up",
     "replicateTo": "Replicate to",
     "targetEnvironment": "Target environment",
     "chooseTargetEnv": "Choose a target environment",
@@ -770,9 +809,9 @@
     "hostSpec": "{{cores}} cores · {{ram}} RAM",
     "replicaPrefix": "Replica name prefix",
     "replicasNamed": "Replicas are named <1>{{example}}</1>.",
-    "whereToStore": "Where to store it",
+    "whereToStore": "Select backup repository",
     "freeSuffix": "{{free}} free",
-    "howOften": "How often",
+    "howOften": "Set a schedule",
     "preset": {
       "hourly": "Hourly",
       "hourlySub": "Every hour",
@@ -786,16 +825,16 @@
     "atTime": "At time",
     "onDay": "On day",
     "recoveryPointsToKeep": "Recovery points to keep",
-    "howLongToKeep": "How long to keep it",
+    "howLongToKeep": "Set retention",
     "retentionAriaReplication": "Recovery points to keep on the replica",
     "retentionAriaBackup": "Days to keep",
     "daysShort": "{{count}}d",
     "keepReplicaNote_one": "Keep {{count}} recovery point on the replica — snapshots you can roll back to before failing over.",
     "keepReplicaNote_other": "Keep {{count}} recovery points on the replica — snapshots you can roll back to before failing over.",
-    "keepBackupNote_one": "Keep backups for {{count}} day before they age out.",
-    "keepBackupNote_other": "Keep backups for {{count}} days before they age out.",
+    "keepBackupNote_one": "Keep backups for {{count}} day before they are automatically deleted.",
+    "keepBackupNote_other": "Keep backups for {{count}} days before they are automatically deleted.",
     "advanced": "Advanced settings",
-    "advancedHint": "— optional, smart defaults applied",
+    "advancedHint": "(Defaults are applied)",
     "opt": {
       "appAware": "Application-aware processing",
       "appAwareHint": "VSS & pre-freeze scripts for consistent SQL/Exchange",
@@ -807,26 +846,20 @@
       "dedup": "Deduplication",
       "dedupHint": "Block-level dedup to save space",
       "compressionTerm": "compression",
-      "compressionHelp": "0 is fastest and doesn't compress; 9 shrinks restore points the most but uses more CPU. Default is 3 — a balance of size and speed.",
-      "compressionHint": "Left is faster, right compresses more. Default: 3."
+      "compressionHelp": "Allows you to adjust the compression level to balance backup size, processing speed, and CPU usage.\n0 = no compression, fastest processing\n9 = more data savings, higher CPU usage",
+      "compressionHint": "Lower compression levels are faster, higher levels save more space and bandwidth. Default is 3."
     },
     "syncWindow": "Sync window",
     "throttleLabel": "Throttle (MB/s)",
     "gfsTitle": "GFS long-term retention",
     "gfsTerm": "GFS retention",
-    "gfsHelp": "Grandfather-father-son: keep extra weekly, monthly, and yearly copies for long-term archival, on top of your day-to-day restore points.",
+    "gfsHelp": "Grandfather-father-son (GFS): keep extra weekly, monthly, and yearly copies for long-term archival, on top of your day-to-day restore points.",
     "gfsDescription": "Optional archival copies kept beyond the regular retention above. Leave at 0 to skip.",
     "gfsWeekly": "Weekly",
     "gfsMonthly": "Monthly",
     "gfsYearly": "Yearly",
-    "gfsEnabled": "Protection active",
-    "gfsEnabledHint": "Suspend to pause GFS archiving without losing the configured counts",
     "loadingJob": "Loading job",
     "whatIs": "What is {{term}}?",
-    "jobNameInvalid": "Job name must start with a letter or number, and use only Latin letters, numbers, spaces, dots, underscores, or hyphens.",
-    "timeField": {
-      "hour": "Hour",
-      "minute": "Minute"
-    }
+    "jobNameInvalid": "Job name must start with a letter or number, and use only Latin letters, numbers, spaces, dots, underscores, or hyphens."
   }
 }

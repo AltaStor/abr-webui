@@ -2,8 +2,9 @@
 // Copyright © 2026 Norvitex OÜ
 
 import { useTranslation } from "react-i18next";
-import { Database, Layers, ShieldAlert, Wrench, type LucideIcon } from "@/lib/icons";
+import { Database, Layers, ShieldAlert } from "@/lib/icons";
 import { cn } from "@/lib/utils";
+import { Metric } from "@/components/Metric";
 import { Sparkline } from "@/components/Sparkline";
 import { StatusPill } from "@/components/StatusPill";
 import { useCapacityLevel } from "@/lib/capacity";
@@ -19,7 +20,6 @@ interface RepositoryCardProps {
   jobCount: number;
   onOpen: () => void;
   actions: RepositoryActions;
-  maintenance: boolean;
   scanning: boolean;
   /** Set when auto-lock-on-threat has sealed this repo (derived, presentational). */
   threatLock?: RepoThreatLock | null;
@@ -31,7 +31,6 @@ export function RepositoryCard({
   jobCount,
   onOpen,
   actions,
-  maintenance,
   scanning,
   threatLock,
 }: RepositoryCardProps) {
@@ -55,7 +54,7 @@ export function RepositoryCard({
         : "hsl(var(--muted-foreground))";
 
   return (
-    <div className="group relative flex flex-col overflow-hidden rounded-xl border border-border/70 bg-card shadow-card transition-all hover:border-border hover:shadow-pop">
+    <div className="group relative flex flex-col overflow-hidden border border-border bg-card transition-colors duration-250 hover:border-primary/60 hover:shadow-pop">
       {/* Kebab overlay — a real button, sibling to the clickable body so it never
           nests interactive elements inside the card <button>. */}
       <div className="absolute right-3 top-3 z-20">
@@ -67,12 +66,12 @@ export function RepositoryCard({
         type="button"
         onClick={onOpen}
         aria-label={t("card.openDetails", { name: repo.name })}
-        className="flex flex-1 flex-col p-5 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
+        className="flex flex-1 flex-col p-5 text-left"
       >
         {/* Header: icon + name + status (leave room for the kebab) */}
         <div className="flex items-start justify-between gap-3 pr-9">
           <div className="flex min-w-0 items-start gap-3">
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center bg-muted text-muted-foreground">
               <TypeIcon className="h-5 w-5" />
             </span>
             <div className="min-w-0">
@@ -85,8 +84,8 @@ export function RepositoryCard({
           <StatusPill meta={{ ...statusMeta, icon: Database }} size="sm" />
         </div>
 
-        {/* Status chips row: threat-lock / maintenance / scanning */}
-        {(threatLock || maintenance || scanning) && (
+        {/* Status chips row: threat-lock / scanning */}
+        {(threatLock || scanning) && (
           <div className="mt-3 flex flex-wrap items-center gap-1.5">
             {threatLock && (
               <span
@@ -95,12 +94,6 @@ export function RepositoryCard({
               >
                 <ShieldAlert className="h-3 w-3" />
                 {t("card.threatLocked")}
-              </span>
-            )}
-            {maintenance && (
-              <span className="inline-flex items-center gap-1 bg-warning-subtle px-2 py-0.5 text-[11px] font-medium text-warning-text">
-                <Wrench className="h-3 w-3" />
-                {t("card.maintenance")}
               </span>
             )}
             {scanning && (
@@ -130,7 +123,7 @@ export function RepositoryCard({
               <div className="mt-2 h-2 w-full overflow-hidden bg-muted/70">
                 <div
                   className={cn(
-                    "h-full transition-all",
+                    "h-full transition-[width] duration-250",
                     level === "critical"
                       ? "bg-danger"
                       : level === "warn"
@@ -170,7 +163,7 @@ export function RepositoryCard({
         </div>
 
         {/* Metric chips: restore points · jobs */}
-        <div className="mt-4 grid grid-cols-2 gap-2 border-t border-border/60 pt-3 text-xs">
+        <div className="mt-4 grid grid-cols-2 gap-2 border-t border-border pt-3 text-xs">
           <Metric
             icon={Database}
             label={t("card.metric.restorePoints")}
@@ -179,31 +172,6 @@ export function RepositoryCard({
           <Metric icon={Layers} label={t("card.metric.jobsWritingHere")} value={jobCount.toString()} />
         </div>
       </button>
-    </div>
-  );
-}
-
-function Metric({
-  icon: Icon,
-  label,
-  value,
-  hint,
-}: {
-  icon: LucideIcon;
-  label: string;
-  value: string;
-  hint?: string;
-}) {
-  return (
-    <div>
-      <div className="flex items-center gap-1.5 text-muted-foreground">
-        <Icon className="h-3.5 w-3.5" />
-        <span className="truncate">{label}</span>
-      </div>
-      <div className="mt-0.5 flex items-baseline gap-1.5">
-        <span className="nums font-semibold">{value}</span>
-        {hint && <span className="nums text-[11px] text-muted-foreground">{hint}</span>}
-      </div>
     </div>
   );
 }

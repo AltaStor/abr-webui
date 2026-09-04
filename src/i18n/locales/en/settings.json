@@ -37,7 +37,8 @@
     "unsavedChanges": "Unsaved changes",
     "saveChanges": "Save changes",
     "removeItem": "Remove {{value}}",
-    "saveUnavailable": "Appliance unreachable — saving disabled"
+    "saveUnavailable": "Appliance unreachable — saving disabled",
+    "saveLocally": "Save in this browser"
   },
   "units": {
     "cores": "cores"
@@ -70,6 +71,20 @@
       "blue": "Blue",
       "violet": "Violet",
       "amber": "Amber"
+    },
+    "density": {
+      "label": "Density",
+      "description": "Compact tightens table rows and spacing.",
+      "comfortable": "Comfortable",
+      "compact": "Compact"
+    },
+    "reduceMotion": {
+      "label": "Reduce motion",
+      "description": "Minimize animations and transitions throughout the console."
+    },
+    "autoCollapse": {
+      "label": "Auto-collapse sidebar",
+      "description": "Collapse the navigation rail to icons on narrower windows."
     }
   },
   "notifications": {
@@ -212,13 +227,11 @@
   },
   "about": {
     "brand": {
-      "tagline": "Backup & replication, done right.",
-      "openSource": "Free & open-source"
+      "tagline": "Backup & replication, done right."
     },
     "appliance": {
-      "title": "Appliance",
-      "description": "Identity and hardware of this node.",
-      "applianceName": "Appliance name",
+      "title": "Backup server",
+      "applianceName": "Backup server name",
       "hostname": "Hostname",
       "version": "Version",
       "build": "Build",
@@ -227,14 +240,10 @@
       "uptime": "Uptime",
       "cpu": "CPU",
       "memory": "Memory",
-      "noAppliance": "Hardware details are reported by a connected appliance.",
       "probeFailed": "Couldn't read hardware details from the appliance. Fields it reports are shown as “—”."
     },
     "license": {
-      "title": "License & resources",
-      "description": "AltaStor is free and open-source software.",
-      "openSourceTitle": "Free & open-source",
-      "openSourceBlurb": "No seats, no per-VM fees. Self-hosted, and yours to inspect."
+      "title": "Resources"
     },
     "links": {
       "documentation": {
@@ -249,8 +258,7 @@
         "label": "Community",
         "blurb": "Ask questions & share setups"
       }
-    },
-    "releaseNotes": "Release notes"
+    }
   },
   "createToken": {
     "copyTitle": "Copy your token",

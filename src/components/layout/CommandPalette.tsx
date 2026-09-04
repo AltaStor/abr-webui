@@ -85,8 +85,21 @@ export function CommandPalette() {
     if (id) {
       toast.success(t("cmdPalette.started", { name }), { description: t("cmdPalette.startedDescription") });
       navigate("/activity");
+      return;
+    }
+    // `runJob` only ever answers "a session id, or nothing" — the reason lives
+    // in the job's own state, which is exactly how the Jobs page tells the two
+    // refusals apart. Anything else (a 404, a dead network) is neither, and
+    // saying so is more honest than guessing at one of the two.
+    const job = jobs.find((j) => j.id === jobId);
+    if (job?.state === "disabled") {
+      toast.info(t("cmdPalette.jobDisabled", { name }), { description: t("cmdPalette.jobDisabledDescription") });
+    } else if (job?.state === "running") {
+      toast.info(t("cmdPalette.alreadyRunning", { name }), {
+        description: t("cmdPalette.alreadyRunningDescription"),
+      });
     } else {
-      toast.info(t("cmdPalette.alreadyRunning", { name }));
+      toast.error(t("cmdPalette.runRefused", { name }), { description: t("cmdPalette.runRefusedDescription") });
     }
   };
 
@@ -214,13 +227,13 @@ function Item({
     <Command.Item
       value={value ?? label}
       onSelect={onSelect}
-      className="flex cursor-pointer items-center gap-2.5 rounded-md px-3 py-2 text-sm text-foreground outline-none transition-colors data-[selected=true]:bg-accent data-[selected=true]:text-accent-foreground"
+      className="flex cursor-pointer items-center gap-2.5 px-3 py-2 text-sm text-foreground outline-none transition-colors data-[selected=true]:bg-accent data-[selected=true]:text-accent-foreground"
     >
       <span className="text-muted-foreground">{icon}</span>
       <span className="flex-1 truncate" title={label}>{label}</span>
       {trailing}
       {shortcut && (
-        <kbd className="rounded border border-border bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
+        <kbd className="border border-border bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
           {shortcut}
         </kbd>
       )}

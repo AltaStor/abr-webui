@@ -43,9 +43,28 @@
   "time": {
     "never": "Nunca"
   },
+  "timeField": {
+    "hour": "Hora",
+    "minute": "Minuto",
+    "openPicker": "Elegir una hora"
+  },
   "calendar": {
     "today": "Hoy",
     "prevMonth": "Mes anterior",
     "nextMonth": "Mes siguiente"
+  },
+  "routeError": {
+    "title": "Esta vista ha tenido un problema",
+    "fallback": "Se produjo un error al mostrar esta vista.",
+    "back": "Volver al panel"
+  },
+  "featureUnavailable": {
+    "replication": {
+      "title": "La replicación no está disponible en esta appliance",
+      "description": "Esta versión hace copias de seguridad y restauraciones; no mantiene una réplica activa en un segundo host. El enlace que ha seguido procede de una consola que sí lo hace. No hay nada roto ni perdido: sus trabajos de copia y sus puntos de restauración no se ven afectados."
+    }
+  },
+  "resize": {
+    "hint": "Arrastre para cambiar el ancho · doble clic para restablecer"
   }
 }

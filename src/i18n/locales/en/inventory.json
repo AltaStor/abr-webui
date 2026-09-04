@@ -22,8 +22,6 @@
   },
   "filters": {
     "byProtection": "Filter by protection status",
-    "title": "Filters",
-    "active": "Filters, {{count}} active",
     "clear": "Clear filters",
     "environment": "Environment",
     "os": "Operating system",
@@ -35,7 +33,6 @@
     "allOs": "All OS",
     "windows": "Windows",
     "linux": "Linux",
-    "macos": "macOS",
     "unknown": "Unknown",
     "anyPower": "Any power"
   },
@@ -64,7 +61,12 @@
     "lastBackup": "Last backup",
     "points": "Points",
     "server": "Server",
-    "agentStatus": "agent {{status}}"
+    "agentStatus": "agent {{status}}",
+    "vmSizeHint": "Total provisioned disk capacity for this VM. The orchestrator does not report per-VM used space, so this is what the guest is allocated, not what it has written.",
+    "backupSizeHint": "Combined size of every restore point stored for this VM, after deduplication and compression.",
+    "protectionHint": "Current protection status, based on backup coverage and restore points.",
+    "lastBackupHint": "When the latest backup finished.",
+    "pointsHint": "Number of restore points stored for this VM."
   },
   "actions": {
     "restore": "Restore",
@@ -107,12 +109,20 @@
     "physicalHost": "Physical server"
   },
   "coverage": {
-    "protected": "protected",
     "vms": "VMs",
     "sources": "sources",
     "running": "running",
     "vmsRunning": "VMs running",
-    "summary": "<b>{{protected}}</b> of <n>{{total}}</n> {{noun}} · <n>{{running}}</n> {{runningLabel}}"
+    "summary": "<b>{{protected}}</b> of <n>{{total}}</n> {{noun}} · <n>{{running}}</n> {{runningLabel}}",
+    "card": {
+      "coverage": "Protection coverage",
+      "coverageHint": "{{protected}} of {{total}} {{noun}} · {{running}} {{runningLabel}}",
+      "ofEstate_one": "{{count}} {{noun}}",
+      "ofEstate_other": "{{count}} {{noun}}",
+      "exposed": "Data exposed",
+      "exposedHint_one": "Across {{count}} unprotected or at-risk {{noun}}",
+      "exposedHint_other": "Across {{count}} unprotected or at-risk {{noun}}"
+    }
   },
   "estate": {
     "navigator": "Estate navigator",
@@ -123,7 +133,8 @@
     "settingsFor": "Settings for {{name}}",
     "empty": "empty",
     "protectedSr": "protected",
-    "description": "Your virtual estate — platforms, datacenters, clusters and hosts. See capacity, connectivity, and exactly where every VM runs."
+    "description": "Your virtual estate — platforms, datacenters, clusters and hosts. See capacity, connectivity, and exactly where every VM runs.",
+    "resizeLabel": "Resize the estate panel"
   },
   "agent": {
     "connected": "Connected",
@@ -137,8 +148,7 @@
   },
   "os": {
     "windows": "Windows",
-    "linux": "Linux",
-    "macos": "macOS"
+    "linux": "Linux"
   },
   "size": {
     "storageUsedAria": "Storage {{pct}}% used"
@@ -157,7 +167,7 @@
     "restorePoints": "Restore points"
   },
   "detail": {
-    "backToInventory": "Back to inventory",
+    "backToInventory": "Back to Inventory",
     "noPointsTitle": "No restore points",
     "unreachableTitle_one": "{{unreachable}} of {{count}} restore point unreachable",
     "unreachableTitle_other": "{{unreachable}} of {{count}} restore points unreachable",
@@ -176,7 +186,7 @@
     "alreadyRunning": "{{job}} is already running",
     "alreadyRunningDesc": "This VM is being backed up right now.",
     "location": "Location",
-    "topology": "Topology",
+    "topology": "Inventory",
     "specs": "Specs",
     "powerState": "Power state",
     "vcpus": "vCPUs",
@@ -189,7 +199,8 @@
     "noJob": "No backup job protects this VM yet. It is currently exposed.",
     "restorePoints": "Restore points",
     "noPointsDesc": "Run a backup to create the first recoverable point for this VM.",
-    "recentActivity": "Recent activity"
+    "recentActivity": "Recent activity",
+    "unknownPlatform": "Unknown platform"
   },
   "hostDetail": {
     "notFoundTitle": "Server not found",
@@ -277,9 +288,7 @@
       "unavailable": "Check unavailable",
       "unavailableTip": "The backup-file health check could not read this restore point.",
       "notVerified": "Not verified"
-    },
-    "fromLogical": "from {{size}}",
-    "storedTitle": "{{logical}} of data stored as {{stored}}"
+    }
   },
   "calendar": {
     "pointsCount_one": "{{count}} restore point",
@@ -352,6 +361,36 @@
       }
     }
   },
+  "addEnvironment": {
+    "title": "Add environment",
+    "description": "Register a VMware vCenter Server or standalone ESXi host so AltaStor can discover and protect its VMs.",
+    "platformLabel": "Platform",
+    "type": {
+      "vcenter": {
+        "label": "VMware vCenter",
+        "hint": "vCenter Server managing one or more ESXi hosts."
+      },
+      "esxiStandalone": {
+        "label": "VMware ESXi (standalone)",
+        "hint": "A single ESXi host, managed directly."
+      }
+    },
+    "nameLabel": "Name",
+    "addressLabel": "Address",
+    "addressInvalid": "Enter a valid FQDN or IP address — no protocol, path, or spaces.",
+    "portLabel": "Port",
+    "usernameLabel": "Username",
+    "passwordLabel": "Password",
+    "skipTlsLabel": "Skip TLS verification",
+    "skipTlsHint": "Accept self-signed certificates (typical in labs).",
+    "submit": "Register & discover",
+    "error": "The orchestrator rejected the registration. Check the address and credentials.",
+    "toast": {
+      "registered": "{{platform}} registered",
+      "registeredDesc": "Discovering VMs on {{endpoint}}…",
+      "discoveryFailed": "{{platform}} registered, but discovery failed"
+    }
+  },
   "editEnvironment": {
     "title": "Edit {{name}}",
     "description": "Update the connection details AltaStor uses to reach this environment.",
@@ -376,5 +415,22 @@
         "description": "The environment could not be updated. Try again in a moment."
       }
     }
+  },
+  "rescan": {
+    "tooltip": "Pulls newly discovered hosts and VMs from every connected environment.",
+    "running": "Rescanning…",
+    "doneTitle": "Rescan complete",
+    "doneDesc_one": "{{count}} environment refreshed.",
+    "doneDesc_other": "{{count}} environments refreshed.",
+    "failedTitle": "Rescan failed",
+    "failedDesc_one": "The appliance couldn’t reach {{count}} environment, so nothing was refreshed.",
+    "failedDesc_other": "The appliance couldn’t reach {{count}} environments, so nothing was refreshed.",
+    "partialTitle": "Rescan partly complete",
+    "partialDesc": "{{ok}} of {{total}} environments were refreshed; the appliance couldn’t reach the rest.",
+    "oneDoneTitle": "{{name}} rescanned",
+    "oneDoneDesc_one": "{{count}} VM found.",
+    "oneDoneDesc_other": "{{count}} VMs found.",
+    "oneFailedTitle": "Couldn’t rescan {{name}}",
+    "oneFailedDesc": "The appliance couldn’t reach it, so its inventory is unchanged."
   }
 }

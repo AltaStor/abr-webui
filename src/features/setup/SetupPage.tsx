@@ -168,18 +168,10 @@ export default function SetupPage() {
   return (
     <div className="dark relative min-h-screen bg-background text-foreground">
       {/* Brand hairline + a quiet ice glow and basalt lattice — the only decoration. */}
-      <div className="brand-gradient h-0.5" />
+      <div className="h-px bg-primary" />
       <div
         aria-hidden
         className="basalt-lattice pointer-events-none absolute inset-x-0 top-0 h-72 opacity-60"
-      />
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-x-0 top-0 h-72 opacity-25 blur-3xl"
-        style={{
-          background:
-            "radial-gradient(60% 100% at 50% 0%, hsl(199 60% 62% / 0.4), transparent 70%)",
-        }}
       />
 
       <header className="relative mx-auto flex w-full max-w-6xl items-center justify-between px-4 py-5 sm:px-6">
@@ -187,7 +179,7 @@ export default function SetupPage() {
         <div className="flex items-center gap-2.5 text-xs text-muted-foreground">
           <span className="hidden sm:inline">{t("header.initialConfiguration")}</span>
           {info && (
-            <span className="rounded-md border border-border/70 bg-card/60 px-2 py-0.5 font-mono text-[11px]">
+            <span className="border border-border bg-card/60 px-2 py-0.5 font-mono text-[11px]">
               {info.hostname}
             </span>
           )}
@@ -234,7 +226,7 @@ export default function SetupPage() {
             </motion.div>
 
             {step !== "apply" && (
-              <div className="flex items-center justify-between gap-3 border-t border-border/60 p-5">
+              <div className="flex items-center justify-between gap-3 border-t border-border p-5">
                 {step === "welcome" ? (
                   <button
                     type="button"

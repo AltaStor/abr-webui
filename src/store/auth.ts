@@ -25,7 +25,8 @@ import {
   setUnauthorizedHandler,
   type AuthUser,
 } from "@/services/api.http";
-import { refreshWorld } from "@/store/world";
+import { refreshWorld, useWorldStore } from "@/store/world";
+import { DemoCredentialsError, simLogin } from "@/mock/auth";
 
 const STORAGE_KEY = "basalt.session";
 
@@ -89,7 +90,15 @@ export const useAuthStore = create<AuthState>((set) => ({
   login: async (name, password, durationSeconds) => {
     set({ pending: true, error: null });
     try {
-      const result = await loginHttp(name.trim(), password, durationSeconds);
+      /* The demo simulation has no backend to authenticate against, so it
+       * answers the form itself — see @/mock/auth. Branching here rather than
+       * inside `loginHttp` keeps the HTTP layer a pure client of the appliance,
+       * and means the sim exercises the same store, the same session shape and
+       * the same failure copy the live path does. */
+      const result =
+        useWorldStore.getState().mode === "live"
+          ? await loginHttp(name.trim(), password, durationSeconds)
+          : simLogin(name, password, durationSeconds);
       setAuthToken(result.token);
       writeStoredSession({ token: result.token, expiresAt: result.expiresAt, user: result.user });
       set({
@@ -104,14 +113,24 @@ export const useAuthStore = create<AuthState>((set) => ({
       refreshWorld();
       return true;
     } catch (err) {
-      set({ pending: false, error: apiErrorMessage(err) ?? "Couldn't reach the appliance. Try again." });
+      /* `apiErrorMessage` only speaks ApiError, so the sim's refusal would
+       * otherwise fall through to the unreachable literal and blame the network
+       * for a mistyped password. Its message is the sentence the appliance
+       * sends, so `classifyLoginError` lands on the same "credentials" copy. */
+      const demoRefusal = err instanceof DemoCredentialsError ? err.message : null;
+      set({
+        pending: false,
+        error: apiErrorMessage(err) ?? demoRefusal ?? "Couldn't reach the appliance. Try again.",
+      });
       return false;
     }
   },
 
   logout: async () => {
     try {
-      await logoutHttp();
+      // Nothing to revoke in the demo simulation, and the call would only fail
+      // against an appliance that isn't there.
+      if (useWorldStore.getState().mode === "live") await logoutHttp();
     } catch {
       /* best-effort — the client-side session is dropped either way */
     }

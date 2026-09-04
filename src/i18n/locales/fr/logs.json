@@ -9,11 +9,13 @@
   "export": {
     "menuLabel": "Exporter les journaux",
     "supportBundle": "Pack de support",
-    "systemLog": "Journal système (.log)"
+    "systemLog": "Journal système complet (.log)"
   },
   "toast": {
     "exportedSystem_one": "{{count}} ligne de journal système exportée",
     "exportedSystem_other": "{{count}} lignes de journal système exportées",
+    "exportedSystemFiltered_one": "{{count}} ligne de journal filtrée exportée",
+    "exportedSystemFiltered_other": "{{count}} lignes de journal filtrées exportées",
     "exportedSupportBundle": "Pack de support téléchargé",
     "exportSupportBundleFailed": "Impossible de générer le pack de support"
   },
@@ -26,11 +28,14 @@
   },
   "system": {
     "sources": "Sources",
+    "sourcesGroupLabel": "Sources du journal — sélectionnez-en autant que nécessaire pour filtrer",
+    "sourcesAllShown": "les {{total}} affichées",
+    "sourcesSomeShown": "{{selected}} sur {{total}} affichées",
     "searchLabel": "Rechercher dans les messages du journal système",
     "searchPlaceholder": "Rechercher des messages…",
     "liveTail": "Suivi en direct",
     "toggleLiveTail": "Activer/désactiver le suivi en direct",
-    "downloadLog": "Télécharger le .log",
+    "downloadLog": "Télécharger la vue filtrée (.log)",
     "lineCount_one": "{{formatted}} ligne",
     "lineCount_other": "{{formatted}} lignes",
     "filteredToSources_one": " · filtré sur {{count}} source",

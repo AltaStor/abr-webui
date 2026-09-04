@@ -2,9 +2,11 @@
 // Copyright © 2026 Norvitex OÜ
 
 import type { Environment, Host, Hypervisor, VM } from "@/types";
+import i18n from "@/i18n";
 import { PLATFORM_META } from "@/lib/platform";
+import { clusterOf } from "@/lib/cluster";
 
-export type NodeKind = "platform" | "datacenter" | "cluster" | "host" | "vm";
+export type NodeKind = "datacenter" | "cluster" | "host" | "vm";
 
 export interface Rollup {
   total: number;
@@ -26,85 +28,19 @@ export function rollup(vms: VM[]): Rollup {
   };
 }
 
-/** Physical vs. allocated compute for a node — the infrastructure-native signal. */
-export interface Capacity {
-  /** Physical CPU cores across the hosts under this node. */
-  pCores: number;
-  /** Allocated (sum of guest) vCPUs. */
-  vCpu: number;
-  /** Physical memory, GB. */
-  pMem: number;
-  /** Allocated (sum of guest) memory, GB. */
-  vMem: number;
-  /** Guest used storage, GB. */
-  usedGB: number;
-  hosts: number;
-  online: number;
-  maintenance: number;
-  disconnected: number;
-}
-
-const EMPTY_CAPACITY: Capacity = {
-  pCores: 0,
-  vCpu: 0,
-  pMem: 0,
-  vMem: 0,
-  usedGB: 0,
-  hosts: 0,
-  online: 0,
-  maintenance: 0,
-  disconnected: 0,
-};
-
-function hostCapacity(host: Host, hostVms: VM[]): Capacity {
-  return {
-    pCores: host.cpuCores,
-    vCpu: hostVms.reduce((a, v) => a + v.vcpus, 0),
-    pMem: host.memoryGB,
-    vMem: hostVms.reduce((a, v) => a + v.memoryGB, 0),
-    usedGB: hostVms.reduce((a, v) => a + v.usedGB, 0),
-    hosts: 1,
-    online: host.status === "online" ? 1 : 0,
-    maintenance: host.status === "maintenance" ? 1 : 0,
-    disconnected: host.status === "disconnected" ? 1 : 0,
-  };
-}
-
-function mergeCapacity(parts: Capacity[]): Capacity {
-  return parts.reduce<Capacity>(
-    (acc, c) => ({
-      pCores: acc.pCores + c.pCores,
-      vCpu: acc.vCpu + c.vCpu,
-      pMem: acc.pMem + c.pMem,
-      vMem: acc.vMem + c.vMem,
-      usedGB: acc.usedGB + c.usedGB,
-      hosts: acc.hosts + c.hosts,
-      online: acc.online + c.online,
-      maintenance: acc.maintenance + c.maintenance,
-      disconnected: acc.disconnected + c.disconnected,
-    }),
-    { ...EMPTY_CAPACITY },
-  );
-}
-
 /** A normalized node so one recursive component can render the whole tree. */
 export interface TreeNode {
   key: string;
   kind: NodeKind;
   label: string;
-  sublabel?: string;
   roll: Rollup;
   children: TreeNode[];
   /** Populated on leaf (vm) and host nodes for richer rendering. */
   vm?: VM;
   host?: Host;
   hypervisor?: Hypervisor;
-  /** Physical vs allocated compute — on platform/datacenter/cluster/host nodes. */
-  capacity?: Capacity;
   /** The owning environment — on datacenter nodes, for connectivity + version. */
   environment?: Environment;
-  /** Count of immediate compute nodes under this node (for "N hosts" labels). */
-  hostCount?: number;
 }
 
 function groupBy<T, K extends string>(items: T[], key: (t: T) => K): Map<K, T[]> {
@@ -119,107 +55,108 @@ function groupBy<T, K extends string>(items: T[], key: (t: T) => K): Map<K, T[]>
 }
 
 /**
- * Build the Platform → Datacenter → Cluster → Host → VM tree.
- * Environment = the datacenter/site (managed by its vCenter endpoint); the
- * hypervisor it runs is the platform grouping at the top.
+ * Build the Datacenter → Cluster → Host → VM tree.
+ *
+ * No platform tier. Grouping by hypervisor at the top reads as structure the
+ * estate does not have: a site can mix platforms, and on this orchestrator —
+ * which registers vCenter and standalone ESXi, both VMware — it can only ever
+ * produce ONE such node wrapping everything, costing a row and a click to say
+ * something every child already says. Platform is an attribute of a host, so it
+ * rides on the node's icon (see `PLATFORM_LOGO`), never on the hierarchy.
+ *
+ * A host with no real cluster becomes a direct child of its datacenter rather
+ * than being filed under an invented one: `clusterOf` treats "Standalone" as
+ * the sentinel it is.
  */
 export function buildTree(environments: Environment[], hosts: Host[], vms: VM[]): TreeNode[] {
   const vmsByHost = groupBy(vms, (v) => v.hostId);
   const hostsByEnv = groupBy(hosts, (h) => h.environmentId);
-  const envsByPlatform = groupBy(environments, (e) => e.hypervisor);
 
-  const platforms: TreeNode[] = [];
+  const hostNode = (host: Host, hypervisor: Hypervisor): TreeNode => {
+    const hostVms = vmsByHost.get(host.id) ?? [];
+    return {
+      key: host.id,
+      kind: "host",
+      label: host.name,
+      roll: rollup(hostVms),
+      host,
+      hypervisor,
+      children: hostVms
+        .slice()
+        .sort((a, b) => a.name.localeCompare(b.name))
+        .map((vm) => ({
+          key: vm.id,
+          kind: "vm" as const,
+          label: vm.name,
+          roll: rollup([vm]),
+          vm,
+          children: [],
+        })),
+    };
+  };
 
-  for (const [hypervisor, envs] of envsByPlatform) {
-    const platformVms: VM[] = [];
-    const platformCaps: Capacity[] = [];
-    const datacenters: TreeNode[] = [];
+  const datacenters: TreeNode[] = [];
 
-    for (const env of envs) {
-      const envHosts = hostsByEnv.get(env.id) ?? [];
-      const hostsByCluster = groupBy(envHosts, (h) => h.cluster);
-      const dcVms: VM[] = [];
-      const dcCaps: Capacity[] = [];
-      const clusters: TreeNode[] = [];
+  for (const env of environments) {
+    const hypervisor = env.hypervisor;
+    const envHosts = (hostsByEnv.get(env.id) ?? [])
+      .slice()
+      .sort((a, b) => a.name.localeCompare(b.name));
+    const dcVms: VM[] = [];
+    const clusters: TreeNode[] = [];
+    const loneHosts: TreeNode[] = [];
 
-      for (const [clusterName, clusterHosts] of hostsByCluster) {
-        const clusterVms: VM[] = [];
-        const clusterCaps: Capacity[] = [];
-        const hostNodes: TreeNode[] = [];
-
-        for (const host of clusterHosts.slice().sort((a, b) => a.name.localeCompare(b.name))) {
-          const hostVms = vmsByHost.get(host.id) ?? [];
-          const cap = hostCapacity(host, hostVms);
-          clusterVms.push(...hostVms);
-          clusterCaps.push(cap);
-          hostNodes.push({
-            key: host.id,
-            kind: "host",
-            label: host.name,
-            roll: rollup(hostVms),
-            host,
-            hypervisor,
-            capacity: cap,
-            children: hostVms
-              .slice()
-              .sort((a, b) => a.name.localeCompare(b.name))
-              .map((vm) => ({
-                key: vm.id,
-                kind: "vm" as const,
-                label: vm.name,
-                sublabel: vm.guestOs,
-                roll: rollup([vm]),
-                vm,
-                children: [],
-              })),
-          });
-        }
-
-        const clusterCap = mergeCapacity(clusterCaps);
-        dcVms.push(...clusterVms);
-        dcCaps.push(clusterCap);
-        clusters.push({
-          key: `${env.id}::${clusterName}`,
-          kind: "cluster",
-          label: clusterName,
-          sublabel: `${hostNodes.length} ${PLATFORM_META[hypervisor].hostTermPlural}`,
-          roll: rollup(clusterVms),
-          capacity: clusterCap,
-          hostCount: hostNodes.length,
-          children: hostNodes,
-        });
+    // One pass: a host either joins its cluster's bucket or becomes a direct
+    // child of the datacenter. Insertion order is the name-sorted host order,
+    // so the clusters come out deterministically before their final sort.
+    const hostsByCluster = new Map<string, Host[]>();
+    for (const host of envHosts) {
+      const cluster = clusterOf(host);
+      if (cluster !== null) {
+        const bucket = hostsByCluster.get(cluster);
+        if (bucket) bucket.push(host);
+        else hostsByCluster.set(cluster, [host]);
+        continue;
       }
+      dcVms.push(...(vmsByHost.get(host.id) ?? []));
+      loneHosts.push(hostNode(host, hypervisor));
+    }
 
-      const dcCap = mergeCapacity(dcCaps);
-      platformVms.push(...dcVms);
-      platformCaps.push(dcCap);
-      datacenters.push({
-        key: env.id,
-        kind: "datacenter",
-        label: env.name,
-        sublabel: `${env.endpoint} · ${env.version}`,
-        roll: rollup(dcVms),
-        capacity: dcCap,
-        environment: env,
-        hostCount: envHosts.length,
-        children: clusters.sort((a, b) => a.label.localeCompare(b.label)),
+    for (const [clusterName, clusterHosts] of hostsByCluster) {
+      const clusterVms: VM[] = [];
+      const hostNodes: TreeNode[] = [];
+      for (const host of clusterHosts) {
+        clusterVms.push(...(vmsByHost.get(host.id) ?? []));
+        hostNodes.push(hostNode(host, hypervisor));
+      }
+      dcVms.push(...clusterVms);
+      clusters.push({
+        key: `${env.id}::${clusterName}`,
+        kind: "cluster",
+        label: clusterName,
+        roll: rollup(clusterVms),
+        hypervisor,
+        children: hostNodes,
       });
     }
 
-    platforms.push({
-      key: `platform-${hypervisor}`,
-      kind: "platform",
-      label: PLATFORM_META[hypervisor].label,
-      sublabel: `${datacenters.length} ${datacenters.length === 1 ? "datacenter" : "datacenters"}`,
-      roll: rollup(platformVms),
-      capacity: mergeCapacity(platformCaps),
+    datacenters.push({
+      key: env.id,
+      kind: "datacenter",
+      label: env.name,
+      roll: rollup(dcVms),
+      environment: env,
       hypervisor,
-      children: datacenters.sort((a, b) => a.label.localeCompare(b.label)),
+      // Clusters first, then the hosts that belong to none — a real grouping
+      // outranks a bare machine at the same level.
+      children: [
+        ...clusters.sort((a, b) => a.label.localeCompare(b.label)),
+        ...loneHosts,
+      ],
     });
   }
 
-  // VMware first, then others.
-  return platforms.sort((a, b) => (a.hypervisor === "vmware" ? -1 : b.hypervisor === "vmware" ? 1 : 0));
+  return datacenters.sort((a, b) => a.label.localeCompare(b.label));
 }
 
 /** VM ids under a node (its whole subtree) — the scope for the VM list when a
@@ -242,7 +179,9 @@ export function vmLocation(vm: VM, hosts: Host[], environments: Environment[]): 
   const host = hosts.find((h) => h.id === vm.hostId);
   const env = environments.find((e) => e.id === vm.environmentId);
   return {
-    platform: env ? PLATFORM_META[env.hypervisor].label : "Unknown platform",
+    platform: env
+      ? PLATFORM_META[env.hypervisor].label
+      : i18n.t("inventory:vmDetail.unknownPlatform"),
     datacenter: env?.name ?? vm.environmentId,
     cluster: host?.cluster ?? "—",
     host: host?.name ?? vm.hostId,

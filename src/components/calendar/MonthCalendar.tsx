@@ -77,9 +77,9 @@ export function MonthCalendar({
   const clickable = !!onSelectDay;
 
   return (
-    <div className={cn("overflow-hidden", !bare && "rounded-xl border border-border/70 bg-card shadow-card", className)}>
+    <div className={cn("overflow-hidden", !bare && "border border-border bg-card", className)}>
       {/* Month navigation */}
-      <div className={cn("flex flex-wrap items-center gap-2 border-b border-border/60 py-2.5", bare ? "px-0" : "px-3 sm:px-4")}>
+      <div className={cn("flex flex-wrap items-center gap-2 border-b border-border py-2.5", bare ? "px-0" : "px-3 sm:px-4")}>
         <div className="flex items-center gap-0.5">
           <Button variant="ghost" size="icon-sm" aria-label={t("calendar.prevMonth")} onClick={() => onMonthChange(addMonths(month, -1))}>
             <ChevronLeft className="h-4 w-4" />
@@ -99,7 +99,7 @@ export function MonthCalendar({
       {/* Weekday header */}
       <div className={cn("grid grid-cols-7 pt-2 text-center", bare ? "px-0" : "px-2 sm:px-2.5")}>
         {weekdayLabels.map((d, i) => (
-          <div key={i} className="pb-1 text-[10px] font-medium uppercase tracking-wide text-muted-foreground/70">
+          <div key={i} className="label-overline pb-1">
             {d}
           </div>
         ))}
@@ -114,10 +114,10 @@ export function MonthCalendar({
           const ctx: DayContext = { inMonth, isToday: today, isSelected };
 
           const cellClass = cn(
-            "flex min-h-[3.5rem] flex-col rounded-lg border p-1 text-left transition-colors sm:min-h-[4.25rem] sm:p-1.5",
+            "flex min-h-[3.5rem] flex-col border p-1 text-left transition-colors duration-250 sm:min-h-[4.25rem] sm:p-1.5",
             isSelected ? "border-border bg-muted/50" : "border-transparent",
             !inMonth && "opacity-40",
-            clickable && "hover:border-border/60 hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background",
+            clickable && "hover:border-border hover:bg-muted/40",
           );
 
           const body = (
@@ -157,7 +157,7 @@ export function MonthCalendar({
         })}
       </div>
 
-      {legend && <div className={cn("border-t border-border/60 py-2.5", bare ? "px-0" : "px-3 sm:px-4")}>{legend}</div>}
+      {legend && <div className={cn("border-t border-border py-2.5", bare ? "px-0" : "px-3 sm:px-4")}>{legend}</div>}
     </div>
   );
 }

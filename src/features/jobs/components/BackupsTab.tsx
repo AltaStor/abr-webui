@@ -2,9 +2,12 @@
 // Copyright © 2026 Norvitex OÜ
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { Trans, useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
-import { AlertTriangle, ArrowDown, ArrowUp, History, Info, Search } from "@/lib/icons";
-import { Card, CardContent } from "@/components/ui/card";
+import { AlertTriangle, ArrowDown, ArrowUp, Database, History, Info, Search } from "@/lib/icons";
+import { Card } from "@/components/ui/card";
+import { KpiBand } from "@/components/KpiBand";
+import { KpiCard } from "@/components/KpiCard";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -15,11 +18,8 @@ import {
 } from "@/components/ui/select";
 import { EmptyState } from "@/components/EmptyState";
 import { formatStorage } from "@/lib/format";
-import {
-  compressionRatioLabel,
-  groupRestorePointsByJob,
-  type RestorePointJobVmGroup,
-} from "@/lib/restore-points";
+import type { RestorePoint } from "@/types";
+import { groupRestorePointsByJob, type RestorePointJobVmGroup } from "@/lib/restore-points";
 import { useWorldStore } from "@/store/world";
 import { BackupJobRow } from "./BackupJobRow";
 import {
@@ -45,6 +45,7 @@ const AUTO_EXPAND_LIMIT = 5;
  * Lives as the "Backups" tab on the Jobs page (formerly its own /backups page).
  */
 export function BackupsTab() {
+  const { t } = useTranslation("jobs");
   const navigate = useNavigate();
   const restorePoints = useWorldStore((s) => s.restorePoints);
   const repositories = useWorldStore((s) => s.repositories);
@@ -122,27 +123,27 @@ export function BackupsTab() {
     });
 
   const totalPoints = groups.reduce((a, g) => a + g.points.length, 0);
-  const totalStored = groups.reduce((a, g) => a + g.storedGB, 0);
-  // Only the points whose real size the appliance knows contribute here, so
-  // the pair below always compares like with like.
-  const measuredPoints = groups.flatMap((g) => g.points).filter((p) => p.logicalGB != null);
-  const totalLogical = measuredPoints.reduce((a, p) => a + (p.logicalGB as number), 0);
-  const totalLogicalStored = measuredPoints.reduce((a, p) => a + p.sizeGB, 0);
-  const totalRatio = compressionRatioLabel(
-    totalLogical > 0 ? totalLogicalStored / totalLogical : null,
-  );
+  const totalLogical = groups.reduce((a, g) => a + g.logicalGB, 0);
   const totalVms = groups.reduce((a, g) => a + g.vms.length, 0);
 
   const handleRestoreVm = (vm: RestorePointJobVmGroup) =>
     navigate(`/restore?vm=${encodeURIComponent(vm.vmId)}`);
+
+  /* `?point=` is a display-only deep link on an existing route — the wizard
+   * opens on the point the operator actually clicked instead of substituting
+   * the newest one. No request shape changes. */
+  const handleRestorePoint = (vm: RestorePointJobVmGroup, point: RestorePoint) =>
+    navigate(
+      `/restore?vm=${encodeURIComponent(vm.vmId)}&point=${encodeURIComponent(point.id)}`,
+    );
 
   if (groups.length === 0) {
     return (
       <Card>
         <EmptyState
           icon={History}
-          title="No backups stored yet"
-          description="As your jobs run, the restore points they create are listed here — grouped by job, then by the VM each protects. Points stay listed even after their job is deleted."
+          title={t("backupsTab.emptyTitle")}
+          description={t("backupsTab.emptyDescription")}
           compact
         />
       </Card>
@@ -151,58 +152,45 @@ export function BackupsTab() {
 
   return (
     <div className="space-y-3">
-      {/* Summary strip */}
+      {/* Summary KPIs — the same band the sibling "Backup jobs" tab uses, so the
+          two tabs share one top-of-page structure instead of two shapes. */}
+      <KpiBand className="sm:grid-cols-3 xl:grid-cols-3">
+        <KpiCard
+          icon={History}
+          label={t("backupsTab.kpi.points")}
+          value={totalPoints}
+          hint={t("backupsTab.kpi.acrossObjects", { jobs: groups.length, vms: totalVms })}
+        />
+        {/* Sizes come from the catalog, which does not record them yet. A hard 0 B
+            would read as "these backups are empty" rather than "not measured", so
+            the card says so and stays toneless. */}
+        <KpiCard
+          icon={Database}
+          label={t("rp.logicalData")}
+          value={totalLogical > 0 ? totalLogical : t("common:generic.na")}
+          format={(n) => formatStorage(n)}
+          tone={totalLogical > 0 ? "neutral" : "muted"}
+          hint={totalLogical > 0 ? t("backupsTab.logicalTitle") : t("backupsTab.kpi.sizeUnrecorded")}
+        />
+        <KpiCard
+          icon={AlertTriangle}
+          tone={orphanCount > 0 ? "warning" : "neutral"}
+          label={t("backupsTab.orphaned")}
+          value={orphanCount}
+          hint={t("backupsTab.noActiveJob")}
+        />
+      </KpiBand>
+
       <Card>
-        <CardContent className="flex flex-wrap items-center gap-x-6 gap-y-2 p-4 text-sm">
-          <span className="flex items-center gap-2">
-            <History className="h-4 w-4 text-muted-foreground" />
-            <span className="nums font-semibold">{totalPoints}</span>
-            <span className="text-muted-foreground">
-              restore point{totalPoints === 1 ? "" : "s"} across{" "}
-              <span className="nums font-medium text-foreground">{groups.length}</span> job
-              {groups.length === 1 ? "" : "s"},{" "}
-              <span className="nums font-medium text-foreground">{totalVms}</span> VM
-              {totalVms === 1 ? "" : "s"}
-            </span>
-          </span>
-          {/* Sizes come from the catalog, which has none until a backup has run —
-              show the stat only once it's real rather than headline a "0 B". */}
-          {totalStored > 0 && (
-            <span
-              className="text-muted-foreground"
-              title="What these restore points occupy in their repositories, after compression"
-            >
-              <span className="nums font-medium text-foreground">
-                {formatStorage(totalStored)}
-              </span>{" "}
-              stored
-            </span>
-          )}
-          {totalLogical > 0 && (
-            <span
-              className="text-muted-foreground"
-              title="The real, uncompressed data behind those restore points — what restoring them all would write back"
-            >
-              <span className="nums font-medium text-foreground">
-                {formatStorage(totalLogical)}
-              </span>{" "}
-              of data{totalRatio && ` · compressed to ${totalRatio}`}
-            </span>
-          )}
-          {orphanCount > 0 && (
-            <span className="flex items-center gap-1.5 text-warning-text">
-              <AlertTriangle className="h-3.5 w-3.5" />
-              <span className="nums font-medium">{orphanCount}</span> orphaned
-            </span>
-          )}
-        </CardContent>
         {orphanCount > 0 && (
-          <p className="flex items-start gap-2 border-t border-border/60 px-4 py-2 text-xs leading-relaxed text-muted-foreground">
+          <p className="flex items-start gap-2 border-t border-border px-4 py-2 text-xs leading-relaxed text-muted-foreground">
             <Info className="mt-px h-3.5 w-3.5 shrink-0 text-muted-foreground" />
             <span>
-              <span className="font-medium text-foreground">Orphaned backups</span> have no active
-              job — the job was deleted, but the restore points are kept and stay restorable.
-              Recover from them here, or delete them to reclaim repository space.
+              <Trans
+                i18nKey="backupsTab.orphanedNote"
+                ns="jobs"
+                components={{ 1: <span className="font-medium text-foreground" /> }}
+              />
             </span>
           </p>
         )}
@@ -215,28 +203,29 @@ export function BackupsTab() {
           <Input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search by job or VM name…"
+            placeholder={t("backupsTab.searchPlaceholder")}
             className="pl-9"
-            aria-label="Search backups"
+            aria-label={t("backupsTab.searchLabel")}
           />
         </div>
         <Select value={scopeFilter} onValueChange={(v) => setScopeFilter(v as ScopeFilter)}>
-          <SelectTrigger className="w-full sm:w-48" aria-label="Filter by job status">
+          <SelectTrigger className="w-full sm:w-48" aria-label={t("backupsTab.filterByJobStatus")}>
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All backups</SelectItem>
+            <SelectItem value="all">{t("backupsTab.allBackups")}</SelectItem>
             <SelectItem value="orphaned">
-              Orphaned{orphanCount > 0 ? ` (${orphanCount})` : ""}
+              {t("backupsTab.orphaned")}
+              {orphanCount > 0 ? ` (${orphanCount})` : ""}
             </SelectItem>
           </SelectContent>
         </Select>
         <Select value={repoFilter} onValueChange={setRepoFilter}>
-          <SelectTrigger className="w-full sm:w-52" aria-label="Filter by repository">
+          <SelectTrigger className="w-full sm:w-52" aria-label={t("backupsTab.filterByRepository")}>
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All repositories</SelectItem>
+            <SelectItem value="all">{t("backupsTab.allRepositories")}</SelectItem>
             {repositories.map((r) => (
               <SelectItem key={r.id} value={r.id}>
                 {r.name}
@@ -245,20 +234,20 @@ export function BackupsTab() {
           </SelectContent>
         </Select>
         <Select value={sortDir} onValueChange={(v) => setSortDir(v as SortDir)}>
-          <SelectTrigger className="w-full sm:w-44" aria-label="Sort restore points by time">
+          <SelectTrigger className="w-full sm:w-44" aria-label={t("backupsTab.sortLabel")}>
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="desc">
               <span className="flex items-center gap-2">
                 <ArrowDown className="h-3.5 w-3.5" />
-                Newest first
+                {t("backupsTab.newestFirst")}
               </span>
             </SelectItem>
             <SelectItem value="asc">
               <span className="flex items-center gap-2">
                 <ArrowUp className="h-3.5 w-3.5" />
-                Oldest first
+                {t("backupsTab.oldestFirst")}
               </span>
             </SelectItem>
           </SelectContent>
@@ -269,8 +258,8 @@ export function BackupsTab() {
         <Card>
           <EmptyState
             icon={Search}
-            title="No backups match your filters"
-            description="Try a different search term, repository, or status."
+            title={t("backupsTab.noMatchTitle")}
+            description={t("backupsTab.noMatchDescription")}
             compact
           />
         </Card>
@@ -294,6 +283,7 @@ export function BackupsTab() {
               sortDir={sortDir}
               offlineRepoIds={offlineRepoIds}
               onRestoreVm={handleRestoreVm}
+              onRestorePoint={handleRestorePoint}
               onDeleteVm={(vm) => setDeleteTarget({ jobName: group.jobName, vm })}
             />
           ))}

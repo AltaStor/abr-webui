@@ -3,7 +3,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import {
   CalendarClock,
   CheckCircle2,
@@ -11,13 +11,15 @@ import {
   Database,
   DatabaseBackup,
   Layers,
-  Pause,
   Pencil,
   Play,
+  Power,
   Server,
   Trash2,
 } from "@/lib/icons";
 import { PageHeader } from "@/components/PageHeader";
+import { KpiBand } from "@/components/KpiBand";
+import { KpiCard } from "@/components/KpiCard";
 import { EmptyState } from "@/components/EmptyState";
 import { StatusPill } from "@/components/StatusPill";
 import { Card } from "@/components/ui/card";
@@ -30,13 +32,11 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/components/ui/sonner";
-import { cn } from "@/lib/utils";
-import { formatRelative } from "@/lib/format";
-import { SESSION_META, type Tone, toneChip } from "@/lib/status";
+import { formatDateTime, formatRelative } from "@/lib/format";
+import { JOB_DISABLED_META, rateTone, SESSION_META } from "@/lib/status";
 import { apiErrorMessage } from "@/services/api.http";
 import { useWorldStore } from "@/store/world";
 import { REPO_TYPE_META } from "@/features/repositories/components/repoMeta";
-import type { LucideIcon } from "@/lib/icons";
 import { jobTypeMeta, retentionLabel, scheduleLabel } from "./lib";
 import { ActiveRunPanel } from "./components/ActiveRunPanel";
 import { LastRunSummary } from "./components/LastRunSummary";
@@ -48,6 +48,10 @@ import { DeleteJobDialog } from "./components/DeleteJobDialog";
 
 export default function JobDetailPage() {
   const { t } = useTranslation("jobs");
+  /* The back-link names the destination the way the sidebar does, so it
+   * cannot drift from it — the section has been called "Backup" since the
+   * jobs list and the restore points became one page. */
+  const { t: tNav } = useTranslation("nav");
   const { jobId } = useParams<{ jobId: string }>();
   const navigate = useNavigate();
 
@@ -101,14 +105,16 @@ export default function JobDetailPage() {
   if (!job) {
     return (
       <div className="space-y-4">
-        <PageHeader title={t("notFound.title")} backTo={{ href: "/jobs", label: "Jobs" }} />
+        <PageHeader title={t("notFound.title")} backTo={{ href: "/jobs", label: tNav("backups") }} />
         <Card>
           <EmptyState
             icon={DatabaseBackup}
             title={t("notFound.heading")}
             description={t("notFound.description")}
             action={
-              <Button onClick={() => navigate("/jobs")}>{t("notFound.backTo", { section: "Jobs" })}</Button>
+              <Button asChild>
+                <Link to="/jobs">{t("notFound.backTo", { section: tNav("backups") })}</Link>
+              </Button>
             }
           />
         </Card>
@@ -122,13 +128,31 @@ export default function JobDetailPage() {
   const { icon: TypeIcon, label: typeLabel } = jobTypeMeta(job.type);
 
   /* ------------------------------- actions ------------------------------- */
+  /* Console-owned sentence first, the appliance's own words underneath — they
+   * arrive as UI-ready English the console doesn't own, so they are evidence,
+   * never the verdict. */
+  const failureBody = (body: string, detail?: string | null) => (
+    <span className="block">
+      {body}
+      {detail && <span className="mt-1 block">{detail}</span>}
+    </span>
+  );
+
   const handleRun = async (forceFull = false) => {
     const sessionId = await runJob(job.id, undefined, forceFull);
     if (sessionId) {
       toast.success(t("toast.started", { name: job.name }), { description: t("toast.startedBelow") });
-    } else {
-      toast.info(disabled ? t("toast.jobDisabled", { name: job.name }) : t("toast.jobAlreadyRunning", { name: job.name }));
+      return;
     }
+    /* `runJob` reports every failure as a null session — a 409, a 404, a 5xx
+     * and a dead network are indistinguishable here (see world.live.ts, which
+     * swallows the error). This used to announce "{{name}} is already
+     * running", which is a diagnosis the console cannot make and was simply
+     * false whenever the appliance was unreachable. Only `disabled` is known
+     * locally and true, so only that is claimed. */
+    toast.error(t("toast.runRefused", { name: job.name }), {
+      description: disabled ? t("toast.runRefusedDisabledDesc") : t("toast.runRefusedDesc"),
+    });
   };
   const handleToggle = async () => {
     try {
@@ -136,7 +160,7 @@ export default function JobDetailPage() {
       toast.success(disabled ? t("toast.enabled", { name: job.name }) : t("toast.disabled", { name: job.name }));
     } catch (err) {
       toast.error(disabled ? t("toast.enableFailed", { name: job.name }) : t("toast.disableFailed", { name: job.name }), {
-        description: apiErrorMessage(err) ?? t("toast.enableDisableFailedDesc"),
+        description: failureBody(t("toast.enableDisableFailedDesc"), apiErrorMessage(err)),
       });
     }
   };
@@ -145,15 +169,17 @@ export default function JobDetailPage() {
       await deleteJob(job.id);
       toast.success(t("toast.deleted", { name: job.name }), { description: t("toast.pointsSafe") });
       navigate("/jobs");
-    } catch {
-      toast.error(t("toast.deleteFailed", { name: job.name }), { description: t("toast.deleteFailedDesc") });
+    } catch (err) {
+      toast.error(t("toast.deleteFailed", { name: job.name }), {
+        description: failureBody(t("toast.deleteFailedDesc"), apiErrorMessage(err)),
+      });
     }
   };
 
   return (
     <div className="space-y-4">
       <PageHeader
-        backTo={{ href: "/jobs", label: "Jobs" }}
+        backTo={{ href: "/jobs", label: tNav("backups") }}
         title={job.name}
         description={
           <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
@@ -175,7 +201,7 @@ export default function JobDetailPage() {
                   variant="default"
                   onClick={() => handleRun()}
                   disabled={running}
-                  className="rounded-r-none"
+                  className=""
                 >
                   <Play className="h-4 w-4" />
                   {t("actions.runNow")}
@@ -186,7 +212,7 @@ export default function JobDetailPage() {
                       variant="default"
                       disabled={running}
                       aria-label={t("actions.runOptions")}
-                      className="rounded-l-none border-l border-primary-foreground/20 px-2"
+                      className="border-l border-primary-foreground/20 px-2"
                     >
                       <ChevronDown className="h-4 w-4" />
                     </Button>
@@ -205,12 +231,16 @@ export default function JobDetailPage() {
                 {t("actions.runNow")}
               </Button>
             )}
-            <Button variant="outline" onClick={() => navigate(`/jobs/${job.id}/edit`)}>
-              <Pencil className="h-4 w-4" />
-              {t("common:actions.edit")}
+            <Button asChild variant="outline">
+              <Link to={`/jobs/${job.id}/edit`}>
+                <Pencil className="h-4 w-4" />
+                {t("common:actions.edit")}
+              </Link>
             </Button>
             <Button variant="outline" onClick={handleToggle}>
-              {disabled ? <Play className="h-4 w-4" /> : <Pause className="h-4 w-4" />}
+              {/* Power, not Play/Pause: transport belongs to "Run now" / "Stop run".
+                  The wire protocol has always called this enable/disable. */}
+              <Power className="h-4 w-4" />
               {disabled ? t("common:actions.enable") : t("common:actions.disable")}
             </Button>
             <Button variant="ghost" size="icon" aria-label={t("actions.deleteJob")} className="text-danger hover:text-danger" onClick={() => setDeleteOpen(true)}>
@@ -221,56 +251,74 @@ export default function JobDetailPage() {
       />
 
       {/* Stat tiles */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
-        <StatTile
+      {/* One framed block divided by hairlines, not six floating cards —
+          KpiBand is the console's stats-row treatment everywhere else.
+          All three column counts divide six, so no cell is ever left
+          empty showing the band's ground. */}
+      {/* Six across only from xl. At lg the tiles are ~160px wide, which clipped
+          the hint's timestamp and left the repository name and status pill cramped
+          for the same reason; three across is the shape this band already had. */}
+      <KpiBand className="grid-cols-2 sm:grid-cols-3 xl:grid-cols-6">
+        <KpiCard
+          density="compact"
           icon={SESSION_META[job.lastStatus ?? "queued"].icon}
           tone={disabled ? "muted" : SESSION_META[job.lastStatus ?? "queued"].tone}
           label={t("detailStats.lastRun")}
           value={
             disabled ? (
-              <StatusPill meta={{ label: t("status.disabled"), tone: "muted", icon: Pause }} size="sm" />
+              <StatusPill meta={JOB_DISABLED_META} size="sm" />
             ) : (
               <StatusPill meta={SESSION_META[job.lastStatus ?? "queued"]} size="sm" />
             )
           }
-          hint={formatRelative(job.lastRunAt)}
+          // Six tiles across cannot carry both halves without clipping, and the
+          // Last run card directly below already says how long ago. So the tile
+          // takes the half the page was missing: which run this was.
+          hint={job.lastRunAt ? formatDateTime(job.lastRunAt) : formatRelative(null)}
         />
-        <StatTile
+        <KpiCard
+          density="compact"
           icon={CheckCircle2}
-          tone={!job.lastRunAt ? "muted" : job.successRate >= 95 ? "success" : "warning"}
+          tone={job.lastRunAt ? rateTone(job.successRate) : "muted"}
           label={t("detailStats.successRate")}
           value={<span className="nums">{job.lastRunAt ? `${job.successRate}%` : "—"}</span>}
           hint={t("detailStats.recentRuns")}
         />
-        <StatTile
+        <KpiCard
+          density="compact"
           icon={Server}
-          tone="info"
+          tone="neutral"
           label={t("detailStats.objects")}
           value={<span className="nums">{job.vmIds.length}</span>}
           hint={t("detailStats.inScope", { noun: job.vmIds.length === 1 ? "VM" : "VMs" })}
         />
-        <StatTile
+        <KpiCard
+          density="compact"
           icon={Database}
-          tone="muted"
+          tone={repository ? "neutral" : "muted"}
           label={t("detailStats.repository")}
           value={<span className="truncate text-base font-semibold" title={repository?.name}>{repository?.name ?? t("common:generic.na")}</span>}
           hint={repository ? REPO_TYPE_META[repository.type].short : t("common:generic.na")}
         />
-        <StatTile
+        <KpiCard
+          density="compact"
           icon={CalendarClock}
-          tone="muted"
+          tone={job.nextRunAt ? "neutral" : "muted"}
           label={t("detailStats.nextRun")}
           value={<span className="nums text-base font-semibold">{job.nextRunAt ? formatRelative(job.nextRunAt) : t("status.disabled")}</span>}
-          hint={job.nextRunAt ? t("detailStats.scheduled") : t("detailStats.notScheduled")}
+          // The value above is already the countdown; the hint slot is free to
+          // say which slot that lands in, instead of the filler word "Scheduled".
+          hint={job.nextRunAt ? formatDateTime(job.nextRunAt) : t("detailStats.notScheduled")}
         />
-        <StatTile
+        <KpiCard
+          density="compact"
           icon={Layers}
-          tone="muted"
+          tone="neutral"
           label={t("detailStats.retention")}
           value={<span className="nums text-base font-semibold">{t("detailStats.daysValue", { count: job.retention.keepDays })}</span>}
           hint={job.retention.gfs ? t("detailStats.gfsLongTerm") : retentionLabel(job.retention)}
         />
-      </div>
+      </KpiBand>
 
       <Tabs defaultValue="overview">
         <TabsList>
@@ -298,7 +346,7 @@ export default function JobDetailPage() {
                 <p className="mt-1.5 text-sm text-muted-foreground">
                   {job.description?.trim() || t("about.noDescription")}
                 </p>
-                <div className="mt-4 space-y-2 border-t border-border/60 pt-3 text-sm">
+                <div className="mt-4 space-y-2 border-t border-border pt-3 text-sm">
                   <Detail label={t("about.schedule")} value={scheduleLabel(job.schedule, disabled)} />
                   <Detail label={t("about.retention")} value={retentionLabel(job.retention)} />
                   <Detail label={t("about.scope")} value={job.scopeSummary} />
@@ -307,7 +355,7 @@ export default function JobDetailPage() {
                     label={t("about.compression")}
                     value={t("settings.compressionLevel", { level: job.options.compression })}
                   />
-                  <Detail label={t("about.created")} value={formatRelative(job.createdAt)} />
+                  <Detail label={t("about.created")} value={formatDateTime(job.createdAt)} />
                 </div>
               </Card>
             </div>
@@ -328,36 +376,6 @@ export default function JobDetailPage() {
       </Tabs>
 
       <DeleteJobDialog open={deleteOpen} onOpenChange={setDeleteOpen} label={job.name} onConfirm={handleDelete} />
-    </div>
-  );
-}
-
-function StatTile({
-  icon: Icon,
-  tone,
-  label,
-  value,
-  hint,
-  badge,
-}: {
-  icon: LucideIcon;
-  tone: Tone;
-  label: string;
-  value: React.ReactNode;
-  hint: string;
-  badge?: React.ReactNode;
-}) {
-  return (
-    <div className="flex flex-col rounded-xl border border-border/70 bg-card p-3.5 shadow-card">
-      <div className="flex items-center justify-between">
-        <span className={cn("flex h-7 w-7 items-center justify-center rounded-lg", toneChip(tone))}>
-          <Icon className="h-3.5 w-3.5" />
-        </span>
-        {badge}
-      </div>
-      <p className="mt-2.5 text-xs text-muted-foreground">{label}</p>
-      <div className="mt-0.5 min-h-[1.75rem] text-lg font-semibold leading-tight">{value}</div>
-      <p className="mt-0.5 truncate text-[11px] text-muted-foreground/80">{hint}</p>
     </div>
   );
 }

@@ -57,7 +57,7 @@ export function RestorePointCalendar({ points, offlineRepoIds, onRestore, onDele
       return (
         <div className="flex h-full flex-col justify-end">
           <div
-            className="rounded-md px-1 py-0.5"
+            className="px-1 py-0.5"
             style={{ backgroundColor: `hsl(var(--primary) / ${alpha})` }}
             title={t("calendar.pointsCount", { count: pts.length }) + (hasFull ? t("calendar.includesFullSuffix") : "")}
           >
@@ -122,7 +122,7 @@ export function RestorePointCalendar({ points, offlineRepoIds, onRestore, onDele
         legend={legend}
       />
 
-      <div className="rounded-lg border border-border/70 bg-muted/20 p-3">
+      <div className="border border-border bg-muted/20 p-3">
         <div className="flex items-center justify-between gap-2">
           <h4 className="text-sm font-semibold">{format(selected, "EEEE, MMMM d")}</h4>
           <span className="text-xs text-muted-foreground">

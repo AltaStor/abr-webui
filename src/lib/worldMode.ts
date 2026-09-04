@@ -6,6 +6,7 @@
  * and the account menu so both entry points behave identically.
  */
 import { toast } from "@/components/ui/sonner";
+import i18n from "@/i18n";
 import { isVersionMismatchError } from "@/services/api.http";
 import { setWorldMode, useWorldStore } from "@/store/world";
 
@@ -14,12 +15,12 @@ export async function switchWorldMode(): Promise<void> {
   try {
     await setWorldMode(next);
     toast.success(
-      next === "live" ? "Connected to the live appliance" : "Switched to the demo simulation",
+      next === "live" ? i18n.t("domain:worldMode.live.title") : i18n.t("domain:worldMode.sim.title"),
       {
         description:
           next === "live"
-            ? "You're looking at the real backend now."
-            : "Self-contained demo data — the appliance is untouched.",
+            ? i18n.t("domain:worldMode.live.description")
+            : i18n.t("domain:worldMode.sim.description"),
       },
     );
   } catch (err) {
@@ -27,8 +28,8 @@ export async function switchWorldMode(): Promise<void> {
     // Providers.tsx via world.apiVersionError) — a generic "unreachable"
     // toast on top of it would just contradict that message.
     if (isVersionMismatchError(err)) return;
-    toast.error("Couldn't reach the appliance", {
-      description: "Is the backend (server/) running on :4980?",
+    toast.error(i18n.t("domain:worldMode.error.title"), {
+      description: i18n.t("domain:worldMode.error.description"),
     });
   }
 }

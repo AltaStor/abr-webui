@@ -3,7 +3,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Download, Radio, Search, X } from "@/lib/icons";
+import { Check, Download, Radio, Search, X } from "@/lib/icons";
 import { cn } from "@/lib/utils";
 import type { LogLine } from "@/types";
 import { Button } from "@/components/ui/button";
@@ -46,6 +46,24 @@ const SOURCE_ORDER: LogSource[] = [
 
 function toLogLine(e: SystemLogEntry): LogLine {
   return { id: e.id, ts: e.ts, level: e.level, message: e.message, vmName: e.source };
+}
+
+/* The chips are a MULTI-select set, not a tab strip, and a tint alone did not
+ * say so — it read as "this one is current". A checkbox box says "any number of
+ * these", which is what the control actually does. Decorative, so aria-hidden:
+ * the state is already carried by each chip's `aria-pressed`. */
+function SourceCheck({ on }: { on: boolean }) {
+  return (
+    <span
+      aria-hidden
+      className={cn(
+        "flex h-3 w-3 shrink-0 items-center justify-center border transition-colors duration-250",
+        on ? "border-primary bg-primary text-primary-foreground" : "border-input",
+      )}
+    >
+      {on && <Check className="h-2.5 w-2.5" strokeWidth={3} />}
+    </span>
+  );
 }
 
 export function SystemLogTab({ entries, mode }: SystemLogTabProps) {
@@ -120,45 +138,66 @@ export function SystemLogTab({ entries, mode }: SystemLogTabProps) {
   return (
     <div className="space-y-3">
       {/* Source chips + search + live tail */}
-      <div className="flex flex-col gap-3 rounded-xl border border-border/70 bg-card p-3 shadow-card">
-        <div className="flex flex-wrap items-center gap-1.5">
-          <span className="mr-1 text-xs font-medium text-muted-foreground">{t("system.sources")}</span>
-          <button
-            type="button"
-            onClick={() => setActive(new Set())}
-            aria-pressed={active.size === 0}
-            className={cn(
-              "rounded-md px-2 py-1 text-xs font-medium transition-colors",
-              active.size === 0
-                ? "bg-primary/15 text-primary"
-                : "bg-muted/60 text-muted-foreground hover:text-foreground",
-            )}
-          >
-            {t("common:generic.all")}
-          </button>
-          {sources.map((s) => {
-            const on = active.has(s);
-            return (
-              <button
-                key={s}
-                type="button"
-                onClick={() => toggleSource(s)}
-                aria-pressed={on}
-                className={cn(
-                  "rounded-md px-2 py-1 font-mono text-xs transition-colors",
-                  on
-                    ? "bg-primary/15 text-primary ring-1 ring-inset ring-primary/30"
-                    : "bg-muted/60 text-muted-foreground hover:text-foreground",
-                )}
-              >
-                {s}
-              </button>
-            );
-          })}
+      <div className="flex flex-col gap-3 border border-border bg-card p-3 ">
+        {/* A multi-select filter group, not a tab strip: several chips may be on
+            at once, and none-on means every source is shown. The count states
+            that outright instead of leaving the operator to infer it. */}
+        <div role="group" aria-label={t("system.sourcesGroupLabel")} className="flex flex-col gap-2">
+          <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+            <span className="text-xs font-medium text-muted-foreground">{t("system.sources")}</span>
+            <span className="nums text-xs text-muted-foreground">
+              {active.size === 0
+                ? t("system.sourcesAllShown", { total: sources.length })
+                : t("system.sourcesSomeShown", { selected: active.size, total: sources.length })}
+            </span>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-1.5">
+            <button
+              type="button"
+              onClick={() => setActive(new Set())}
+              aria-pressed={active.size === 0}
+              className={cn(
+                "inline-flex items-center gap-1.5 border px-2 py-1 font-display text-xs font-medium transition-colors duration-250",
+                active.size === 0
+                  ? "border-primary bg-primary/15 text-primary"
+                  : "border-border bg-muted/60 text-muted-foreground hover:text-foreground",
+              )}
+            >
+              <SourceCheck on={active.size === 0} />
+              {t("common:generic.all")}
+            </button>
+            {/* "All" is the same checkbox as its neighbours — it is checked
+                exactly when none of them are — so the hairline says "and then
+                these", not "a different kind of control". */}
+            <span aria-hidden className="mx-0.5 h-4 w-px shrink-0 bg-border" />
+            {sources.map((s) => {
+              const on = active.has(s);
+              return (
+                <button
+                  key={s}
+                  type="button"
+                  onClick={() => toggleSource(s)}
+                  aria-pressed={on}
+                  className={cn(
+                    "inline-flex items-center gap-1.5 border px-2 py-1 font-mono text-xs transition-colors duration-250",
+                    on
+                      ? "border-primary bg-primary/15 text-primary"
+                      : "border-border bg-muted/60 text-muted-foreground hover:text-foreground",
+                  )}
+                >
+                  <SourceCheck on={on} />
+                  {s}
+                </button>
+              );
+            })}
+          </div>
         </div>
 
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-          <div className="relative w-full sm:w-[260px]">
+        {/* The search takes the whole row; the tail/download group keeps its
+            natural width and wraps to its own line before anything overflows. */}
+        <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
+          <div className="relative w-full sm:min-w-[240px] sm:flex-1">
             <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground/70" />
             <Input
               value={search}
@@ -181,8 +220,8 @@ export function SystemLogTab({ entries, mode }: SystemLogTabProps) {
             )}
           </div>
 
-          <div className="flex items-center gap-2 sm:ml-auto">
-            <div className="flex items-center gap-2 rounded-lg border border-border/70 bg-background px-2.5 py-1.5">
+          <div className="flex items-center gap-2 sm:ml-auto sm:shrink-0">
+            <div className="flex h-9 items-center gap-2 border border-border bg-background px-2.5">
               <Radio className={cn("h-4 w-4", tailing ? "text-info" : "text-muted-foreground")} />
               <Label htmlFor="live-tail" className="cursor-pointer text-xs font-medium">
                 {t("system.liveTail")}
@@ -196,13 +235,16 @@ export function SystemLogTab({ entries, mode }: SystemLogTabProps) {
             </div>
             <Button
               variant="outline"
-              size="sm"
+              /* Deliberately NOT the header's export: this writes what the
+                 search and source chips currently show, in view order, so the
+                 filename says `filtered` where the header's says `full`. Two
+                 files on one support ticket have to be tellable apart. */
               onClick={() => {
                 downloadText(
-                  `altastor-system-${fileStamp()}.log`,
+                  `altastor-system-filtered-${fileStamp()}.log`,
                   filtered.map((e) => `${e.ts} ${e.level.toUpperCase()} [${e.source}] ${e.message}`).join("\n"),
                 );
-                toast.success(t("toast.exportedSystem", { count: filtered.length }));
+                toast.success(t("toast.exportedSystemFiltered", { count: filtered.length }));
               }}
             >
               <Download className="mr-1.5 h-4 w-4" />

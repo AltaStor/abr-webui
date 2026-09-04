@@ -14,7 +14,6 @@ import {
   Sparkles,
 } from "@/lib/icons";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { formatStorage, usagePercent } from "@/lib/format";
 import type { BackupJob, Repository } from "@/types";
@@ -25,9 +24,6 @@ interface Props {
   repository?: Repository;
 }
 
-/** Read-only view of the job's configuration. Editing lives on the one Edit
- *  action in the page header -- this tab used to carry a second entry point to
- *  the same wizard, which read as two different actions. */
 export function JobSettingsTab({ job, repository }: Props) {
   const { t } = useTranslation("jobs");
   const { options, retention, schedule } = job;
@@ -35,8 +31,6 @@ export function JobSettingsTab({ job, repository }: Props) {
 
   return (
     <div className="space-y-4">
-      <p className="text-sm text-muted-foreground">{t("settings.summary")}</p>
-
       <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
         {/* Schedule */}
         <Card>
@@ -54,14 +48,9 @@ export function JobSettingsTab({ job, repository }: Props) {
         {/* Retention */}
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="flex items-center justify-between gap-2 text-sm">
-              <span className="flex items-center gap-2">
-                <Layers className="h-4 w-4 text-muted-foreground" />
-                {t("settings.retentionTitle")}
-              </span>
-              {retention.gfs && retention.gfs.enabled === false && (
-                <Badge variant="warning">{t("settings.gfsSuspended")}</Badge>
-              )}
+            <CardTitle className="flex items-center gap-2 text-sm">
+              <Layers className="h-4 w-4 text-muted-foreground" />
+              {t("settings.retentionTitle")}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-2.5 pt-0 text-sm">
@@ -153,7 +142,7 @@ function Toggle({
 }) {
   const { t } = useTranslation("jobs");
   return (
-    <div className={cn("rounded-lg border p-3", on ? "border-success/30 bg-success/[0.04]" : "border-border/70 bg-muted/20")}>
+    <div className={cn("border p-3", on ? "border-success/30 bg-success/[0.04]" : "border-border bg-muted/20")}>
       <div className="flex items-center justify-between">
         <span className="flex items-center gap-1.5 text-sm font-medium">
           {Icon && <Icon className={cn("h-3.5 w-3.5", on ? "text-success" : "text-muted-foreground")} />}
@@ -172,7 +161,7 @@ function Toggle({
 
 function Value({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-lg border border-border/70 bg-muted/20 p-3">
+    <div className="border border-border bg-muted/20 p-3">
       <span className="text-sm font-medium">{label}</span>
       <p className="mt-0.5 text-[11px] text-muted-foreground">{value}</p>
     </div>

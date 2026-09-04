@@ -48,8 +48,8 @@ export function WelcomeStep({ info, provisioning }: WelcomeStepProps) {
 
       <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-2">
         {facts.map((f) => (
-          <div key={f.label} className="rounded-lg border border-border/70 bg-muted/20 p-3">
-            <p className="text-[10px] font-medium uppercase tracking-[0.12em] text-muted-foreground">
+          <div key={f.label} className="border border-border bg-muted/20 p-3">
+            <p className="label-overline">
               {f.label}
             </p>
             {f.value === null ? (

@@ -37,7 +37,8 @@
     "unsavedChanges": "Cambios sin guardar",
     "saveChanges": "Guardar cambios",
     "removeItem": "Eliminar {{value}}",
-    "saveUnavailable": "Dispositivo inaccesible: guardar deshabilitado"
+    "saveUnavailable": "Dispositivo inaccesible: guardar deshabilitado",
+    "saveLocally": "Guardar en este navegador"
   },
   "units": {
     "cores": "núcleos"
@@ -70,6 +71,20 @@
       "blue": "Azul",
       "violet": "Violeta",
       "amber": "Ámbar"
+    },
+    "density": {
+      "label": "Densidad",
+      "description": "El modo compacto reduce las filas de las tablas y los espacios.",
+      "comfortable": "Cómoda",
+      "compact": "Compacta"
+    },
+    "reduceMotion": {
+      "label": "Reducir el movimiento",
+      "description": "Minimizar las animaciones y transiciones en toda la consola."
+    },
+    "autoCollapse": {
+      "label": "Contraer barra lateral automáticamente",
+      "description": "Reducir la barra de navegación a iconos en ventanas más estrechas."
     }
   },
   "notifications": {
@@ -84,10 +99,6 @@
       "jobSuccess": {
         "label": "Trabajo correcto",
         "blurb": "Una ejecución se completa sin problemas"
-      },
-      "immutabilityViolation": {
-        "label": "Violación de inmutabilidad",
-        "blurb": "Se rechaza la eliminación de un punto sellado"
       },
       "capacityWarning": {
         "label": "Aviso de capacidad",
@@ -216,13 +227,11 @@
   },
   "about": {
     "brand": {
-      "tagline": "Copias de seguridad grabadas en piedra.",
-      "openSource": "Libre y de código abierto · inmutable por diseño"
+      "tagline": "Copias de seguridad grabadas en piedra."
     },
     "appliance": {
-      "title": "Appliance",
-      "description": "Identidad y hardware de este nodo.",
-      "applianceName": "Nombre de la appliance",
+      "title": "Servidor de copia de seguridad",
+      "applianceName": "Nombre del servidor de copia de seguridad",
       "hostname": "Nombre de host",
       "version": "Versión",
       "build": "Compilación",
@@ -231,14 +240,10 @@
       "uptime": "Tiempo de actividad",
       "cpu": "CPU",
       "memory": "Memoria",
-      "noAppliance": "Los detalles de hardware los reporta un dispositivo conectado.",
       "probeFailed": "No se pudieron leer los detalles de hardware del dispositivo. Los campos que él reporta se muestran como «—»."
     },
     "license": {
-      "title": "Licencia y recursos",
-      "description": "AltaStor es software libre y de código abierto.",
-      "openSourceTitle": "Libre y de código abierto",
-      "openSourceBlurb": "Sin licencias por usuario, sin tarifas por VM. Autoalojado y libre de inspeccionar."
+      "title": "Recursos"
     },
     "links": {
       "documentation": {
@@ -253,8 +258,7 @@
         "label": "Comunidad",
         "blurb": "Haz preguntas y comparte configuraciones"
       }
-    },
-    "releaseNotes": "Notas de la versión"
+    }
   },
   "createToken": {
     "copyTitle": "Copia tu token",

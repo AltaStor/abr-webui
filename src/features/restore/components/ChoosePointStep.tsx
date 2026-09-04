@@ -3,6 +3,7 @@
 
 import { useMemo } from "react";
 import { Trans, useTranslation } from "react-i18next";
+import { useListMaxHeight } from "../useListMaxHeight";
 import { format } from "date-fns";
 import { Clock, History, Lock, ServerOff, ShieldCheck } from "@/lib/icons";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,7 +12,7 @@ import { EmptyState } from "@/components/EmptyState";
 import { cn } from "@/lib/utils";
 import { formatRelative, formatStorage } from "@/lib/format";
 import { useSettingsStore } from "@/store/settings";
-import { compressionRatioLabel, pointTypeTooltip } from "@/lib/restore-points";
+import { pointTypeTooltip } from "@/lib/restore-points";
 import { useWorldStore } from "@/store/world";
 import i18n from "@/i18n";
 import type { RestorePoint, VM } from "@/types";
@@ -44,6 +45,7 @@ function dayLabel(iso: string): string {
 /** Step 2 — timeline picker of the chosen VM's restore points, grouped by day. */
 export function ChoosePointStep({ vm, selectedId, onSelect }: ChoosePointStepProps) {
   const { t } = useTranslation("restore");
+  const { ref: listRef, maxHeight } = useListMaxHeight<HTMLDivElement>();
   const allPoints = useWorldStore((s) => s.restorePoints);
   const repositories = useWorldStore((s) => s.repositories);
 
@@ -114,11 +116,15 @@ export function ChoosePointStep({ vm, selectedId, onSelect }: ChoosePointStepPro
             compact
           />
         ) : (
-          <div className="max-h-[28rem] overflow-y-auto overflow-x-hidden overscroll-contain px-1 pt-0.5">
+          <div
+            ref={listRef}
+            style={{ maxHeight }}
+            className="overflow-y-auto overflow-x-hidden overscroll-contain px-1 pt-0.5"
+          >
             <div className="space-y-4">
               {groups.map((group) => (
                 <div key={group.label}>
-                  <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/70">
+                  <p className="label-overline mb-2">
                     {group.label}
                   </p>
                   <ol className="relative space-y-1.5">
@@ -154,12 +160,12 @@ export function ChoosePointStep({ vm, selectedId, onSelect }: ChoosePointStepPro
                             disabled={unavailable}
                             title={unavailable ? offlineTip : undefined}
                             className={cn(
-                              "flex min-w-0 flex-1 items-center gap-3 rounded-lg border px-3 py-2.5 text-left transition-all",
+                              "flex min-w-0 flex-1 items-center gap-3 border px-3 py-2.5 text-left transition-colors duration-250",
                               unavailable
                                 ? "cursor-not-allowed border-border/50 bg-muted/30 opacity-60"
                                 : selected
-                                  ? "border-primary/50 bg-primary/[0.06] shadow-sm"
-                                  : "border-border/70 bg-card hover:border-primary/30 hover:bg-primary/[0.03]",
+                                  ? "border-primary/50 bg-primary/[0.06]"
+                                  : "border-border bg-card hover:border-primary/30 hover:bg-primary/[0.03]",
                             )}
                           >
                             <span className="flex items-center gap-2 text-sm">
@@ -204,19 +210,6 @@ export function ChoosePointStep({ vm, selectedId, onSelect }: ChoosePointStepPro
                             </span>
                             <span className="flex shrink-0 flex-col items-end gap-1">
                               <span className="nums text-sm font-medium">{formatStorage(p.sizeGB)}</span>
-                              {p.logicalGB != null && (
-                                <span
-                                  className="nums text-[11px] text-muted-foreground"
-                                  title={t("point.storedTitle", {
-                                    logical: formatStorage(p.logicalGB, 1),
-                                    stored: formatStorage(p.sizeGB, 1),
-                                  })}
-                                >
-                                  {t("point.fromLogical", { size: formatStorage(p.logicalGB, 1) })}
-                                  {compressionRatioLabel(p.compressionRatio) &&
-                                    ` · ${compressionRatioLabel(p.compressionRatio)}`}
-                                </span>
-                              )}
                               {selected && (
                                 <span className="flex items-center gap-1 text-xs font-medium text-primary">
                                   <ShieldCheck className="h-3 w-3" /> {t("point.selected")}

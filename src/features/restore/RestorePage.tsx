@@ -21,22 +21,33 @@ import {
   type NetworkMapping,
   type RestoreDestination,
 } from "./components/ChooseModeStep";
+import {
+  classifyRestoreFailure,
+  crossHypervisorRestoreBlocked,
+  refusalKey,
+  type RestoreRefusal,
+} from "./refusals";
 
 export default function RestorePage() {
   const { t } = useTranslation("restore");
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const preselectVmId = searchParams.get("vm");
+  /* Optional companion to ?vm=. Display-only: it selects a restore point the
+   * operator already picked elsewhere, so the wizard stops substituting the
+   * newest one underneath them. No request shape depends on it. */
+  const preselectPointId = searchParams.get("point");
 
   const STEPS: StepDef[] = [
-    { id: 1, label: t("steps.source.label"), hint: t("steps.source.hint") },
-    { id: 2, label: t("steps.point.label"), hint: t("steps.point.hint") },
-    { id: 3, label: t("steps.recover.label"), hint: t("steps.recover.hint") },
+    { id: 1, label: t("steps.source.label") },
+    { id: 2, label: t("steps.point.label") },
+    { id: 3, label: t("steps.recover.label") },
   ];
 
   const vms = useWorldStore((s) => s.vms);
   const restorePoints = useWorldStore((s) => s.restorePoints);
   const repositories = useWorldStore((s) => s.repositories);
+  const environments = useWorldStore((s) => s.environments);
   const startRestore = useWorldStore((s) => s.startRestore);
 
   const offlineRepoIds = useMemo(
@@ -63,10 +74,6 @@ export default function RestorePage() {
   const [nameSubmitError, setNameSubmitError] = useState<string | undefined>(undefined);
   const [targetHostId, setTargetHostId] = useState("");
   const [datastore, setDatastore] = useState("");
-  // What "Automatic" resolves to for the target currently chosen, reported by
-  // ChooseModeStep so the request can name it outright — see its
-  // onAutoPlacementChange.
-  const [autoPlacement, setAutoPlacement] = useState({ hostId: "", datastore: "" });
   const [networkMappings, setNetworkMappings] = useState<NetworkMapping[]>([]);
   const [powerOn, setPowerOn] = useState(false);
   const [overwriteConfirmed, setOverwriteConfirmed] = useState(false);
@@ -90,14 +97,26 @@ export default function RestorePage() {
       setStep(2);
       return;
     }
-    const latest = latestRestorablePoint(target.id);
+    /* An explicitly named point wins over "newest". It still has to belong to
+     * this VM and sit on reachable storage — a stale link or a since-deleted
+     * point falls back to the normal newest-restorable choice rather than
+     * stranding the wizard on nothing. */
+    const named = preselectPointId
+      ? restorePoints.find(
+          (p) =>
+            p.id === preselectPointId &&
+            p.vmId === target.id &&
+            !offlineRepoIds.has(p.repositoryId),
+        )
+      : undefined;
+    const chosen = named ?? latestRestorablePoint(target.id);
     setVm(target);
-    setPoint(latest);
-    // Preselect VM + latest restorable point → jump straight to confirm. If every
+    setPoint(chosen);
+    // Preselect VM + a restorable point → jump straight to confirm. If every
     // point is on offline storage, stay on step 2 so the wizard shows why.
-    setStep(latest ? 3 : 2);
+    setStep(chosen ? 3 : 2);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [preselectVmId, vms, restorePoints, offlineRepoIds]);
+  }, [preselectVmId, preselectPointId, vms, restorePoints, offlineRepoIds]);
 
   // Default-select the most recent restore point whenever a VM is chosen.
   const vmId = vm?.id;
@@ -174,13 +193,43 @@ export default function RestorePage() {
     setOverwriteConfirmed(false);
   }, [vm?.id, destination]);
 
+  /* This appliance ships one hypervisor plugin (vCenter), so it can neither
+   * create the VM on another platform nor convert its disks for one. The
+   * wizard can still OFFER such a target — Hyper-V and Proxmox inventories
+   * register and scan — so the refusal has to happen here, on the step that
+   * offers it, instead of after a typed confirmation. See
+   * `crossHypervisorRestoreBlocked`. */
+  const crossHypervisorBlocked = useMemo(() => {
+    if (destination !== "new-location" || !vm || !targetEnvId) return false;
+    return crossHypervisorRestoreBlocked(
+      environments.find((e) => e.id === vm.environmentId)?.hypervisor,
+      environments.find((e) => e.id === targetEnvId)?.hypervisor,
+    );
+  }, [destination, vm, targetEnvId, environments]);
+
   const canStart = useMemo(() => {
     if (!vm || !point) return false;
     if (destination === "new-location") {
+      if (crossHypervisorBlocked) return false;
       return !!targetEnvId && !validateRestoredVmName(newName) && !nameConflict;
     }
     return !originalLocationOverwrite || overwriteConfirmed;
-  }, [vm, point, destination, targetEnvId, newName, nameConflict, originalLocationOverwrite, overwriteConfirmed]);
+  }, [vm, point, destination, targetEnvId, newName, nameConflict, originalLocationOverwrite, overwriteConfirmed, crossHypervisorBlocked]);
+
+  /* One refusal, one toast: a console-owned headline that names what was
+   * refused, the console's own explanation, and — only underneath both — the
+   * appliance's own sentence, which arrives as UI-ready English the console
+   * doesn't own and must not present as its verdict. */
+  const showRefusal = (refusal: RestoreRefusal, detail?: string | null) => {
+    toast.error(t(refusalKey(refusal, "title")), {
+      description: (
+        <span className="block">
+          {t(refusalKey(refusal, "desc"))}
+          {detail && <span className="mt-1 block">{detail}</span>}
+        </span>
+      ),
+    });
+  };
 
   // Runs the actual mutation + toast + navigate.
   const performRestore = async () => {
@@ -197,24 +246,17 @@ export default function RestorePage() {
         // only way that destination means anything — while "New location"
         // falls back to the appliance's own "<source>-restored" default.
         newName: destination === "new-location" ? newName.trim() || undefined : vm.name,
-        // Send the placement the wizard showed, Automatic included: the
-        // appliance's own fallback defaults were resolved against the restore
-        // point's environment, so they name the wrong host for any other one.
-        targetHostId:
-          destination === "new-location" ? targetHostId || autoPlacement.hostId || undefined : undefined,
-        datastore:
-          destination === "new-location"
-            ? datastore.trim() || autoPlacement.datastore || undefined
-            : undefined,
+        targetHostId: destination === "new-location" ? targetHostId || undefined : undefined,
+        datastore: destination === "new-location" ? datastore.trim() || undefined : undefined,
         networkMappings:
           destination === "new-location" ? networkMappings.filter((m) => m.target.trim()) : undefined,
         powerOn: destination === "new-location" ? powerOn : undefined,
         force: destination === "original" ? overwriteConfirmed : undefined,
       });
       if (!sessionId) {
-        toast.error(t("toast.refused.title"), {
-          description: t("toast.refused.desc"),
-        });
+        // The appliance answered 2xx but named no restore session, so nothing
+        // is running. Say exactly that rather than guessing at a cause.
+        showRefusal("noSession");
         return;
       }
       toast.success(t("toast.started.title"), {
@@ -225,26 +267,13 @@ export default function RestorePage() {
       // A name collision on a New-location restore is shown right next to the
       // field that caused it; on Original location there's no name field to
       // anchor it to (the proactive check above should have already caught
-      // it), so it falls back to the generic toast like everything else.
+      // it), so it goes through the classifier like every other refusal.
       if (destination === "new-location" && apiErrorCode(err) === "target_vm_exists") {
         setNameSubmitError(apiErrorMessage(err) ?? t("mode.restoredVmNameError.duplicate"));
         return;
       }
-      if (apiErrorCode(err) === "insufficient_datastore_space") {
-        toast.error(t("toast.insufficientSpace.title"), {
-          description: apiErrorMessage(err) ?? t("toast.insufficientSpace.desc"),
-        });
-        return;
-      }
-      if (destination === "original" && apiErrorCode(err) === "in_place_source_vm_not_found") {
-        toast.error(t("toast.originalVmGone.title"), {
-          description: apiErrorMessage(err) ?? t("toast.originalVmGone.desc"),
-        });
-        return;
-      }
-      toast.error(t("toast.unreachable.title"), {
-        description: apiErrorMessage(err) ?? t("toast.restoreUnreachableDesc"),
-      });
+      const { refusal, detail } = classifyRestoreFailure(err);
+      showRefusal(refusal, detail);
     }
   };
 
@@ -260,7 +289,7 @@ export default function RestorePage() {
         description={t("page.description")}
         actions={
           step > 1 ? (
-            <Button variant="ghost" size="sm" onClick={resetWizard} className="text-muted-foreground">
+            <Button variant="ghost" onClick={resetWizard} className="text-muted-foreground">
               <RotateCcw className="h-4 w-4" />
               {t("actions.startOver")}
             </Button>
@@ -301,7 +330,6 @@ export default function RestorePage() {
                 onTargetHostIdChange={setTargetHostId}
                 datastore={datastore}
                 onDatastoreChange={setDatastore}
-                onAutoPlacementChange={setAutoPlacement}
                 networkMappings={networkMappings}
                 onNetworkMappingsChange={setNetworkMappings}
                 powerOn={powerOn}
@@ -316,7 +344,7 @@ export default function RestorePage() {
 
       {/* Action bar */}
       {step > 1 && (
-        <div className="flex items-center justify-between gap-3 border-t border-border/60 pt-4">
+        <div className="flex items-center justify-between gap-3 border-t border-border pt-4">
           <Button variant="outline" onClick={() => setStep((s) => Math.max(1, s - 1))}>
             <ArrowLeft className="h-4 w-4" />
             {t("common:actions.back")}

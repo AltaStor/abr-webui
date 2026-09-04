@@ -3,7 +3,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { type ColumnDef } from "@tanstack/react-table";
 import {
   Plus,
@@ -11,7 +11,6 @@ import {
   Search,
   Server,
   Shield,
-  SlidersHorizontal,
   X,
 } from "@/lib/icons";
 import { PageHeader } from "@/components/PageHeader";
@@ -20,14 +19,7 @@ import { StatusPill } from "@/components/StatusPill";
 import { EmptyState } from "@/components/EmptyState";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 import {
   Select,
   SelectContent,
@@ -38,7 +30,8 @@ import {
 import { Hint } from "@/components/ui/tooltip";
 import { toast } from "@/components/ui/sonner";
 import { cn } from "@/lib/utils";
-import { formatRelative, formatStorage } from "@/lib/format";
+import { formatStorage } from "@/lib/format";
+import { TimeStamp } from "@/components/TimeStamp";
 import { PROTECTION_META } from "@/lib/status";
 import { countByProtection } from "@/store/selectors";
 import { useWorldStore } from "@/store/world";
@@ -51,6 +44,7 @@ import {
 } from "./components/ProtectionFilterChips";
 import { ProtectionCoverageStrip } from "./components/ProtectionCoverageStrip";
 import { POWER_META, osFamilyLabel } from "./components/vm-presentation";
+import { ResizeHandle, useResizablePanel } from "@/components/ResizablePanel";
 import { EstateTree } from "./components/EstateTree";
 import { AddEnvironmentDialog } from "./components/AddEnvironmentDialog";
 import { EditEnvironmentDialog } from "./components/EditEnvironmentDialog";
@@ -94,6 +88,8 @@ export default function InventoryPage() {
   const [power, setPower] = useState<PowerFilter>("all");
   const [search, setSearch] = useState("");
 
+  const treeRow = useResizablePanel("altastor.inventory.estate-width", 300);
+
   // Keep the protection filter in sync if the Dashboard drills in with a new param.
   useEffect(() => {
     if (isProtectionStatus(protectionParam)) setProtection(protectionParam);
@@ -120,8 +116,7 @@ export default function InventoryPage() {
     return map;
   }, [jobs]);
 
-  // Map vmId -> total size of its restore points, surfaced in the protection
-  // column's tooltip (the Backup size column itself was removed).
+  // Map vmId -> total size of its restore points, for the Backup size column.
   const backupSizeByVm = useMemo(() => {
     const map = new Map<string, number>();
     for (const rp of restorePoints) {
@@ -154,15 +149,23 @@ export default function InventoryPage() {
     setSearchParams(params, { replace: true });
   };
 
-  // Count of the filters that live inside the Filters popover (the protection
-  // chips and the search box stay inline, so they don't count toward the badge).
-  const popoverFilterCount =
+  // The attribute selects on the toolbar.
+  const selectFilterCount =
     (envId !== "all" ? 1 : 0) +
     (os !== "all" ? 1 : 0) +
     (power !== "all" ? 1 : 0);
 
-  const hasActiveFilters =
-    protection !== "all" || popoverFilterCount > 0 || search.trim() !== "" || scope !== null;
+  // What "Clear filters" is allowed to appear for. The protection chips are
+  // self-clearing — the "All" chip sits right there in the same control — so a
+  // chip alone must not summon a second button that undoes it; that reads as
+  // noise every time the operator taps a status. A select, the search box or a
+  // tree scope has no such escape hatch beside it, so those do summon it. The
+  // button still clears everything, protection included, when it is shown.
+  const hasClearableFilters = selectFilterCount > 0 || search.trim() !== "" || scope !== null;
+
+  // The empty state is a different question: "no rows match" is worth offering
+  // to undo whatever caused it, chip included.
+  const hasActiveFilters = protection !== "all" || hasClearableFilters;
 
   const resetFilters = () => {
     setProtection("all");
@@ -176,29 +179,49 @@ export default function InventoryPage() {
     setSearchParams(params, { replace: true });
   };
 
-  // Clears only the four filters housed in the popover.
-  const clearPopoverFilters = () => {
-    setEnvId("all");
-    setOs("all");
-    setPower("all");
-  };
-
   // The only way in the UI to pull freshly-discovered hosts/VMs from the
   // hypervisors into the tree — used to live behind "Expand all" on the old
   // Topology tab; now a standalone action next to the estate navigator.
+  //
+  // `rescanEnvironment` resolves to null when the appliance could not reach the
+  // environment, so every rescan has a verdict — and the operator gets it.
+  // Silence used to be the only outcome either way.
   const handleRescan = async () => {
     if (rescanning || environments.length === 0) return;
     setRescanning(true);
     try {
-      await Promise.all(environments.map((env) => rescanEnvironment(env.id)));
+      const results = await Promise.all(environments.map((env) => rescanEnvironment(env.id)));
+      const answered = results.filter((r) => r !== null).length;
+      const total = results.length;
+      if (answered === total) {
+        toast.success(t("rescan.doneTitle"), {
+          description: t("rescan.doneDesc", { count: total }),
+        });
+      } else if (answered === 0) {
+        toast.error(t("rescan.failedTitle"), {
+          description: t("rescan.failedDesc", { count: total }),
+        });
+      } else {
+        toast.warning(t("rescan.partialTitle"), {
+          description: t("rescan.partialDesc", { ok: answered, total }),
+        });
+      }
     } finally {
       setRescanning(false);
     }
   };
 
-  const handleRescanEnvironment = (env: Environment) => {
-    toast.info(t("sourceSettings.rescan"), { description: env.name });
-    void rescanEnvironment(env.id);
+  const handleRescanEnvironment = async (env: Environment) => {
+    const result = await rescanEnvironment(env.id);
+    if (result) {
+      toast.success(t("rescan.oneDoneTitle", { name: env.name }), {
+        description: t("rescan.oneDoneDesc", { count: result.vmCount }),
+      });
+    } else {
+      toast.error(t("rescan.oneFailedTitle", { name: env.name }), {
+        description: t("rescan.oneFailedDesc"),
+      });
+    }
   };
 
   const [deleteEnvTarget, setDeleteEnvTarget] = useState<Environment | null>(null);
@@ -209,25 +232,18 @@ export default function InventoryPage() {
       {
         accessorKey: "name",
         header: t("table.vm"),
-        size: 260,
         cell: ({ row }) => {
           const vm = row.original;
-          const env = envName.get(vm.environmentId) ?? vm.environmentId;
           return (
             <div className="flex items-center gap-2.5">
               <VmIcon vm={vm} />
-              {/* min-w-0 lets the flex child shrink below its content width —
-                  without it `truncate` never engages and the name pushes the
-                  whole table wide. */}
-              <div className="min-w-0 flex-1">
-                <Hint label={vm.name}>
-                  <span className="block truncate font-medium">{vm.name}</span>
-                </Hint>
-                <Hint label={`${env} · ${vm.ipAddress}`}>
-                  <span className="block truncate text-xs text-muted-foreground">
-                    {env} · {vm.ipAddress}
-                  </span>
-                </Hint>
+              <div className="min-w-0 max-w-[240px]">
+                <div className="flex items-center gap-1.5">
+                  <span className="truncate font-medium">{vm.name}</span>
+                </div>
+                <span className="block truncate text-xs text-muted-foreground">
+                  {envName.get(vm.environmentId) ?? vm.environmentId} · {vm.ipAddress}
+                </span>
               </div>
             </div>
           );
@@ -236,13 +252,14 @@ export default function InventoryPage() {
       {
         id: "host",
         header: t("table.host"),
-        size: 170,
         accessorFn: (vm) => hostName.get(vm.hostId) ?? vm.hostId,
         cell: ({ row }) => {
           const host = hostName.get(row.original.hostId) ?? row.original.hostId;
           return (
             <Hint label={host}>
-              <span className="block truncate text-sm text-muted-foreground">{host}</span>
+              <span className="block max-w-[180px] truncate text-sm text-muted-foreground">
+                {host}
+              </span>
             </Hint>
           );
         },
@@ -250,7 +267,12 @@ export default function InventoryPage() {
       {
         id: "vmSize",
         header: t("table.vmSize"),
-        size: 100,
+        /* The orchestrator reports disk capacity but not per-VM used bytes, so this
+         * column falls back to provisioned. The header hint says which number the
+         * reader is looking at — the demo world does populate usedGB, and one
+         * unlabelled column that silently changes meaning between the two is
+         * exactly the kind of thing an operator sizes a repository against. */
+        meta: { tooltip: t("table.vmSizeHint") },
         accessorFn: (vm) => vm.usedGB || vm.provisionedGB,
         cell: ({ row }) => (
           <span className="nums text-sm">
@@ -259,9 +281,20 @@ export default function InventoryPage() {
         ),
       },
       {
+        id: "backupSize",
+        header: t("table.backupSize"),
+        meta: { tooltip: t("table.backupSizeHint") },
+        accessorFn: (vm) => backupSizeByVm.get(vm.id) ?? 0,
+        cell: ({ row }) => (
+          <span className="nums text-sm">
+            {formatStorage(backupSizeByVm.get(row.original.id) ?? 0, 0)}
+          </span>
+        ),
+      },
+      {
         accessorKey: "protection",
         header: t("table.protection"),
-        size: 130,
+        meta: { tooltip: t("table.protectionHint") },
         // Severity order so descending surfaces the most exposed VMs first.
         sortingFn: (a, b) => {
           const rank: Record<ProtectionStatus, number> = {
@@ -273,28 +306,8 @@ export default function InventoryPage() {
         },
         cell: ({ row }) => {
           const vm = row.original;
-          const note = vm.protectionNote ?? PROTECTION_META[vm.protection].label;
-          // Backup size lost its own column — it's a figure you consult about a
-          // specific VM, not one you scan down a list, so it rides the
-          // protection tooltip instead. Shown whenever there IS stored data
-          // (protected and at-risk VMs, and the rarer case of an unprotected VM
-          // still holding points from a deleted job) — never as a bare "0 B".
-          const backupGB = backupSizeByVm.get(vm.id) ?? 0;
           return (
-            <Hint
-              label={
-                backupGB > 0 ? (
-                  <>
-                    <span className="block">{note}</span>
-                    <span className="block text-muted-foreground">
-                      {t("table.backupSize")}: {formatStorage(backupGB, 0)}
-                    </span>
-                  </>
-                ) : (
-                  note
-                )
-              }
-            >
+            <Hint label={vm.protectionNote ?? PROTECTION_META[vm.protection].label}>
               <span className="inline-flex">
                 <StatusPill meta={PROTECTION_META[vm.protection]} size="sm" />
               </span>
@@ -305,22 +318,18 @@ export default function InventoryPage() {
       {
         accessorKey: "lastBackupAt",
         header: t("table.lastBackup"),
-        size: 130,
+        meta: { tooltip: t("table.lastBackupHint") },
         sortingFn: (a, b) => {
           const av = a.original.lastBackupAt ? new Date(a.original.lastBackupAt).getTime() : 0;
           const bv = b.original.lastBackupAt ? new Date(b.original.lastBackupAt).getTime() : 0;
           return av - bv;
         },
-        cell: ({ row }) => (
-          <span className="nums text-sm text-muted-foreground">
-            {formatRelative(row.original.lastBackupAt)}
-          </span>
-        ),
+        cell: ({ row }) => <TimeStamp value={row.original.lastBackupAt} />,
       },
       {
         accessorKey: "restorePointCount",
         header: t("table.points"),
-        size: 80,
+        meta: { tooltip: t("table.pointsHint") },
         cell: ({ row }) => (
           <span className="nums text-sm">{row.original.restorePointCount}</span>
         ),
@@ -332,7 +341,6 @@ export default function InventoryPage() {
       {
         id: "guestOs",
         header: t("table.guestOs"),
-        size: 110,
         // Sort by the family shown, not the raw product string behind the
         // tooltip — sorting a column by a value it doesn't display is a
         // usability trap ("Windows 11" and "Windows Server 2022" would sort
@@ -352,67 +360,78 @@ export default function InventoryPage() {
       {
         id: "action",
         header: "",
-        size: 110,
         enableSorting: false,
         cell: ({ row }) => {
           const vm = row.original;
+          // The row itself is clickable, so each link stops the click from also
+          // reaching the row's own navigation.
           if (vm.protection === "protected") {
             return (
               <Button
+                asChild
                 variant="ghost"
                 size="sm"
                 className="text-muted-foreground opacity-100 transition-opacity sm:opacity-0 sm:group-hover/row:opacity-100 sm:group-focus-within/row:opacity-100 sm:focus-visible:opacity-100"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  navigate(`/restore?vm=${vm.id}`);
-                }}
               >
-                {t("actions.restore")}
+                <Link to={`/restore?vm=${vm.id}`} onClick={(e) => e.stopPropagation()}>
+                  {t("actions.restore")}
+                </Link>
               </Button>
             );
           }
           const coveringJob = jobForVm.get(vm.id);
           return (
-            <Button
-              variant="subtle"
-              size="sm"
-              onClick={(e) => {
-                e.stopPropagation();
-                navigate(coveringJob ? `/jobs/${coveringJob}` : `/jobs/new/backup?vm=${vm.id}`);
-              }}
-            >
-              <Shield className="h-3.5 w-3.5" />
-              {t("actions.protect")}
+            <Button asChild variant="subtle" size="sm">
+              <Link
+                to={coveringJob ? `/jobs/${coveringJob}` : `/jobs/new/backup?vm=${vm.id}`}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <Shield className="h-3.5 w-3.5" />
+                {t("actions.protect")}
+              </Link>
             </Button>
           );
         },
       },
     ],
-    [envName, hostName, jobForVm, backupSizeByVm, navigate, t],
+    [envName, hostName, jobForVm, backupSizeByVm, t],
   );
 
   const runningCount = vms.filter((v) => v.powerState === "running").length;
+  // How much data is actually exposed, not just how many VMs are. A count of
+  // three unprotected VMs says nothing about whether that is a scratch box or
+  // the file server — the strip's percentage is a share, and this is its
+  // magnitude. Used bytes where the orchestrator reports them, provisioned
+  // where it doesn't, matching the VM size column's own fallback.
+  const exposedGB = useMemo(
+    () =>
+      vms.reduce(
+        (gb, v) => (v.protection === "protected" ? gb : gb + (v.usedGB || v.provisionedGB)),
+        0,
+      ),
+    [vms],
+  );
 
   return (
     <div className="space-y-4">
       <PageHeader
         title={t("page.title")}
-        icon={Server}
         description={t("header.description", { vms: vms.length, envs: environments.length, running: runningCount })}
         actions={
           <>
-            <Hint label="Rescan connected sources">
+            {/* Default size (h-9), not sm (h-8): the header actions and every
+                control on the toolbar below settle on one height. */}
+            <Hint label={t("rescan.tooltip")}>
               <Button
                 variant="outline"
-                size="sm"
                 onClick={() => void handleRescan()}
                 disabled={rescanning || environments.length === 0}
               >
                 <RefreshCw className={cn("h-4 w-4", rescanning && "animate-spin")} />
-                {rescanning ? "Rescanning…" : t("actions.rescanAll")}
+                {rescanning ? t("rescan.running") : t("actions.rescanAll")}
               </Button>
             </Hint>
-            <Button size="sm" onClick={() => setAddEnvOpen(true)}>
+            <Button onClick={() => setAddEnvOpen(true)}>
               <Plus className="h-4 w-4" />
               {t("actions.addEnvironment")}
             </Button>
@@ -425,10 +444,19 @@ export default function InventoryPage() {
         counts={counts}
         total={vms.length}
         running={runningCount}
+        exposedGB={exposedGB}
       />
 
-      {/* Toolbar: protection chips + filters + search */}
-      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+      {/* Toolbar. The filters used to hide behind a "Filters" popover while
+          Backup jobs put its filter inline beside a wide search — same job, two
+          grammars. This is the Backup jobs grammar: a search that takes the
+          slack, the selects beside it, nothing hidden.
+
+          Two tiers, not one row. Protection is the estate's primary
+          segmentation and stays a control of its own; the selects narrow within
+          it. Below `lg` the search takes its own line and the selects wrap in
+          pairs — full width below `sm`. */}
+      <div className="space-y-3">
         <ProtectionFilterChips
           value={protection}
           counts={counts}
@@ -436,134 +464,101 @@ export default function InventoryPage() {
           onChange={setProtectionFilter}
         />
 
-        <div className="flex flex-wrap items-center gap-2">
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-9"
-                aria-label={
-                  popoverFilterCount > 0
-                    ? t("filters.active", { count: popoverFilterCount })
-                    : t("filters.title")
-                }
-              >
-                <SlidersHorizontal className="h-4 w-4" />
-                {t("filters.title")}
-                {popoverFilterCount > 0 && (
-                  <Badge
-                    variant="default"
-                    className="ml-0.5 h-5 min-w-5 justify-center px-1.5 nums"
-                    aria-hidden
-                  >
-                    {popoverFilterCount}
-                  </Badge>
-                )}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent align="end" className="w-72 space-y-3">
-              <div className="flex items-center justify-between">
-                <p className="text-sm font-medium">{t("filters.title")}</p>
-                {popoverFilterCount > 0 && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={clearPopoverFilters}
-                    className="-mr-1.5 h-7 text-muted-foreground"
-                  >
-                    <X className="h-3.5 w-3.5" />
-                    {t("filters.clear")}
-                  </Button>
-                )}
-              </div>
-
-              <div className="space-y-1.5">
-                <Label htmlFor="filter-environment">{t("filters.environment")}</Label>
-                <Select value={envId} onValueChange={setEnvId}>
-                  <SelectTrigger id="filter-environment" className="h-9 w-full">
-                    <SelectValue placeholder={t("filters.placeholderEnvironment")} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">{t("filters.allEnvironments")}</SelectItem>
-                    {environments.map((e) => (
-                      <SelectItem key={e.id} value={e.id}>
-                        {e.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-1.5">
-                <Label htmlFor="filter-os">{t("filters.os")}</Label>
-                <Select value={os} onValueChange={(v) => setOs(v as OsFilter)}>
-                  <SelectTrigger id="filter-os" className="h-9 w-full">
-                    <SelectValue placeholder={t("filters.placeholderOs")} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">{t("filters.allOs")}</SelectItem>
-                    <SelectItem value="windows">{t("filters.windows")}</SelectItem>
-                    <SelectItem value="linux">{t("filters.linux")}</SelectItem>
-                    <SelectItem value="macos">{t("filters.macos")}</SelectItem>
-                    <SelectItem value="unknown">{t("filters.unknown")}</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-1.5">
-                <Label htmlFor="filter-power">{t("filters.power")}</Label>
-                <Select value={power} onValueChange={(v) => setPower(v as PowerFilter)}>
-                  <SelectTrigger id="filter-power" className="h-9 w-full">
-                    <SelectValue placeholder={t("filters.placeholderPower")} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">{t("filters.anyPower")}</SelectItem>
-                    {(Object.keys(POWER_META) as VM["powerState"][]).map((p) => (
-                      <SelectItem key={p} value={p}>
-                        {POWER_META[p].label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </PopoverContent>
-          </Popover>
-
-          <div className="relative">
-            <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        <div className="flex flex-col gap-2 lg:flex-row lg:flex-wrap lg:items-center">
+          {/* The 16rem floor is what makes the row wrap instead of collapse: a
+              search box you cannot read your own query in is worse than a
+              second line. */}
+          <div className="relative min-w-[16rem] flex-1">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder={t("search.vmsPlaceholder")}
-              className="h-9 w-[200px] pl-8"
+              className="pl-9"
               aria-label={t("search.vmsAria")}
             />
           </div>
 
-          {hasActiveFilters && (
-            <Button variant="ghost" size="sm" onClick={resetFilters} className="text-muted-foreground">
-              <X className="h-3.5 w-3.5" />
-              {t("filters.clear")}
-            </Button>
-          )}
+          <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
+            <Select value={envId} onValueChange={setEnvId}>
+              <SelectTrigger
+                id="filter-environment"
+                aria-label={t("filters.environment")}
+                className="w-full sm:w-40"
+              >
+                <SelectValue placeholder={t("filters.placeholderEnvironment")} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{t("filters.allEnvironments")}</SelectItem>
+                {environments.map((e) => (
+                  <SelectItem key={e.id} value={e.id}>
+                    {e.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Select value={os} onValueChange={(v) => setOs(v as OsFilter)}>
+              <SelectTrigger id="filter-os" aria-label={t("filters.os")} className="w-full sm:w-40">
+                <SelectValue placeholder={t("filters.placeholderOs")} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{t("filters.allOs")}</SelectItem>
+                <SelectItem value="windows">{t("filters.windows")}</SelectItem>
+                <SelectItem value="linux">{t("filters.linux")}</SelectItem>
+                <SelectItem value="unknown">{t("filters.unknown")}</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <Select value={power} onValueChange={(v) => setPower(v as PowerFilter)}>
+              <SelectTrigger id="filter-power" aria-label={t("filters.power")} className="w-full sm:w-40">
+                <SelectValue placeholder={t("filters.placeholderPower")} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{t("filters.anyPower")}</SelectItem>
+                {(Object.keys(POWER_META) as VM["powerState"][]).map((p) => (
+                  <SelectItem key={p} value={p}>
+                    {POWER_META[p].label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            {hasClearableFilters && (
+              <Button variant="ghost" onClick={resetFilters} className="text-muted-foreground">
+                <X className="h-3.5 w-3.5" />
+                {t("filters.clear")}
+              </Button>
+            )}
+          </div>
         </div>
       </div>
 
       {/* Body: the estate tree on the left, scoping the VM list on the right. */}
-      <div className="grid gap-4 lg:grid-cols-[300px_minmax(0,1fr)]">
-        <Card className="h-max overflow-hidden">
+      <div
+        ref={treeRow.rowRef}
+        className="grid gap-4 lg:grid-cols-[var(--estate-w)_minmax(0,1fr)]"
+        style={{ "--estate-w": `${treeRow.width}px` } as React.CSSProperties}
+      >
+        {/* `relative` anchors the drag strip, which sits in the grid gap. */}
+        <Card className="relative h-max overflow-visible">
           <ScopeHeader scope={scope} onClear={() => setScope(null)} total={vms.length} />
-          <div className="max-h-[64vh] overflow-y-auto p-2">
+          <div className="max-h-[64vh] overflow-y-auto overflow-x-hidden p-2">
             <EstateTree
               tree={tree}
               selectedKey={scope?.key ?? null}
               onSelectScope={setScope}
               onEditEnvironment={setEditEnvTarget}
-              onRescanEnvironment={handleRescanEnvironment}
+              onRescanEnvironment={(env) => void handleRescanEnvironment(env)}
               onDeleteEnvironment={setDeleteEnvTarget}
             />
           </div>
+          <ResizeHandle
+            width={treeRow.width}
+            onCommit={treeRow.commit}
+            onReset={treeRow.reset}
+            label={t("estate.resizeLabel")}
+          />
         </Card>
 
         <div className="min-w-0">
@@ -574,10 +569,6 @@ export default function InventoryPage() {
             onRowClick={(v) => navigate(`/inventory/${v.id}`)}
             initialSorting={[{ id: "protection", desc: true }]}
             pageSize={10}
-            // Narrowing the estate should show the result from the top; a
-            // background refresh of the same VMs should not move the page.
-            resetPageKey={`${scope?.key ?? ""}|${protection}|${envId}|${os}|${power}|${search.trim()}`}
-            fixedLayout
             rowClassName={() => "group/row"}
             emptyState={
               <EmptyState
@@ -626,13 +617,13 @@ function ScopeHeader({
 }) {
   const { t } = useTranslation("inventory");
   return (
-    <div className="flex items-center justify-between gap-2 border-b border-border/70 px-3 py-2">
+    <div className="flex items-center justify-between gap-2 border-b border-border px-3 py-2">
       <button
         type="button"
         onClick={onClear}
         aria-current={scope === null ? "true" : undefined}
         className={cn(
-          "flex items-center gap-2 rounded-md px-1.5 py-1 text-left text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+          "flex items-center gap-2 px-1.5 py-1 text-left text-sm transition-colors",
           scope === null ? "font-semibold text-foreground" : "text-muted-foreground hover:text-foreground",
         )}
       >

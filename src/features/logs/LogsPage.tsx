@@ -4,9 +4,10 @@
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { Cpu, Download, FileText, Package, type LucideIcon } from "@/lib/icons";
-import { cn } from "@/lib/utils";
-import { toneChip, toneFg, type Tone } from "@/lib/status";
+import { type Tone } from "@/lib/status";
 import { PageHeader } from "@/components/PageHeader";
+import { KpiBand } from "@/components/KpiBand";
+import { KpiCard } from "@/components/KpiCard";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -67,7 +68,7 @@ export default function LogsPage() {
       {
         label: t("stats.systemWarnings"),
         value: warnings24,
-        tone: warnings24 > 0 ? "warning" : "success",
+        tone: warnings24 > 0 ? "warning" : "neutral",
         icon: FileText,
       },
       {
@@ -99,22 +100,25 @@ export default function LogsPage() {
         actions={
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm">
+              <Button variant="outline">
                 <Download className="mr-1.5 h-4 w-4" />
                 {t("actions.export")}
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-52">
+            <DropdownMenuContent align="end" className="w-64">
               <DropdownMenuLabel>{t("export.menuLabel")}</DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={() => void onExportSupportBundle()}>
                 <Package className="mr-2 h-4 w-4" />
                 {t("export.supportBundle")}
               </DropdownMenuItem>
+              {/* The whole system log, unfiltered — the log view below has its
+                  own button for the filtered view. Same bytes, different scope,
+                  so the label and the filename both have to say which is which. */}
               <DropdownMenuItem
                 onClick={() => {
                   downloadText(
-                    `altastor-system-${fileStamp()}.log`,
+                    `altastor-system-full-${fileStamp()}.log`,
                     system.map((e) => `${e.ts} ${e.level.toUpperCase()} [${e.source}] ${e.message}`).join("\n"),
                   );
                   toast.success(t("toast.exportedSystem", { count: system.length }));
@@ -128,27 +132,11 @@ export default function LogsPage() {
         }
       />
 
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-        {stats.map((s) => {
-          const Icon = s.icon;
-          return (
-            <div
-              key={s.label}
-              className="flex items-center gap-3 rounded-xl border border-border/70 bg-card p-3.5 shadow-card"
-            >
-              <span className={cn("flex h-9 w-9 shrink-0 items-center justify-center rounded-lg", toneChip(s.tone))}>
-                <Icon className="h-4 w-4" />
-              </span>
-              <div className="min-w-0">
-                <span className={cn("nums block text-xl font-semibold leading-none tracking-tight", toneFg(s.tone))}>
-                  {s.value}
-                </span>
-                <p className="mt-1 truncate text-xs text-muted-foreground" title={s.label}>{s.label}</p>
-              </div>
-            </div>
-          );
-        })}
-      </div>
+      <KpiBand className="sm:grid-cols-2 xl:grid-cols-2">
+        {stats.map((s) => (
+          <KpiCard key={s.label} icon={s.icon} tone={s.tone} label={s.label} value={s.value} />
+        ))}
+      </KpiBand>
 
       <SystemLogTab entries={system} mode={mode} />
     </div>

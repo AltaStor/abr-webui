@@ -49,40 +49,51 @@ export function RunFeed({ sessions, filtered, onReset, onOpen }: RunFeedProps) {
 
   return (
     <Card className="overflow-hidden">
-      {/* Column header — visual aid only; each row carries a full aria-label for SR. */}
-      <div
-        aria-hidden="true"
-        className={`${ROW_GRID} border-b border-border/60 bg-muted/30 px-4 py-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/70`}
-      >
-        <span>{t("feed.columns.status")}</span>
-        <span>{t("feed.columns.run")}</span>
-        <span>{t("feed.columns.started")}</span>
-        <span>{t("feed.columns.duration")}</span>
-        {/* Neutral header — a run's objects may be VMs, disks or servers. */}
-        <span>{t("feed.columns.objects")}</span>
-        <span>{t("feed.columns.read")}</span>
-        <span className="text-right">{t("feed.columns.sent")}</span>
+      {/* The seven columns need 57.5rem (49.5rem of tracks, 6rem of gaps, 2rem of
+          row padding). Narrower than that the grid scrolls sideways in here,
+          rather than being silently clipped by the card and stranding its
+          right-hand columns. Keep this in step with ROW_GRID: no track can
+          shrink, so a widened column that misses this guard overflows by
+          exactly the difference. The footer sits outside the scroller so paging
+          stays put. */}
+      <div className="overflow-x-auto">
+        <div className="min-w-[57.5rem]">
+          {/* Column header — visual aid only; each row carries a full aria-label for SR. */}
+          <div
+            aria-hidden="true"
+            className={`${ROW_GRID} label-overline border-b border-border bg-muted/30 px-4 py-2`}
+          >
+            <span>{t("feed.columns.status")}</span>
+            <span>{t("feed.columns.run")}</span>
+            <span>{t("feed.columns.started")}</span>
+            <span>{t("feed.columns.duration")}</span>
+            {/* Neutral header — a run's objects may be VMs, disks or servers. */}
+            <span>{t("feed.columns.objects")}</span>
+            <span>{t("feed.columns.read")}</span>
+            <span className="text-right">{t("feed.columns.sent")}</span>
+          </div>
+
+          <div role="list" aria-label={t("feed.listLabel")} className="divide-y divide-border/40">
+            <AnimatePresence initial={false}>
+              {visible.map((s) => (
+                <motion.div
+                  key={s.id}
+                  role="listitem"
+                  layout
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.18 }}
+                >
+                  <RunRow session={s} onOpen={onOpen} />
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          </div>
+        </div>
       </div>
 
-      <div role="list" aria-label={t("feed.listLabel")} className="divide-y divide-border/40">
-        <AnimatePresence initial={false}>
-          {visible.map((s) => (
-            <motion.div
-              key={s.id}
-              role="listitem"
-              layout
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.18 }}
-            >
-              <RunRow session={s} onOpen={onOpen} />
-            </motion.div>
-          ))}
-        </AnimatePresence>
-      </div>
-
-      <div className="flex items-center justify-between border-t border-border/60 px-4 py-2.5 text-xs text-muted-foreground">
+      <div className="flex items-center justify-between border-t border-border px-4 py-2.5 text-xs text-muted-foreground">
         <span className="nums">
           {t("feed.showing", { visible: visible.length, total: sessions.length })}
         </span>

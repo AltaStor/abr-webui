@@ -20,7 +20,12 @@
     "runJobLabel": "Run · {{name}}",
     "started": "Started “{{name}}”",
     "startedDescription": "Watch it progress live in Activity.",
-    "alreadyRunning": "“{{name}}” is already running or disabled."
+    "alreadyRunning": "“{{name}}” is already running.",
+    "alreadyRunningDescription": "Let the current run finish first.",
+    "jobDisabled": "“{{name}}” is disabled",
+    "jobDisabledDescription": "Enable the job to run it.",
+    "runRefused": "Couldn’t start “{{name}}”",
+    "runRefusedDescription": "The appliance didn’t start the run and gave no reason. Try again from the job’s page."
   },
   "topbar": {
     "openMenu": "Open menu",
@@ -52,5 +57,9 @@
     "title": "Incompatible API version",
     "fallback": "The console and appliance API versions are incompatible. Reload after the deployment finishes, or contact your administrator.",
     "reload": "Reload"
+  },
+  "offline": {
+    "title": "Lost contact with the appliance.",
+    "body": "Nothing on this page is updating — runs, capacity and alerts are whatever they were when the connection dropped. Reconnecting in the background."
   }
 }

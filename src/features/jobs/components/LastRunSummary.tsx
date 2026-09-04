@@ -4,9 +4,10 @@
 import { useTranslation } from "react-i18next";
 import { CheckCircle2, AlertTriangle, XCircle } from "@/lib/icons";
 import { Card } from "@/components/ui/card";
+import { Metric } from "@/components/Metric";
 import { StatusPill } from "@/components/StatusPill";
 import { SESSION_META } from "@/lib/status";
-import { formatDuration, formatRelative, formatStorage, formatThroughput } from "@/lib/format";
+import { formatDateTime, formatDuration, formatRelative, formatStorage, formatThroughput } from "@/lib/format";
 import type { Session } from "@/types";
 
 /**
@@ -40,7 +41,12 @@ export function LastRunSummary({ session }: { session: Session }) {
           <div>
             <h3 className="text-sm font-semibold">{t("lastRun.title")}</h3>
             <p className="text-xs text-muted-foreground">
-              {session.finishedAt ? formatRelative(session.finishedAt) : t("common:generic.na")}
+              {session.finishedAt
+                ? t("lastRun.finishedAt", {
+                    rel: formatRelative(session.finishedAt),
+                    abs: formatDateTime(session.finishedAt),
+                  })
+                : t("common:generic.na")}
             </p>
           </div>
         </div>
@@ -52,24 +58,15 @@ export function LastRunSummary({ session }: { session: Session }) {
       )}
 
       <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <Metric label={t("objects.vms")} value={`${session.vmCount}`} />
-        <Metric label={t("metrics.processed")} value={formatStorage(session.processedGB)} />
-        <Metric label={t("metrics.transferred")} value={formatStorage(session.transferredGB)} />
-        <Metric label={t("metrics.duration")} value={formatDuration(session.durationSec)} />
+        <Metric surface="inset" label={t("objects.vms")} value={`${session.vmCount}`} />
+        <Metric surface="inset" label={t("metrics.processed")} value={formatStorage(session.processedGB)} />
+        <Metric surface="inset" label={t("metrics.transferred")} value={formatStorage(session.transferredGB)} />
+        <Metric surface="inset" label={t("metrics.duration")} value={formatDuration(session.durationSec)} />
       </div>
-      <p className="mt-3 text-[11px] text-muted-foreground/70">
+      <p className="mt-3 text-[11px] text-muted-foreground">
         {t("lastRun.avgPrefix")} {formatThroughput(session.throughputMBps)} ·{" "}
         {session.backupType === "incremental" ? t("runType.incremental") : t("runType.full")} {t("lastRun.kindBackup")}
       </p>
     </Card>
-  );
-}
-
-function Metric({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-lg border border-border/60 bg-muted/20 p-2.5">
-      <div className="text-[11px] uppercase tracking-wide text-muted-foreground/70">{label}</div>
-      <div className="nums mt-0.5 text-sm font-semibold">{value}</div>
-    </div>
   );
 }

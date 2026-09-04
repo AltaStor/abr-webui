@@ -2,6 +2,7 @@
 // Copyright © 2026 Norvitex OÜ
 
 import { useEffect, useState } from "react";
+import { Trans, useTranslation } from "react-i18next";
 import { Trash2 } from "@/lib/icons";
 import {
   Dialog,
@@ -39,6 +40,7 @@ export function DeleteJobVmBackupsDialog({
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
+  const { t } = useTranslation("jobs");
   const deleteRestorePoint = useWorldStore((s) => s.deleteRestorePoint);
   const [deleting, setDeleting] = useState(false);
 
@@ -59,15 +61,20 @@ export function DeleteJobVmBackupsDialog({
       const results = await Promise.all(vm.chainIds.map((chainId) => deleteRestorePoint(chainId)));
       const failure = results.find((r) => !r.ok && r.reason === "error");
       if (failure && !failure.ok && failure.reason === "error") {
-        toast.error("Couldn't delete backup", { description: failure.message });
+        toast.error(t("deleteBackup.errorTitle"), { description: failure.message });
         return;
       }
-      toast.success("Backup deleted", {
-        description: `${vm.points.length} restore point${vm.points.length === 1 ? "" : "s"} removed for ${vm.name}.`,
+      toast.success(t("deleteBackup.successTitle"), {
+        description: t("deleteBackup.successDesc", {
+          count: vm.points.length,
+          name: vm.name,
+        }),
       });
       onOpenChange(false);
     } catch {
-      toast.error("Couldn't delete backup", { description: "Appliance unreachable" });
+      toast.error(t("deleteBackup.errorTitle"), {
+        description: t("deleteBackup.errorUnreachable"),
+      });
     } finally {
       setDeleting(false);
     }
@@ -77,24 +84,30 @@ export function DeleteJobVmBackupsDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <div className="mb-1 flex h-10 w-10 items-center justify-center rounded-lg bg-danger-subtle text-danger">
+          <div className="mb-1 flex h-10 w-10 items-center justify-center bg-danger-subtle text-danger">
             <Trash2 className="h-5 w-5" />
           </div>
-          <DialogTitle>Delete backup?</DialogTitle>
+          <DialogTitle>{t("deleteBackup.title")}</DialogTitle>
           <DialogDescription>
-            This removes every restore point <span className="font-medium text-foreground">{vm.name}</span>{" "}
-            has from <span className="font-medium text-foreground">{jobName}</span> — the full backup and
-            every incremental chained onto it.
+            <Trans
+              i18nKey="deleteBackup.description"
+              ns="jobs"
+              values={{ vm: vm.name, job: jobName }}
+              components={{
+                1: <span className="font-medium text-foreground" />,
+                2: <span className="font-medium text-foreground" />,
+              }}
+            />
           </DialogDescription>
         </DialogHeader>
 
-        <div className="rounded-lg border border-border/70 bg-muted/30 p-3">
+        <div className="border border-border bg-muted/30 p-3">
           <div className="flex items-center justify-between text-sm">
             <span className="font-medium">
-              {vm.points.length} restore point{vm.points.length === 1 ? "" : "s"}
+              {t("deleteBackup.pointsCount", { count: vm.points.length })}
             </span>
-            {vm.storedGB > 0 && (
-              <span className="nums text-muted-foreground">{formatStorage(vm.storedGB, 1)}</span>
+            {vm.logicalGB > 0 && (
+              <span className="nums text-muted-foreground">{formatStorage(vm.logicalGB, 1)}</span>
             )}
           </div>
           <p className="mt-0.5 text-xs text-muted-foreground">
@@ -105,17 +118,21 @@ export function DeleteJobVmBackupsDialog({
         </div>
 
         <p className="text-xs leading-relaxed text-muted-foreground">
-          This can't be undone. <span className="font-medium text-foreground">{vm.name}</span> won't be
-          recoverable from these points once they're gone.
+          <Trans
+            i18nKey="deleteBackup.warning"
+            ns="jobs"
+            values={{ vm: vm.name }}
+            components={{ 1: <span className="font-medium text-foreground" /> }}
+          />
         </p>
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
+            {t("common:actions.cancel")}
           </Button>
           <Button variant="destructive" disabled={deleting} onClick={() => void handleConfirm()}>
             <Trash2 className="h-4 w-4" />
-            {deleting ? "Deleting…" : "Delete backup"}
+            {deleting ? t("deleteBackup.deleting") : t("deleteBackup.confirm")}
           </Button>
         </DialogFooter>
       </DialogContent>

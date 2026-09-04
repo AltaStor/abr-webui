@@ -19,25 +19,33 @@ import type { AccentKey } from "@/types";
 import { useSettingsStore } from "@/store/settings";
 import type { AppearanceSettings } from "@/store/settings";
 
-/** Per-accent HSL triples (space-separated, to slot into hsl(var(--…))). */
-const ACCENT: Record<Exclude<AccentKey, "cyan">, { primary: string; fg: string; ring: string }> = {
-  emerald: { primary: "152 58% 42%", fg: "150 80% 97%", ring: "152 58% 46%" },
-  blue: { primary: "214 82% 54%", fg: "210 90% 98%", ring: "214 82% 58%" },
-  violet: { primary: "262 60% 60%", fg: "265 90% 98%", ring: "262 60% 64%" },
-  amber: { primary: "36 92% 50%", fg: "30 90% 10%", ring: "36 92% 52%" },
+/**
+ * Per-accent HSL triples (space-separated, to slot into hsl(var(--…))).
+ *
+ * Curated to the brand's two accents. Emerald, violet and amber were retired:
+ * the brand has exactly two chromatic colours, and stray hues collide with the
+ * semantic vocabulary — amber reads as "warning", and the calm states
+ * (protected, running, sealed) already own the brand's blues. `AccentKey` stays
+ * wider on purpose, because stored preferences still name the retired keys;
+ * those fall back to the Ice default below.
+ */
+const ACCENT: Partial<Record<AccentKey, { primary: string; fg: string; ring: string }>> = {
+  // Signal Blue #3179C4 — the brand's secondary accent.
+  blue: { primary: "211 60% 48%", fg: "210 90% 98%", ring: "211 60% 52%" },
 };
 
 export function applyAppearance(a: AppearanceSettings): void {
   if (typeof document === "undefined") return;
   const root = document.documentElement;
 
-  // Accent — "cyan" is the brand Ice/Glacial default, so remove any override.
-  if (a.accent === "cyan") {
+  // Accent — "cyan" is the brand Ice default, so it removes any override. A
+  // preference saved against a retired accent falls back to the same default.
+  const c = a.accent === "cyan" ? undefined : ACCENT[a.accent];
+  if (!c) {
     root.style.removeProperty("--primary");
     root.style.removeProperty("--primary-foreground");
     root.style.removeProperty("--ring");
   } else {
-    const c = ACCENT[a.accent];
     root.style.setProperty("--primary", c.primary);
     root.style.setProperty("--primary-foreground", c.fg);
     root.style.setProperty("--ring", c.ring);

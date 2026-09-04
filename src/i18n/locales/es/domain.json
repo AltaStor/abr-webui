@@ -12,10 +12,26 @@
     "queued": "En cola"
   },
   "sourceType": {
-    "vm": { "noun": "VM", "nounPlural": "VMs", "jobLabel": "Copia de seguridad de VM" },
-    "disk": { "noun": "disco", "nounPlural": "discos", "jobLabel": "Copia de seguridad de disco" },
-    "files": { "noun": "servidor", "nounPlural": "servidores", "jobLabel": "Copia de seguridad de archivos" },
-    "physicalHost": { "noun": "servidor", "nounPlural": "servidores", "jobLabel": "Copia de seguridad de servidor físico" }
+    "vm": {
+      "noun": "VM",
+      "nounPlural": "VMs",
+      "jobLabel": "Copia de seguridad de VM"
+    },
+    "disk": {
+      "noun": "disco",
+      "nounPlural": "discos",
+      "jobLabel": "Copia de seguridad de disco"
+    },
+    "files": {
+      "noun": "servidor",
+      "nounPlural": "servidores",
+      "jobLabel": "Copia de seguridad de archivos"
+    },
+    "physicalHost": {
+      "noun": "servidor",
+      "nounPlural": "servidores",
+      "jobLabel": "Copia de seguridad de servidor físico"
+    }
   },
   "objectCount": {
     "vm_one": "{{count}} VM",
@@ -28,9 +44,24 @@
     "physicalHost_other": "{{count}} servidores"
   },
   "platform": {
-    "vmware": { "label": "VMware vSphere", "short": "vSphere", "hostTerm": "host", "hostTermPlural": "hosts" },
-    "proxmox": { "label": "Proxmox VE", "short": "Proxmox", "hostTerm": "nodo", "hostTermPlural": "nodos" },
-    "hyperv": { "label": "Microsoft Hyper-V", "short": "Hyper-V", "hostTerm": "host", "hostTermPlural": "hosts" }
+    "vmware": {
+      "label": "VMware vSphere",
+      "short": "vSphere",
+      "hostTerm": "host",
+      "hostTermPlural": "hosts"
+    },
+    "proxmox": {
+      "label": "Proxmox VE",
+      "short": "Proxmox",
+      "hostTerm": "nodo",
+      "hostTermPlural": "nodos"
+    },
+    "hyperv": {
+      "label": "Microsoft Hyper-V",
+      "short": "Hyper-V",
+      "hostTerm": "host",
+      "hostTermPlural": "hosts"
+    }
   },
   "raid": {
     "hint": {
@@ -63,7 +94,11 @@
     },
     "error": {
       "title": "No se pudo conectar con la appliance",
-      "description": "¿Está el backend (server/) en ejecución en :4980?"
+      "description": "Compruebe que la appliance está encendida y es accesible en su red, y vuelva a intentarlo."
+    },
+    "unreachable": {
+      "title": "No se puede acceder a la appliance: se muestran datos de demostración",
+      "description": "Todo lo de abajo es un ejemplo autónomo, no sus sistemas. Compruebe que la appliance está encendida y es accesible, y recargue. ⌘K → «Conectar con la appliance» para reintentar."
     }
   }
 }

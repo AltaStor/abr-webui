@@ -19,8 +19,6 @@ interface DialogState {
  * dialog is open. Rescan is a real mutation — it calls the world store, which
  * drives `integrityStatus` (→ "scanning" then settles) — so this hook derives
  * that flag from the store rather than tracking an optimistic override.
- * `maintenanceMode` has no orchestrator support, so there is no action to
- * toggle it; `isMaintenance` only reads whatever the store already reports.
  */
 export function useRepositoryManagement() {
   const [dialog, setDialog] = useState<DialogState | null>(null);
@@ -57,12 +55,6 @@ export function useRepositoryManagement() {
     [rescanRepository],
   );
 
-  /** Effective maintenance state is store-driven (read-only — see above). */
-  const isMaintenance = useCallback(
-    (repo: Repository) => repo.maintenanceMode ?? false,
-    [],
-  );
-
   /** A scan is in flight when the store has flipped integrity to "scanning". */
   const isScanning = useCallback((repo: Repository) => repo.integrityStatus === "scanning", []);
 
@@ -72,7 +64,6 @@ export function useRepositoryManagement() {
     openDelete,
     closeDialog,
     rescan,
-    isMaintenance,
     isScanning,
   };
 }

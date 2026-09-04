@@ -10,23 +10,25 @@ import {
   ServerCog,
   ShieldAlert,
   Trash2,
-  Wrench,
+  X,
   type LucideIcon,
 } from "@/lib/icons";
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { KpiCard } from "@/components/KpiCard";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { StatusPill } from "@/components/StatusPill";
 import { Sparkline } from "@/components/Sparkline";
 import { cn } from "@/lib/utils";
 import { useCapacityLevel } from "@/lib/capacity";
-import { formatInt, formatRelative, formatStorage, usagePercent } from "@/lib/format";
+import { formatDateTime, formatInt, formatRelative, formatStorage, usagePercent } from "@/lib/format";
 import type { RepoThreatLock } from "@/lib/threatLock";
 import type { BackupJob, Repository } from "@/types";
 import { REPO_STATUS_META, REPO_TYPE_META } from "./repoMeta";
@@ -38,7 +40,6 @@ interface RepositoryDetailDialogProps {
   restorePointCount: number;
   onClose: () => void;
   actions: RepositoryActions;
-  maintenance: boolean;
   scanning: boolean;
   /** Set when auto-lock-on-threat has sealed this repo (derived, presentational). */
   threatLock?: RepoThreatLock | null;
@@ -50,20 +51,22 @@ export function RepositoryDetailDialog({
   restorePointCount,
   onClose,
   actions,
-  maintenance,
   scanning,
   threatLock,
 }: RepositoryDetailDialogProps) {
   return (
     <Dialog open={!!repo} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-xl p-0">
+      {/* `hideClose`: the floating `right-4 top-4` close landed on top of this
+          dialog's own header controls, which sit inside the header's p-6. The
+          header renders the close as the last control in that row instead, so
+          status / manage / close share one baseline and one button size. */}
+      <DialogContent className="max-w-xl p-0" hideClose>
         {repo && (
           <RepositoryDetailBody
             repo={repo}
             jobs={jobs}
             restorePointCount={restorePointCount}
             actions={actions}
-            maintenance={maintenance}
             scanning={scanning}
             threatLock={threatLock}
           />
@@ -78,7 +81,6 @@ function RepositoryDetailBody({
   jobs,
   restorePointCount,
   actions,
-  maintenance,
   scanning,
   threatLock,
 }: {
@@ -86,11 +88,11 @@ function RepositoryDetailBody({
   jobs: BackupJob[];
   restorePointCount: number;
   actions: RepositoryActions;
-  maintenance: boolean;
   scanning: boolean;
   threatLock?: RepoThreatLock | null;
 }) {
   const { t } = useTranslation("repositories");
+  const { t: tCommon } = useTranslation("common");
   const typeMeta = REPO_TYPE_META[repo.type];
   const statusMeta = REPO_STATUS_META[repo.status];
   const TypeIcon = typeMeta.icon;
@@ -105,30 +107,33 @@ function RepositoryDetailBody({
 
   return (
     <>
-      <DialogHeader className="border-b border-border/70 p-6 pb-5">
+      <DialogHeader className="border-b border-border p-6 pb-5">
         <div className="flex items-start gap-3">
-          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground">
+          <span className="flex h-11 w-11 shrink-0 items-center justify-center bg-muted text-muted-foreground">
             <TypeIcon className="h-5 w-5" />
           </span>
           <div className="min-w-0 flex-1">
             <DialogTitle className="truncate">{repo.name}</DialogTitle>
             <DialogDescription className="mt-1">{typeMeta.label}</DialogDescription>
           </div>
-          <div className="flex items-center gap-2">
-            <StatusPill meta={{ ...statusMeta, icon: Database }} size="sm" withIcon={false} />
+          <div className="flex shrink-0 items-center gap-1">
+            <StatusPill
+              meta={{ ...statusMeta, icon: Database }}
+              size="sm"
+              withIcon={false}
+              className="mr-1"
+            />
             <RepositoryActionsMenu {...actions} scanning={scanning} repoName={repo.name} />
+            <DialogClose asChild>
+              <Button variant="ghost" size="icon" aria-label={tCommon("actions.close")}>
+                <X className="h-4 w-4" />
+              </Button>
+            </DialogClose>
           </div>
         </div>
 
-        {maintenance && (
-          <div className="mt-3 inline-flex w-fit items-center gap-1.5 bg-warning-subtle px-2.5 py-1 text-xs font-medium text-warning-text">
-            <Wrench className="h-3.5 w-3.5" />
-            {t("detail.inMaintenance")}
-          </div>
-        )}
-
         {threatLock && (
-          <div className="mt-3 flex items-start gap-2 rounded-lg border border-danger/25 bg-danger-subtle/60 px-3 py-2.5">
+          <div className="mt-3 flex items-start gap-2 border border-danger/25 bg-danger-subtle/60 px-3 py-2.5">
             <ShieldAlert className="mt-0.5 h-4 w-4 shrink-0 text-danger" />
             <div className="min-w-0">
               <p className="text-xs font-semibold text-danger-text">{t("detail.threatLockedTitle")}</p>
@@ -144,7 +149,7 @@ function RepositoryDetailBody({
         <div className="space-y-5 p-6 pt-5">
           {/* Path */}
           <Field icon={ServerCog} label={t("detail.storagePath")}>
-            <code className="nums rounded-md bg-muted/60 px-2 py-1 text-xs">{repo.path}</code>
+            <code className="nums bg-muted/60 px-2 py-1 text-xs">{repo.path}</code>
           </Field>
 
           {/* Capacity */}
@@ -209,7 +214,8 @@ function RepositoryDetailBody({
           </div>
 
           {/* Quick stats */}
-          <StatTile
+          <KpiCard
+            density="compact"
             icon={Database}
             label={t("card.metric.restorePoints")}
             value={formatInt(restorePointCount)}
@@ -217,8 +223,11 @@ function RepositoryDetailBody({
 
           {/* Last rescan */}
           <Field icon={RefreshCw} label={t("detail.lastScan")}>
-            <span className="nums text-xs text-muted-foreground">
+            <span className="nums text-right text-xs text-muted-foreground">
               {formatRelative(repo.lastScanAt ?? null)}
+              {repo.lastScanAt && (
+                <span className="block text-[11px]">{formatDateTime(repo.lastScanAt)}</span>
+              )}
             </span>
           </Field>
 
@@ -229,7 +238,7 @@ function RepositoryDetailBody({
               <span className="nums text-xs text-muted-foreground">{jobs.length}</span>
             </div>
             {jobs.length === 0 ? (
-              <p className="rounded-lg border border-dashed border-border/70 px-3 py-4 text-center text-xs text-muted-foreground">
+              <p className="border border-dashed border-border px-3 py-4 text-center text-xs text-muted-foreground">
                 {t("detail.noJobsTarget")}
               </p>
             ) : (
@@ -238,7 +247,7 @@ function RepositoryDetailBody({
                   <li key={job.id}>
                     <Link
                       to={`/jobs/${job.id}`}
-                      className="group flex items-center justify-between gap-3 rounded-lg border border-border/70 px-3 py-2 transition-colors hover:border-border hover:bg-accent/50"
+                      className="group flex items-center justify-between gap-3 border border-border px-3 py-2 transition-colors hover:border-border hover:bg-accent/50"
                     >
                       <span className="flex min-w-0 items-center gap-2">
                         <span
@@ -269,7 +278,7 @@ function RepositoryDetailBody({
       </ScrollArea>
 
       {/* Actions footer */}
-      <div className="flex flex-wrap items-center justify-end gap-2 border-t border-border/70 p-4">
+      <div className="flex flex-wrap items-center justify-end gap-2 border-t border-border p-4">
         <Button variant="outline" size="sm" onClick={actions.onRescan} disabled={scanning}>
           <RefreshCw className={scanning ? "h-4 w-4 animate-spin" : "h-4 w-4"} />
           {scanning ? t("actions.scanning") : t("detail.footer.rescan")}
@@ -308,25 +317,3 @@ function Field({
   );
 }
 
-function StatTile({
-  icon: Icon,
-  label,
-  value,
-  hint,
-}: {
-  icon: LucideIcon;
-  label: string;
-  value: string;
-  hint?: string;
-}) {
-  return (
-    <div className="rounded-lg border border-border/60 bg-muted/30 p-3">
-      <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-        <Icon className="h-3.5 w-3.5" />
-        {label}
-      </div>
-      <div className="nums mt-1 text-base font-semibold">{value}</div>
-      {hint && <div className="nums text-[11px] text-muted-foreground">{hint}</div>}
-    </div>
-  );
-}

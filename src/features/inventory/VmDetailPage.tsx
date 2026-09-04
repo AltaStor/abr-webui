@@ -3,7 +3,7 @@
 
 import { Fragment, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import {
   ArrowRight,
   Calendar,
@@ -38,7 +38,8 @@ import { Badge } from "@/components/ui/badge";
 import { StatusPill, StatusDot } from "@/components/StatusPill";
 import { toast } from "@/components/ui/sonner";
 import { cn } from "@/lib/utils";
-import { formatRelative, formatStorage, formatDuration } from "@/lib/format";
+import { formatStorage, formatDuration } from "@/lib/format";
+import { TimeStamp } from "@/components/TimeStamp";
 import { selfContainedNote } from "@/lib/restore-points";
 import { SESSION_META, toneFg } from "@/lib/status";
 import { useWorldStore } from "@/store/world";
@@ -53,10 +54,21 @@ import { RestorePointItem } from "./components/RestorePointItem";
 import { RestorePointCalendar } from "./components/RestorePointCalendar";
 import { POWER_META, osFamilyLabel } from "./components/vm-presentation";
 
+/** Where the operator came from, carried in react-router's location state.
+ *  It travels with the navigation and leaves the URL untouched, so a deep link
+ *  or a pasted address still resolves to the plain Inventory breadcrumb. Only
+ *  the id is carried: the job's name is read live below, so a renamed job never
+ *  shows a stale label and a deleted one degrades instead of lying. */
+export interface VmDetailOrigin {
+  /** The job whose Objects tab this VM was opened from. */
+  fromJobId?: string;
+}
+
 export default function VmDetailPage() {
   const { t } = useTranslation("inventory");
   const { vmId } = useParams();
   const navigate = useNavigate();
+  const origin = useLocation().state as VmDetailOrigin | null;
   const [pointToDelete, setPointToDelete] = useState<RestorePoint | null>(null);
   const [rpView, setRpView] = useState<"list" | "calendar">("list");
 
@@ -121,6 +133,11 @@ export default function VmDetailPage() {
   const powerMeta = POWER_META[vm.powerState];
   const primaryJob = coveringJobs[0];
   const isRunning = primaryJob?.state === "running";
+  // Arriving from a job's Objects tab is a one-way trip unless the header says
+  // so: the URL is the same /inventory/:vmId either way, so the origin job is
+  // resolved from navigation state and named live. Gone job, no state, or a
+  // reloaded deep link all fall back to the Inventory breadcrumb.
+  const originJob = origin?.fromJobId ? jobs.find((j) => j.id === origin.fromJobId) : undefined;
   const unreachableCount = points.filter((p) => offlineRepoIds.has(p.repositoryId)).length;
 
   const onBackUpNow = async () => {
@@ -143,7 +160,14 @@ export default function VmDetailPage() {
   return (
     <div className="space-y-4">
       <PageHeader
-        backTo={{ href: "/inventory", label: t("page.title") }}
+        backTo={
+          originJob
+            ? {
+                href: `/jobs/${originJob.id}`,
+                label: t("jobs:notFound.backTo", { section: originJob.name }),
+              }
+            : { href: "/inventory", label: t("page.title") }
+        }
         title={
           <span className="flex items-center gap-2.5">
             <PowerDot state={vm.powerState} />
@@ -162,9 +186,11 @@ export default function VmDetailPage() {
         actions={
           <>
             {vm.protection !== "unprotected" && (
-              <Button variant="outline" onClick={() => navigate(`/restore?vm=${vm.id}`)}>
-                <RotateCcw className="h-4 w-4" />
-                {t("actions.restore")}
+              <Button variant="outline" asChild>
+                <Link to={`/restore?vm=${vm.id}`}>
+                  <RotateCcw className="h-4 w-4" />
+                  {t("actions.restore")}
+                </Link>
               </Button>
             )}
             {primaryJob ? (
@@ -173,9 +199,11 @@ export default function VmDetailPage() {
                 {isRunning ? t("actions.running") : t("actions.backUpNow")}
               </Button>
             ) : (
-              <Button onClick={() => navigate(`/jobs/new/backup?vm=${vm.id}`)}>
-                <Shield className="h-4 w-4" />
-                {t("actions.protect")}
+              <Button asChild>
+                <Link to={`/jobs/new/backup?vm=${vm.id}`}>
+                  <Shield className="h-4 w-4" />
+                  {t("actions.protect")}
+                </Link>
               </Button>
             )}
           </>
@@ -183,8 +211,8 @@ export default function VmDetailPage() {
       />
 
       {/* Where this VM lives — platform › datacenter › cluster › host */}
-      <div className="flex flex-wrap items-center gap-x-1 gap-y-1.5 rounded-lg border border-border/70 bg-card px-3 py-2 shadow-card">
-        <span className="mr-1 text-[11px] font-medium uppercase tracking-wide text-muted-foreground/70">
+      <div className="flex flex-wrap items-center gap-x-1 gap-y-1.5 border border-border bg-card px-3 py-2 ">
+        <span className="label-overline mr-1">
           {t("vmDetail.location")}
         </span>
         {[
@@ -209,8 +237,11 @@ export default function VmDetailPage() {
             </Fragment>
           );
         })}
+        {/* Inventory has no Topology tab any more — the estate navigator on the
+            Inventory page is where this location breadcrumb continues, so the
+            link names that instead of a view that no longer exists. */}
         <Link
-          to="/inventory?tab=topology"
+          to="/inventory"
           className="ml-auto inline-flex items-center gap-1 text-xs font-medium text-muted-foreground transition-colors hover:text-primary"
         >
           {t("vmDetail.topology")}
@@ -284,13 +315,15 @@ export default function VmDetailPage() {
             </CardHeader>
             <CardContent className="pt-0">
               {coveringJobs.length === 0 ? (
-                <div className="flex flex-col items-start gap-3 rounded-lg border border-dashed border-border/70 p-4 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex flex-col items-start gap-3 border border-dashed border-border p-4 sm:flex-row sm:items-center sm:justify-between">
                   <p className="text-sm text-muted-foreground">
                     {t("vmDetail.noJob")}
                   </p>
-                  <Button size="sm" onClick={() => navigate(`/jobs/new/backup?vm=${vm.id}`)}>
-                    <Shield className="h-3.5 w-3.5" />
-                    {t("actions.protect")}
+                  <Button size="sm" asChild>
+                    <Link to={`/jobs/new/backup?vm=${vm.id}`}>
+                      <Shield className="h-3.5 w-3.5" />
+                      {t("actions.protect")}
+                    </Link>
                   </Button>
                 </div>
               ) : (
@@ -302,10 +335,10 @@ export default function VmDetailPage() {
                       <Link
                         key={job.id}
                         to={`/jobs/${job.id}`}
-                        className="group flex items-center gap-3 rounded-lg border border-border/70 p-3 transition-colors hover:border-border hover:bg-muted/40"
+                        className="group flex items-center gap-3 border border-border p-3 transition-colors hover:border-border hover:bg-muted/40"
                       >
                         <span
-                          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-muted"
+                          className="flex h-8 w-8 shrink-0 items-center justify-center bg-muted"
                           style={{ color: accentColor(job.accent) }}
                         >
                           <TypeIcon className="h-4 w-4" aria-label={typeLabel} />
@@ -342,9 +375,11 @@ export default function VmDetailPage() {
                 </Badge>
                 {points.length > 0 && <RpViewToggle view={rpView} onChange={setRpView} />}
                 {vm.protection !== "unprotected" && (
-                  <Button variant="ghost" size="sm" onClick={() => navigate(`/restore?vm=${vm.id}`)}>
-                    {t("actions.restore")}
-                    <ArrowRight className="h-3.5 w-3.5" />
+                  <Button variant="ghost" size="sm" asChild>
+                    <Link to={`/restore?vm=${vm.id}`}>
+                      {t("actions.restore")}
+                      <ArrowRight className="h-3.5 w-3.5" />
+                    </Link>
                   </Button>
                 )}
               </div>
@@ -426,7 +461,7 @@ export default function VmDetailPage() {
                       <Link
                         key={s.id}
                         to={`/jobs/${s.jobId}`}
-                        className="flex items-center gap-3 rounded-md px-2 py-2 transition-colors hover:bg-muted/50"
+                        className="flex items-center gap-3 px-2 py-2 transition-colors hover:bg-muted/50"
                       >
                         <Icon
                           className={cn(
@@ -439,9 +474,12 @@ export default function VmDetailPage() {
                         <span className="nums hidden shrink-0 text-xs text-muted-foreground sm:block">
                           {formatDuration(s.durationSec)}
                         </span>
-                        <span className="nums shrink-0 text-xs text-muted-foreground">
-                          {formatRelative(s.finishedAt ?? s.startedAt)}
-                        </span>
+                        <TimeStamp
+                          value={s.finishedAt ?? s.startedAt}
+                          size="xs"
+                          align="right"
+                          className="shrink-0"
+                        />
                       </Link>
                     );
                   })}
@@ -469,7 +507,7 @@ function RpViewToggle({
     { value: "calendar", label: t("rpToggle.calendar"), icon: CalendarDays },
   ];
   return (
-    <div className="inline-flex items-center rounded-lg bg-muted/60 p-0.5" role="group" aria-label={t("rpToggle.aria")}>
+    <div className="inline-flex items-center bg-muted/60 p-0.5" role="group" aria-label={t("rpToggle.aria")}>
       {options.map((opt) => {
         const Icon = opt.icon;
         const active = view === opt.value;
@@ -480,8 +518,8 @@ function RpViewToggle({
             onClick={() => onChange(opt.value)}
             aria-pressed={active}
             className={cn(
-              "inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-xs font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-              active ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground",
+              "inline-flex items-center gap-1.5 px-2 py-1 text-xs font-medium transition-colors duration-250",
+              active ? "border-border bg-card text-foreground" : "text-muted-foreground hover:text-foreground",
             )}
           >
             <Icon className="h-3.5 w-3.5" />

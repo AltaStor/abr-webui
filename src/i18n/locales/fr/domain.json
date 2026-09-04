@@ -12,10 +12,26 @@
     "queued": "En file d’attente"
   },
   "sourceType": {
-    "vm": { "noun": "VM", "nounPlural": "VMs", "jobLabel": "Sauvegarde de VM" },
-    "disk": { "noun": "disque", "nounPlural": "disques", "jobLabel": "Sauvegarde de disque" },
-    "files": { "noun": "serveur", "nounPlural": "serveurs", "jobLabel": "Sauvegarde de fichiers" },
-    "physicalHost": { "noun": "serveur", "nounPlural": "serveurs", "jobLabel": "Sauvegarde de serveur physique" }
+    "vm": {
+      "noun": "VM",
+      "nounPlural": "VMs",
+      "jobLabel": "Sauvegarde de VM"
+    },
+    "disk": {
+      "noun": "disque",
+      "nounPlural": "disques",
+      "jobLabel": "Sauvegarde de disque"
+    },
+    "files": {
+      "noun": "serveur",
+      "nounPlural": "serveurs",
+      "jobLabel": "Sauvegarde de fichiers"
+    },
+    "physicalHost": {
+      "noun": "serveur",
+      "nounPlural": "serveurs",
+      "jobLabel": "Sauvegarde de serveur physique"
+    }
   },
   "objectCount": {
     "vm_one": "{{count}} VM",
@@ -28,9 +44,24 @@
     "physicalHost_other": "{{count}} serveurs"
   },
   "platform": {
-    "vmware": { "label": "VMware vSphere", "short": "vSphere", "hostTerm": "hôte", "hostTermPlural": "hôtes" },
-    "proxmox": { "label": "Proxmox VE", "short": "Proxmox", "hostTerm": "nœud", "hostTermPlural": "nœuds" },
-    "hyperv": { "label": "Microsoft Hyper-V", "short": "Hyper-V", "hostTerm": "hôte", "hostTermPlural": "hôtes" }
+    "vmware": {
+      "label": "VMware vSphere",
+      "short": "vSphere",
+      "hostTerm": "hôte",
+      "hostTermPlural": "hôtes"
+    },
+    "proxmox": {
+      "label": "Proxmox VE",
+      "short": "Proxmox",
+      "hostTerm": "nœud",
+      "hostTermPlural": "nœuds"
+    },
+    "hyperv": {
+      "label": "Microsoft Hyper-V",
+      "short": "Hyper-V",
+      "hostTerm": "hôte",
+      "hostTermPlural": "hôtes"
+    }
   },
   "raid": {
     "hint": {
@@ -63,7 +94,11 @@
     },
     "error": {
       "title": "Impossible de joindre l’appliance",
-      "description": "Le backend (server/) est-il en cours d’exécution sur :4980 ?"
+      "description": "Vérifiez que l’appliance est sous tension et joignable sur votre réseau, puis réessayez."
+    },
+    "unreachable": {
+      "title": "Appliance injoignable — affichage de données de démonstration",
+      "description": "Tout ce qui suit est un exemple autonome, pas vos systèmes. Vérifiez que l’appliance est sous tension et joignable, puis rechargez. ⌘K → « Se connecter à l’appliance » pour réessayer."
     }
   }
 }

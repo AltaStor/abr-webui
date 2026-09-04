@@ -2,7 +2,8 @@
 // Copyright © 2026 Norvitex OÜ
 
 import { useMemo, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
+import { Link } from "react-router-dom";
 import {
   ChevronRight,
   Copy,
@@ -17,7 +18,7 @@ import { EmptyState } from "@/components/EmptyState";
 import { KpiCard } from "@/components/KpiCard";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { formatRelative } from "@/lib/format";
+import { formatDateTime, formatRelative } from "@/lib/format";
 import { jobTypeMeta } from "@/features/jobs/lib";
 import { useWorldStore } from "@/store/world";
 import type { Replica } from "@/types";
@@ -30,7 +31,7 @@ import {
 import { isInSync } from "./lib";
 
 export default function ReplicationPage() {
-  const navigate = useNavigate();
+  const { t } = useTranslation("replication");
   const replicas = useWorldStore((s) => s.replicas);
   const jobs = useWorldStore((s) => s.jobs);
 
@@ -60,26 +61,28 @@ export default function ReplicationPage() {
   });
 
   const newJobButton = (
-    <Button onClick={() => navigate("/jobs/new/replication")}>
-      <Plus className="h-4 w-4" />
-      New replication job
+    <Button asChild>
+      <Link to="/jobs/new/replication">
+        <Plus className="h-4 w-4" />
+        {t("page.newJob")}
+      </Link>
     </Button>
   );
 
   return (
     <div className="space-y-4">
       <PageHeader
-        title="Replication"
-        description="Ready-to-run replicas for fast disaster recovery. Fail over to a replica in seconds; fail back when the source is healthy."
+        title={t("page.title")}
+        description={t("page.description")}
         actions={replicas.length > 0 ? newJobButton : undefined}
       />
 
       {replicas.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-border/70 bg-card">
+        <div className="border border-dashed border-border bg-card">
           <EmptyState
             icon={CopyPlus}
-            title="No replicas yet"
-            description="Create a replication job to keep a ready-to-run copy of a VM on a target host."
+            title={t("page.empty.title")}
+            description={t("page.empty.description")}
             action={newJobButton}
           />
         </div>
@@ -88,25 +91,29 @@ export default function ReplicationPage() {
           {/* KPI strip */}
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
             <KpiCard
-              label="Replicas"
+              label={t("page.kpi.replicas")}
               value={summary.total}
               icon={Copy}
               tone="info"
-              hint={`Across ${replicationJobs.length} replication job${replicationJobs.length === 1 ? "" : "s"}`}
+              hint={t("page.kpi.acrossJobs", { count: replicationJobs.length })}
             />
             <KpiCard
-              label="In sync"
+              label={t("page.kpi.inSync")}
               value={summary.inSync}
               icon={ShieldCheck}
               tone="success"
-              hint={summary.inSync === summary.total ? "All replicas ready" : "Some replicas still syncing"}
+              hint={
+                summary.inSync === summary.total
+                  ? t("page.kpi.allReady")
+                  : t("page.kpi.someSyncing")
+              }
             />
             <KpiCard
-              label="Failed over"
+              label={t("page.kpi.failedOver")}
               value={summary.failedOver}
               icon={Power}
               tone={summary.failedOver > 0 ? "warning" : "muted"}
-              hint={summary.failedOver > 0 ? "Replicas serving in DR" : "No active failovers"}
+              hint={summary.failedOver > 0 ? t("page.kpi.servingDr") : t("page.kpi.noActiveFailovers")}
             />
           </div>
 
@@ -119,12 +126,12 @@ export default function ReplicationPage() {
 
           {/* Replication jobs */}
           {replicationJobs.length > 0 && (
-            <div className="rounded-xl border border-border/70 bg-card p-5 shadow-card">
+            <div className="border border-border bg-card p-5 ">
               <div className="mb-3 flex items-center justify-between gap-3">
                 <div>
-                  <h2 className="text-sm font-semibold">Replication jobs</h2>
+                  <h2 className="text-sm font-semibold">{t("page.jobsSection.title")}</h2>
                   <p className="mt-0.5 text-xs text-muted-foreground">
-                    Each job resyncs its replicas on a schedule.
+                    {t("page.jobsSection.subtitle")}
                   </p>
                 </div>
                 <span className="nums text-xs text-muted-foreground">{replicationJobs.length}</span>
@@ -137,12 +144,12 @@ export default function ReplicationPage() {
                     <li key={job.id}>
                       <Link
                         to={`/jobs/${job.id}`}
-                        className="group flex items-center justify-between gap-3 rounded-lg border border-border/70 px-3 py-2.5 transition-colors hover:border-border hover:bg-accent/50"
+                        className="group flex items-center justify-between gap-3 border border-border px-3 py-2.5 transition-colors hover:border-border hover:bg-accent/50"
                       >
                         <span className="flex min-w-0 items-center gap-2.5">
                           <span
                             className={cn(
-                              "flex h-8 w-8 shrink-0 items-center justify-center rounded-lg",
+                              "flex h-8 w-8 shrink-0 items-center justify-center",
                               job.state === "running"
                                 ? "bg-info-subtle text-info-text"
                                 : "bg-muted text-muted-foreground",
@@ -152,11 +159,17 @@ export default function ReplicationPage() {
                           </span>
                           <span className="min-w-0">
                             <span className="block truncate text-sm font-medium">{job.name}</span>
-                            <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                            <span className="flex min-w-0 flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
                               <Timer className="h-3 w-3" />
-                              {jobReplicas.length} replica{jobReplicas.length === 1 ? "" : "s"}
+                              {t("page.jobsSection.replicaCount", { count: jobReplicas.length })}
                               <span className="text-muted-foreground/50">·</span>
-                              last run {formatRelative(job.lastRunAt)}
+                              {t("page.jobsSection.lastRun", { when: formatRelative(job.lastRunAt) })}
+                              {job.lastRunAt && (
+                                <>
+                                  <span className="text-muted-foreground/50">·</span>
+                                  <span className="nums">{formatDateTime(job.lastRunAt)}</span>
+                                </>
+                              )}
                             </span>
                           </span>
                         </span>

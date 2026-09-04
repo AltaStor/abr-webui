@@ -38,19 +38,6 @@ export function runKindIcon(session: Session): LucideIcon {
   return DatabaseBackup;
 }
 
-/**
- * Tint for a run kind's glyph. Restore moves data the *other* way than every
- * other run kind, so it gets its own colour rather than the shared muted grey
- * — a restore is then identifiable in the feed at a glance, without reading
- * the caption under the run name. Kept as background+foreground pairs so the
- * badge stays legible in both themes.
- */
-export function runKindTone(session: Session): string {
-  if (isRestore(session)) return "bg-warning-subtle text-warning-text";
-  if (session.type === "replication") return "bg-info-subtle text-info";
-  return "bg-muted/60 text-muted-foreground";
-}
-
 /** ms since epoch for "now minus 24h". */
 export function since24h(): number {
   return Date.now() - 24 * 3_600_000;

@@ -12,6 +12,8 @@
  * registering an environment the console can't actually protect.
  */
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
+import i18n from "@/i18n";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -40,8 +42,18 @@ interface TypeOption {
 }
 
 const TYPE_OPTIONS: TypeOption[] = [
-  { value: "vcenter", label: "VMware vCenter", defaultPort: 443, hint: "vCenter Server managing one or more ESXi hosts." },
-  { value: "esxi-standalone", label: "VMware ESXi (standalone)", defaultPort: 443, hint: "A single ESXi host, managed directly." },
+  {
+    value: "vcenter",
+    get label() { return i18n.t("inventory:addEnvironment.type.vcenter.label"); },
+    defaultPort: 443,
+    get hint() { return i18n.t("inventory:addEnvironment.type.vcenter.hint"); },
+  },
+  {
+    value: "esxi-standalone",
+    get label() { return i18n.t("inventory:addEnvironment.type.esxiStandalone.label"); },
+    defaultPort: 443,
+    get hint() { return i18n.t("inventory:addEnvironment.type.esxiStandalone.hint"); },
+  },
 ];
 
 /** RFC-1123 FQDN check — two or more dot-separated labels, e.g.
@@ -90,6 +102,7 @@ export function AddEnvironmentDialog({
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
+  const { t } = useTranslation("inventory");
   const createEnvironment = useWorldStore((s) => s.createEnvironment);
   const [form, setForm] = useState<FormState>(emptyForm);
   const [submitting, setSubmitting] = useState(false);
@@ -141,7 +154,7 @@ export function AddEnvironmentDialog({
         insecure: form.insecure,
       });
       if (!env) {
-        setError("The orchestrator rejected the registration. Check the address and credentials.");
+        setError(t("addEnvironment.error"));
         setSubmitting(false);
         return;
       }
@@ -151,17 +164,17 @@ export function AddEnvironmentDialog({
         // verification" off) -- surface the appliance's specific reason now
         // instead of a silent "Disconnected" the user has to go dig for in
         // DevTools. It also stays visible on the environment in Inventory.
-        toast.warning(`${option.label} registered, but discovery failed`, {
+        toast.warning(t("addEnvironment.toast.discoveryFailed", { platform: option.label }), {
           description: env.statusError,
         });
       } else {
-        toast.success(`${option.label} registered`, {
-          description: `Discovering VMs on ${form.endpoint.trim()}…`,
+        toast.success(t("addEnvironment.toast.registered", { platform: option.label }), {
+          description: t("addEnvironment.toast.registeredDesc", { endpoint: form.endpoint.trim() }),
         });
       }
       onOpenChange(false);
     } catch (err) {
-      setError(apiErrorMessage(err) ?? "The orchestrator rejected the registration. Check the address and credentials.");
+      setError(apiErrorMessage(err) ?? t("addEnvironment.error"));
       setSubmitting(false);
     }
   };
@@ -172,11 +185,9 @@ export function AddEnvironmentDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Network className="h-4 w-4 text-primary" />
-            Add environment
+            {t("addEnvironment.title")}
           </DialogTitle>
-          <DialogDescription>
-            Register a VMware vCenter Server or standalone ESXi host so AltaStor can discover and protect its VMs.
-          </DialogDescription>
+          <DialogDescription>{t("addEnvironment.description")}</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
@@ -188,7 +199,7 @@ export function AddEnvironmentDialog({
           )}
 
           <div className="space-y-1.5">
-            <Label>Platform</Label>
+            <Label>{t("addEnvironment.platformLabel")}</Label>
             <Select value={form.type} onValueChange={onTypeChange}>
               <SelectTrigger>
                 <SelectValue />
@@ -205,7 +216,7 @@ export function AddEnvironmentDialog({
           </div>
 
           <div className="space-y-1.5">
-            <Label htmlFor="env-name">Name</Label>
+            <Label htmlFor="env-name">{t("addEnvironment.nameLabel")}</Label>
             <Input
               id="env-name"
               value={form.name}
@@ -219,7 +230,7 @@ export function AddEnvironmentDialog({
 
           <div className="grid gap-3 sm:grid-cols-[1fr_7rem]">
             <div className="space-y-1.5">
-              <Label htmlFor="env-endpoint">Address</Label>
+              <Label htmlFor="env-endpoint">{t("addEnvironment.addressLabel")}</Label>
               <Input
                 id="env-endpoint"
                 value={form.endpoint}
@@ -228,14 +239,14 @@ export function AddEnvironmentDialog({
                 autoComplete="off"
                 spellCheck={false}
                 aria-invalid={!endpointValid}
-                className={cn(!endpointValid && "border-danger focus-visible:ring-danger/40")}
+                className={cn(!endpointValid && "border-danger")}
               />
               {!endpointValid && (
-                <p className="text-xs text-danger">Enter a valid FQDN or IP address — no protocol, path, or spaces.</p>
+                <p className="text-xs text-danger">{t("addEnvironment.addressInvalid")}</p>
               )}
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="env-port">Port</Label>
+              <Label htmlFor="env-port">{t("addEnvironment.portLabel")}</Label>
               <Input
                 id="env-port"
                 type="number"
@@ -250,7 +261,7 @@ export function AddEnvironmentDialog({
 
           <div className="grid gap-3 sm:grid-cols-2">
             <div className="space-y-1.5">
-              <Label htmlFor="env-user">Username</Label>
+              <Label htmlFor="env-user">{t("addEnvironment.usernameLabel")}</Label>
               <Input
                 id="env-user"
                 value={form.username}
@@ -261,7 +272,7 @@ export function AddEnvironmentDialog({
               />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="env-pass">Password</Label>
+              <Label htmlFor="env-pass">{t("addEnvironment.passwordLabel")}</Label>
               <Input
                 id="env-pass"
                 type="password"
@@ -275,8 +286,8 @@ export function AddEnvironmentDialog({
 
           <label className="flex items-center justify-between gap-3 border border-border bg-muted/20 px-3 py-2 text-sm">
             <span className="flex flex-col">
-              <span className="font-medium text-foreground">Skip TLS verification</span>
-              <span className="text-xs text-muted-foreground">Accept self-signed certificates (typical in labs).</span>
+              <span className="font-medium text-foreground">{t("addEnvironment.skipTlsLabel")}</span>
+              <span className="text-xs text-muted-foreground">{t("addEnvironment.skipTlsHint")}</span>
             </span>
             <Switch checked={form.insecure} onCheckedChange={(v) => set("insecure", v)} />
           </label>
@@ -284,11 +295,11 @@ export function AddEnvironmentDialog({
 
         <DialogFooter>
           <Button variant="ghost" onClick={() => onOpenChange(false)} disabled={submitting}>
-            Cancel
+            {t("common:actions.cancel")}
           </Button>
           <Button onClick={() => void submit()} disabled={!canSubmit}>
             {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Server className="h-4 w-4" />}
-            Register &amp; discover
+            {t("addEnvironment.submit")}
           </Button>
         </DialogFooter>
       </DialogContent>

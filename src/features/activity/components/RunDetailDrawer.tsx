@@ -4,7 +4,7 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
-import { Trash2, ExternalLink, Hand, CalendarClock, RotateCw, Gauge } from "@/lib/icons";
+import { Trash2, ArrowRight, Hand, CalendarClock, RotateCw, Gauge } from "@/lib/icons";
 import {
   Sheet,
   SheetContent,
@@ -20,6 +20,7 @@ import { ProgressBar } from "@/components/ProgressBar";
 import { LiveThroughput } from "@/components/LiveThroughput";
 import { PipelineStages } from "@/components/PipelineStages";
 import { CountUp } from "@/components/CountUp";
+import { Metric } from "@/components/Metric";
 import { LogViewer } from "@/components/LogViewer";
 import { EmptyState } from "@/components/EmptyState";
 import { Inbox } from "@/lib/icons";
@@ -29,8 +30,7 @@ import { useWorldStore } from "@/store/world";
 import { getSessionLog } from "@/services/api.http";
 import i18n from "@/i18n";
 import type { LogLevel, LogLine, Session, VmRunResult } from "@/types";
-import { cn } from "@/lib/utils";
-import { isRestore, runKind, runKindIcon, runKindTone } from "../lib";
+import { isRestore, runKind, runKindIcon } from "../lib";
 
 const VM_TONE: Record<VmRunResult["status"], string> = {
   success: "success",
@@ -119,21 +119,16 @@ function RunDetail({ session: s, jobExists, onClose }: { session: Session; jobEx
   const trigger = TRIGGER[s.triggeredBy];
   const TriggerIcon = trigger.icon;
 
-  // The waveform is driven by throughputMBps — the TRANSFER rate — and never by
-  // the guest-read rate, even though that reads like the more natural "source"
-  // figure. The mover only prints INTEGER percent (see _PROGRESS_LINE_PATTERN),
-  // so guest-read bytes advance one whole percent of the disk at a time — ~1GB
-  // steps seconds apart on a large disk, which renders as a flatline that
-  // periodically jumps. Transferred bytes are re-measured off the repository
-  // every tick, so they move continuously and the meter stays alive.
-  //
-  // The label names whichever rate the number actually is: the repository's
-  // physical write once the pipeline is measuring (agent-backed "storing"
-  // phase), the plain transfer rate otherwise. The guest-read figure is a
-  // stat below, where a stepped value reads fine.
+  // Live rate label = what the meter's number MEANS this phase: the repository's
+  // physical write once the pipeline is measuring (agent-backed "storing" phase),
+  // the guest read rate before that.
   const hasPipeline = running && !!s.pipeline;
-  const rateLabel = hasPipeline ? t("drawer.rate.repoWrite") : t("drawer.rate.transfer");
-  const meterRate = s.throughputMBps;
+  const rateLabel = hasPipeline ? t("drawer.rate.repoWrite") : t("drawer.rate.guestRead");
+
+  // Per-VM outcomes reuse the console-wide session vocabulary; only "pending"
+  // has no counterpart there.
+  const resultLabel = (status: VmRunResult["status"]) =>
+    status === "pending" ? t("drawer.table.pending") : t(`domain:session.${status}`);
 
   const go = (to: string) => {
     onClose();
@@ -144,19 +139,13 @@ function RunDetail({ session: s, jobExists, onClose }: { session: Session; jobEx
     <>
       <SheetHeader>
         <div className="flex items-center gap-3">
-          <span
-            className={cn(
-              "flex h-9 w-9 shrink-0 items-center justify-center rounded-lg",
-              runKindTone(s),
-            )}
-            title={runKind(s)}
-          >
-            <KindIcon className="h-4 w-4" />
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center bg-muted/60">
+            <KindIcon className="h-4 w-4 text-muted-foreground" />
           </span>
           <div className="min-w-0 flex-1">
             <SheetTitle className="truncate">{s.jobName}</SheetTitle>
             <SheetDescription className="flex items-center gap-1.5">
-              <span className="font-semibold">{runKind(s)}</span>
+              <span>{runKind(s)}</span>
               <span className="text-muted-foreground/40">·</span>
               <span className="inline-flex items-center gap-1">
                 <TriggerIcon className="h-3 w-3" />
@@ -181,16 +170,16 @@ function RunDetail({ session: s, jobExists, onClose }: { session: Session; jobEx
 
             {/* Live throughput waveform — the run's "beautiful graph", now inside
                 the detail slide-over instead of a standalone widget over the feed. */}
-            <div className="rounded-lg border border-info/20 bg-info/[0.04] p-3">
+            <div className="border border-info/20 bg-info/[0.04] p-3">
               <div className="mb-1.5 flex items-center justify-between">
-                <span className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/70">
+                <span className="label-overline flex items-center gap-1.5">
                   <Gauge className="h-3 w-3" /> {rateLabel}
                 </span>
                 <span className="nums text-sm font-semibold text-info">
-                  <CountUp value={meterRate} format={(n) => formatThroughput(n)} durationMs={1100} />
+                  <CountUp value={s.throughputMBps} format={(n) => formatThroughput(n)} durationMs={1100} />
                 </span>
               </div>
-              <LiveThroughput value={meterRate} active height={48} />
+              <LiveThroughput value={s.throughputMBps} active height={48} />
             </div>
 
             {/* Per-stage pipeline (agent-backed backup): guest read → LAN →
@@ -201,33 +190,39 @@ function RunDetail({ session: s, jobExists, onClose }: { session: Session; jobEx
 
         {/* Summary */}
         <div className="grid grid-cols-2 gap-x-4 gap-y-3 sm:grid-cols-3">
-          <Stat label={t("drawer.stat.type")}>
-            <Badge variant={s.backupType === "full" ? "info" : "outline"} className="capitalize">
-              {s.backupType}
-            </Badge>
-          </Stat>
-          <Stat label={t("drawer.stat.duration")}>{running ? "—" : formatDuration(s.durationSec)}</Stat>
-          <Stat label={t("objectNouns.vm.compact")}>{s.vmCount}</Stat>
-          <Stat label={t("drawer.stat.read")}>{s.processedGB > 0 ? formatStorage(s.processedGB) : "—"}</Stat>
-          <Stat label={t("drawer.stat.transferred")}>{s.transferredGB > 0 ? formatStorage(s.transferredGB) : "—"}</Stat>
-          <Stat label={t("drawer.stat.guestRead")}>
-            {s.guestReadMBps && s.guestReadMBps > 0 ? formatThroughput(s.guestReadMBps) : "—"}
-          </Stat>
-          <Stat label={t("drawer.stat.throughput")}>{s.throughputMBps > 0 ? formatThroughput(s.throughputMBps) : "—"}</Stat>
+          <Metric
+            label={t("drawer.stat.type")}
+            value={
+              <Badge variant={s.backupType === "full" ? "info" : "outline"}>
+                {t(`drawer.backupType.${s.backupType}`)}
+              </Badge>
+            }
+          />
+          <Metric label={t("drawer.stat.duration")} value={running ? "—" : formatDuration(s.durationSec)} />
+          <Metric label={t("objectNouns.vm.compact")} value={s.vmCount} />
+          <Metric label={t("drawer.stat.read")} value={s.processedGB > 0 ? formatStorage(s.processedGB) : "—"} />
+          <Metric
+            label={t("drawer.stat.transferred")}
+            value={s.transferredGB > 0 ? formatStorage(s.transferredGB) : "—"}
+          />
+          <Metric
+            label={t("drawer.stat.throughput")}
+            value={s.throughputMBps > 0 ? formatThroughput(s.throughputMBps) : "—"}
+          />
         </div>
 
         {s.message && (
-          <p className="rounded-lg border border-border/60 bg-muted/20 px-3 py-2 text-xs text-muted-foreground">
+          <p className="border border-border bg-muted/20 px-3 py-2 text-xs text-muted-foreground">
             {s.message}
           </p>
         )}
 
         {/* Per-VM breakdown */}
         <section>
-          <h4 className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground/70">
+          <h4 className="label-overline mb-2">
             {t("objectNouns.vm.plural")}
           </h4>
-          <div className="overflow-hidden rounded-lg border border-border/60">
+          <div className="overflow-hidden border border-border">
             <table className="w-full text-xs">
               <thead>
                 <tr className="border-b border-border/50 text-left text-[11px] text-muted-foreground">
@@ -249,7 +244,10 @@ function RunDetail({ session: s, jobExists, onClose }: { session: Session; jobEx
                         </span>
                       </span>
                     </td>
-                    <td className="py-1.5 pr-3 capitalize text-muted-foreground">{r.message ?? r.status}</td>
+                    {/* The appliance's own per-VM message wins; the status is
+                        the fallback, and it needs translating rather than
+                        printing the raw enum with a capital letter on it. */}
+                    <td className="py-1.5 pr-3 text-muted-foreground">{r.message ?? resultLabel(r.status)}</td>
                     <td className="nums hidden py-1.5 pr-3 text-muted-foreground sm:table-cell">
                       {r.processedGB > 0 ? formatStorage(r.processedGB) : "—"}
                     </td>
@@ -266,7 +264,7 @@ function RunDetail({ session: s, jobExists, onClose }: { session: Session; jobEx
 
         {/* Log */}
         <section>
-          <h4 className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground/70">{t("drawer.log")}</h4>
+          <h4 className="label-overline mb-2">{t("drawer.log")}</h4>
           <LogViewer lines={logLines} live={running} height={220} />
         </section>
       </div>
@@ -284,25 +282,18 @@ function RunDetail({ session: s, jobExists, onClose }: { session: Session; jobEx
         )}
         {restore ? (
           <Button size="sm" variant="outline" onClick={() => go("/restore")}>
-            <ExternalLink className="h-3.5 w-3.5" />
             {t("drawer.footer.openRestore")}
+            {/* Same-tab in-app routes: the arrow, not the leaves-the-app glyph. */}
+            <ArrowRight className="h-3.5 w-3.5" />
           </Button>
         ) : jobExists ? (
           <Button size="sm" variant="outline" onClick={() => go(`/jobs/${s.jobId}`)}>
-            <ExternalLink className="h-3.5 w-3.5" />
             {t("drawer.footer.openJob")}
+            {/* Same-tab in-app routes: the arrow, not the leaves-the-app glyph. */}
+            <ArrowRight className="h-3.5 w-3.5" />
           </Button>
         ) : null}
       </SheetFooter>
     </>
-  );
-}
-
-function Stat({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div className="min-w-0">
-      <p className="text-[11px] text-muted-foreground">{label}</p>
-      <div className="nums mt-0.5 text-sm font-medium">{children}</div>
-    </div>
   );
 }

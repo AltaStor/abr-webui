@@ -5,7 +5,7 @@ import { useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useParams } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
-import { AlertTriangle, Settings } from "@/lib/icons";
+import { AlertTriangle } from "@/lib/icons";
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import {
@@ -54,12 +54,12 @@ export default function SettingsPage() {
 
   return (
     <div>
-      <PageHeader title={t("page.title")} description={t("page.description")} icon={Settings} />
+      <PageHeader title={t("page.title")} description={t("page.description")} />
 
       {unreachable && (
         <div
           role="alert"
-          className="mb-4 flex flex-col gap-3 rounded-xl border border-danger/30 bg-danger-subtle px-4 py-3 sm:flex-row sm:items-center"
+          className="mb-4 flex flex-col gap-3 border border-danger/30 bg-danger-subtle px-4 py-3 sm:flex-row sm:items-center"
         >
           <AlertTriangle className="h-5 w-5 shrink-0 text-danger" />
           <div className="min-w-0 flex-1">

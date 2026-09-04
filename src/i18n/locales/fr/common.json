@@ -43,9 +43,28 @@
   "time": {
     "never": "Jamais"
   },
+  "timeField": {
+    "hour": "Heure",
+    "minute": "Minute",
+    "openPicker": "Choisir une heure"
+  },
   "calendar": {
     "today": "Aujourd’hui",
     "prevMonth": "Mois précédent",
     "nextMonth": "Mois suivant"
+  },
+  "routeError": {
+    "title": "Cette vue a rencontré un problème",
+    "fallback": "Une erreur s’est produite lors de l’affichage de cette vue.",
+    "back": "Retour au tableau de bord"
+  },
+  "featureUnavailable": {
+    "replication": {
+      "title": "La réplication n’est pas disponible sur cette appliance",
+      "description": "Cette version sauvegarde et restaure ; elle ne maintient pas de réplique active sur un second hôte. Le lien que vous avez suivi provient d’une console qui le fait. Rien n’est cassé ni perdu : vos travaux de sauvegarde et vos points de restauration sont intacts."
+    }
+  },
+  "resize": {
+    "hint": "Glisser pour redimensionner · double-cliquer pour réinitialiser"
   }
 }

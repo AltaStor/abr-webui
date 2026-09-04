@@ -99,22 +99,6 @@
     "nameLabel": "Nom du référentiel",
     "namePlaceholder": "Référentiel renforcé",
     "nameError": "Donnez un nom au référentiel.",
-    "immutability": {
-      "label": "Immuabilité",
-      "description": "Chaque point de restauration est scellé dès son arrivée – aucune modification, aucune suppression, jusqu'à l'expiration de son verrou. Un ransomware qui atteint l'appliance ne trouve rien à chiffrer.",
-      "daysLabel": "Fenêtre de verrouillage (jours)",
-      "daysHint": "Chaque point de restauration reste scellé pendant ce nombre de jours après son arrivée (1–3650).",
-      "modeLabel": "Mode",
-      "modeAria": "Mode d'immuabilité",
-      "compliance": {
-        "title": "Conformité",
-        "description": "Personne ne peut déverrouiller par anticipation – pas même les administrateurs. Le verrou survit aux identifiants volés."
-      },
-      "governance": {
-        "title": "Gouvernance",
-        "description": "Les administrateurs peuvent forcer le déverrouillage ; chaque dérogation est auditée."
-      }
-    },
     "encryption": {
       "label": "Chiffrement (AES-256)",
       "description": "Les points de restauration sont chiffrés au repos. Un disque volé est une brique, pas une fuite."
@@ -132,7 +116,8 @@
     "credentialLabel": "Référence d'identifiants",
     "credentialHint": "p. ex. vault:secret/hv-lab – les secrets ne figurent jamais dans le manifeste.",
     "partialWarning": "Remplissez chaque champ ou videz la ligne – les lignes incomplètes ne sont pas appliquées.",
-    "addAnother": "Ajouter un autre"
+    "addAnother": "Ajouter un autre",
+    "vmwareOnly": "Seuls VMware vCenter et les hôtes ESXi autonomes peuvent être ajoutés ici. Cette appliance peut enregistrer des environnements Hyper-V et Proxmox, mais aucune exécution sur l’un d’eux n’aboutirait encore."
   },
   "review": {
     "title": "Vérification",
@@ -151,8 +136,6 @@
     "layout": "Disposition",
     "layoutAutomatic": "Automatique (planifiée au moment de l'application)",
     "name": "Nom",
-    "immutability": "Immuabilité",
-    "immutabilityValue": "Verrous de {{days}} jours · {{mode}}",
     "off": "Désactivé",
     "encryption": "Chiffrement",
     "encryptionValue": "AES-256 au repos",

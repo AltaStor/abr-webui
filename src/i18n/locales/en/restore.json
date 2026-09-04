@@ -6,21 +6,17 @@
   "actions": {
     "continue": "Continue",
     "startOver": "Start over",
-    "viewInActivity": "View in Activity",
     "startAnother": "Start another restore"
   },
   "steps": {
     "source": {
-      "label": "Choose source",
-      "hint": "What to recover"
+      "label": "Select object to recover"
     },
     "point": {
-      "label": "Restore point",
-      "hint": "Point in time"
+      "label": "Select restore point"
     },
     "recover": {
-      "label": "Recover",
-      "hint": "Mode & confirm"
+      "label": "Recover"
     }
   },
   "stepper": {
@@ -94,8 +90,8 @@
   "filesSelected_one": "{{count}} file selected",
   "filesSelected_other": "{{count}} files selected",
   "chooseVm": {
-    "title": "Which VM would you like to recover?",
-    "subtitle": "Pick any protected machine. We'll show its restore points next — nothing changes until you confirm.",
+    "title": "Select the VM you would like to recover",
+    "subtitle": "Select any protected machine. The list of restore points will be shown next.",
     "searchPlaceholder": "Search by name or OS…",
     "searchAria": "Search protected VMs",
     "noMatch": {
@@ -108,8 +104,8 @@
     "unknownEnv": "Unknown env"
   },
   "chooseHost": {
-    "title": "Which server would you like to recover?",
-    "subtitle": "Pick any protected physical server. We'll show its restore points next — nothing changes until you confirm.",
+    "title": "Select the server you would like to recover",
+    "subtitle": "Select any protected physical server. The list of restore points will be shown next.",
     "searchPlaceholder": "Search by name or OS…",
     "searchAria": "Search protected physical servers",
     "noMatch": {
@@ -122,8 +118,8 @@
     "agentLabel": "agent {{status}}"
   },
   "chooseDisk": {
-    "title": "Which disk would you like to recover?",
-    "subtitle": "Pick any protected disk — virtual or physical. We'll show its restore points next — nothing changes until you confirm.",
+    "title": "Select the disk you would like to recover",
+    "subtitle": "Select any protected disk — virtual or physical. The list of restore points will be shown next.",
     "searchPlaceholder": "Search by disk, device, VM or server…",
     "searchAria": "Search protected disks",
     "noMatch": {
@@ -182,15 +178,12 @@
       "corrupt": "Corrupt — blocked",
       "unavailable": "Check unavailable",
       "notVerified": "Not verified"
-    },
-    "fromLogical": "from {{size}}",
-    "storedTitle": "{{logical}} of data stored as {{stored}}"
+    }
   },
   "howToRecover": "How would you like to recover?",
-  "whereLand": "Where should it land?",
+  "whereLand": "Choose location",
   "review": {
-    "title": "Review & confirm",
-    "subtitle": "One last look. Nothing has changed yet."
+    "title": "Review and confirm"
   },
   "summary": {
     "machine": "Machine",
@@ -204,9 +197,6 @@
     "powerState": "Power state"
   },
   "restorePointSub": "{{type}} · {{size}}",
-  "cleanSource": {
-    "body": "We read the backup without ever touching it, so the source you're recovering from stays intact."
-  },
   "mode": {
     "subtitle": "Choose whether to bring back the whole machine or just a few files. You'll confirm before anything runs.",
     "entireVm": {
@@ -223,11 +213,11 @@
     },
     "original": {
       "title": "Original location",
-      "desc": "Restore under the VM's original name, host and datastore. If that VM still exists, it's overwritten in place once the restore finishes writing — you'll confirm before anything runs."
+      "desc": "Restore the VM under its original name, host, and datastore. If the VM still exists, it will be overwritten in place once the restore process finishes writing."
     },
     "newLocation": {
       "title": "New location",
-      "desc": "Restore as a copy to another host — safe for testing or side-by-side checks."
+      "desc": "Restore the VM as a copy to another host. Use this option for testing, side-by-side checks, or migration."
     },
     "instantCallout": "The guest boots on its own host straight from the repository over iSCSI — blocks fault in as it reads them, so it's running in seconds with no full copy. Writes land in a scratch overlay, so the backup itself is never touched. Discard it when you're done to release the disk.",
     "targetEnv": "Target environment",
@@ -244,9 +234,10 @@
       "selectTarget": "Select a target…",
       "pickTarget": "Pick a target environment above",
       "converted": "Converted {{from}} → {{to}}",
-      "bootsOn": "Boots on {{name}}'s host"
+      "bootsOn": "Boots on {{name}}'s host",
+      "blocked": "This appliance can’t restore onto a different hypervisor."
     },
-    "originalOverwriteWarning": "This restores <1>{{name}}</1> in place, at its current host and datastore. Once every disk is fully written, the VM currently running there is destroyed and replaced — this can't be undone.",
+    "originalOverwriteWarning": "This operation will overwrite the existing VM on its current host and datastore after all disks are restored. This action cannot be undone.",
     "originalOverwriteConfirmLabel": "Type <1>{{name}}</1> to confirm the overwrite",
     "restoredVmName": "Restored VM name",
     "restoredVmNameHint": "Leave blank to use <1>{{name}}</1>.",
@@ -274,7 +265,7 @@
     "networkMapEnvNone": "No virtual switches were discovered in this environment. Rescan the inventory and try again.",
     "networkMapHint": "Source networks come from the VM's own network adapters; the target list shows only the virtual switches on the selected host, and a same-named one is auto-selected — pick another from the list if needed.",
     "powerOn": "Power on after restore",
-    "powerOnHint": "Start the restored VM as soon as the restore completes.",
+    "powerOnHint": "Start the VM as soon as the restore completes.",
     "powerOnYes": "Powers on after restore",
     "powerOnNo": "Stays powered off"
   },
@@ -360,6 +351,12 @@
       "high": "High confidence",
       "medium": "Medium confidence",
       "low": "Low confidence"
+    },
+    "blocked": {
+      "title": "This target can’t receive the copy",
+      "body": "Moving this VM from {{from}} to {{to}} means converting its disks and adapting the guest, which this appliance can’t do. Pick a target running {{from}}.",
+      "notBuilt": "Not built yet",
+      "unaffected": "The backup itself is untouched. It stays restorable in place, and onto any target running the same hypervisor as the original."
     }
   },
   "instant": {
@@ -387,6 +384,68 @@
     "status": {
       "discarded": "Discarded",
       "booting": "Booting"
+    }
+  },
+  "refusal": {
+    "pointUnavailable": {
+      "title": "This restore point can’t be read",
+      "desc": "The appliance has the point but won’t open it — it may be sealed, pruned, or on storage that is offline. Pick another point, or bring that storage back."
+    },
+    "pointMissing": {
+      "title": "This restore point is gone",
+      "desc": "The point, its copy in the repository, or its manifest is no longer there. Pick another point from the list — it may have been pruned since this wizard loaded."
+    },
+    "targetUnreachable": {
+      "title": "The target environment didn’t answer",
+      "desc": "The appliance is registered with this environment but can’t talk to it right now, so it can’t place the VM. Check the environment’s host and credentials, then retry."
+    },
+    "targetNotScanned": {
+      "title": "The target environment hasn’t been scanned",
+      "desc": "It has no discovered hosts, so there is nowhere to place the VM. Rescan it from Inventory, then start the restore again."
+    },
+    "targetMissing": {
+      "title": "That target environment is gone",
+      "desc": "The appliance no longer has the environment this wizard offered. Start over and pick a target from the current list."
+    },
+    "placementMissing": {
+      "title": "The chosen placement no longer exists",
+      "desc": "The host, datastore, or network picked in the wizard isn’t there any more. Go back a step and choose them again from the current list."
+    },
+    "nameTaken": {
+      "title": "That name is already taken",
+      "desc": "A VM called this already exists in the target environment. Choose another name and start the restore again."
+    },
+    "originalVmGone": {
+      "title": "The original VM is gone",
+      "desc": "It was removed after this wizard loaded, so there's nothing left to restore in place. Start over to restore it as a new VM instead."
+    },
+    "notEnoughSpace": {
+      "title": "Not enough datastore space",
+      "desc": "The target datastore doesn't have enough free space for this restore."
+    },
+    "unsupported": {
+      "title": "This restore isn’t supported",
+      "desc": "The mode or option the wizard asked for isn’t implemented on this appliance, so nothing was started. Try a different restore mode."
+    },
+    "rejected": {
+      "title": "The appliance refused the restore",
+      "desc": "It gave a reason this console has no sentence of its own for. Nothing was started."
+    },
+    "signedOut": {
+      "title": "Your session has ended",
+      "desc": "The appliance no longer accepts this session, so the restore was never attempted. Sign in again and retry."
+    },
+    "versionMismatch": {
+      "title": "Console and appliance versions don’t match",
+      "desc": "They speak different API versions, so the restore was not sent. Update the console or the appliance so both are on the same release."
+    },
+    "unreachable": {
+      "title": "Couldn't reach the appliance",
+      "desc": "The restore was not started. Check the backend and try again."
+    },
+    "noSession": {
+      "title": "The restore didn’t start",
+      "desc": "The appliance accepted the request but named no restore session, so nothing is running. Check Activity, then try again."
     }
   }
 }

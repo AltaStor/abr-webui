@@ -2,6 +2,7 @@
 // Copyright © 2026 Norvitex OÜ
 
 import { useEffect, useMemo, useState } from "react";
+import { Trans, useTranslation } from "react-i18next";
 import {
   AlertTriangle,
   ArrowRight,
@@ -50,6 +51,7 @@ type FailoverKind = "planned" | "unplanned";
  * high-stakes disaster path.
  */
 export function FailoverDialog({ replica, open, onOpenChange }: FailoverDialogProps) {
+  const { t } = useTranslation("replication");
   const failoverReplica = useWorldStore((s) => s.failoverReplica);
   const [kind, setKind] = useState<FailoverKind>("planned");
   const [pointId, setPointId] = useState<string>("");
@@ -84,16 +86,15 @@ export function FailoverDialog({ replica, open, onOpenChange }: FailoverDialogPr
         planned: kind === "planned",
         pointId: pointId || undefined,
       });
-      toast.success(`${replica.replicaName} is now serving`, {
+      toast.success(t("failover.toast.title", { name: replica.replicaName }), {
         description: unplanned
-          ? `Unplanned failover complete — the replica is powered on on ${replica.targetEnvironmentName}.`
-          : `Planned failover complete — a final sync ran and the replica is live on ${replica.targetEnvironmentName}.`,
+          ? t("failover.toast.unplanned", { env: replica.targetEnvironmentName })
+          : t("failover.toast.planned", { env: replica.targetEnvironmentName }),
       });
       onOpenChange(false);
     } catch {
-      toast.error("Failover didn't complete", {
-        description:
-          "The replica was not brought online. Check the target host connection and try again.",
+      toast.error(t("failover.toast.errorTitle"), {
+        description: t("failover.toast.errorBody"),
       });
       setSubmitting(false);
     }
@@ -105,25 +106,33 @@ export function FailoverDialog({ replica, open, onOpenChange }: FailoverDialogPr
         <DialogHeader>
           <div
             className={cn(
-              "mb-1 flex h-10 w-10 items-center justify-center rounded-lg",
+              "mb-1 flex h-10 w-10 items-center justify-center",
               unplanned ? "bg-danger-subtle text-danger" : "bg-warning-subtle text-warning-text",
             )}
           >
             <Power className="h-5 w-5" />
           </div>
-          <DialogTitle>Fail over to {replica.replicaName}?</DialogTitle>
+          <DialogTitle>{t("failover.title", { name: replica.replicaName })}</DialogTitle>
           <DialogDescription>
-            The replica powers on and starts serving on{" "}
-            <span className="font-medium text-foreground">{replica.targetEnvironmentName}</span>
-            {replica.targetHostName ? ` · ${replica.targetHostName}` : ""}. The source{" "}
-            <span className="font-medium text-foreground">{replica.sourceVmName}</span> is taken
-            out of rotation until you fail back.
+            <Trans
+              i18nKey="failover.description"
+              ns="replication"
+              values={{
+                env: replica.targetEnvironmentName,
+                hostSuffix: replica.targetHostName ? ` · ${replica.targetHostName}` : "",
+                source: replica.sourceVmName,
+              }}
+              components={{
+                1: <span className="font-medium text-foreground" />,
+                3: <span className="font-medium text-foreground" />,
+              }}
+            />
           </DialogDescription>
         </DialogHeader>
 
         {/* Planned vs unplanned — segmented choice */}
         <div className="space-y-1.5">
-          <Label id="failover-kind-label">How are you failing over?</Label>
+          <Label id="failover-kind-label">{t("failover.kindLabel")}</Label>
           <div
             role="group"
             aria-labelledby="failover-kind-label"
@@ -134,53 +143,52 @@ export function FailoverDialog({ replica, open, onOpenChange }: FailoverDialogPr
               onClick={() => setKind("planned")}
               icon={ShieldCheck}
               tone="planned"
-              title="Planned"
-              description="Graceful. Run a final sync so nothing is lost, then cut over."
+              title={t("failover.planned.title")}
+              description={t("failover.planned.description")}
             />
             <KindCard
               active={kind === "unplanned"}
               onClick={() => setKind("unplanned")}
               icon={Zap}
               tone="unplanned"
-              title="Unplanned"
-              description="Disaster. The source is gone — boot the replica from a recovery point now."
+              title={t("failover.unplanned.title")}
+              description={t("failover.unplanned.description")}
             />
           </div>
         </div>
 
         {/* Recovery point */}
         <div className="space-y-1.5">
-          <Label htmlFor="failover-point">Recovery point</Label>
+          <Label htmlFor="failover-point">{t("failover.recoveryPoint")}</Label>
           {points.length === 0 ? (
-            <div className="rounded-lg border border-border/70 bg-muted/30 px-3 py-2 text-xs text-muted-foreground">
-              No recovery points available yet — this replica has nothing to boot from.
+            <div className="border border-border bg-muted/30 px-3 py-2 text-xs text-muted-foreground">
+              {t("failover.noPoints")}
             </div>
           ) : (
             <Select value={pointId} onValueChange={setPointId}>
               <SelectTrigger id="failover-point">
-                <SelectValue placeholder="Choose a recovery point…" />
+                <SelectValue placeholder={t("failover.choosePoint")} />
               </SelectTrigger>
               <SelectContent>
                 {points.map((p, i) => (
                   <SelectItem key={p.id} value={p.id}>
-                    {formatDateTime(p.createdAt)} · {p.type === "full" ? "Full" : "Incremental"}
-                    {i === 0 ? " · latest" : ""}
+                    {formatDateTime(p.createdAt)} ·{" "}
+                    {p.type === "full" ? t("failover.pointType.full") : t("failover.pointType.incremental")}
+                    {i === 0 ? ` · ${t("failover.latest")}` : ""}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
           )}
           <p className="text-xs text-muted-foreground">
-            {unplanned
-              ? "Pick the last point you trust — anything written to the source after this is not on the replica."
-              : "A final sync runs first, so the latest point captures the source right up to cutover."}
+            {unplanned ? t("failover.hint.unplanned") : t("failover.hint.planned")}
           </p>
         </div>
 
         {/* Consequence banner — amber for planned, red for unplanned */}
         <div
           className={cn(
-            "flex items-start gap-2.5 rounded-lg border px-3 py-2.5",
+            "flex items-start gap-2.5 border px-3 py-2.5",
             unplanned
               ? "border-danger/25 bg-danger/[0.05]"
               : "border-warning/25 bg-warning/[0.05]",
@@ -194,23 +202,21 @@ export function FailoverDialog({ replica, open, onOpenChange }: FailoverDialogPr
           />
           <p className="text-xs text-muted-foreground">
             {unplanned ? (
-              <>
-                <span className="font-medium text-foreground">No final sync.</span> Writes made to{" "}
-                {replica.sourceVmName} after the chosen point are lost. Use this only when the
-                source is unreachable.
-              </>
+              <Trans
+                i18nKey="failover.banner.unplanned"
+                ns="replication"
+                values={{ source: replica.sourceVmName }}
+                components={{ 1: <span className="font-medium text-foreground" /> }}
+              />
             ) : (
-              <>
-                AltaStor runs one last incremental sync, powers the source down, then brings the
-                replica up on {targetPlatform}. Failback later returns control to the source.
-              </>
+              t("failover.banner.planned", { platform: targetPlatform })
             )}
           </p>
         </div>
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={submitting}>
-            Cancel
+            {t("common:actions.cancel")}
           </Button>
           <Button
             variant={unplanned ? "destructive" : "default"}
@@ -219,10 +225,10 @@ export function FailoverDialog({ replica, open, onOpenChange }: FailoverDialogPr
           >
             {unplanned ? <Zap className="h-4 w-4" /> : <Power className="h-4 w-4" />}
             {submitting
-              ? "Failing over…"
+              ? t("failover.pending")
               : unplanned
-                ? "Fail over now"
-                : "Fail over gracefully"}
+                ? t("failover.confirmUnplanned")
+                : t("failover.confirmPlanned")}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -252,17 +258,17 @@ function KindCard({
       onClick={onClick}
       aria-pressed={active}
       className={cn(
-        "group relative flex flex-col gap-1.5 rounded-xl border p-3 text-left transition-all",
+        "group relative flex flex-col gap-1.5 border p-3 text-left transition-colors duration-250",
         active
           ? danger
-            ? "border-danger/50 bg-danger/[0.06] shadow-sm"
-            : "border-primary/50 bg-primary/[0.06] shadow-sm"
-          : "border-border/70 bg-card hover:border-border hover:bg-muted/30",
+            ? "border-danger/50 bg-danger/[0.06]"
+            : "border-primary/50 bg-primary/[0.06]"
+          : "border-border bg-card hover:border-border hover:bg-muted/30",
       )}
     >
       <span
         className={cn(
-          "flex h-8 w-8 items-center justify-center rounded-lg transition-colors",
+          "flex h-8 w-8 items-center justify-center transition-colors",
           active
             ? danger
               ? "bg-danger text-danger-foreground"

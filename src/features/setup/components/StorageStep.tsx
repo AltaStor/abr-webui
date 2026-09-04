@@ -105,7 +105,7 @@ export function StorageStep({ disks, plan, notes, loading, error, onRetry }: Sto
       <StepHeader title={t("storage.title")} description={t("storage.description")} />
 
       {error && (
-        <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-danger/30 bg-danger-subtle px-4 py-3">
+        <div className="flex flex-wrap items-center justify-between gap-3 border border-danger/30 bg-danger-subtle px-4 py-3">
           <span className="flex items-center gap-2 text-sm text-danger-text">
             <AlertTriangle className="h-4 w-4 shrink-0" />
             {error}
@@ -117,7 +117,7 @@ export function StorageStep({ disks, plan, notes, loading, error, onRetry }: Sto
       )}
 
       {/* -------- detected disks -------- */}
-      <div className="overflow-hidden rounded-lg border border-border/70">
+      <div className="overflow-hidden border border-border">
         <Table>
           <TableHeader>
             <TableRow>
@@ -150,7 +150,7 @@ export function StorageStep({ disks, plan, notes, loading, error, onRetry }: Sto
                       <TableCell>
                         <span
                           className={cn(
-                            "rounded px-1.5 py-0.5 text-[10px] font-semibold uppercase",
+                            "px-1.5 py-0.5 text-[10px] font-semibold uppercase",
                             toneChip("muted"),
                           )}
                         >
@@ -186,7 +186,7 @@ export function StorageStep({ disks, plan, notes, loading, error, onRetry }: Sto
             <Skeleton className="h-24" />
           </div>
         ) : plan.length === 0 ? (
-          <div className="flex items-center gap-2 rounded-lg border border-warning/30 bg-warning-subtle px-4 py-3 text-sm text-warning-text">
+          <div className="flex items-center gap-2 border border-warning/30 bg-warning-subtle px-4 py-3 text-sm text-warning-text">
             <AlertTriangle className="h-4 w-4 shrink-0" />
             {t("storage.noLayout")}
           </div>
@@ -198,7 +198,7 @@ export function StorageStep({ disks, plan, notes, loading, error, onRetry }: Sto
                 return (
                   <div
                     key={spec.name}
-                    className="space-y-1.5 rounded-lg border border-border/70 bg-muted/20 p-4"
+                    className="space-y-1.5 border border-border bg-muted/20 p-4"
                   >
                     <div className="flex items-center justify-between gap-2">
                       <span className="text-sm font-semibold capitalize">{spec.name}</span>
@@ -243,7 +243,7 @@ export function StorageStep({ disks, plan, notes, loading, error, onRetry }: Sto
         )}
       </div>
 
-      <div className="flex items-start gap-2 rounded-lg bg-info-subtle px-3 py-2.5 text-sm text-info-text">
+      <div className="flex items-start gap-2 bg-info-subtle px-3 py-2.5 text-sm text-info-text">
         <Info className="mt-0.5 h-4 w-4 shrink-0" />
         <span>{t("storage.appliedAsShown")}</span>
       </div>

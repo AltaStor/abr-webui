@@ -1,63 +1,79 @@
 // SPDX-License-Identifier: Apache-2.0
 // Copyright © 2026 Norvitex OÜ
 
-import { useTranslation } from "react-i18next";
 import { cn } from "@/lib/utils";
+import lockupOnDarkUrl from "@/assets/brand/altastor-lockup-on-dark.svg";
+import lockupOnLightUrl from "@/assets/brand/altastor-lockup-on-light.svg";
+import markOnDarkUrl from "@/assets/brand/altastor-mark.svg";
+import markOnLightUrl from "@/assets/brand/altastor-mark-on-light.svg";
+import wordmarkOnDarkUrl from "@/assets/brand/altastor-wordmark-on-dark.svg";
+import wordmarkOnLightUrl from "@/assets/brand/altastor-wordmark-on-light.svg";
 
 /**
- * AltaStor "Keystone" mark — a hexagonal containment seal enclosing three
- * stacked basalt strata. The seal = sealed/immutable (the boundary nothing
- * crosses); the strata read as a peak cooling downward: brightest (ice) on top
- * = newest restore point, graphite below = older recovery points. Regular
- * hexagon, miter joins, deliberately vertically centred — do not re-stretch or
- * recolour. Reference hexes are hardcoded per theme so the mark stays canonical
- * even when the user picks a different UI accent.
+ * Theme-paired AltaStor mark. Light mode swaps the neutral layers for contrast
+ * while preserving the supplied geometry and blue brand layers.
  */
 export function LogoMark({ className }: { className?: string }) {
   return (
-    <svg
-      viewBox="0 0 96 96"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      className={cn("shrink-0", className)}
-      aria-hidden
+    <span
+      className={cn("inline-flex shrink-0 items-center justify-center", className)}
+      aria-hidden="true"
     >
-      {/* containment seal */}
-      <polygon
-        points="48,8 82,28 82,68 48,88 14,68 14,28"
-        fill="none"
-        strokeWidth={4}
-        strokeLinejoin="miter"
-        className="stroke-[#9BAAB5] dark:stroke-[#43525C]"
+      <img
+        src={markOnLightUrl}
+        alt=""
+        className="block h-full w-full object-contain dark:hidden"
       />
-      {/* strata — cooling downward, ice peak on top */}
-      <polygon points="38,52 58,52 68,63 58,74 38,74 28,63" className="fill-[#B4C2CB] dark:fill-[#3D4A54]" />
-      <polygon points="38,37 58,37 68,48 58,59 38,59 28,48" className="fill-[#6E8494] dark:fill-[#6B7E8B]" />
-      <polygon points="38,22 58,22 68,33 58,44 38,44 28,33" className="fill-[#26719A] dark:fill-[#A5D3E8]" />
-    </svg>
+      <img
+        src={markOnDarkUrl}
+        alt=""
+        className="hidden h-full w-full object-contain dark:block"
+      />
+    </span>
   );
 }
 
 /**
- * Horizontal lockup — Keystone mark + the ALTASTOR wordmark. Wordmark is one
- * word, all caps, Outfit 700; "ALTA" in the primary text colour and "STOR" in
- * the brand accent (ice on dark, glacial on light). Descriptor set in mono.
+ * Theme-paired AltaStor lockups. Dark mode uses the supplied pale artwork;
+ * light mode uses a transparent derivative with dark lettering and the same
+ * supplied geometry, mark and blue brand layers.
  */
-export function Logo({ collapsed, className }: { collapsed?: boolean; className?: string }) {
-  const { t } = useTranslation("components");
+export function Logo({
+  collapsed,
+  variant = "lockup",
+  size = "md",
+  className,
+}: {
+  collapsed?: boolean;
+  variant?: "lockup" | "wordmark";
+  size?: "md" | "lg";
+  className?: string;
+}) {
+  if (collapsed) return <LogoMark className={className} />;
+
+  const heightClass =
+    size === "lg"
+      ? variant === "wordmark"
+        ? "h-10"
+        : "h-12"
+      : variant === "wordmark"
+        ? "h-[30px]"
+        : "h-[34px]";
+  const onLightUrl = variant === "wordmark" ? wordmarkOnLightUrl : lockupOnLightUrl;
+  const onDarkUrl = variant === "wordmark" ? wordmarkOnDarkUrl : lockupOnDarkUrl;
+
   return (
-    <div className={cn("flex items-center gap-2.5", className)}>
-      <LogoMark className="h-7 w-7" />
-      {!collapsed && (
-        <div className="flex flex-col leading-none">
-          <span className="font-display text-[15px] font-bold uppercase leading-none tracking-[0.02em] text-foreground">
-            ALTA<span className="text-primary">STOR</span>
-          </span>
-          <span className="mt-1 font-mono text-[8.5px] font-semibold uppercase leading-none tracking-[0.32em] text-muted-foreground">
-            {t("brand.tagline")}
-          </span>
-        </div>
-      )}
-    </div>
+    <span className={cn("inline-flex shrink-0 items-center justify-center", className)}>
+      <img
+        src={onLightUrl}
+        alt="AltaStor — Backup & Replication"
+        className={cn("block w-auto object-contain dark:hidden", heightClass)}
+      />
+      <img
+        src={onDarkUrl}
+        alt="AltaStor — Backup & Replication"
+        className={cn("hidden w-auto object-contain dark:block", heightClass)}
+      />
+    </span>
   );
 }

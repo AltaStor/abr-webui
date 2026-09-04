@@ -2,12 +2,15 @@
 // Copyright © 2026 Norvitex OÜ
 
 import { useMemo, useState } from "react";
-import { Database, HardDrive, ShieldCheck, Trash2, Wrench } from "@/lib/icons";
+import { useTranslation } from "react-i18next";
+import { Database, HardDrive, ShieldCheck, Trash2, type LucideIcon } from "@/lib/icons";
 import { PageHeader } from "@/components/PageHeader";
 import { EmptyState } from "@/components/EmptyState";
 import { KpiCard } from "@/components/KpiCard";
+import { KpiBand } from "@/components/KpiBand";
 import { useWorldStore } from "@/store/world";
 import { formatStorage, usagePercent } from "@/lib/format";
+import { useCapacityLevel } from "@/lib/capacity";
 import { useThreatLockedRepos } from "@/lib/threatLock";
 import type { Repository } from "@/types";
 import { AddRepositoryDialog } from "./components/AddRepositoryDialog";
@@ -19,6 +22,7 @@ import type { RepositoryActions } from "./components/RepositoryActionsMenu";
 import { useRepositoryManagement } from "./useRepositoryManagement";
 
 export default function RepositoriesPage() {
+  const { t } = useTranslation("repositories");
   const repositories = useWorldStore((s) => s.repositories);
   const restorePoints = useWorldStore((s) => s.restorePoints);
   const jobs = useWorldStore((s) => s.jobs);
@@ -57,13 +61,14 @@ export default function RepositoriesPage() {
     };
   }, [repositories]);
 
-  // Storage-health strip: reclaimable space, repos in maintenance / with issues.
+  const usedLevel = useCapacityLevel(summary.usedPct);
+
+  // Storage-health strip: reclaimable space, repos with integrity issues.
   const health = useMemo(() => {
     const pendingGcGB = repositories.reduce((a, r) => a + (r.pendingGcGB ?? 0), 0);
-    const maintenanceCount = repositories.filter((r) => mgmt.isMaintenance(r)).length;
     const issuesCount = repositories.filter((r) => r.integrityStatus === "issues").length;
-    return { pendingGcGB, maintenanceCount, issuesCount };
-  }, [repositories, mgmt]);
+    return { pendingGcGB, issuesCount };
+  }, [repositories]);
 
   const selected: Repository | null =
     repositories.find((r) => r.id === selectedId) ?? null;
@@ -82,59 +87,53 @@ export default function RepositoriesPage() {
 
   const hasHealthSignals =
     repositories.length > 0 &&
-    (health.pendingGcGB > 0 || health.maintenanceCount > 0 || health.issuesCount > 0);
+    (health.pendingGcGB > 0 || health.issuesCount > 0);
 
   return (
     <div className="space-y-4">
       <PageHeader
-        title="Repositories"
-        description="Where your backups live."
+        title={t("page.title")}
+        description={t("page.description")}
         actions={<AddRepositoryDialog />}
       />
 
       {/* Summary KPIs */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      <KpiBand className="sm:grid-cols-2 xl:grid-cols-2">
         <KpiCard
-          label="Total capacity"
+          label={t("kpi.totalCapacity")}
           value={summary.capacityGB}
           format={(n) => formatStorage(n, 0)}
           icon={HardDrive}
-          tone="info"
-          hint={`Across ${repositories.length} repositories`}
+          tone="neutral"
+          hint={t("kpi.totalCapacityHint", { count: repositories.length })}
         />
         <KpiCard
-          label="Used"
+          label={t("kpi.used")}
           value={summary.usedGB}
           format={(n) => formatStorage(n, 0)}
           icon={Database}
-          tone={summary.usedPct > 85 ? "warning" : "muted"}
-          hint={`${Math.round(summary.usedPct)}% of total capacity`}
+          tone={usedLevel === "critical" ? "danger" : usedLevel === "warn" ? "warning" : "neutral"}
+          hint={t("kpi.usedHint", { pct: Math.round(summary.usedPct) })}
         />
-      </div>
+      </KpiBand>
 
       {/* Storage-health strip */}
       {hasHealthSignals && (
-        <div className="flex flex-wrap items-center gap-x-6 gap-y-2 rounded-xl border border-border/70 bg-card px-4 py-3 text-sm shadow-card">
-          <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-            Storage health
+        <div className="flex flex-wrap items-center gap-x-6 gap-y-2 border border-border bg-card px-4 py-3 text-sm ">
+          <span className="label-overline">
+            {t("health.title")}
           </span>
           <HealthChip
             icon={Trash2}
-            tone={health.pendingGcGB > 0 ? "muted" : "muted"}
-            label="Reclaimable"
+            tone="neutral"
+            label={t("health.reclaimable")}
             value={formatStorage(health.pendingGcGB, 0)}
-            hint="pending garbage collection"
-          />
-          <HealthChip
-            icon={Wrench}
-            tone={health.maintenanceCount > 0 ? "warning" : "muted"}
-            label="In maintenance"
-            value={health.maintenanceCount.toString()}
+            hint={t("health.reclaimableHint")}
           />
           <HealthChip
             icon={ShieldCheck}
-            tone={health.issuesCount > 0 ? "warning" : "success"}
-            label="Integrity issues"
+            tone={health.issuesCount > 0 ? "warning" : "neutral"}
+            label={t("health.integrityIssues")}
             value={health.issuesCount.toString()}
           />
         </div>
@@ -142,11 +141,11 @@ export default function RepositoriesPage() {
 
       {/* Repository grid */}
       {repositories.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-border/70 bg-card">
+        <div className="border border-dashed border-border bg-card">
           <EmptyState
             icon={HardDrive}
-            title="No repositories yet"
-            description="Point AltaStor at storage you already own."
+            title={t("empty.title")}
+            description={t("empty.description")}
             action={<AddRepositoryDialog />}
           />
         </div>
@@ -160,7 +159,6 @@ export default function RepositoriesPage() {
               jobCount={(jobsByRepo.get(repo.id) ?? []).length}
               onOpen={() => setSelectedId(repo.id)}
               actions={actionsFor(repo)}
-              maintenance={mgmt.isMaintenance(repo)}
               scanning={mgmt.isScanning(repo)}
               threatLock={threatLocks.get(repo.id)}
             />
@@ -175,7 +173,6 @@ export default function RepositoriesPage() {
         restorePointCount={selected ? (rpByRepo.get(selected.id) ?? 0) : 0}
         onClose={() => setSelectedId(null)}
         actions={selected ? actionsFor(selected) : NO_ACTIONS}
-        maintenance={selected ? mgmt.isMaintenance(selected) : false}
         scanning={selected ? mgmt.isScanning(selected) : false}
         threatLock={selected ? threatLocks.get(selected.id) : null}
       />
@@ -209,8 +206,10 @@ function HealthChip({
   value,
   hint,
 }: {
-  icon: typeof Wrench;
-  tone: "muted" | "warning" | "success";
+  icon: LucideIcon;
+  /** `neutral` is the resting state — a chip reporting a fact, not a verdict.
+   *  `muted` stays for the case where no verdict is even possible. */
+  tone: "neutral" | "muted" | "warning" | "success";
   label: string;
   value: string;
   hint?: string;
@@ -220,12 +219,14 @@ function HealthChip({
       ? "text-warning-text"
       : tone === "success"
         ? "text-success-text"
-        : "text-muted-foreground";
+        : tone === "neutral"
+          ? "text-foreground"
+          : "text-muted-foreground";
   return (
     <span className="flex items-center gap-2">
       <Icon className={`h-4 w-4 ${toneClass}`} />
-      <span className={tone === "muted" ? "text-muted-foreground" : toneClass}>{label}</span>
-      <span className={`nums font-semibold ${tone === "muted" ? "text-foreground" : toneClass}`}>
+      <span className="text-muted-foreground">{label}</span>
+      <span className={`nums font-display font-semibold ${toneClass}`}>
         {value}
       </span>
       {hint && <span className="text-xs text-muted-foreground">· {hint}</span>}
