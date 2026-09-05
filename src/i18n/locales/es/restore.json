@@ -163,6 +163,8 @@
     "encrypted": "Cifrado",
     "encryptedTip": "Los datos de esta copia de seguridad están cifrados en reposo",
     "compression": "Nivel de compresión {{level}}",
+    "fromLogical": "de {{size}}",
+    "storedTitle": "{{logical}} de datos almacenados como {{stored}}",
     "offlineTip": "El repositorio de este punto de restauración está sin conexión — no se puede leer hasta que el repositorio vuelva a estar en línea.",
     "block": {
       "corrupt": "Este punto de restauración no superó la comprobación de integridad de sus archivos de copia de seguridad y está bloqueado para la restauración.",

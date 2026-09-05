@@ -506,6 +506,7 @@ export default function InventoryPage() {
                 <SelectItem value="all">{t("filters.allOs")}</SelectItem>
                 <SelectItem value="windows">{t("filters.windows")}</SelectItem>
                 <SelectItem value="linux">{t("filters.linux")}</SelectItem>
+                <SelectItem value="macos">{t("filters.macos")}</SelectItem>
                 <SelectItem value="unknown">{t("filters.unknown")}</SelectItem>
               </SelectContent>
             </Select>
@@ -569,6 +570,9 @@ export default function InventoryPage() {
             onRowClick={(v) => navigate(`/inventory/${v.id}`)}
             initialSorting={[{ id: "protection", desc: true }]}
             pageSize={10}
+            // Narrowing the estate should show the result from the top; a
+            // background refresh of the same VMs should not move the page.
+            resetPageKey={`${scope?.key ?? ""}|${protection}|${envId}|${os}|${power}|${search.trim()}`}
             rowClassName={() => "group/row"}
             emptyState={
               <EmptyState

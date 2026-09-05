@@ -33,6 +33,7 @@
     "allOs": "Tous les OS",
     "windows": "Windows",
     "linux": "Linux",
+    "macos": "macOS",
     "unknown": "Inconnu",
     "anyPower": "Toute alimentation"
   },
@@ -148,7 +149,8 @@
   },
   "os": {
     "windows": "Windows",
-    "linux": "Linux"
+    "linux": "Linux",
+    "macos": "macOS"
   },
   "size": {
     "storageUsedAria": "Stockage utilisé à {{pct}} %"
@@ -261,6 +263,8 @@
     "encrypted": "Chiffré",
     "encryptedTip": "Les données de cette sauvegarde sont chiffrées au repos",
     "compression": "Niveau de compression {{level}}",
+    "fromLogical": "à partir de {{size}}",
+    "storedTitle": "{{logical}} de données stockées sous {{stored}}",
     "writingFiles": "Écriture des fichiers",
     "fileWriteFailed": "Échec de l’écriture du fichier",
     "fileWriteFailedTip": "Les fichiers du point de restauration n’ont pas été écrits intégralement.",

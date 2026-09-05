@@ -33,6 +33,7 @@
     "allOs": "All OS",
     "windows": "Windows",
     "linux": "Linux",
+    "macos": "macOS",
     "unknown": "Unknown",
     "anyPower": "Any power"
   },
@@ -148,7 +149,8 @@
   },
   "os": {
     "windows": "Windows",
-    "linux": "Linux"
+    "linux": "Linux",
+    "macos": "macOS"
   },
   "size": {
     "storageUsedAria": "Storage {{pct}}% used"
@@ -261,6 +263,8 @@
     "encrypted": "Encrypted",
     "encryptedTip": "This backup's data is encrypted at rest",
     "compression": "Compression level {{level}}",
+    "fromLogical": "from {{size}}",
+    "storedTitle": "{{logical}} of data stored as {{stored}}",
     "writingFiles": "Writing files",
     "fileWriteFailed": "File write failed",
     "fileWriteFailedTip": "The restore-point files were not written completely.",

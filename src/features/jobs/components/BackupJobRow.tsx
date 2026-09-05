@@ -7,7 +7,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { formatDateTime, formatRelative, formatStorage } from "@/lib/format";
-import type { RestorePointJobGroup, RestorePointJobVmGroup } from "@/lib/restore-points";
+import {
+  compressionRatioLabel,
+  type RestorePointJobGroup,
+  type RestorePointJobVmGroup,
+} from "@/lib/restore-points";
 import type { BackupJob, RestorePoint } from "@/types";
 import { accentColor, jobTypeMeta } from "../lib";
 import { BackupJobVmRow } from "./BackupJobVmRow";
@@ -92,11 +96,21 @@ export function BackupJobRow({
               <span className="nums">{t("rp.pointsShort", { count: pointCount })}</span>
               <span aria-hidden>·</span>
               <span className="nums">{t("backupsTab.vmCount", { count: group.vms.length })}</span>
-              {group.logicalGB > 0 && (
+              {group.storedGB > 0 && (
                 <>
                   <span aria-hidden>·</span>
                   <span className="nums">
-                    {t("backupsTab.logicalShort", { size: formatStorage(group.logicalGB) })}
+                    {t("backupsTab.storedShort", { size: formatStorage(group.storedGB) })}
+                  </span>
+                </>
+              )}
+              {group.logicalGB != null && (
+                <>
+                  <span aria-hidden>·</span>
+                  <span className="nums" title={t("backupsTab.logicalTitle")}>
+                    {t("backupsTab.fromLogical", { size: formatStorage(group.logicalGB) })}
+                    {compressionRatioLabel(group.compressionRatio) &&
+                      ` (${compressionRatioLabel(group.compressionRatio)})`}
                   </span>
                 </>
               )}

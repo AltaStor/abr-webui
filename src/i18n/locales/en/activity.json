@@ -124,6 +124,7 @@
       "duration": "Duration",
       "read": "Read",
       "transferred": "Transferred",
+      "guestRead": "Guest read rate",
       "throughput": "Throughput"
     },
     "table": {

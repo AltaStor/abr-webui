@@ -55,6 +55,45 @@ export function retentionLabel(retention: Retention): string {
   return parts.length ? i18n.t("jobs:retention.withGfs", { base, tail: parts.join(" / ") }) : base;
 }
 
+/**
+ * The compression level a measured throughput figure is assumed to have been
+ * produced at — the appliance's own default (DEFAULT_COMPRESSION_LEVEL in
+ * vcenter_backup.py). Runs at other levels are scaled relative to this.
+ */
+export const BASELINE_COMPRESSION_LEVEL = 3;
+
+/**
+ * How fast the data mover runs at zstd level `level`, relative to the baseline
+ * level above. Compression is CPU-bound and the mover compresses inline, so the
+ * level is a real throughput lever: level 0 (store) keeps up with the disk,
+ * while level 9 costs several times the CPU per block and throttles the whole
+ * pipeline behind it.
+ *
+ * The curve is the shape of zstd's own published compression-speed table (each
+ * step up costs progressively more, steeply so past level 6), normalised so the
+ * baseline level is exactly 1.0. It is deliberately a rough model: it exists to
+ * make the estimate MOVE in the right direction and by a believable magnitude
+ * when the operator drags the slider, not to promise a wall-clock guarantee.
+ */
+const COMPRESSION_SPEED: readonly number[] = [
+  1.75, // 0 — store only, no compression cost
+  1.55, // 1
+  1.25, // 2
+  1.0, // 3 — baseline
+  0.85, // 4
+  0.7, // 5
+  0.55, // 6
+  0.4, // 7
+  0.28, // 8
+  0.2, // 9 — smallest output, several times the CPU per block
+];
+
+/** Throughput multiplier for a zstd level, relative to the baseline level. */
+export function compressionSpeedFactor(level: number): number {
+  const clamped = Math.min(COMPRESSION_SPEED.length - 1, Math.max(0, Math.round(level)));
+  return COMPRESSION_SPEED[clamped];
+}
+
 /** Map a job accent to its token-backed hsl() string. */
 export function accentColor(accent: AccentKey): string {
   switch (accent) {

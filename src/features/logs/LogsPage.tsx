@@ -138,7 +138,7 @@ export default function LogsPage() {
         ))}
       </KpiBand>
 
-      <SystemLogTab entries={system} mode={mode} />
+      <SystemLogTab entries={system} />
     </div>
   );
 }

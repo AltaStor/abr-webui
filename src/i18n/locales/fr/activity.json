@@ -124,6 +124,7 @@
       "duration": "Durée",
       "read": "Lu",
       "transferred": "Transféré",
+      "guestRead": "Débit de lecture invité",
       "throughput": "Débit"
     },
     "table": {

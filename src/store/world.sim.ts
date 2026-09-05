@@ -13,7 +13,7 @@
 import { clamp, pick, seededRandom } from "@/lib/utils";
 import { createSeedWorld, type World } from "@/mock/seed";
 import { applyReadState, persistAllAlertsRead, persistAlertRead } from "@/store/notifications.persist";
-import { segmentChainPoints, simChainId } from "@/lib/restore-points";
+import { segmentChainPoints, simChainId, simCompressionRatio } from "@/lib/restore-points";
 import type {
   Alert,
   BackupJob,
@@ -246,6 +246,12 @@ export function createSimDriver(handle: WorldHandle): WorldDriver {
       // same distinction that now drives s.backupType, so the two agree.
       const transferredGB = Math.round(processedGB * (s.backupType === "full" ? 0.85 : 0.08));
       const throughputMBps = done ? 0 : Math.round(460 + Math.random() * 280);
+      // Guest read runs ahead of the repo write by the same ratio the volumes
+      // do (compression + dedup shrink what actually lands), so the demo's two
+      // rate readouts stay consistent with its own byte counters.
+      const guestReadMBps = done
+        ? 0
+        : Math.round(throughputMBps / (s.backupType === "full" ? 0.85 : 0.08));
       const completed = Math.floor((progress / 100) * s.vmCount);
 
       const vmResults: VmRunResult[] = s.vmResults.map((r, idx) => {
@@ -314,6 +320,10 @@ export function createSimDriver(handle: WorldHandle): WorldDriver {
               // first point is a full (whole-disk read), not a 6%-sized delta.
               const isFirstForVm = !vm.lastBackupAt;
               vmPatches[r.vmId] = { lastBackupAt: nowIso() };
+              const storedGB = isFirstForVm
+                ? Math.max(1, Math.round(vm.usedGB))
+                : Math.max(1, Math.round(vm.usedGB * 0.06));
+              const ratio = simCompressionRatio(job.options.compression);
               newRestorePoints.push({
                 id: uid("rp"),
                 chainId: simChainId(job.id, r.vmId, job.repositoryId),
@@ -323,8 +333,10 @@ export function createSimDriver(handle: WorldHandle): WorldDriver {
                 jobName: job.name,
                 createdAt: nowIso(),
                 type: isFirstForVm ? "full" : "incremental",
-                sizeGB: isFirstForVm ? Math.max(1, Math.round(vm.usedGB)) : Math.max(1, Math.round(vm.usedGB * 0.06)),
+                sizeGB: storedGB,
                 repositoryId: job.repositoryId,
+                logicalGB: Math.round(storedGB / ratio),
+                compressionRatio: ratio,
                 compressionLevel: job.options.compression,
                 encrypted: job.options.encryption,
               });
@@ -354,7 +366,7 @@ export function createSimDriver(handle: WorldHandle): WorldDriver {
           });
         }
       } else {
-        sessions[i] = { ...s, progress, processedGB, transferredGB, throughputMBps, durationSec: s.durationSec + TICK_SECONDS, vmResults };
+        sessions[i] = { ...s, progress, processedGB, transferredGB, throughputMBps, guestReadMBps, durationSec: s.durationSec + TICK_SECONDS, vmResults };
       }
     }
 
@@ -820,6 +832,10 @@ export function createSimDriver(handle: WorldHandle): WorldDriver {
         name: v.name,
       }));
 
+      // The demo world has no appliance to resolve "Automatic" for it, so the
+      // wizard falls back to its own rule (source host, else the environment's
+      // first) — exactly what it does against a real target environment that
+      // isn't the restore point's own.
       return Promise.resolve({
         sourceNics,
         datastores: Array.from(datastoreMap.values()),
@@ -827,6 +843,9 @@ export function createSimDriver(handle: WorldHandle): WorldDriver {
         existingVms,
         originalDatastore,
         originalHost,
+        defaultHostId: vm?.hostId ?? null,
+        defaultDatastoreId: null,
+        defaultEnvironmentId: vm?.environmentId ?? null,
       });
     },
 

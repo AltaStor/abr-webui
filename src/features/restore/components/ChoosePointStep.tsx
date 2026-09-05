@@ -12,7 +12,7 @@ import { EmptyState } from "@/components/EmptyState";
 import { cn } from "@/lib/utils";
 import { formatRelative, formatStorage } from "@/lib/format";
 import { useSettingsStore } from "@/store/settings";
-import { pointTypeTooltip } from "@/lib/restore-points";
+import { compressionRatioLabel, pointTypeTooltip } from "@/lib/restore-points";
 import { useWorldStore } from "@/store/world";
 import i18n from "@/i18n";
 import type { RestorePoint, VM } from "@/types";
@@ -210,6 +210,19 @@ export function ChoosePointStep({ vm, selectedId, onSelect }: ChoosePointStepPro
                             </span>
                             <span className="flex shrink-0 flex-col items-end gap-1">
                               <span className="nums text-sm font-medium">{formatStorage(p.sizeGB)}</span>
+                              {p.logicalGB != null && (
+                                <span
+                                  className="nums text-[11px] text-muted-foreground"
+                                  title={t("point.storedTitle", {
+                                    logical: formatStorage(p.logicalGB, 1),
+                                    stored: formatStorage(p.sizeGB, 1),
+                                  })}
+                                >
+                                  {t("point.fromLogical", { size: formatStorage(p.logicalGB, 1) })}
+                                  {compressionRatioLabel(p.compressionRatio) &&
+                                    ` · ${compressionRatioLabel(p.compressionRatio)}`}
+                                </span>
+                              )}
                               {selected && (
                                 <span className="flex items-center gap-1 text-xs font-medium text-primary">
                                   <ShieldCheck className="h-3 w-3" /> {t("point.selected")}

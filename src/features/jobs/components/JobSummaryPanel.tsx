@@ -17,6 +17,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { formatDuration, formatStorage } from "@/lib/format";
 import type { Repository } from "@/types";
+import { compressionSpeedFactor } from "../lib";
 
 /** Present only for replication jobs; drives the target-host recap on the right rail. */
 export interface SummaryReplication {
@@ -32,8 +33,12 @@ export interface SummaryData {
   totalSizeGB: number;
   /** Effective MB/s used for the backup-window estimate — measured from recent
    *  real runs when available (see CreateJobPage), so the estimate reflects this
-   *  appliance's actual throughput instead of a hardcoded rate. */
+   *  appliance's actual throughput instead of a hardcoded rate. Assumed to have
+   *  been measured at BASELINE_COMPRESSION_LEVEL; `compressionLevel` scales it. */
   effectiveMBps: number;
+  /** zstd level the job will run at. Compression is inline and CPU-bound, so
+   *  the level moves the window: higher = smaller output but slower. */
+  compressionLevel: number;
   repository?: Repository;
   scheduleLabel: string;
   retentionLabel: string;
@@ -57,8 +62,14 @@ export function JobSummaryPanel({ data, editMode, submitting, onCreate, onCreate
   // Estimate window from the effective throughput measured on recent real runs
   // (falls back to a realistic default before there's any history) — not a
   // hardcoded 500 MB/s, which made a real 1-hour full read as ~15 min.
-  const rate = data.effectiveMBps > 0 ? data.effectiveMBps : 120;
-  const estSeconds = data.totalSizeGB > 0 ? (data.totalSizeGB * 1024) / rate : 0;
+  //
+  // Then scale by the chosen compression level: the mover compresses inline, so
+  // the level is a real throughput lever and the window has to respond when the
+  // operator drags the slider. Without this the estimate sat frozen at every
+  // level, implying compression were free.
+  const measured = data.effectiveMBps > 0 ? data.effectiveMBps : 120;
+  const rate = measured * compressionSpeedFactor(data.compressionLevel);
+  const estSeconds = data.totalSizeGB > 0 && rate > 0 ? (data.totalSizeGB * 1024) / rate : 0;
   const valid = data.errors.length === 0;
   const isReplication = !!data.replication;
 

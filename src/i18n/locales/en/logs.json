@@ -33,14 +33,10 @@
     "sourcesSomeShown": "{{selected}} of {{total}} shown",
     "searchLabel": "Search system log messages",
     "searchPlaceholder": "Search messages…",
-    "liveTail": "Live tail",
-    "toggleLiveTail": "Toggle live tail",
     "downloadLog": "Download filtered (.log)",
     "lineCount_one": "{{formatted}} line",
     "lineCount_other": "{{formatted}} lines",
     "filteredToSources_one": " · filtered to {{count}} source",
-    "filteredToSources_other": " · filtered to {{count}} sources",
-    "streaming": " · streaming",
-    "following": " · following the appliance's log"
+    "filteredToSources_other": " · filtered to {{count}} sources"
   }
 }

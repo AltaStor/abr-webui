@@ -1,11 +1,12 @@
 // SPDX-License-Identifier: Apache-2.0
 // Copyright © 2026 Norvitex OÜ
 
-import { useId, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   type ColumnDef,
   type OnChangeFn,
+  type PaginationState,
   type RowSelectionState,
   type SortingState,
   flexRender,
@@ -32,6 +33,15 @@ interface DataTableProps<TData> {
   onRowSelectionChange?: OnChangeFn<RowSelectionState>;
   globalFilter?: string;
   pageSize?: number;
+  /**
+   * Changing this returns the table to page 1.
+   *
+   * Pass whatever identifies the current filter set for a table that narrows
+   * `data` itself — the built-in `globalFilter` already does this on its own.
+   * Without it, a reader who filters from page 3 stays on page 3 of the new,
+   * shorter result instead of seeing it from the top.
+   */
+  resetPageKey?: unknown;
   emptyState?: React.ReactNode;
   stickyHeader?: boolean;
   className?: string;
@@ -49,6 +59,7 @@ export function DataTable<TData>({
   onRowSelectionChange,
   globalFilter,
   pageSize = 12,
+  resetPageKey,
   emptyState,
   stickyHeader,
   className,
@@ -56,6 +67,7 @@ export function DataTable<TData>({
 }: DataTableProps<TData>) {
   const { t } = useTranslation("components");
   const [sorting, setSorting] = useState<SortingState>(initialSorting);
+  const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize });
   /* Namespaces the per-row cell ids that give a clickable row its accessible
    * name, so two tables on one page (tabs, a detail pane beside a list) can't
    * collide on `id`. */
@@ -66,10 +78,12 @@ export function DataTable<TData>({
     columns,
     state: {
       sorting,
+      pagination,
       globalFilter,
       ...(rowSelection ? { rowSelection } : {}),
     },
     onSortingChange: setSorting,
+    onPaginationChange: setPagination,
     onRowSelectionChange,
     enableRowSelection,
     getRowId,
@@ -78,12 +92,34 @@ export function DataTable<TData>({
     getFilteredRowModel: getFilteredRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     globalFilterFn: "includesString",
-    initialState: { pagination: { pageSize } },
+    // The live driver re-hydrates the world every few seconds and hands us a
+    // brand-new `data` array even when not a single row changed, which under
+    // TanStack's default would reset the page index on every poll — that is
+    // what kept throwing a reader on Inventory page 3 back to page 1 mid-read.
+    // The page is managed explicitly below instead: reset it when the filters
+    // change, clamp it when the list gets shorter, and otherwise leave it be.
+    autoResetPageIndex: false,
   });
 
-  const rows = table.getRowModel().rows;
+  // A filter change is the one thing that should send the reader back to the
+  // top; a background refresh is not. (Returning the same object when already
+  // on page 1 keeps this from re-rendering on mount.)
+  useEffect(() => {
+    setPagination((p) => (p.pageIndex === 0 ? p : { ...p, pageIndex: 0 }));
+  }, [globalFilter, resetPageKey]);
+
   const totalRows = table.getFilteredRowModel().rows.length;
-  const pageIndex = table.getState().pagination.pageIndex;
+  const lastPageIndex = Math.max(0, Math.ceil(totalRows / pagination.pageSize) - 1);
+  // Rows can vanish from under the current page — a filter narrows, a job is
+  // deleted, a VM leaves the estate. Land on the last page that still exists.
+  // Adjusting during render (rather than in an effect) means React re-renders
+  // before painting, so the stale empty page is never shown.
+  if (pagination.pageIndex > lastPageIndex) {
+    setPagination((p) => ({ ...p, pageIndex: lastPageIndex }));
+  }
+
+  const rows = table.getRowModel().rows;
+  const pageIndex = pagination.pageIndex;
   const showPagination = totalRows > pageSize;
 
   return (

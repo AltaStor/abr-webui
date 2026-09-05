@@ -228,7 +228,10 @@
   "bulk": {
     "selected": "{{count}} selected",
     "run": "Run",
-    "clearSelection": "Clear selection"
+    "clearSelection": "Clear selection",
+    "disableAllAlreadyDisabled": "Every selected job is already disabled",
+    "disableAppliesTo_one": "Disables {{count}} active job; the other {{total}} selected are already disabled",
+    "disableAppliesTo_other": "Disables {{count}} active jobs of the {{total}} selected; the rest are already disabled"
   },
   "empty": {
     "noJobs": {
@@ -281,6 +284,8 @@
     "bulkDeleted_other": "Deleted {{count}} jobs",
     "bulkDeletedPartial": "Deleted {{deleted}} of {{total}} jobs",
     "bulkDeletedPartialDesc": "The appliance didn't confirm the rest — they are untouched.",
+    "bulkDisabledSkipped_one": "{{count}} was already disabled.",
+    "bulkDisabledSkipped_other": "{{count}} were already disabled.",
     "runRefused": "Couldn’t start {{name}}",
     "runRefusedDesc": "The appliance didn’t start the run and gave no reason. Try again in a moment.",
     "runRefusedDisabledDesc": "The job is disabled — enable it to run it."
@@ -537,7 +542,6 @@
     "summaryAcross_other": "restore points across <1>{{objectCount}}</1> {{objects}}",
     "incompleteWord": "incomplete",
     "logicalTitle": "Logical data captured across complete restore points, before deduplication and compression",
-    "logicalData": "logical data",
     "physicalTitleAll": "New data complete restore points added to the repository after deduplication and compression",
     "physicalTitlePartial": "New repository data measured for {{measured}} of {{total}} complete restore points",
     "noNewRepoData": "no new repository data reported",
@@ -579,7 +583,17 @@
     "noActiveJobTip": "This backup's job has been deleted. The restore points are kept and stay restorable.",
     "noActiveJob": "No active job",
     "sourceRemoved": "source removed",
-    "logicalShort": "{{size}} logical",
+    "encryption": {
+      "all": "Encrypted",
+      "allTip_one": "The {{count}} restore point stored here is encrypted at rest",
+      "allTip_other": "All {{count}} restore points stored here are encrypted at rest",
+      "partial": "Encrypted {{encrypted}}/{{total}}",
+      "partialTip": "{{encrypted}} of {{total}} restore points are encrypted at rest — the rest are stored unencrypted",
+      "none": "Not encrypted",
+      "noneTip": "This object's restore points are stored unencrypted"
+    },
+    "storedShort": "{{size}} stored",
+    "fromLogical": "from {{size}}",
     "deleteAllTip": "Delete all restore points for {{name}}",
     "deleteAll": "Delete all",
     "summaryPoints_one": "restore point across <1>{{jobCount}}</1> {{jobs}}, <2>{{vmCount}}</2> {{vms}}",
@@ -600,6 +614,9 @@
     "kpi": {
       "points": "Restore points",
       "acrossObjects": "Across {{jobs}} jobs · {{vms}} VMs",
+      "stored": "Stored",
+      "fromLogical": "From {{size}} of data · compressed to {{ratio}}",
+      "fromLogicalNoRatio": "From {{size}} of data",
       "sizeUnrecorded": "The catalog does not record sizes yet"
     }
   },

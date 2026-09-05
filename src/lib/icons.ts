@@ -128,6 +128,7 @@ export const LayoutDashboard = makeLucide([{"t":"rect","width":"7","height":"9",
 export const Loader2 = makeLucide([{"t":"path","d":"M21 12a9 9 0 1 1-6.219-8.56"}], "Loader2"); // lucide: loader-2
 export const Lock = makeLucide([{"t":"rect","width":"18","height":"11","x":"3","y":"11"},{"t":"path","d":"M7 11V7a5 5 0 0 1 10 0v4"}], "Lock"); // lucide: lock
 export const LockKeyhole = makeLucide([{"t":"circle","cx":"12","cy":"16","r":"1"},{"t":"rect","x":"3","y":"10","width":"18","height":"12"},{"t":"path","d":"M7 10V7a5 5 0 0 1 10 0v3"}], "LockKeyhole"); // lucide: lock-keyhole
+export const LockOpen = makeLucide([{"t":"rect","width":"18","height":"11","x":"3","y":"11"},{"t":"path","d":"M7 11V7a5 5 0 0 1 9.9-1"}], "LockOpen"); // lucide: lock-open
 export const MapPin = makeLucide([{"t":"path","d":"M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"},{"t":"circle","cx":"12","cy":"10","r":"3"}], "MapPin"); // lucide: map-pin
 export const MemoryStick = makeLucide([{"t":"path","d":"M12 12v-2"},{"t":"path","d":"M12 18v-2"},{"t":"path","d":"M16 12v-2"},{"t":"path","d":"M16 18v-2"},{"t":"path","d":"M2 11h1.5"},{"t":"path","d":"M20 18v-2"},{"t":"path","d":"M20.5 11H22"},{"t":"path","d":"M4 18v-2"},{"t":"path","d":"M8 12v-2"},{"t":"path","d":"M8 18v-2"},{"t":"rect","x":"2","y":"6","width":"20","height":"10"}], "MemoryStick"); // lucide: memory-stick
 export const Menu = makeLucide([{"t":"path","d":"M4 5h16"},{"t":"path","d":"M4 12h16"},{"t":"path","d":"M4 19h16"}], "Menu"); // lucide: menu
@@ -410,7 +411,7 @@ export const IconActivity = makeGlyph([
 
 
 /* ----- OS brand logos (react-icons / Font Awesome brands), for VM glyphs ----- */
-export { FaWindows as WindowsLogo, FaLinux as LinuxLogo } from "react-icons/fa6";
+export { FaWindows as WindowsLogo, FaLinux as LinuxLogo, FaApple as AppleLogo } from "react-icons/fa6";
 
 /* ----- Virtualization platform logos (Simple Icons), for hosts & clusters -----
    VMware uses a custom "boxes" glyph (see lib/platform-glyphs); Hyper-V reuses

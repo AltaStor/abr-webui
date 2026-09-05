@@ -228,7 +228,10 @@
   "bulk": {
     "selected": "{{count}} seleccionado(s)",
     "run": "Ejecutar",
-    "clearSelection": "Borrar selección"
+    "clearSelection": "Borrar selección",
+    "disableAllAlreadyDisabled": "Todos los trabajos seleccionados ya están deshabilitados",
+    "disableAppliesTo_one": "Deshabilita {{count}} trabajo activo; los otros {{total}} seleccionados ya están deshabilitados",
+    "disableAppliesTo_other": "Deshabilita {{count}} trabajos activos de los {{total}} seleccionados; el resto ya están deshabilitados"
   },
   "empty": {
     "noJobs": {
@@ -281,6 +284,8 @@
     "bulkDeleted_other": "{{count}} trabajos eliminados",
     "bulkDeletedPartial": "{{deleted}} de {{total}} trabajos eliminados",
     "bulkDeletedPartialDesc": "El appliance no confirmó el resto; no se han modificado.",
+    "bulkDisabledSkipped_one": "{{count}} ya estaba deshabilitado.",
+    "bulkDisabledSkipped_other": "{{count}} ya estaban deshabilitados.",
     "runRefused": "No se pudo iniciar {{name}}",
     "runRefusedDesc": "La appliance no inició la ejecución ni indicó el motivo. Vuelve a intentarlo en un momento.",
     "runRefusedDisabledDesc": "El trabajo está deshabilitado: habilítalo para ejecutarlo."
@@ -537,7 +542,6 @@
     "summaryAcross_other": "puntos de restauración en <1>{{objectCount}}</1> {{objects}}",
     "incompleteWord": "incompleto",
     "logicalTitle": "Datos lógicos capturados en los puntos de restauración completos, antes de la deduplicación y la compresión",
-    "logicalData": "datos lógicos",
     "physicalTitleAll": "Nuevos datos que los puntos de restauración completos añadieron al repositorio tras la deduplicación y la compresión",
     "physicalTitlePartial": "Nuevos datos del repositorio medidos para {{measured}} de {{total}} puntos de restauración completos",
     "noNewRepoData": "no se reportaron nuevos datos del repositorio",
@@ -579,7 +583,17 @@
     "noActiveJobTip": "El trabajo de esta copia de seguridad se ha eliminado. Los puntos de restauración se conservan y siguen siendo restaurables.",
     "noActiveJob": "Sin trabajo activo",
     "sourceRemoved": "fuente eliminada",
-    "logicalShort": "{{size}} lógico",
+    "encryption": {
+      "all": "Cifrado",
+      "allTip_one": "El {{count}} punto de restauración almacenado aquí está cifrado en reposo",
+      "allTip_other": "Los {{count}} puntos de restauración almacenados aquí están cifrados en reposo",
+      "partial": "Cifrados {{encrypted}}/{{total}}",
+      "partialTip": "{{encrypted}} de {{total}} puntos de restauración están cifrados en reposo — el resto se almacena sin cifrar",
+      "none": "Sin cifrar",
+      "noneTip": "Los puntos de restauración de este objeto se almacenan sin cifrar"
+    },
+    "storedShort": "{{size}} almacenados",
+    "fromLogical": "de {{size}}",
     "deleteAllTip": "Eliminar todos los puntos de restauración de {{name}}",
     "deleteAll": "Eliminar todos",
     "summaryPoints_one": "punto de restauración en <1>{{jobCount}}</1> {{jobs}}, <2>{{vmCount}}</2> {{vms}}",
@@ -600,6 +614,9 @@
     "kpi": {
       "points": "Puntos de restauración",
       "acrossObjects": "En {{jobs}} trabajos · {{vms}} VM",
+      "stored": "Almacenado",
+      "fromLogical": "De {{size}} de datos · comprimido al {{ratio}}",
+      "fromLogicalNoRatio": "De {{size}} de datos",
       "sizeUnrecorded": "El catálogo aún no registra los tamaños"
     }
   },

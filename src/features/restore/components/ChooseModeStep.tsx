@@ -101,6 +101,11 @@ interface ChooseModeStepProps {
   onTargetHostIdChange: (id: string) => void;
   datastore: string;
   onDatastoreChange: (v: string) => void;
+  /** What an "Automatic" host/datastore actually resolves to for the target
+   *  currently chosen. Reported up so the restore request names them outright
+   *  instead of leaving the appliance to re-derive defaults that only ever
+   *  covered the restore point's own environment. */
+  onAutoPlacementChange: (placement: { hostId: string; datastore: string }) => void;
   networkMappings: NetworkMapping[];
   onNetworkMappingsChange: (mappings: NetworkMapping[]) => void;
   powerOn: boolean;
@@ -176,6 +181,7 @@ export function ChooseModeStep({
   onTargetHostIdChange,
   datastore,
   onDatastoreChange,
+  onAutoPlacementChange,
   networkMappings,
   onNetworkMappingsChange,
   powerOn,
@@ -242,20 +248,43 @@ export function ChooseModeStep({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [nameError]);
 
-  // A port group lives on one host's virtual switch, so a chosen target host
+  // "Automatic" is not "anywhere": the restore lands on exactly one host, and
+  // a datastore or port group that host doesn't mount is not a choice the user
+  // can actually make — offering the whole environment just moved the failure
+  // to submit time ("Target datastore is not available on the selected host").
+  // So resolve Automatic to a concrete host and scope both lists to it.
+  // Mirrors the appliance's own rule (get_restore_context's default_host_id):
+  // the source VM's original host when the target environment still has it,
+  // otherwise that environment's first host. The appliance only computes this
+  // for the restore point's own environment, so its answer is used only there.
+  const autoHostId = useMemo(() => {
+    if (targetHostOptions.length === 0) return "";
+    if (placement?.defaultEnvironmentId === targetEnvId) {
+      const applianceChoice = targetHostOptions.find((h) => h.id === placement?.defaultHostId);
+      if (applianceChoice) return applianceChoice.id;
+    }
+    const original = placement?.originalHost?.trim().toLowerCase();
+    const sameHost = original
+      ? targetHostOptions.find((h) => h.name.trim().toLowerCase() === original)
+      : undefined;
+    return (sameHost ?? targetHostOptions[0]).id;
+  }, [targetHostOptions, targetEnvId, placement]);
+  const effectiveHostId = targetHostId || autoHostId;
+
+  // A port group lives on one host's virtual switch, so the target host
   // narrows the list to what that host can actually reach. Networks whose host
   // scope is unknown (empty hostIds) stay on offer everywhere — hiding them
   // would leave the user with nothing to pick on older inventory data.
   const targetNetworkOptions = useMemo(() => {
     const inEnv = (placement?.networks ?? []).filter((n) => n.environmentId === targetEnvId);
-    return targetHostId
-      ? inEnv.filter((n) => n.hostIds.length === 0 || n.hostIds.includes(targetHostId))
+    return effectiveHostId
+      ? inEnv.filter((n) => n.hostIds.length === 0 || n.hostIds.includes(effectiveHostId))
       : inEnv;
-  }, [placement, targetEnvId, targetHostId]);
+  }, [placement, targetEnvId, effectiveHostId]);
   const targetDatastoreOptions = useMemo(() => {
     const inEnv = (placement?.datastores ?? []).filter((d) => d.environmentId === targetEnvId);
-    return targetHostId ? inEnv.filter((d) => d.hostIds.includes(targetHostId)) : inEnv;
-  }, [placement, targetEnvId, targetHostId]);
+    return effectiveHostId ? inEnv.filter((d) => d.hostIds.includes(effectiveHostId)) : inEnv;
+  }, [placement, targetEnvId, effectiveHostId]);
 
   // Non-blocking heads-up only — the VM's actual on-disk usage is often well
   // under its provisioned size (thin disks, dedup), so a tight datastore isn't
@@ -279,7 +308,7 @@ export function ChooseModeStep({
   const syncedKeyRef = useRef<string | null>(null);
   useEffect(() => {
     if (!placement) return;
-    const key = `${point.id}:${targetEnvId}:${targetHostId}`;
+    const key = `${point.id}:${targetEnvId}:${effectiveHostId}`;
     if (syncedKeyRef.current === key) return;
     syncedKeyRef.current = key;
     const targetIdByName = new Map(targetNetworkOptions.map((n) => [n.name, n.id]));
@@ -295,7 +324,7 @@ export function ChooseModeStep({
       }),
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [placement, point.id, targetEnvId, targetHostId]);
+  }, [placement, point.id, targetEnvId, effectiveHostId]);
 
   // A datastore chosen under a previous host/environment may no longer be
   // valid (not mounted on the newly-selected host) — fall back to Automatic
@@ -304,7 +333,7 @@ export function ChooseModeStep({
     if (!placement || !datastore) return;
     if (!targetDatastoreOptions.some((d) => d.name === datastore)) onDatastoreChange("");
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [placement, targetEnvId, targetHostId]);
+  }, [placement, targetEnvId, effectiveHostId]);
 
   const updateNetworkTarget = (nicId: string, target: string) =>
     onNetworkMappingsChange(networkMappings.map((m) => (m.nicId === nicId ? { ...m, target } : m)));
@@ -333,13 +362,42 @@ export function ChooseModeStep({
     return { from: sourcePlatform, to: targetEnv.hypervisor };
   }, [destination, sourcePlatform, targetEnv]);
 
+  // The datastore Automatic resolves to, for the host it will actually land
+  // on. Keeping the source VM's original datastore here regardless of host was
+  // the bug: change the host and the label went on naming a datastore that
+  // host never mounted, one the dropdown below no longer even listed.
+  const autoDatastoreName = useMemo(() => {
+    if (targetDatastoreOptions.length === 0) return null;
+    const original = placement?.originalDatastore
+      ? targetDatastoreOptions.find((d) => d.name === placement.originalDatastore)
+      : undefined;
+    const applianceChoice =
+      placement?.defaultEnvironmentId === targetEnvId
+        ? targetDatastoreOptions.find((d) => d.id === placement?.defaultDatastoreId)
+        : undefined;
+    return (original ?? applianceChoice ?? targetDatastoreOptions[0]).name;
+  }, [targetDatastoreOptions, targetEnvId, placement]);
+  const autoHostName = useMemo(
+    () => targetHostOptions.find((h) => h.id === autoHostId)?.name ?? null,
+    [targetHostOptions, autoHostId],
+  );
+
+  // Hand the resolved pair up so the request carries them explicitly. Without
+  // this the appliance falls back to defaults it only computed for the restore
+  // point's own environment — which, against any other target, names a host
+  // that isn't in it.
+  useEffect(() => {
+    onAutoPlacementChange({ hostId: autoHostId, datastore: autoDatastoreName ?? "" });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoHostId, autoDatastoreName]);
+
   // "Automatic" on its own doesn't say what actually happens — show the
   // concrete value it resolves to wherever one is known.
-  const hostAutoLabel = placement?.originalHost
-    ? t("mode.targetHostAutoWithValue", { name: placement.originalHost })
+  const hostAutoLabel = autoHostName
+    ? t("mode.targetHostAutoWithValue", { name: autoHostName })
     : t("mode.targetHostAuto");
-  const datastoreAutoLabel = placement?.originalDatastore
-    ? t("mode.datastoreAutoWithValue", { name: placement.originalDatastore })
+  const datastoreAutoLabel = autoDatastoreName
+    ? t("mode.datastoreAutoWithValue", { name: autoDatastoreName })
     : t("mode.datastoreAuto");
 
   return (

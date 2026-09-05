@@ -2,12 +2,16 @@
 // Copyright © 2026 Norvitex OÜ
 
 import { useTranslation } from "react-i18next";
-import { ChevronRight, Lock, RotateCcw, Server, ServerOff, Trash2 } from "@/lib/icons";
+import { ChevronRight, Lock, LockOpen, RotateCcw, Server, ServerOff, Trash2 } from "@/lib/icons";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { formatDateTime, formatRelative, formatStorage } from "@/lib/format";
-import { pointTypeTooltip, type RestorePointJobVmGroup } from "@/lib/restore-points";
+import {
+  compressionRatioLabel,
+  pointTypeTooltip,
+  type RestorePointJobVmGroup,
+} from "@/lib/restore-points";
 import type { RestorePoint } from "@/types";
 
 /**
@@ -53,6 +57,12 @@ export function BackupJobVmRow({
   const allUnreachable = unreachable === vm.points.length;
   const restoreDisabled = allUnreachable || restoreBlockedReason !== undefined;
   const orderedPoints = sortDir === "asc" ? [...vm.points].reverse() : vm.points;
+  /* Encryption at rest, summarised for the collapsed row so the operator sees
+   * it without expanding every VM. "Partly" is a real and important state — a
+   * job whose encryption setting changed mid-history leaves the older points
+   * in the clear, which a plain on/off badge would hide. */
+  const encryption: "none" | "partial" | "all" =
+    vm.encryptedCount === 0 ? "none" : vm.encryptedCount === vm.points.length ? "all" : "partial";
 
   return (
     <li>
@@ -85,14 +95,60 @@ export function BackupJobVmRow({
                   {t("backupsTab.sourceRemoved")}
                 </Badge>
               )}
+              {encryption === "none" ? (
+                <Badge
+                  variant="outline"
+                  className="shrink-0 gap-1 font-normal text-muted-foreground/70"
+                  title={t("backupsTab.encryption.noneTip")}
+                >
+                  <LockOpen className="h-3 w-3" />
+                  {t("backupsTab.encryption.none")}
+                </Badge>
+              ) : (
+                <Badge
+                  variant="outline"
+                  className={cn(
+                    "shrink-0 gap-1 font-normal",
+                    encryption === "all"
+                      ? "text-muted-foreground"
+                      : "border-warning/40 text-warning-text",
+                  )}
+                  title={
+                    encryption === "all"
+                      ? t("backupsTab.encryption.allTip", { count: vm.points.length })
+                      : t("backupsTab.encryption.partialTip", {
+                          encrypted: vm.encryptedCount,
+                          total: vm.points.length,
+                        })
+                  }
+                >
+                  <Lock className="h-3 w-3" />
+                  {encryption === "all"
+                    ? t("backupsTab.encryption.all")
+                    : t("backupsTab.encryption.partial", {
+                        encrypted: vm.encryptedCount,
+                        total: vm.points.length,
+                      })}
+                </Badge>
+              )}
             </span>
             <span className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-muted-foreground">
               <span className="nums">{t("rp.pointsShort", { count: vm.points.length })}</span>
-              {vm.logicalGB > 0 && (
+              {vm.storedGB > 0 && (
                 <>
                   <span aria-hidden>·</span>
                   <span className="nums">
-                    {t("backupsTab.logicalShort", { size: formatStorage(vm.logicalGB) })}
+                    {t("backupsTab.storedShort", { size: formatStorage(vm.storedGB) })}
+                  </span>
+                </>
+              )}
+              {vm.logicalGB != null && (
+                <>
+                  <span aria-hidden>·</span>
+                  <span className="nums" title={t("backupsTab.logicalTitle")}>
+                    {t("backupsTab.fromLogical", { size: formatStorage(vm.logicalGB) })}
+                    {compressionRatioLabel(vm.compressionRatio) &&
+                      ` (${compressionRatioLabel(vm.compressionRatio)})`}
                   </span>
                 </>
               )}

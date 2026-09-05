@@ -106,8 +106,8 @@ export function DeleteJobVmBackupsDialog({
             <span className="font-medium">
               {t("deleteBackup.pointsCount", { count: vm.points.length })}
             </span>
-            {vm.logicalGB > 0 && (
-              <span className="nums text-muted-foreground">{formatStorage(vm.logicalGB, 1)}</span>
+            {vm.storedGB > 0 && (
+              <span className="nums text-muted-foreground">{formatStorage(vm.storedGB, 1)}</span>
             )}
           </div>
           <p className="mt-0.5 text-xs text-muted-foreground">

@@ -428,6 +428,7 @@ function JobWizard({
     vmCount: selected.size,
     totalSizeGB,
     effectiveMBps,
+    compressionLevel: form.options.compression,
     repository,
     scheduleLabel: scheduleLabel(schedule),
     retentionLabel: isReplication

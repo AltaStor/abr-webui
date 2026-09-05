@@ -74,6 +74,10 @@ export default function RestorePage() {
   const [nameSubmitError, setNameSubmitError] = useState<string | undefined>(undefined);
   const [targetHostId, setTargetHostId] = useState("");
   const [datastore, setDatastore] = useState("");
+  // What "Automatic" resolves to for the target currently chosen, reported by
+  // ChooseModeStep so the request can name it outright — see its
+  // onAutoPlacementChange.
+  const [autoPlacement, setAutoPlacement] = useState({ hostId: "", datastore: "" });
   const [networkMappings, setNetworkMappings] = useState<NetworkMapping[]>([]);
   const [powerOn, setPowerOn] = useState(false);
   const [overwriteConfirmed, setOverwriteConfirmed] = useState(false);
@@ -246,8 +250,15 @@ export default function RestorePage() {
         // only way that destination means anything — while "New location"
         // falls back to the appliance's own "<source>-restored" default.
         newName: destination === "new-location" ? newName.trim() || undefined : vm.name,
-        targetHostId: destination === "new-location" ? targetHostId || undefined : undefined,
-        datastore: destination === "new-location" ? datastore.trim() || undefined : undefined,
+        // Send the placement the wizard showed, Automatic included: the
+        // appliance's own fallback defaults were resolved against the restore
+        // point's environment, so they name the wrong host for any other one.
+        targetHostId:
+          destination === "new-location" ? targetHostId || autoPlacement.hostId || undefined : undefined,
+        datastore:
+          destination === "new-location"
+            ? datastore.trim() || autoPlacement.datastore || undefined
+            : undefined,
         networkMappings:
           destination === "new-location" ? networkMappings.filter((m) => m.target.trim()) : undefined,
         powerOn: destination === "new-location" ? powerOn : undefined,
@@ -330,6 +341,7 @@ export default function RestorePage() {
                 onTargetHostIdChange={setTargetHostId}
                 datastore={datastore}
                 onDatastoreChange={setDatastore}
+                onAutoPlacementChange={setAutoPlacement}
                 networkMappings={networkMappings}
                 onNetworkMappingsChange={setNetworkMappings}
                 powerOn={powerOn}

@@ -124,6 +124,7 @@
       "duration": "Dauer",
       "read": "Gelesen",
       "transferred": "Übertragen",
+      "guestRead": "Gast-Leserate",
       "throughput": "Durchsatz"
     },
     "table": {

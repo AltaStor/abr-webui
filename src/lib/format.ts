@@ -16,6 +16,21 @@ export function formatStorage(gb: number, digits = 1): string {
   return `${trimZero((gb / 1024 / 1024).toFixed(digits))} PB`;
 }
 
+/**
+ * Display name for a restore run. A restore has no backing job (the appliance
+ * never creates one), so the Activity feed's RUN column would otherwise show
+ * the "—" placeholder for every restore. Naming it after the VM it produces
+ * makes restores identifiable in the feed without opening the log.
+ *
+ * Shared by the API mapper and the live store so both spell it identically —
+ * a session named one way on first fetch and another on the next poll would
+ * flicker in the feed.
+ */
+export function restoreRunName(vmName: string | undefined | null): string {
+  const name = (vmName ?? "").trim();
+  return name ? `Restore · ${name}` : "Restore";
+}
+
 /** Throughput in MB/s with sensible scaling. */
 export function formatThroughput(mbps: number): string {
   if (mbps >= 1024) return `${(mbps / 1024).toFixed(1)} GB/s`;

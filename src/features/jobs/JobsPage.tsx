@@ -219,14 +219,22 @@ export default function JobsPage() {
     });
     setRowSelection({});
   };
+  // Only the still-active jobs in a selection are worth disabling: sending the
+  // rest to the appliance changes nothing and made the toast report a count of
+  // jobs it hadn't touched. The bulk bar greys the action out when there are no
+  // targets at all, and says how many it covers when the selection is mixed.
+  const disableTargets = selectedJobs.filter((j) => j.state !== "disabled");
   const bulkDisable = async () => {
-    const results = await Promise.allSettled(selectedJobs.map((job) => setJobEnabled(job.id, false)));
+    if (disableTargets.length === 0) return;
+    const alreadyDisabled = selectedJobs.length - disableTargets.length;
+    const skippedNote = alreadyDisabled > 0 ? t("toast.bulkDisabledSkipped", { count: alreadyDisabled }) : "";
+    const results = await Promise.allSettled(disableTargets.map((job) => setJobEnabled(job.id, false)));
     const disabled = results.filter((r) => r.status === "fulfilled").length;
-    if (disabled === selectedJobs.length) {
-      toast.success(t("toast.bulkDisabled", { count: disabled }));
+    if (disabled === disableTargets.length) {
+      toast.success(t("toast.bulkDisabled", { count: disabled }), skippedNote ? { description: skippedNote } : undefined);
     } else {
-      toast.warning(t("toast.bulkDisabledPartial", { disabled, total: selectedJobs.length }), {
-        description: t("toast.bulkDisabledPartialDesc"),
+      toast.warning(t("toast.bulkDisabledPartial", { disabled, total: disableTargets.length }), {
+        description: [t("toast.bulkDisabledPartialDesc"), skippedNote].filter(Boolean).join(" "),
       });
     }
     setRowSelection({});
@@ -558,12 +566,11 @@ export default function JobsPage() {
             <Play className="h-3.5 w-3.5" />
             {t("bulk.run")}
           </Button>
-          <Button variant="ghost" size="sm" onClick={bulkDisable}>
-            {/* Power, not Pause: Play/Pause is the transport pair, and bulkRun
-                sits right beside this with Play. */}
-            <Power className="h-3.5 w-3.5" />
-            {t("common:actions.disable")}
-          </Button>
+          <BulkDisableButton
+            targetCount={disableTargets.length}
+            selectedCount={selectedIds.length}
+            onClick={bulkDisable}
+          />
           <Button variant="ghost" size="sm" className="text-danger hover:text-danger" onClick={() => setBulkDeleteOpen(true)}>
             <Trash2 className="h-3.5 w-3.5" />
             {t("common:actions.delete")}
@@ -590,6 +597,9 @@ export default function JobsPage() {
         onRowSelectionChange={setRowSelection}
         initialSorting={[{ id: "status", desc: false }]}
         pageSize={12}
+        // `search` already resets the page through `globalFilter`; the status
+        // chips filter `data` before the table sees it, so they need this.
+        resetPageKey={statusFilter}
         emptyState={
           jobs.length === 0 ? (
             <EmptyState
@@ -641,6 +651,47 @@ export default function JobsPage() {
 /* --------------------------- add job button ------------------------------ */
 /** Gated behind having somewhere to read from (an environment) and write to
  *  (a repository) — otherwise the wizard opens onto a dead end. */
+/* --------------------------- bulk disable -------------------------------- */
+/** Disable only ever applies to the selected jobs that are still active, so it
+ *  goes inactive once every selected job is already disabled, and says how many
+ *  it will actually touch when the selection is mixed. */
+function BulkDisableButton({
+  targetCount,
+  selectedCount,
+  onClick,
+}: {
+  targetCount: number;
+  selectedCount: number;
+  onClick: () => void;
+}) {
+  const { t } = useTranslation("jobs");
+  const blocked = targetCount === 0;
+  const button = (
+    <Button variant="ghost" size="sm" onClick={onClick} disabled={blocked}>
+      {/* Power, not Pause: Play/Pause is the transport pair, and bulkRun
+          sits right beside this with Play. */}
+      <Power className="h-3.5 w-3.5" />
+      {t("common:actions.disable")}
+    </Button>
+  );
+
+  // A disabled <button> has pointer-events: none, so the tooltip trigger goes
+  // on a wrapping span — the same treatment AddJobButton below uses.
+  if (blocked) {
+    return (
+      <Hint label={t("bulk.disableAllAlreadyDisabled")}>
+        <span tabIndex={0} className="inline-flex cursor-not-allowed">
+          {button}
+        </span>
+      </Hint>
+    );
+  }
+  if (targetCount === selectedCount) return button;
+  return (
+    <Hint label={t("bulk.disableAppliesTo", { count: targetCount, total: selectedCount })}>{button}</Hint>
+  );
+}
+
 function AddJobButton({
   blockedReason,
   onClick,

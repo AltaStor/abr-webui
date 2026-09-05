@@ -163,6 +163,8 @@
     "encrypted": "Encrypted",
     "encryptedTip": "This backup's data is encrypted at rest",
     "compression": "Compression level {{level}}",
+    "fromLogical": "from {{size}}",
+    "storedTitle": "{{logical}} of data stored as {{stored}}",
     "offlineTip": "This restore point's repository is offline — it can't be read until the repository comes back online.",
     "block": {
       "corrupt": "This restore point failed its backup-file health check and is blocked from restore.",

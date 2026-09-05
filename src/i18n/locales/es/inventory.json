@@ -33,6 +33,7 @@
     "allOs": "Todos los SO",
     "windows": "Windows",
     "linux": "Linux",
+    "macos": "macOS",
     "unknown": "Desconocido",
     "anyPower": "Cualquier estado"
   },
@@ -148,7 +149,8 @@
   },
   "os": {
     "windows": "Windows",
-    "linux": "Linux"
+    "linux": "Linux",
+    "macos": "macOS"
   },
   "size": {
     "storageUsedAria": "Almacenamiento {{pct}} % usado"
@@ -261,6 +263,8 @@
     "encrypted": "Cifrado",
     "encryptedTip": "Los datos de esta copia de seguridad están cifrados en reposo",
     "compression": "Nivel de compresión {{level}}",
+    "fromLogical": "de {{size}}",
+    "storedTitle": "{{logical}} de datos almacenados como {{stored}}",
     "writingFiles": "Escribiendo archivos",
     "fileWriteFailed": "Error al escribir el archivo",
     "fileWriteFailedTip": "Los archivos del punto de restauración no se escribieron por completo.",

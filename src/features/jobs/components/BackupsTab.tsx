@@ -19,7 +19,11 @@ import {
 import { EmptyState } from "@/components/EmptyState";
 import { formatStorage } from "@/lib/format";
 import type { RestorePoint } from "@/types";
-import { groupRestorePointsByJob, type RestorePointJobVmGroup } from "@/lib/restore-points";
+import {
+  compressionRatioLabel,
+  groupRestorePointsByJob,
+  type RestorePointJobVmGroup,
+} from "@/lib/restore-points";
 import { useWorldStore } from "@/store/world";
 import { BackupJobRow } from "./BackupJobRow";
 import {
@@ -123,7 +127,15 @@ export function BackupsTab() {
     });
 
   const totalPoints = groups.reduce((a, g) => a + g.points.length, 0);
-  const totalLogical = groups.reduce((a, g) => a + g.logicalGB, 0);
+  const totalStored = groups.reduce((a, g) => a + g.storedGB, 0);
+  // Only the points whose real size the appliance knows contribute here, so
+  // the pair below always compares like with like.
+  const measuredPoints = groups.flatMap((g) => g.points).filter((p) => p.logicalGB != null);
+  const totalLogical = measuredPoints.reduce((a, p) => a + (p.logicalGB as number), 0);
+  const totalLogicalStored = measuredPoints.reduce((a, p) => a + p.sizeGB, 0);
+  const totalRatio = compressionRatioLabel(
+    totalLogical > 0 ? totalLogicalStored / totalLogical : null,
+  );
   const totalVms = groups.reduce((a, g) => a + g.vms.length, 0);
 
   const handleRestoreVm = (vm: RestorePointJobVmGroup) =>
@@ -161,16 +173,26 @@ export function BackupsTab() {
           value={totalPoints}
           hint={t("backupsTab.kpi.acrossObjects", { jobs: groups.length, vms: totalVms })}
         />
-        {/* Sizes come from the catalog, which does not record them yet. A hard 0 B
-            would read as "these backups are empty" rather than "not measured", so
-            the card says so and stays toneless. */}
+        {/* Sizes come from the catalog, which has none until a backup has run. A
+            hard 0 B would read as "these backups are empty" rather than "not
+            measured", so the card says so and stays toneless. The headline is
+            what the points OCCUPY; the real data behind it rides the hint. */}
         <KpiCard
           icon={Database}
-          label={t("rp.logicalData")}
-          value={totalLogical > 0 ? totalLogical : t("common:generic.na")}
+          label={t("backupsTab.kpi.stored")}
+          value={totalStored > 0 ? totalStored : t("common:generic.na")}
           format={(n) => formatStorage(n)}
-          tone={totalLogical > 0 ? "neutral" : "muted"}
-          hint={totalLogical > 0 ? t("backupsTab.logicalTitle") : t("backupsTab.kpi.sizeUnrecorded")}
+          tone={totalStored > 0 ? "neutral" : "muted"}
+          hint={
+            totalLogical > 0
+              ? totalRatio
+                ? t("backupsTab.kpi.fromLogical", {
+                    size: formatStorage(totalLogical),
+                    ratio: totalRatio,
+                  })
+                : t("backupsTab.kpi.fromLogicalNoRatio", { size: formatStorage(totalLogical) })
+              : t("backupsTab.kpi.sizeUnrecorded")
+          }
         />
         <KpiCard
           icon={AlertTriangle}

@@ -163,6 +163,8 @@
     "encrypted": "Verschlüsselt",
     "encryptedTip": "Die Daten dieser Sicherung sind im Ruhezustand verschlüsselt",
     "compression": "Komprimierungsstufe {{level}}",
+    "fromLogical": "aus {{size}}",
+    "storedTitle": "{{logical}} Daten gespeichert als {{stored}}",
     "offlineTip": "Das Repository dieses Wiederherstellungspunkts ist offline — er kann erst gelesen werden, wenn das Repository wieder online ist.",
     "block": {
       "corrupt": "Dieser Wiederherstellungspunkt hat seine Backup-Datei-Gesundheitsprüfung nicht bestanden und ist für die Wiederherstellung gesperrt.",

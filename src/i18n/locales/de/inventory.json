@@ -33,6 +33,7 @@
     "allOs": "Alle Betriebssysteme",
     "windows": "Windows",
     "linux": "Linux",
+    "macos": "macOS",
     "unknown": "Unbekannt",
     "anyPower": "Beliebiger Zustand"
   },
@@ -148,7 +149,8 @@
   },
   "os": {
     "windows": "Windows",
-    "linux": "Linux"
+    "linux": "Linux",
+    "macos": "macOS"
   },
   "size": {
     "storageUsedAria": "Speicher zu {{pct}}% belegt"
@@ -261,6 +263,8 @@
     "encrypted": "Verschlüsselt",
     "encryptedTip": "Die Daten dieser Sicherung sind im Ruhezustand verschlüsselt",
     "compression": "Komprimierungsstufe {{level}}",
+    "fromLogical": "aus {{size}}",
+    "storedTitle": "{{logical}} Daten gespeichert als {{stored}}",
     "writingFiles": "Dateien werden geschrieben",
     "fileWriteFailed": "Schreiben der Datei fehlgeschlagen",
     "fileWriteFailedTip": "Die Dateien des Wiederherstellungspunkts wurden nicht vollständig geschrieben.",

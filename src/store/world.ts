@@ -88,6 +88,9 @@ export const useWorldStore = create<WorldState>(() => ({
       existingVms: [],
       originalDatastore: null,
       originalHost: null,
+      defaultHostId: null,
+      defaultDatastoreId: null,
+      defaultEnvironmentId: null,
     }),
   deleteRestorePoint: (id, segmentId) =>
     driver?.actions.deleteRestorePoint(id, segmentId) ??

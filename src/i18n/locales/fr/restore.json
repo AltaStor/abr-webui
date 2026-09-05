@@ -163,6 +163,8 @@
     "encrypted": "Chiffré",
     "encryptedTip": "Les données de cette sauvegarde sont chiffrées au repos",
     "compression": "Niveau de compression {{level}}",
+    "fromLogical": "à partir de {{size}}",
+    "storedTitle": "{{logical}} de données stockées sous {{stored}}",
     "offlineTip": "Le référentiel de ce point de restauration est hors ligne — il ne peut pas être lu tant que le référentiel n'est pas de nouveau en ligne.",
     "block": {
       "corrupt": "Ce point de restauration a échoué à son contrôle d'intégrité des fichiers de sauvegarde et est bloqué pour la restauration.",

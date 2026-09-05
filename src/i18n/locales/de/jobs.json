@@ -228,7 +228,10 @@
   "bulk": {
     "selected": "{{count}} ausgewählt",
     "run": "Ausführen",
-    "clearSelection": "Auswahl aufheben"
+    "clearSelection": "Auswahl aufheben",
+    "disableAllAlreadyDisabled": "Alle ausgewählten Aufträge sind bereits deaktiviert",
+    "disableAppliesTo_one": "Deaktiviert {{count}} aktiven Auftrag; die anderen {{total}} ausgewählten sind bereits deaktiviert",
+    "disableAppliesTo_other": "Deaktiviert {{count}} aktive Aufträge von {{total}} ausgewählten; die übrigen sind bereits deaktiviert"
   },
   "empty": {
     "noJobs": {
@@ -281,6 +284,8 @@
     "bulkDeleted_other": "{{count}} Jobs gelöscht",
     "bulkDeletedPartial": "{{deleted}} von {{total}} Jobs gelöscht",
     "bulkDeletedPartialDesc": "Die Appliance hat die übrigen nicht bestätigt – sie bleiben unverändert.",
+    "bulkDisabledSkipped_one": "{{count}} war bereits deaktiviert.",
+    "bulkDisabledSkipped_other": "{{count}} waren bereits deaktiviert.",
     "runRefused": "{{name}} konnte nicht gestartet werden",
     "runRefusedDesc": "Die Appliance hat die Ausführung nicht gestartet und keinen Grund genannt. Versuchen Sie es gleich noch einmal.",
     "runRefusedDisabledDesc": "Der Job ist deaktiviert — aktivieren Sie ihn, um ihn auszuführen."
@@ -537,7 +542,6 @@
     "summaryAcross_other": "Wiederherstellungspunkte über <1>{{objectCount}}</1> {{objects}}",
     "incompleteWord": "unvollständig",
     "logicalTitle": "Logische Daten, die über vollständige Wiederherstellungspunkte hinweg erfasst wurden, vor Deduplizierung und Komprimierung",
-    "logicalData": "logische Daten",
     "physicalTitleAll": "Neue Daten, die vollständige Wiederherstellungspunkte nach Deduplizierung und Komprimierung zum Repository hinzugefügt haben",
     "physicalTitlePartial": "Neue Repository-Daten gemessen für {{measured}} von {{total}} vollständigen Wiederherstellungspunkten",
     "noNewRepoData": "keine neuen Repository-Daten gemeldet",
@@ -579,7 +583,17 @@
     "noActiveJobTip": "Der Job dieses Backups wurde gelöscht. Die Wiederherstellungspunkte bleiben erhalten und wiederherstellbar.",
     "noActiveJob": "Kein aktiver Job",
     "sourceRemoved": "Quelle entfernt",
-    "logicalShort": "{{size}} logisch",
+    "encryption": {
+      "all": "Verschlüsselt",
+      "allTip_one": "Der {{count}} hier gespeicherte Wiederherstellungspunkt ist im Ruhezustand verschlüsselt",
+      "allTip_other": "Alle {{count}} hier gespeicherten Wiederherstellungspunkte sind im Ruhezustand verschlüsselt",
+      "partial": "Verschlüsselt {{encrypted}}/{{total}}",
+      "partialTip": "{{encrypted}} von {{total}} Wiederherstellungspunkten sind im Ruhezustand verschlüsselt — die übrigen werden unverschlüsselt gespeichert",
+      "none": "Nicht verschlüsselt",
+      "noneTip": "Die Wiederherstellungspunkte dieses Objekts werden unverschlüsselt gespeichert"
+    },
+    "storedShort": "{{size}} gespeichert",
+    "fromLogical": "aus {{size}}",
     "deleteAllTip": "Alle Wiederherstellungspunkte für {{name}} löschen",
     "deleteAll": "Alle löschen",
     "summaryPoints_one": "Wiederherstellungspunkt über <1>{{jobCount}}</1> {{jobs}}, <2>{{vmCount}}</2> {{vms}}",
@@ -600,6 +614,9 @@
     "kpi": {
       "points": "Wiederherstellungspunkte",
       "acrossObjects": "Über {{jobs}} Jobs · {{vms}} VMs",
+      "stored": "Gespeichert",
+      "fromLogical": "Aus {{size}} Daten · komprimiert auf {{ratio}}",
+      "fromLogicalNoRatio": "Aus {{size}} Daten",
       "sizeUnrecorded": "Der Katalog erfasst noch keine Größen"
     }
   },

@@ -27,6 +27,7 @@
  * is a polling loop (see the bottom of the file).
  */
 import { fileStamp } from "@/lib/download";
+import { restoreRunName } from "@/lib/format";
 import { useWorldStore } from "@/store/world";
 import type {
   Alert,
@@ -227,6 +228,10 @@ function accentFor(id: string): (typeof ACCENTS)[number] {
 
 function osFamilyOf(guest: string): OsFamily {
   const g = guest.toLowerCase();
+  // macOS first: vSphere reports it as "darwin*Guest", and "darwin" would not
+  // match the others, but "Mac OS X Server" contains no windows/linux token
+  // either — checking it up front keeps both spellings off "unknown".
+  if (/darwin|mac ?os|macintosh|osx/.test(g)) return "macos";
   if (/win|microsoft/.test(g)) return "windows";
   if (/linux|ubuntu|debian|centos|rhel|red hat|suse|fedora|oracle|rocky|alma|photon|coreos/.test(g))
     return "linux";
@@ -340,10 +345,19 @@ function mapSession(s: Dict): Session {
   const backupType = /inc/i.test(str(s.resolved_backup_type)) ? "incremental" : "full";
   const vmId = str(s.vm_id);
   const isRestore = str(s.type) === "restore";
+  // The VM this run acts on, by name, straight from the orchestrator (see
+  // _session_vm_names in abr_v41.py). For a restore that's the VM being
+  // created; source_vm_name is where the point came from.
+  const vmName = str(s.vm_name);
+  const sourceVmName = str(s.source_vm_name);
   // Restore tasks have no job (job_id is null), so there is no job.name to
-  // fall back to here — world.live.ts resolves the real VM name from the
-  // hydrated inventory and overwrites this placeholder.
-  const jobName = str(job.name) || "—";
+  // fall back to — name the run after the VM it restores instead of leaving
+  // the placeholder, so the feed's RUN column identifies it at a glance.
+  // world.live.ts still resolves a name from inventory when the orchestrator
+  // couldn't supply one (older sessions predating the vm_name field).
+  const jobName = isRestore
+    ? restoreRunName(vmName || sourceVmName)
+    : str(job.name) || "—";
   const message = errors.length ? friendlyError(str(errors[0].message)) : undefined;
   // The orchestrator's `message` field carries the live per-disk stage caption
   // while a session is running (see _emit_progress in vcenter_backup.py /
@@ -382,7 +396,13 @@ function mapSession(s: Dict): Session {
       ? [
           {
             vmId,
-            vmName: jobName,
+            // The real VM name — NOT jobName, which named the *job* here and
+            // made the per-VM breakdown read "nightly-backup" instead of the
+            // machine it backed up. Sessions predating the orchestrator's
+            // vm_name field carry neither name; they fall back to the raw id,
+            // which is opaque but honest, and which world.live.ts recognises
+            // as "unnamed" and resolves against the hydrated inventory.
+            vmName: vmName || sourceVmName || vmId,
             status: resultStatus,
             processedGB: num(s.processed_bytes) / GB,
             transferredGB: num(s.transferred_bytes) / GB,
@@ -432,11 +452,16 @@ function mapSchedule(sched: Dict): Schedule {
   }
 }
 
-function mapJobOptions(params: Dict, compressionLevel?: unknown): JobOptions {
+function mapJobOptions(params: Dict, compressionLevel?: unknown, encryption?: Dict): JobOptions {
   const level = Math.round(num(compressionLevel, DEFAULT_COMPRESSION_LEVEL));
   return {
     appAware: Boolean(params.app_aware ?? params.application_aware ?? params.quiesce),
-    encryption: Boolean(params.encryption),
+    // The job DTO's own `encryption` block is what the appliance actually acts
+    // on; task_parameters is the fallback for payloads that predate it. Note
+    // the key is `encryption_enabled` there — reading a bare `encryption` off
+    // task_parameters is what let a job report itself encrypted while its
+    // restore points were written in the clear.
+    encryption: Boolean(encryption?.enabled ?? params.encryption_enabled),
     compression: Math.min(9, Math.max(0, level)),
     dedup: params.dedup === undefined ? true : Boolean(params.dedup),
   };
@@ -452,7 +477,48 @@ function mapRetention(job: Dict): Retention {
   return out;
 }
 
-/** Build a job from its DTO, enriched with run history from the session list. */
+/**
+ * The three job fields derived from its run history: the last-12 outcome strip,
+ * the success ratio, and the pill's last status.
+ *
+ * Split out of `mapJob` so a caller that already holds the session list can
+ * attach these without `mapJob` refetching it — see `withJobRunStats`.
+ */
+function jobRunStats(jobSessions: Session[]): Pick<BackupJob, "recentRuns" | "successRate" | "lastStatus"> {
+  const mine = [...jobSessions].sort(
+    (a, b) => new Date(a.startedAt).getTime() - new Date(b.startedAt).getTime(),
+  );
+  const recentRuns = mine.slice(-12).map((s) => s.status);
+  const finished = mine.filter((s) => s.status === "success" || s.status === "warning" || s.status === "failed");
+  return {
+    recentRuns,
+    successRate: finished.length
+      ? Math.round((finished.filter((s) => s.status === "success").length / finished.length) * 100)
+      : 100,
+    lastStatus: mine.length ? mine[mine.length - 1].status : null,
+  };
+}
+
+/**
+ * Attach run history to already-mapped jobs.
+ *
+ * `listJobs` deliberately does NOT fetch sessions: hydrate pulls the session
+ * list once for the store, and having `listJobs` pull it again meant every
+ * poll fetched the whole session history twice. The live driver calls this
+ * with the list it already has.
+ */
+export function withJobRunStats(jobs: BackupJob[], sessions: Session[]): BackupJob[] {
+  const byJob = new Map<string, Session[]>();
+  for (const session of sessions) {
+    const bucket = byJob.get(session.jobId);
+    if (bucket) bucket.push(session);
+    else byJob.set(session.jobId, [session]);
+  }
+  return jobs.map((job) => ({ ...job, ...jobRunStats(byJob.get(job.id) ?? []) }));
+}
+
+/** Build a job from its DTO, enriched with run history from `sessions` (may be
+ *  empty — `withJobRunStats` can fill it in later). */
 function mapJob(job: Dict, sessions: Session[]): BackupJob {
   const id = str(job.id);
   const repo = asDict(job.repository);
@@ -464,15 +530,7 @@ function mapJob(job: Dict, sessions: Session[]): BackupJob {
   const activeCount = num(job.active_session_count);
   const enabled = job.enabled !== false && str(job.status) !== "disabled";
 
-  const mine = sessions
-    .filter((s) => s.jobId === id)
-    .sort((a, b) => new Date(a.startedAt).getTime() - new Date(b.startedAt).getTime());
-  const recentRuns = mine.slice(-12).map((s) => s.status);
-  const finished = mine.filter((s) => s.status === "success" || s.status === "warning" || s.status === "failed");
-  const successRate = finished.length
-    ? Math.round((finished.filter((s) => s.status === "success").length / finished.length) * 100)
-    : 100;
-  const lastStatus = mine.length ? mine[mine.length - 1].status : null;
+  const { recentRuns, successRate, lastStatus } = jobRunStats(sessions.filter((s) => s.jobId === id));
 
   const scopeSummary =
     (str(inventory.name) ? `${str(inventory.name)} · ` : "") +
@@ -488,7 +546,7 @@ function mapJob(job: Dict, sessions: Session[]): BackupJob {
     repositoryId: str(repo.id),
     schedule: mapSchedule(asDict(job.schedule)),
     retention: mapRetention(job),
-    options: mapJobOptions(asDict(job.task_parameters ?? job.backup_options), job.compression_level),
+    options: mapJobOptions(asDict(job.task_parameters ?? job.backup_options), job.compression_level, asDict(job.encryption)),
     state: activeCount > 0 ? "running" : enabled ? "idle" : "disabled",
     lastStatus,
     lastRunAt: strOrNull(job.last_run_at),
@@ -536,6 +594,8 @@ function mapRestorePointFromChainPoint(chain: Dict, point: Dict): RestorePoint {
     type: /inc/i.test(execType) ? "incremental" : "full",
     sizeGB: num(point.size_bytes) / GB,
     repositoryId: str(point.repository_id) || str(repo.id),
+    logicalGB: point.logical_size_bytes == null ? null : num(point.logical_size_bytes) / GB,
+    compressionRatio: point.compression_ratio == null ? null : num(point.compression_ratio),
     compressionLevel: point.compression_level == null ? null : num(point.compression_level),
     encrypted: Boolean(point.encryption_enabled),
   };
@@ -804,9 +864,59 @@ export async function getVM(id: string): Promise<VM> {
   return vm;
 }
 
+/**
+ * Sessions per request. The appliance keeps one session per VM per run, so an
+ * appliance a few months old has thousands: at 1000 they came back as a single
+ * ~1.8 MB response, which the poll loop below refetches every 2.5 s while
+ * anything is running. `GET /sessions` takes `limit`/`offset` and reports
+ * `total`, so the console walks it in bounded chunks instead.
+ *
+ * The server caps `limit` at 500 (SESSION_PAGE_LIMIT_MAX in abr_v41.py).
+ */
+const SESSION_PAGE_SIZE = 250;
+
+/** Hard stop on the paging loop, so a server that keeps reporting a `total` it
+ *  never satisfies can't spin the console forever. */
+const SESSION_PAGE_LIMIT = 40;
+
+/** One page of sessions, newest first, plus the unpaged match count. */
+export async function listSessionsPage(
+  opts: { limit?: number; offset?: number } = {},
+): Promise<{ items: Session[]; total: number }> {
+  const limit = opts.limit ?? SESSION_PAGE_SIZE;
+  const offset = opts.offset ?? 0;
+  const res = asDict(await request<Dict>(`/sessions?limit=${limit}&offset=${offset}`));
+  const items = Array.isArray(res.items) ? (res.items as Dict[]).map(mapSession) : [];
+  // An appliance predating pagination ignores the params and sends everything
+  // with no `total`; falling back to the page length ends the walk after one
+  // request, which is exactly right for that case.
+  return { items, total: num(res.total, items.length) };
+}
+
+/**
+ * Every session, walked a page at a time.
+ *
+ * The store's dashboard aggregates (24 h success rate, the 14-day activity
+ * timeline) and each job's run history are computed over the whole history, so
+ * this still returns all of it — the win is that it arrives as several small
+ * responses rather than one huge one. Offsets shift if a run starts mid-walk,
+ * so rows are de-duplicated by id.
+ */
 export async function listSessions(): Promise<Session[]> {
-  const items = await collection<Dict>("/sessions");
-  return items.map(mapSession);
+  const all: Session[] = [];
+  const seen = new Set<string>();
+  let total = Infinity;
+  for (let page = 0; page < SESSION_PAGE_LIMIT && all.length < total; page++) {
+    const res = await listSessionsPage({ offset: all.length });
+    total = res.total;
+    if (res.items.length === 0) break;
+    for (const session of res.items) {
+      if (seen.has(session.id)) continue;
+      seen.add(session.id);
+      all.push(session);
+    }
+  }
+  return all;
 }
 
 export async function getSession(id: string): Promise<Session> {
@@ -817,17 +927,21 @@ export async function getJobSessions(jobId: string): Promise<Session[]> {
   return (await listSessions()).filter((s) => s.jobId === jobId);
 }
 
+/** Jobs without run history — the caller attaches it via `withJobRunStats`
+ *  from the session list it already holds (see hydrate in world.live.ts). */
 export async function listJobs(): Promise<BackupJob[]> {
-  const [jobs, sessions] = await Promise.all([collection<Dict>("/jobs"), listSessions().catch(() => [])]);
-  return jobs.map((j) => mapJob(j, sessions));
+  return (await collection<Dict>("/jobs")).map((j) => mapJob(j, []));
 }
 
+/**
+ * Run history here comes from the world the live driver already hydrated, not
+ * from a fresh list: this runs on every job-changed event, and refetching the
+ * entire session history to compute one job's 12-run strip is what made the
+ * session list the console's heaviest traffic.
+ */
 export async function getJob(id: string): Promise<BackupJob> {
-  const [job, sessions] = await Promise.all([
-    request<Dict>(`/jobs/${id}`),
-    listSessions().catch(() => [] as Session[]),
-  ]);
-  return mapJob(asDict(job), sessions);
+  const job = asDict(await request<Dict>(`/jobs/${id}`));
+  return mapJob(job, useWorldStore.getState().sessions);
 }
 
 export async function listRepositories(): Promise<Repository[]> {
@@ -932,12 +1046,20 @@ function scheduleToWire(s: Schedule): Dict {
 }
 
 function optionsToTaskParams(o: JobOptions): Dict {
-  return {
+  const params: Dict = {
     app_aware: o.appAware,
-    encryption: o.encryption,
+    // The appliance reads `encryption_enabled` (+ `encryption_key`) and
+    // ignores every other spelling, so anything else here silently produces
+    // unencrypted backups for a job the UI shows as encrypted.
+    encryption_enabled: o.encryption,
     compression_level: o.compression,
     dedup: o.dedup,
   };
+  // The key itself is never sent: the appliance generates and keeps one for a
+  // job that switches encryption on. null clears it again on the way back off
+  // (see _merge_task_parameters), so no stale key outlives the setting.
+  if (!o.encryption) params.encryption_key = null;
+  return params;
 }
 
 /**
@@ -987,14 +1109,14 @@ export async function createJob(payload: CreateJobPayload): Promise<BackupJob> {
   if (payload.runNow && created.id) {
     await request(`/jobs/${str(created.id)}/start`, { method: "POST", body: "{}" }).catch(() => undefined);
   }
-  return mapJob(created, await listSessions().catch(() => []));
+  return mapJob(created, useWorldStore.getState().sessions);
 }
 
 export async function updateJob(id: string, patch: Partial<CreateJobPayload>): Promise<BackupJob> {
   const updated = asDict(
     await request<Dict>(`/jobs/${id}`, { method: "PATCH", body: JSON.stringify(createJobBody(patch)) }),
   );
-  return mapJob(updated, await listSessions().catch(() => []));
+  return mapJob(updated, useWorldStore.getState().sessions);
 }
 
 export const deleteJob = (id: string) => request<void>(`/jobs/${id}`, { method: "DELETE" });
@@ -1019,12 +1141,23 @@ export const setJobEnabled = (id: string, enabled: boolean, schedule: Schedule) 
     body: JSON.stringify({ schedule: { ...scheduleToWire(schedule), enabled } }),
   });
 
-/** Stop every active session of a job (no per-job stop route on the backend). */
+/**
+ * Stop every active session of a job (no per-job stop route on the backend).
+ *
+ * The job DTO already reports its queued/running sessions (`active_sessions`,
+ * built by _active_sessions_for_job in abr_v41.py), so this reads them from
+ * the one job it is stopping instead of scanning the whole session history.
+ */
 export async function stopJob(id: string): Promise<void> {
-  const sessions = await listSessions().catch(() => [] as Session[]);
-  const active = sessions.filter((s) => s.jobId === id && (s.status === "running" || s.status === "queued"));
+  const job = asDict(await request<Dict>(`/jobs/${id}`));
+  // `active_sessions` is exactly {queued, running, stopping} — the same set the
+  // old whole-history scan covered, since sessionStatusOf folds "stopping" into
+  // "running". Re-stopping one already stopping is a no-op server-side.
+  const active = Array.isArray(job.active_sessions) ? (job.active_sessions as Dict[]) : [];
   await Promise.all(
-    active.map((s) => request(`/sessions/${s.id}/stop`, { method: "POST", body: "{}" }).catch(() => undefined)),
+    active.map((s) =>
+      request(`/sessions/${str(s.id)}/stop`, { method: "POST", body: "{}" }).catch(() => undefined),
+    ),
   );
 }
 
@@ -1079,7 +1212,19 @@ export async function getRestorePlacementOptions(restorePointId: string): Promis
     name: str(v.name),
   }));
 
-  return { sourceNics, datastores, networks, existingVms, originalDatastore, originalHost };
+  const defaults = asDict(res.defaults);
+
+  return {
+    sourceNics,
+    datastores,
+    networks,
+    existingVms,
+    originalDatastore,
+    originalHost,
+    defaultHostId: str(defaults.target_host_id).trim() || null,
+    defaultDatastoreId: str(defaults.target_datastore_id).trim() || null,
+    defaultEnvironmentId: str(defaults.target_inventory_id).trim() || null,
+  };
 }
 
 /**

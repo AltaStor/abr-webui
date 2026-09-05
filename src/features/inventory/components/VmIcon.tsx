@@ -1,25 +1,36 @@
 // SPDX-License-Identifier: Apache-2.0
 // Copyright © 2026 Norvitex OÜ
 
+import type { ComponentType } from "react";
 import { useTranslation } from "react-i18next";
-import { HelpCircle, LinuxLogo, WindowsLogo } from "@/lib/icons";
+import { AppleLogo, HelpCircle, LinuxLogo, WindowsLogo } from "@/lib/icons";
 import { cn } from "@/lib/utils";
 import { Hint } from "@/components/ui/tooltip";
 import type { VM } from "@/types";
 import { POWER_META, osFamilyLabel } from "./vm-presentation";
 
+/** Guest-OS glyph per family; "unknown" gets a neutral mark, not a guess.
+ *  Typed structurally — the brand logos come from react-icons and the fallback
+ *  from the Lucide layer, which are different component types. */
+const OS_LOGO: Record<VM["osFamily"], ComponentType<{ className?: string }>> = {
+  windows: WindowsLogo,
+  linux: LinuxLogo,
+  macos: AppleLogo,
+  unknown: HelpCircle,
+};
+
 /**
- * Shared VM glyph — the guest-OS logo (Windows / Linux, or a neutral mark when
- * the guest OS isn't known yet) with a power-state badge in the corner. Used by
- * the inventory table, the restore picker, the job scope picker and the
- * infrastructure tree so a VM looks the same wherever it appears.
+ * Shared VM glyph — the guest-OS logo (Windows / Linux / macOS, or a neutral
+ * mark when the guest OS isn't known yet) with a power-state badge in the
+ * corner. Used by the inventory table, the restore picker, the job scope
+ * picker and the infrastructure tree so a VM looks the same wherever it
+ * appears.
  */
 export function VmIcon({ vm, className }: { vm: VM; className?: string }) {
   // Subscribe to language changes so the getter-resolved labels re-render.
   useTranslation("inventory");
   const power = POWER_META[vm.powerState];
-  const Logo =
-    vm.osFamily === "windows" ? WindowsLogo : vm.osFamily === "linux" ? LinuxLogo : HelpCircle;
+  const Logo = OS_LOGO[vm.osFamily];
   return (
     <Hint label={`${osFamilyLabel(vm.osFamily)} · ${power.label}`}>
       <span

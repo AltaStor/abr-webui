@@ -33,14 +33,10 @@
     "sourcesSomeShown": "{{selected}} von {{total}} angezeigt",
     "searchLabel": "Systemprotokollmeldungen durchsuchen",
     "searchPlaceholder": "Meldungen durchsuchen…",
-    "liveTail": "Live-Verfolgung",
-    "toggleLiveTail": "Live-Verfolgung umschalten",
     "downloadLog": "Gefiltert herunterladen (.log)",
     "lineCount_one": "{{formatted}} Zeile",
     "lineCount_other": "{{formatted}} Zeilen",
     "filteredToSources_one": " · gefiltert nach {{count}} Quelle",
-    "filteredToSources_other": " · gefiltert nach {{count}} Quellen",
-    "streaming": " · streamt",
-    "following": " · folgt dem Protokoll der Appliance"
+    "filteredToSources_other": " · gefiltert nach {{count}} Quellen"
   }
 }

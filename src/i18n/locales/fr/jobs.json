@@ -228,7 +228,10 @@
   "bulk": {
     "selected": "{{count}} sélectionné(s)",
     "run": "Exécuter",
-    "clearSelection": "Effacer la sélection"
+    "clearSelection": "Effacer la sélection",
+    "disableAllAlreadyDisabled": "Toutes les tâches sélectionnées sont déjà désactivées",
+    "disableAppliesTo_one": "Désactive {{count}} tâche active ; les {{total}} autres sélectionnées sont déjà désactivées",
+    "disableAppliesTo_other": "Désactive {{count}} tâches actives sur les {{total}} sélectionnées ; les autres sont déjà désactivées"
   },
   "empty": {
     "noJobs": {
@@ -281,6 +284,8 @@
     "bulkDeleted_other": "{{count}} tâches supprimées",
     "bulkDeletedPartial": "{{deleted}} tâche(s) sur {{total}} supprimée(s)",
     "bulkDeletedPartialDesc": "L’appliance n’a pas confirmé les autres — elles sont inchangées.",
+    "bulkDisabledSkipped_one": "{{count}} était déjà désactivée.",
+    "bulkDisabledSkipped_other": "{{count}} étaient déjà désactivées.",
     "runRefused": "Impossible de démarrer {{name}}",
     "runRefusedDesc": "L’appliance n’a pas démarré l’exécution et n’a donné aucune raison. Réessayez dans un instant.",
     "runRefusedDisabledDesc": "La tâche est désactivée — activez-la pour l’exécuter."
@@ -537,7 +542,6 @@
     "summaryAcross_other": "points de restauration sur <1>{{objectCount}}</1> {{objects}}",
     "incompleteWord": "incomplet",
     "logicalTitle": "Données logiques capturées sur l’ensemble des points de restauration complets, avant déduplication et compression",
-    "logicalData": "données logiques",
     "physicalTitleAll": "Nouvelles données que les points de restauration complets ont ajoutées au référentiel après déduplication et compression",
     "physicalTitlePartial": "Nouvelles données du référentiel mesurées pour {{measured}} des {{total}} points de restauration complets",
     "noNewRepoData": "aucune nouvelle donnée de référentiel signalée",
@@ -579,7 +583,17 @@
     "noActiveJobTip": "La tâche de cette sauvegarde a été supprimée. Les points de restauration sont conservés et restent restaurables.",
     "noActiveJob": "Aucune tâche active",
     "sourceRemoved": "source supprimée",
-    "logicalShort": "{{size}} logique",
+    "encryption": {
+      "all": "Chiffré",
+      "allTip_one": "Le {{count}} point de restauration stocké ici est chiffré au repos",
+      "allTip_other": "Les {{count}} points de restauration stockés ici sont chiffrés au repos",
+      "partial": "Chiffrés {{encrypted}}/{{total}}",
+      "partialTip": "{{encrypted}} des {{total}} points de restauration sont chiffrés au repos — les autres sont stockés en clair",
+      "none": "Non chiffré",
+      "noneTip": "Les points de restauration de cet objet sont stockés sans chiffrement"
+    },
+    "storedShort": "{{size}} stockés",
+    "fromLogical": "à partir de {{size}}",
     "deleteAllTip": "Supprimer tous les points de restauration de {{name}}",
     "deleteAll": "Tout supprimer",
     "summaryPoints_one": "point de restauration sur <1>{{jobCount}}</1> {{jobs}}, <2>{{vmCount}}</2> {{vms}}",
@@ -600,6 +614,9 @@
     "kpi": {
       "points": "Points de restauration",
       "acrossObjects": "Sur {{jobs}} travaux · {{vms}} VM",
+      "stored": "Stocké",
+      "fromLogical": "À partir de {{size}} de données · compressé à {{ratio}}",
+      "fromLogicalNoRatio": "À partir de {{size}} de données",
       "sizeUnrecorded": "Le catalogue n’enregistre pas encore les tailles"
     }
   },

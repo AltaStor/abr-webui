@@ -33,14 +33,10 @@
     "sourcesSomeShown": "{{selected}} sur {{total}} affichées",
     "searchLabel": "Rechercher dans les messages du journal système",
     "searchPlaceholder": "Rechercher des messages…",
-    "liveTail": "Suivi en direct",
-    "toggleLiveTail": "Activer/désactiver le suivi en direct",
     "downloadLog": "Télécharger la vue filtrée (.log)",
     "lineCount_one": "{{formatted}} ligne",
     "lineCount_other": "{{formatted}} lignes",
     "filteredToSources_one": " · filtré sur {{count}} source",
-    "filteredToSources_other": " · filtré sur {{count}} sources",
-    "streaming": " · diffusion en cours",
-    "following": " · suit le journal de l'appliance"
+    "filteredToSources_other": " · filtré sur {{count}} sources"
   }
 }

@@ -529,25 +529,3 @@ export function buildLiveSecurity(input: {
   // Match the mock ordering: newest-first.
   return [...byId.values()].sort((a, b) => new Date(b.ts).getTime() - new Date(a.ts).getTime());
 }
-
-/* -------------------------------------------------------------------------- */
-/* Live-tail synthesis — one fresh system line at "now", stable given a seed.  */
-/* -------------------------------------------------------------------------- */
-
-export function synthesizeLiveLine(seq: number): SystemLogEntry {
-  const rand = mulberry32(SEED ^ ((seq + 1) * 0x9e3779b1));
-  const pool: SysTemplate[] = [];
-  // Bias the tail toward the calmer, higher-frequency services.
-  for (const t of SYS_TEMPLATES) {
-    if (t.level === "error") continue;
-    for (let i = 0; i < t.weight; i++) pool.push(t);
-  }
-  const t = pick(rand, pool);
-  return {
-    id: `sys-live-${seq}`,
-    ts: new Date().toISOString(),
-    level: t.level,
-    source: t.source,
-    message: t.render(rand),
-  };
-}

@@ -119,11 +119,20 @@ function RunDetail({ session: s, jobExists, onClose }: { session: Session; jobEx
   const trigger = TRIGGER[s.triggeredBy];
   const TriggerIcon = trigger.icon;
 
-  // Live rate label = what the meter's number MEANS this phase: the repository's
-  // physical write once the pipeline is measuring (agent-backed "storing" phase),
-  // the guest read rate before that.
+  // The waveform is driven by throughputMBps — the TRANSFER rate — and never by
+  // the guest-read rate, even though that reads like the more natural "source"
+  // figure. The mover only prints INTEGER percent (see _PROGRESS_LINE_PATTERN),
+  // so guest-read bytes advance one whole percent of the disk at a time — ~1GB
+  // steps seconds apart on a large disk, which renders as a flatline that
+  // periodically jumps. Transferred bytes are re-measured off the repository
+  // every tick, so they move continuously and the meter stays alive.
+  //
+  // The label names whichever rate the number actually is: the repository's
+  // physical write once the pipeline is measuring (agent-backed "storing"
+  // phase), the plain transfer rate otherwise. The guest-read figure is a
+  // stat below, where a stepped value reads fine.
   const hasPipeline = running && !!s.pipeline;
-  const rateLabel = hasPipeline ? t("drawer.rate.repoWrite") : t("drawer.rate.guestRead");
+  const rateLabel = hasPipeline ? t("drawer.rate.repoWrite") : t("drawer.rate.transfer");
 
   // Per-VM outcomes reuse the console-wide session vocabulary; only "pending"
   // has no counterpart there.
@@ -204,6 +213,10 @@ function RunDetail({ session: s, jobExists, onClose }: { session: Session; jobEx
           <Metric
             label={t("drawer.stat.transferred")}
             value={s.transferredGB > 0 ? formatStorage(s.transferredGB) : "—"}
+          />
+          <Metric
+            label={t("drawer.stat.guestRead")}
+            value={s.guestReadMBps && s.guestReadMBps > 0 ? formatThroughput(s.guestReadMBps) : "—"}
           />
           <Metric
             label={t("drawer.stat.throughput")}

@@ -33,14 +33,10 @@
     "sourcesSomeShown": "{{selected}} de {{total}} mostradas",
     "searchLabel": "Buscar en los mensajes del registro del sistema",
     "searchPlaceholder": "Buscar mensajes…",
-    "liveTail": "Seguimiento en vivo",
-    "toggleLiveTail": "Alternar seguimiento en vivo",
     "downloadLog": "Descargar lo filtrado (.log)",
     "lineCount_one": "{{formatted}} línea",
     "lineCount_other": "{{formatted}} líneas",
     "filteredToSources_one": " · filtrado a {{count}} fuente",
-    "filteredToSources_other": " · filtrado a {{count}} fuentes",
-    "streaming": " · transmitiendo",
-    "following": " · siguiendo el registro de la appliance"
+    "filteredToSources_other": " · filtrado a {{count}} fuentes"
   }
 }
