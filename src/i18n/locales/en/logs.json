@@ -1,10 +1,11 @@
 {
   "page": {
     "title": "Logs",
-    "description": "System events on the appliance, including activity reported by the backup agents."
+    "description": "The appliance's own system log — scheduler, storage, TLS and API events, straight from the server."
   },
   "actions": {
-    "export": "Export"
+    "export": "Export",
+    "refreshLog": "Refresh the system log"
   },
   "export": {
     "menuLabel": "Export logs",
@@ -20,8 +21,8 @@
     "exportSupportBundleFailed": "Couldn't generate the support bundle"
   },
   "stats": {
-    "systemWarnings": "System warnings · 24h",
-    "agentEvents": "Agent events · 24h"
+    "systemErrors": "Errors · 24h",
+    "systemWarnings": "Warnings · 24h"
   },
   "filters": {
     "clearSearch": "Clear search"
@@ -37,6 +38,9 @@
     "lineCount_one": "{{formatted}} line",
     "lineCount_other": "{{formatted}} lines",
     "filteredToSources_one": " · filtered to {{count}} source",
-    "filteredToSources_other": " · filtered to {{count}} sources"
+    "filteredToSources_other": " · filtered to {{count}} sources",
+    "serverLogUnavailable": "Showing events derived from this console's data: the appliance's own log couldn't be read ({{reason}}).",
+    "serverLogUnreachable": "the appliance did not answer",
+    "serverLogMissing": "The appliance found no server log to read. It looked in: {{paths}}."
   }
 }

@@ -558,6 +558,46 @@ export function createSimDriver(handle: WorldHandle): WorldDriver {
       return Promise.resolve(id);
     },
 
+    /* -------------------------- stopSession ---------------------------- */
+    /* The demo world has no engine to unwind, so a cancel lands immediately —
+     * where the live driver only flags the run and waits for the appliance.
+     * A cancelled run is a FAILED run with a reason, not a quiet disappearance:
+     * whatever it had already read is real, and the history has to show it was
+     * stopped rather than that it never happened. */
+    stopSession: (sessionId) => {
+      const state = handle.get();
+      const session = state.sessions.find((s) => s.id === sessionId);
+      if (!session || session.status !== "running") return Promise.resolve(false);
+
+      const log = [...(state.liveLogs[sessionId] ?? []), makeLog("warn", "Run cancelled by operator.")];
+      handle.set({
+        sessions: state.sessions.map((s) =>
+          s.id === sessionId
+            ? {
+                ...s,
+                status: "failed",
+                finishedAt: nowIso(),
+                throughputMBps: 0,
+                message: "Cancelled by operator",
+                // Whatever hadn't started never will; what was in flight stopped
+                // where it stood.
+                vmResults: s.vmResults.map((r) =>
+                  r.status === "running" || r.status === "pending" ? { ...r, status: "failed" } : r,
+                ),
+              }
+            : s,
+        ),
+        jobs: state.jobs.map((j) =>
+          j.id === session.jobId && j.state === "running"
+            ? { ...j, state: "idle", lastStatus: "failed", lastRunAt: nowIso() }
+            : j,
+        ),
+        liveLogs: { ...state.liveLogs, [sessionId]: log.slice(-400) },
+        revision: state.revision + 1,
+      });
+      return Promise.resolve(true);
+    },
+
     /* ---------------------------- createJob ---------------------------- */
     createJob: (input) => {
       const state = handle.get();

@@ -22,6 +22,7 @@ import { PipelineStages } from "@/components/PipelineStages";
 import { CountUp } from "@/components/CountUp";
 import { Metric } from "@/components/Metric";
 import { LogViewer } from "@/components/LogViewer";
+import { CancelRunButton } from "@/components/CancelRunButton";
 import { EmptyState } from "@/components/EmptyState";
 import { Inbox } from "@/lib/icons";
 import { SESSION_META } from "@/lib/status";
@@ -293,19 +294,25 @@ function RunDetail({ session: s, jobExists, onClose }: { session: Session; jobEx
             {t("drawer.footer.deleted")}
           </span>
         )}
-        {restore ? (
-          <Button size="sm" variant="outline" onClick={() => go("/restore")}>
-            {t("drawer.footer.openRestore")}
-            {/* Same-tab in-app routes: the arrow, not the leaves-the-app glyph. */}
-            <ArrowRight className="h-3.5 w-3.5" />
-          </Button>
-        ) : jobExists ? (
-          <Button size="sm" variant="outline" onClick={() => go(`/jobs/${s.jobId}`)}>
-            {t("drawer.footer.openJob")}
-            {/* Same-tab in-app routes: the arrow, not the leaves-the-app glyph. */}
-            <ArrowRight className="h-3.5 w-3.5" />
-          </Button>
-        ) : null}
+        <div className="flex items-center gap-2">
+          {/* Inspecting a live run is exactly when you decide to stop it, so the
+              action belongs here and not only on the job page — which a run
+              whose job was deleted no longer has. */}
+          {running && <CancelRunButton session={s} />}
+          {restore ? (
+            <Button size="sm" variant="outline" onClick={() => go("/restore")}>
+              {t("drawer.footer.openRestore")}
+              {/* Same-tab in-app routes: the arrow, not the leaves-the-app glyph. */}
+              <ArrowRight className="h-3.5 w-3.5" />
+            </Button>
+          ) : jobExists ? (
+            <Button size="sm" variant="outline" onClick={() => go(`/jobs/${s.jobId}`)}>
+              {t("drawer.footer.openJob")}
+              {/* Same-tab in-app routes: the arrow, not the leaves-the-app glyph. */}
+              <ArrowRight className="h-3.5 w-3.5" />
+            </Button>
+          ) : null}
+        </div>
       </SheetFooter>
     </>
   );

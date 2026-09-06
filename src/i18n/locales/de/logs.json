@@ -1,10 +1,11 @@
 {
   "page": {
     "title": "Protokolle",
-    "description": "Systemereignisse auf der Appliance, einschließlich der von den Backup-Agenten gemeldeten Aktivität."
+    "description": "Das Systemprotokoll der Appliance – Scheduler-, Speicher-, TLS- und API-Ereignisse, direkt vom Server."
   },
   "actions": {
-    "export": "Exportieren"
+    "export": "Exportieren",
+    "refreshLog": "Systemprotokoll aktualisieren"
   },
   "export": {
     "menuLabel": "Protokolle exportieren",
@@ -20,8 +21,8 @@
     "exportSupportBundleFailed": "Support-Paket konnte nicht erstellt werden"
   },
   "stats": {
-    "systemWarnings": "Systemwarnungen · 24h",
-    "agentEvents": "Agent-Ereignisse · 24h"
+    "systemErrors": "Fehler · 24 Std.",
+    "systemWarnings": "Warnungen · 24 Std."
   },
   "filters": {
     "clearSearch": "Suche zurücksetzen"
@@ -37,6 +38,9 @@
     "lineCount_one": "{{formatted}} Zeile",
     "lineCount_other": "{{formatted}} Zeilen",
     "filteredToSources_one": " · gefiltert nach {{count}} Quelle",
-    "filteredToSources_other": " · gefiltert nach {{count}} Quellen"
+    "filteredToSources_other": " · gefiltert nach {{count}} Quellen",
+    "serverLogUnavailable": "Es werden aus den Daten dieser Konsole abgeleitete Ereignisse angezeigt: Das Protokoll der Appliance konnte nicht gelesen werden ({{reason}}).",
+    "serverLogUnreachable": "die Appliance hat nicht geantwortet",
+    "serverLogMissing": "Die Appliance hat kein Serverprotokoll gefunden. Gesucht wurde in: {{paths}}."
   }
 }

@@ -2,7 +2,7 @@
 // Copyright © 2026 Norvitex OÜ
 
 import { useTranslation } from "react-i18next";
-import { DatabaseBackup, MoreHorizontal, Pencil, Play, Power, Trash2 } from "@/lib/icons";
+import { DatabaseBackup, MoreHorizontal, Pencil, Play, Power, Trash2, XCircle } from "@/lib/icons";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -17,13 +17,25 @@ interface JobActionsMenuProps {
   job: BackupJob;
   onRun: () => void;
   onRunFull: () => void;
+  /** Stop the job's in-flight run. Absent when it has none — the item is then
+   *  not offered at all rather than offered disabled, since a job that isn't
+   *  running has nothing for it to act on. */
+  onStopRun?: () => void;
   onEdit: () => void;
   onToggleEnabled: (enabled: boolean) => void;
   onDelete: () => void;
 }
 
 /** Per-row actions. Clicks stop propagation so the row's navigation doesn't fire. */
-export function JobActionsMenu({ job, onRun, onRunFull, onEdit, onToggleEnabled, onDelete }: JobActionsMenuProps) {
+export function JobActionsMenu({
+  job,
+  onRun,
+  onRunFull,
+  onStopRun,
+  onEdit,
+  onToggleEnabled,
+  onDelete,
+}: JobActionsMenuProps) {
   const { t } = useTranslation("jobs");
   const disabled = job.state === "disabled";
   const running = job.state === "running";
@@ -57,6 +69,17 @@ export function JobActionsMenu({ job, onRun, onRunFull, onEdit, onToggleEnabled,
           >
             <DatabaseBackup className="h-4 w-4" />
             {t("actions.runFull")}
+          </DropdownMenuItem>
+        )}
+        {onStopRun && (
+          <DropdownMenuItem
+            onSelect={(e) => {
+              e.preventDefault();
+              onStopRun();
+            }}
+          >
+            <XCircle className="h-4 w-4" />
+            {t("common:cancelRun.action")}
           </DropdownMenuItem>
         )}
         <DropdownMenuItem

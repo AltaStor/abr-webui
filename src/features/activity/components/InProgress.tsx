@@ -10,6 +10,7 @@ import { Metric } from "@/components/Metric";
 import { LiveThroughput } from "@/components/LiveThroughput";
 import { CountUp } from "@/components/CountUp";
 import { StatusPill } from "@/components/StatusPill";
+import { CancelRunButton } from "@/components/CancelRunButton";
 import { SESSION_META } from "@/lib/status";
 import { formatDateTime, formatDuration, formatRelative, formatStorage, formatThroughput } from "@/lib/format";
 import { useWorldStore } from "@/store/world";
@@ -127,7 +128,10 @@ function RunningCard({ session: s }: { session: Session }) {
             </div>
           </div>
         </div>
-        <span aria-hidden className="nums shrink-0 text-2xl font-semibold tracking-tight text-info">{Math.round(s.progress)}%</span>
+        <div className="flex shrink-0 items-center gap-3">
+          <span aria-hidden className="nums text-2xl font-semibold tracking-tight text-info">{Math.round(s.progress)}%</span>
+          <CancelRunButton session={s} />
+        </div>
       </div>
 
       <ProgressBar value={s.progress} tone="info" active className="mt-3" label={t("row.progressLabel", { job: s.jobName, kind: runKind(s).toLowerCase() })} />

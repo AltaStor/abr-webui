@@ -3,7 +3,8 @@
 
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import { Cpu, Download, FileText, Package, type LucideIcon } from "@/lib/icons";
+import { useQuery } from "@tanstack/react-query";
+import { AlertTriangle, Cpu, Download, FileText, Package, RotateCw, type LucideIcon } from "@/lib/icons";
 import { type Tone } from "@/lib/status";
 import { PageHeader } from "@/components/PageHeader";
 import { KpiBand } from "@/components/KpiBand";
@@ -19,9 +20,11 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { toast } from "@/components/ui/sonner";
 import { downloadBlob, downloadText, fileStamp } from "@/lib/download";
-import { apiErrorMessage, getSupportBundle } from "@/services/api.http";
+import { qk } from "@/lib/query";
+import { apiErrorMessage, getSupportBundle, listSystemLog, type SystemLogRow } from "@/services/api.http";
 import { useWorldStore } from "@/store/world";
 import { buildLiveSystemLog, buildLogsWorld } from "./mock";
+import type { SystemLogEntry } from "./types";
 import { SystemLogTab } from "./components/SystemLogTab";
 
 interface StatTile {
@@ -29,6 +32,18 @@ interface StatTile {
   value: number;
   tone: Tone;
   icon: LucideIcon;
+}
+
+/** How much of the appliance's log to pull per refresh. Deep enough that a
+ *  night of scheduled runs fits, bounded so the page never asks for megabytes. */
+const SYSTEM_LOG_LIMIT = 1000;
+/** The appliance writes continuously; a page left open should keep up without
+ *  the operator reloading it. */
+const SYSTEM_LOG_REFRESH_MS = 15_000;
+
+/** Server log line → the entry shape the log view and the exports speak. */
+function toSystemEntry(row: SystemLogRow): SystemLogEntry {
+  return { id: row.id, ts: row.ts, level: row.level, source: row.source, message: row.message };
 }
 
 export default function LogsPage() {
@@ -40,6 +55,7 @@ export default function LogsPage() {
   const revision = useWorldStore((s) => s.revision);
   const mode = useWorldStore((s) => s.mode);
   const liveLogs = useWorldStore((s) => s.liveLogs);
+  const live = mode === "live";
 
   // One deterministic build; refresh only when the world revision changes so
   // derived-from-store lines stay in sync without re-seeding on every render.
@@ -49,33 +65,55 @@ export default function LogsPage() {
     [revision, sessions, threats, alerts, vms],
   );
 
-  // System is REAL in LIVE mode — derived straight from the live world
-  // (alerts, per-session backup logs). Sim keeps the mock.
-  const system = useMemo(
-    () => (mode === "live" ? buildLiveSystemLog({ alerts, liveLogs, sessions }) : logs.system),
+  /* The appliance's OWN log (GET /system/logs) — the scheduler, TLS, database
+   * and API chatter that no other view carries. Polled rather than streamed:
+   * a log tail is cheap and there is no push channel for it. */
+  const serverLog = useQuery({
+    queryKey: qk.systemLog,
+    queryFn: () => listSystemLog({ limit: SYSTEM_LOG_LIMIT }),
+    enabled: live,
+    refetchInterval: SYSTEM_LOG_REFRESH_MS,
+  });
+
+  /* What the page showed before the appliance served its log: alerts plus the
+   * per-session backup lines. Strictly less than the real thing — it can only
+   * repeat what the API already returned elsewhere — so it is the FALLBACK for
+   * an appliance too old to answer /system/logs, not the primary source. */
+  const derived = useMemo(
+    () => (live ? buildLiveSystemLog({ alerts, liveLogs, sessions }) : logs.system),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [mode, revision, alerts, liveLogs, sessions, logs],
+    [live, revision, alerts, liveLogs, sessions, logs],
   );
 
+  const system = useMemo(() => {
+    if (!live) return logs.system;
+    const rows = serverLog.data?.entries;
+    return rows ? rows.map(toSystemEntry) : derived;
+  }, [live, logs.system, derived, serverLog.data]);
+
+  /* Two honest counts off whatever `system` holds. The page used to tile "agent
+   * events", which only meant anything while the log was assembled from session
+   * lines — the appliance's real log has no such source, and a tile pinned at
+   * zero is worse than no tile. */
   const stats = useMemo<StatTile[]>(() => {
     const dayAgo = Date.now() - 24 * 3_600_000;
     const inDay = (iso: string) => new Date(iso).getTime() >= dayAgo;
 
-    const warnings24 = system.filter((e) => inDay(e.ts) && (e.level === "error" || e.level === "warn")).length;
-    const agentEvents24 = system.filter((e) => inDay(e.ts) && e.source === "agent").length;
+    const errors24 = system.filter((e) => inDay(e.ts) && e.level === "error").length;
+    const warnings24 = system.filter((e) => inDay(e.ts) && e.level === "warn").length;
 
     return [
       {
-        label: t("stats.systemWarnings"),
-        value: warnings24,
-        tone: warnings24 > 0 ? "warning" : "neutral",
-        icon: FileText,
+        label: t("stats.systemErrors"),
+        value: errors24,
+        tone: errors24 > 0 ? "danger" : "neutral",
+        icon: AlertTriangle,
       },
       {
-        label: t("stats.agentEvents"),
-        value: agentEvents24,
-        tone: agentEvents24 > 0 ? "info" : "muted",
-        icon: Cpu,
+        label: t("stats.systemWarnings"),
+        value: warnings24,
+        tone: warnings24 > 0 ? "warning" : "muted",
+        icon: FileText,
       },
     ];
   }, [system, t]);
@@ -92,43 +130,69 @@ export default function LogsPage() {
     }
   };
 
+  /* Say which of the three situations the reader is in, and never silently: a
+   * log view that is quietly showing something other than the appliance's log
+   * is the one thing that would make it untrustworthy. */
+  const notice = live
+    ? serverLog.isError
+      ? t("system.serverLogUnavailable", {
+          reason: apiErrorMessage(serverLog.error) ?? t("system.serverLogUnreachable"),
+        })
+      : serverLog.data && serverLog.data.entries.length === 0 && serverLog.data.files.length === 0
+        ? t("system.serverLogMissing", { paths: serverLog.data.searched.join(", ") })
+        : null
+    : null;
+
   return (
     <div className="space-y-5">
       <PageHeader
         title={t("page.title")}
         description={t("page.description")}
         actions={
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline">
-                <Download className="mr-1.5 h-4 w-4" />
-                {t("actions.export")}
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-64">
-              <DropdownMenuLabel>{t("export.menuLabel")}</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => void onExportSupportBundle()}>
-                <Package className="mr-2 h-4 w-4" />
-                {t("export.supportBundle")}
-              </DropdownMenuItem>
-              {/* The whole system log, unfiltered — the log view below has its
-                  own button for the filtered view. Same bytes, different scope,
-                  so the label and the filename both have to say which is which. */}
-              <DropdownMenuItem
-                onClick={() => {
-                  downloadText(
-                    `altastor-system-full-${fileStamp()}.log`,
-                    system.map((e) => `${e.ts} ${e.level.toUpperCase()} [${e.source}] ${e.message}`).join("\n"),
-                  );
-                  toast.success(t("toast.exportedSystem", { count: system.length }));
-                }}
+          <div className="flex items-center gap-2">
+            {live && (
+              <Button
+                variant="outline"
+                onClick={() => void serverLog.refetch()}
+                disabled={serverLog.isFetching}
+                aria-label={t("actions.refreshLog")}
               >
-                <FileText className="mr-2 h-4 w-4" />
-                {t("export.systemLog")}
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+                <RotateCw className={serverLog.isFetching ? "mr-1.5 h-4 w-4 animate-spin" : "mr-1.5 h-4 w-4"} />
+                {t("common:actions.refresh")}
+              </Button>
+            )}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline">
+                  <Download className="mr-1.5 h-4 w-4" />
+                  {t("actions.export")}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-64">
+                <DropdownMenuLabel>{t("export.menuLabel")}</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => void onExportSupportBundle()}>
+                  <Package className="mr-2 h-4 w-4" />
+                  {t("export.supportBundle")}
+                </DropdownMenuItem>
+                {/* The whole system log, unfiltered — the log view below has its
+                    own button for the filtered view. Same bytes, different scope,
+                    so the label and the filename both have to say which is which. */}
+                <DropdownMenuItem
+                  onClick={() => {
+                    downloadText(
+                      `altastor-system-full-${fileStamp()}.log`,
+                      system.map((e) => `${e.ts} ${e.level.toUpperCase()} [${e.source}] ${e.message}`).join("\n"),
+                    );
+                    toast.success(t("toast.exportedSystem", { count: system.length }));
+                  }}
+                >
+                  <FileText className="mr-2 h-4 w-4" />
+                  {t("export.systemLog")}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         }
       />
 
@@ -137,6 +201,13 @@ export default function LogsPage() {
           <KpiCard key={s.label} icon={s.icon} tone={s.tone} label={s.label} value={s.value} />
         ))}
       </KpiBand>
+
+      {notice && (
+        <p className="flex items-start gap-2 border border-warning/30 bg-warning-subtle px-3 py-2.5 text-xs leading-relaxed text-warning-text">
+          <Cpu className="mt-px h-3.5 w-3.5 shrink-0" />
+          <span>{notice}</span>
+        </p>
+      )}
 
       <SystemLogTab entries={system} />
     </div>

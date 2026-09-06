@@ -210,6 +210,14 @@ export interface Session {
    * progress reporting. Real backend only; the demo simulation never sets it.
    */
   stageMessage?: string;
+  /**
+   * The appliance has accepted a stop for this run and is winding it down
+   * (orchestrator state "stopping", see stop_session in abr_v41.py). It is
+   * still a RUNNING session — `status` stays "running" until the engine
+   * actually lets go — so this is the only thing that distinguishes a run
+   * that was asked to stop from one that wasn't.
+   */
+  stopping?: boolean;
   triggeredBy: "schedule" | "manual" | "retry";
   /**
    * Which phase a *running* session is in. For agent-backed (real Hyper-V)

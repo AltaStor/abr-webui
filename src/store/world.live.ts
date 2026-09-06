@@ -741,6 +741,29 @@ export function createLiveDriver(handle: WorldHandle): WorldDriver {
       }
     },
 
+    stopSession: async (sessionId) => {
+      try {
+        await api.stopSession(sessionId);
+        if (stopped) return true;
+        // The appliance only *flags* the run; the engine unwinds at its next
+        // checkpoint and the poll/SSE brings the real state along a beat later.
+        // Marking it here is what keeps the button from springing back to
+        // "Cancel run" for the second in between.
+        handle.set((s) => ({
+          sessions: s.sessions.map((x) =>
+            x.id === sessionId && x.status === "running" ? { ...x, stopping: true } : x,
+          ),
+          revision: s.revision + 1,
+        }));
+        return true;
+      } catch (err) {
+        // A 404 (session aged out) or a dead network both mean the same thing
+        // to the caller: the run was NOT asked to stop.
+        console.warn("[world.live] stopSession failed:", err);
+        return false;
+      }
+    },
+
     createJob: async (input) => {
       const job = await api.createJob(input); // payload = input verbatim (incl. runNow)
       if (stopped) return job;

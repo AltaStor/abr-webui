@@ -29,4 +29,5 @@ export const qk = {
   hosts: ["hosts"] as const,
   threats: ["threats"] as const,
   alerts: ["alerts"] as const,
+  systemLog: ["system-log"] as const,
 };

@@ -180,6 +180,9 @@ export interface WorldState extends WorldData {
   apiVersionError: string | null;
 
   runJob(jobId: string, triggeredBy?: Session["triggeredBy"], forceFull?: boolean): Promise<string | null>;
+  /** Ask the appliance to stop one in-flight run. Resolves false when the
+   *  request didn't reach it — the run keeps going and the caller says so. */
+  stopSession(sessionId: string): Promise<boolean>;
   createJob(input: CreateJobInput): Promise<BackupJob>;
   updateJob(jobId: string, patch: Partial<BackupJob>): Promise<void>;
   setJobEnabled(jobId: string, enabled: boolean): Promise<void>;
@@ -225,6 +228,7 @@ export interface WorldState extends WorldData {
 export type WorldActions = Pick<
   WorldState,
   | "runJob"
+  | "stopSession"
   | "createJob"
   | "updateJob"
   | "setJobEnabled"

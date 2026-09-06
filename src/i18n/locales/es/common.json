@@ -29,6 +29,29 @@
     "disable": "Desactivar",
     "reset": "Restablecer"
   },
+  "cancelRun": {
+    "action": "Cancelar ejecución",
+    "stopping": "Deteniendo…",
+    "aria": "Cancelar la ejecución en curso de {{job}}",
+    "confirm": {
+      "title": "¿Detener esta ejecución?",
+      "lead": "<1>{{job}}</1> se detendrá donde está.",
+      "body": "Los puntos de restauración ya escritos permanecen en el repositorio y siguen siendo restaurables; el trabajo que esta ejecución no terminó se descarta, por lo que la próxima ejecución volverá a leerlo. El trabajo, su programación y su historial no cambian.",
+      "keepRunning": "Seguir ejecutando",
+      "stop": "Detener ejecución",
+      "stopping": "Deteniendo…"
+    },
+    "toast": {
+      "requested": {
+        "title": "Detención solicitada",
+        "description": "La appliance está deteniendo {{job}}: finalizará en el próximo punto de control."
+      },
+      "failed": {
+        "title": "No se pudo detener la ejecución",
+        "description": "{{job}} sigue en curso: la appliance no aceptó la solicitud. Inténtelo de nuevo en un momento."
+      }
+    }
+  },
   "generic": {
     "loading": "Cargando…",
     "none": "Ninguno",

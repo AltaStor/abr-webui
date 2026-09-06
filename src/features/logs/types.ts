@@ -28,26 +28,40 @@ export interface SystemLogEntry {
   message: string;
 }
 
-/** The small set of appliance services that emit into the system log. */
-export type LogSource =
-  | "scheduler"
-  | "datad"
-  | "raid"
-  | "gc"
-  | "ntp"
-  | "api"
-  | "tiering"
-  | "vss"
-  | "iscsi"
-  | "agent"
-  // The real components a LIVE session's own log lines carry (see
-  // `_append_task_log`/`_report_progress` on the orchestrator): "session" is
-  // the job-scheduler lifecycle (queued/stopped), "copy" is a backup-copy
-  // run, and "engine" is the backup/restore engine itself. `mapLogLines`
-  // preserves the backend's `component` field into `LogLine.component`.
-  | "engine"
-  | "session"
-  | "copy";
+/**
+ * Which appliance component emitted a line.
+ *
+ * Deliberately open: in LIVE mode these come from the server's own log, where
+ * the source is whatever Python module wrote the line ("job_scheduler",
+ * "task_pool", "vcenter_backup", "httpx", …). Pinning the type to a closed set
+ * would mean either dropping real sources or inventing a mapping onto names the
+ * appliance never used. `KNOWN_LOG_SOURCES` below is a display ORDER, not a
+ * constraint — anything not in it still renders, sorted after the ones that are.
+ */
+export type LogSource = string;
+
+/**
+ * Sources shown first, in this order, when present. Covers the demo world's
+ * services plus the real components a session's own log lines carry (see
+ * `_append_task_log`/`_report_progress` on the orchestrator): "session" is the
+ * job-scheduler lifecycle (queued/stopped), "copy" is a backup-copy run, and
+ * "engine" is the backup/restore engine itself.
+ */
+export const KNOWN_LOG_SOURCES: readonly LogSource[] = [
+  "scheduler",
+  "session",
+  "engine",
+  "copy",
+  "datad",
+  "raid",
+  "gc",
+  "ntp",
+  "api",
+  "tiering",
+  "vss",
+  "iscsi",
+  "agent",
+];
 
 export type SecurityKind = "tamper" | "threat" | "clock-integrity" | "auth-denied";
 

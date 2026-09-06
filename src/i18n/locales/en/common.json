@@ -29,6 +29,29 @@
     "disable": "Disable",
     "reset": "Reset"
   },
+  "cancelRun": {
+    "action": "Cancel run",
+    "stopping": "Stopping…",
+    "aria": "Cancel the running {{job}} run",
+    "confirm": {
+      "title": "Stop this run?",
+      "lead": "<1>{{job}}</1> will stop where it is.",
+      "body": "Restore points already written stay in the repository and remain restorable; the work this run had not finished is discarded, so the next run reads it again. The job itself, its schedule and its history are unchanged.",
+      "keepRunning": "Keep running",
+      "stop": "Stop run",
+      "stopping": "Stopping…"
+    },
+    "toast": {
+      "requested": {
+        "title": "Stop requested",
+        "description": "The appliance is winding {{job}} down — it finishes at the next checkpoint."
+      },
+      "failed": {
+        "title": "Couldn't stop the run",
+        "description": "{{job}} is still running — the appliance didn't take the request. Try again in a moment."
+      }
+    }
+  },
   "generic": {
     "loading": "Loading…",
     "none": "None",

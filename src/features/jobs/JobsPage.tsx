@@ -48,6 +48,7 @@ import type { BackupJob, Repository, Session } from "@/types";
 import { DatabaseBackup } from "@/lib/icons";
 import { accentColor, jobTypeMeta, scheduleLabel } from "./lib";
 import { JobActionsMenu } from "./components/JobActionsMenu";
+import { CancelRunDialog } from "@/components/CancelRunButton";
 import { DeleteJobDialog } from "./components/DeleteJobDialog";
 import { BackupsTab } from "./components/BackupsTab";
 
@@ -109,6 +110,7 @@ export default function JobsPage() {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
   const [deleteTarget, setDeleteTarget] = useState<BackupJob | null>(null);
+  const [cancelTarget, setCancelTarget] = useState<Session | null>(null);
   const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
 
   const repoById = useMemo(() => {
@@ -451,18 +453,27 @@ export default function JobsPage() {
         header: "",
         size: 44,
         enableSorting: false,
-        cell: ({ row }) => (
+        cell: ({ row }) => {
+          const running = runningByJob.get(row.original.id);
+          return (
           <div className="flex justify-end">
             <JobActionsMenu
               job={row.original}
               onRun={() => handleRun(row.original)}
               onRunFull={() => handleRun(row.original, true)}
+              onStopRun={
+                // Offered only against a real in-flight session: `job.state`
+                // alone would put a stop on a job whose run the appliance has
+                // already closed but whose row hasn't caught up.
+                running ? () => setCancelTarget(running) : undefined
+              }
               onEdit={() => navigate(`/jobs/${row.original.id}/edit`)}
               onToggleEnabled={(enabled) => handleToggle(row.original, enabled)}
               onDelete={() => setDeleteTarget(row.original)}
             />
           </div>
-        ),
+          );
+        },
       },
     ];
     return cols;
@@ -642,6 +653,11 @@ export default function JobsPage() {
         label=""
         count={selectedIds.length}
         onConfirm={bulkDelete}
+      />
+      <CancelRunDialog
+        session={cancelTarget}
+        open={cancelTarget !== null}
+        onOpenChange={(o) => !o && setCancelTarget(null)}
       />
     </div>
   );

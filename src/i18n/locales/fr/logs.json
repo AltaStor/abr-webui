@@ -1,10 +1,11 @@
 {
   "page": {
     "title": "Journaux",
-    "description": "Événements système sur l'appliance, y compris l'activité signalée par les agents de sauvegarde."
+    "description": "Le journal système de l’appliance elle-même — événements du planificateur, du stockage, de TLS et de l’API, directement depuis le serveur."
   },
   "actions": {
-    "export": "Exporter"
+    "export": "Exporter",
+    "refreshLog": "Actualiser le journal système"
   },
   "export": {
     "menuLabel": "Exporter les journaux",
@@ -20,8 +21,8 @@
     "exportSupportBundleFailed": "Impossible de générer le pack de support"
   },
   "stats": {
-    "systemWarnings": "Avertissements système · 24h",
-    "agentEvents": "Événements d'agent · 24h"
+    "systemErrors": "Erreurs · 24 h",
+    "systemWarnings": "Avertissements · 24 h"
   },
   "filters": {
     "clearSearch": "Effacer la recherche"
@@ -37,6 +38,9 @@
     "lineCount_one": "{{formatted}} ligne",
     "lineCount_other": "{{formatted}} lignes",
     "filteredToSources_one": " · filtré sur {{count}} source",
-    "filteredToSources_other": " · filtré sur {{count}} sources"
+    "filteredToSources_other": " · filtré sur {{count}} sources",
+    "serverLogUnavailable": "Affichage d’événements déduits des données de cette console : le journal de l’appliance n’a pas pu être lu ({{reason}}).",
+    "serverLogUnreachable": "l’appliance n’a pas répondu",
+    "serverLogMissing": "L’appliance n’a trouvé aucun journal serveur. Elle a cherché dans : {{paths}}."
   }
 }
