@@ -229,9 +229,10 @@
     "selected": "{{count}} seleccionado(s)",
     "run": "Ejecutar",
     "clearSelection": "Borrar selección",
-    "disableAllAlreadyDisabled": "Todos los trabajos seleccionados ya están deshabilitados",
-    "disableAppliesTo_one": "Deshabilita {{count}} trabajo activo; los otros {{total}} seleccionados ya están deshabilitados",
-    "disableAppliesTo_other": "Deshabilita {{count}} trabajos activos de los {{total}} seleccionados; el resto ya están deshabilitados"
+    "disableAllAlreadyDisabled_one": "El trabajo seleccionado ya está deshabilitado",
+    "disableAllAlreadyDisabled_other": "Todos los trabajos seleccionados ya están deshabilitados",
+    "disableSomeAlreadyDisabled_one": "{{count}} de los {{total}} trabajos seleccionados ya está deshabilitado: deselecciónalo para deshabilitar el resto",
+    "disableSomeAlreadyDisabled_other": "{{count}} de los {{total}} trabajos seleccionados ya están deshabilitados: deselecciónalos para deshabilitar el resto"
   },
   "empty": {
     "noJobs": {
@@ -284,8 +285,6 @@
     "bulkDeleted_other": "{{count}} trabajos eliminados",
     "bulkDeletedPartial": "{{deleted}} de {{total}} trabajos eliminados",
     "bulkDeletedPartialDesc": "El appliance no confirmó el resto; no se han modificado.",
-    "bulkDisabledSkipped_one": "{{count}} ya estaba deshabilitado.",
-    "bulkDisabledSkipped_other": "{{count}} ya estaban deshabilitados.",
     "runRefused": "No se pudo iniciar {{name}}",
     "runRefusedDesc": "La appliance no inició la ejecución ni indicó el motivo. Vuelve a intentarlo en un momento.",
     "runRefusedDisabledDesc": "El trabajo está deshabilitado: habilítalo para ejecutarlo."

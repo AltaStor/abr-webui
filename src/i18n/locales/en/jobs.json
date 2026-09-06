@@ -229,9 +229,10 @@
     "selected": "{{count}} selected",
     "run": "Run",
     "clearSelection": "Clear selection",
-    "disableAllAlreadyDisabled": "Every selected job is already disabled",
-    "disableAppliesTo_one": "Disables {{count}} active job; the other {{total}} selected are already disabled",
-    "disableAppliesTo_other": "Disables {{count}} active jobs of the {{total}} selected; the rest are already disabled"
+    "disableAllAlreadyDisabled_one": "The selected job is already disabled",
+    "disableAllAlreadyDisabled_other": "Every selected job is already disabled",
+    "disableSomeAlreadyDisabled_one": "{{count}} of the {{total}} selected jobs is already disabled — deselect it to disable the rest",
+    "disableSomeAlreadyDisabled_other": "{{count}} of the {{total}} selected jobs are already disabled — deselect them to disable the rest"
   },
   "empty": {
     "noJobs": {
@@ -284,8 +285,6 @@
     "bulkDeleted_other": "Deleted {{count}} jobs",
     "bulkDeletedPartial": "Deleted {{deleted}} of {{total}} jobs",
     "bulkDeletedPartialDesc": "The appliance didn't confirm the rest — they are untouched.",
-    "bulkDisabledSkipped_one": "{{count}} was already disabled.",
-    "bulkDisabledSkipped_other": "{{count}} were already disabled.",
     "runRefused": "Couldn’t start {{name}}",
     "runRefusedDesc": "The appliance didn’t start the run and gave no reason. Try again in a moment.",
     "runRefusedDisabledDesc": "The job is disabled — enable it to run it."

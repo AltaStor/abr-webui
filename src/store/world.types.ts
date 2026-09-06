@@ -43,7 +43,18 @@ export interface WorldData {
   hosts: Host[];
   vms: VM[];
   jobs: BackupJob[];
+  /** The slice of run history the console currently holds. Hydrate loads only
+   *  the newest page (see api.http SESSION_PAGE_SIZE); `loadOlderSessions`
+   *  extends it on demand. Screens that summarise "all runs" are summarising
+   *  this. */
   sessions: Session[];
+  /** How many sessions the appliance has in total, from the page envelope —
+   *  so a screen can say what it is *not* showing. */
+  sessionsTotal: number;
+  /** Whether older sessions remain unfetched. */
+  sessionsHasMore: boolean;
+  /** True while `loadOlderSessions` is in flight. */
+  sessionsLoadingMore: boolean;
   restorePoints: RestorePoint[];
   repositories: Repository[];
   alerts: Alert[];
@@ -183,6 +194,9 @@ export interface WorldState extends WorldData {
   deleteEnvironment(id: string): Promise<EnvDeleteResult>;
   /** Re-scan an environment; resolves with the discovered VM count. */
   rescanEnvironment(id: string): Promise<{ vmCount: number } | null>;
+  /** Fetch the next (older) page of run history and add it to `sessions`.
+   *  A no-op when nothing older remains or a load is already running. */
+  loadOlderSessions(): Promise<void>;
   startRestore(input: RestoreInput): Promise<string | null>;
   /** Real datastores/networks for a new-location restore's target picker,
    *  resolved from the restore point's source VM and the candidate targets —
@@ -222,6 +236,7 @@ export type WorldActions = Pick<
   | "editEnvironment"
   | "deleteEnvironment"
   | "rescanEnvironment"
+  | "loadOlderSessions"
   | "startRestore"
   | "getRestorePlacementOptions"
   | "deleteRestorePoint"
@@ -256,6 +271,9 @@ export const EMPTY_WORLD: WorldData = {
   vms: [],
   jobs: [],
   sessions: [],
+  sessionsTotal: 0,
+  sessionsHasMore: false,
+  sessionsLoadingMore: false,
   restorePoints: [],
   repositories: [],
   alerts: [],

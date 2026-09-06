@@ -868,63 +868,60 @@ export async function getVM(id: string): Promise<VM> {
  * Sessions per request. The appliance keeps one session per VM per run, so an
  * appliance a few months old has thousands: at 1000 they came back as a single
  * ~1.8 MB response, which the poll loop below refetches every 2.5 s while
- * anything is running. `GET /sessions` takes `limit`/`offset` and reports
- * `total`, so the console walks it in bounded chunks instead.
+ * anything is running.
+ *
+ * Paging that response was only half the fix. Walking every page on each poll
+ * moved the same megabytes in more envelopes — so the console now fetches *one*
+ * page, the newest, and treats older history as something to ask for rather
+ * than something to carry. `total` says how much more there is; `loadOlder`
+ * below fetches the next page when a screen actually needs it.
  *
  * The server caps `limit` at 500 (SESSION_PAGE_LIMIT_MAX in abr_v41.py).
  */
-const SESSION_PAGE_SIZE = 250;
+export const SESSION_PAGE_SIZE = 100;
 
-/** Hard stop on the paging loop, so a server that keeps reporting a `total` it
- *  never satisfies can't spin the console forever. */
-const SESSION_PAGE_LIMIT = 40;
+/** One page of sessions, newest first, with the envelope that locates it. */
+export interface SessionPage {
+  items: Session[];
+  /** Match count *before* limit/offset — how many exist, not how many arrived. */
+  total: number;
+  /** Whether a further (older) page follows this one. */
+  hasNext: boolean;
+  /** 1-based position of this page, and how many there are in total. */
+  page: number;
+  pages: number;
+}
 
-/** One page of sessions, newest first, plus the unpaged match count. */
 export async function listSessionsPage(
   opts: { limit?: number; offset?: number } = {},
-): Promise<{ items: Session[]; total: number }> {
+): Promise<SessionPage> {
   const limit = opts.limit ?? SESSION_PAGE_SIZE;
   const offset = opts.offset ?? 0;
   const res = asDict(await request<Dict>(`/sessions?limit=${limit}&offset=${offset}`));
   const items = Array.isArray(res.items) ? (res.items as Dict[]).map(mapSession) : [];
-  // An appliance predating pagination ignores the params and sends everything
-  // with no `total`; falling back to the page length ends the walk after one
-  // request, which is exactly right for that case.
-  return { items, total: num(res.total, items.length) };
-}
-
-/**
- * Every session, walked a page at a time.
- *
- * The store's dashboard aggregates (24 h success rate, the 14-day activity
- * timeline) and each job's run history are computed over the whole history, so
- * this still returns all of it — the win is that it arrives as several small
- * responses rather than one huge one. Offsets shift if a run starts mid-walk,
- * so rows are de-duplicated by id.
- */
-export async function listSessions(): Promise<Session[]> {
-  const all: Session[] = [];
-  const seen = new Set<string>();
-  let total = Infinity;
-  for (let page = 0; page < SESSION_PAGE_LIMIT && all.length < total; page++) {
-    const res = await listSessionsPage({ offset: all.length });
-    total = res.total;
-    if (res.items.length === 0) break;
-    for (const session of res.items) {
-      if (seen.has(session.id)) continue;
-      seen.add(session.id);
-      all.push(session);
-    }
-  }
-  return all;
+  // An appliance predating the envelope ignores the params and sends everything
+  // with no `total`: falling back to the page length makes that look like a
+  // single complete page, which is exactly what it is.
+  const total = num(res.total, items.length);
+  return {
+    items,
+    total,
+    hasNext:
+      typeof res.has_next === "boolean" ? res.has_next : offset + items.length < total,
+    page: num(res.page, Math.floor(offset / limit) + 1),
+    pages: num(res.pages, Math.max(1, Math.ceil(total / Math.max(1, limit)))),
+  };
 }
 
 export async function getSession(id: string): Promise<Session> {
   return mapSession(asDict(await request<Dict>(`/sessions/${id}`)));
 }
 
+/** This job's runs out of the history the console already holds — the same
+ *  source `getJob` reads, so asking for one job's runs never re-fetches the
+ *  session list. */
 export async function getJobSessions(jobId: string): Promise<Session[]> {
-  return (await listSessions()).filter((s) => s.jobId === jobId);
+  return useWorldStore.getState().sessions.filter((s) => s.jobId === jobId);
 }
 
 /** Jobs without run history — the caller attaches it via `withJobRunStats`

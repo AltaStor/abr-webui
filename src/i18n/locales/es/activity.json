@@ -146,5 +146,10 @@
       "full": "Completa",
       "incremental": "Incremental"
     }
+  },
+  "older": {
+    "showing": "Mostrando las {{loaded}} ejecuciones más recientes de {{total}}",
+    "load": "Cargar ejecuciones anteriores",
+    "loading": "Cargando…"
   }
 }

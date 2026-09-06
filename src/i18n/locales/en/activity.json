@@ -146,5 +146,10 @@
       "full": "Full",
       "incremental": "Incremental"
     }
+  },
+  "older": {
+    "showing": "Showing the {{loaded}} most recent of {{total}} runs",
+    "load": "Load older runs",
+    "loading": "Loading…"
   }
 }

@@ -51,7 +51,28 @@
     "threats_one": "{{count}} amenaza",
     "threats_other": "{{count}} amenazas",
     "markAllRead": "Marcar todo como leído",
-    "allCaughtUp": "Estás al día"
+    "allCaughtUp": "Estás al día",
+    "event": {
+      "job": {
+        "success": "{{name}} completado",
+        "warning": "{{name}} completado con advertencias",
+        "failed": "{{name}} ha fallado"
+      },
+      "restore": {
+        "done": "Recuperación finalizada: {{name}}",
+        "failed": "La recuperación ha fallado: {{name}}"
+      },
+      "body": {
+        "success": "La ejecución finalizó sin errores.",
+        "warning": "La ejecución finalizó, pero el appliance informó de advertencias.",
+        "failed": "El appliance informó de que la ejecución falló."
+      },
+      "capacity": {
+        "warn": "{{name}} se está llenando",
+        "critical": "{{name}} está casi lleno"
+      },
+      "capacityBody": "{{name}} está al {{pct}} %."
+    }
   },
   "apiVersionBanner": {
     "title": "Versión de API incompatible",

@@ -229,9 +229,10 @@
     "selected": "{{count}} sélectionné(s)",
     "run": "Exécuter",
     "clearSelection": "Effacer la sélection",
-    "disableAllAlreadyDisabled": "Toutes les tâches sélectionnées sont déjà désactivées",
-    "disableAppliesTo_one": "Désactive {{count}} tâche active ; les {{total}} autres sélectionnées sont déjà désactivées",
-    "disableAppliesTo_other": "Désactive {{count}} tâches actives sur les {{total}} sélectionnées ; les autres sont déjà désactivées"
+    "disableAllAlreadyDisabled_one": "La tâche sélectionnée est déjà désactivée",
+    "disableAllAlreadyDisabled_other": "Toutes les tâches sélectionnées sont déjà désactivées",
+    "disableSomeAlreadyDisabled_one": "{{count}} des {{total}} tâches sélectionnées est déjà désactivée — désélectionnez-la pour désactiver les autres",
+    "disableSomeAlreadyDisabled_other": "{{count}} des {{total}} tâches sélectionnées sont déjà désactivées — désélectionnez-les pour désactiver les autres"
   },
   "empty": {
     "noJobs": {
@@ -284,8 +285,6 @@
     "bulkDeleted_other": "{{count}} tâches supprimées",
     "bulkDeletedPartial": "{{deleted}} tâche(s) sur {{total}} supprimée(s)",
     "bulkDeletedPartialDesc": "L’appliance n’a pas confirmé les autres — elles sont inchangées.",
-    "bulkDisabledSkipped_one": "{{count}} était déjà désactivée.",
-    "bulkDisabledSkipped_other": "{{count}} étaient déjà désactivées.",
     "runRefused": "Impossible de démarrer {{name}}",
     "runRefusedDesc": "L’appliance n’a pas démarré l’exécution et n’a donné aucune raison. Réessayez dans un instant.",
     "runRefusedDisabledDesc": "La tâche est désactivée — activez-la pour l’exécuter."

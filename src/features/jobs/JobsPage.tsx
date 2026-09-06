@@ -219,22 +219,21 @@ export default function JobsPage() {
     });
     setRowSelection({});
   };
-  // Only the still-active jobs in a selection are worth disabling: sending the
-  // rest to the appliance changes nothing and made the toast report a count of
-  // jobs it hadn't touched. The bulk bar greys the action out when there are no
-  // targets at all, and says how many it covers when the selection is mixed.
-  const disableTargets = selectedJobs.filter((j) => j.state !== "disabled");
+  // Disable acts on the selection as a whole or not at all: an already-disabled
+  // job in the selection blocks the action (the bulk bar greys it out and names
+  // the reason) rather than being silently skipped, so the toast can never
+  // report a count that doesn't match what the user selected.
+  const alreadyDisabled = selectedJobs.filter((j) => j.state === "disabled");
+  const disableBlocked = alreadyDisabled.length > 0;
   const bulkDisable = async () => {
-    if (disableTargets.length === 0) return;
-    const alreadyDisabled = selectedJobs.length - disableTargets.length;
-    const skippedNote = alreadyDisabled > 0 ? t("toast.bulkDisabledSkipped", { count: alreadyDisabled }) : "";
-    const results = await Promise.allSettled(disableTargets.map((job) => setJobEnabled(job.id, false)));
+    if (disableBlocked || selectedJobs.length === 0) return;
+    const results = await Promise.allSettled(selectedJobs.map((job) => setJobEnabled(job.id, false)));
     const disabled = results.filter((r) => r.status === "fulfilled").length;
-    if (disabled === disableTargets.length) {
-      toast.success(t("toast.bulkDisabled", { count: disabled }), skippedNote ? { description: skippedNote } : undefined);
+    if (disabled === selectedJobs.length) {
+      toast.success(t("toast.bulkDisabled", { count: disabled }));
     } else {
-      toast.warning(t("toast.bulkDisabledPartial", { disabled, total: disableTargets.length }), {
-        description: [t("toast.bulkDisabledPartialDesc"), skippedNote].filter(Boolean).join(" "),
+      toast.warning(t("toast.bulkDisabledPartial", { disabled, total: selectedJobs.length }), {
+        description: t("toast.bulkDisabledPartialDesc"),
       });
     }
     setRowSelection({});
@@ -567,7 +566,7 @@ export default function JobsPage() {
             {t("bulk.run")}
           </Button>
           <BulkDisableButton
-            targetCount={disableTargets.length}
+            blockedCount={alreadyDisabled.length}
             selectedCount={selectedIds.length}
             onClick={bulkDisable}
           />
@@ -652,20 +651,22 @@ export default function JobsPage() {
 /** Gated behind having somewhere to read from (an environment) and write to
  *  (a repository) — otherwise the wizard opens onto a dead end. */
 /* --------------------------- bulk disable -------------------------------- */
-/** Disable only ever applies to the selected jobs that are still active, so it
- *  goes inactive once every selected job is already disabled, and says how many
- *  it will actually touch when the selection is mixed. */
+/** Disable is an all-or-nothing action on the selection: one already-disabled
+ *  job in it greys the button out, because "Disable" would otherwise report a
+ *  count covering jobs it never touched. The tooltip names the reason -- the
+ *  whole selection already disabled, or only part of it -- so the way out
+ *  (deselect those rows) is obvious. */
 function BulkDisableButton({
-  targetCount,
+  blockedCount,
   selectedCount,
   onClick,
 }: {
-  targetCount: number;
+  blockedCount: number;
   selectedCount: number;
   onClick: () => void;
 }) {
   const { t } = useTranslation("jobs");
-  const blocked = targetCount === 0;
+  const blocked = blockedCount > 0;
   const button = (
     <Button variant="ghost" size="sm" onClick={onClick} disabled={blocked}>
       {/* Power, not Pause: Play/Pause is the transport pair, and bulkRun
@@ -677,18 +678,17 @@ function BulkDisableButton({
 
   // A disabled <button> has pointer-events: none, so the tooltip trigger goes
   // on a wrapping span — the same treatment AddJobButton below uses.
-  if (blocked) {
-    return (
-      <Hint label={t("bulk.disableAllAlreadyDisabled")}>
-        <span tabIndex={0} className="inline-flex cursor-not-allowed">
-          {button}
-        </span>
-      </Hint>
-    );
-  }
-  if (targetCount === selectedCount) return button;
+  if (!blocked) return button;
+  const reason =
+    blockedCount === selectedCount
+      ? t("bulk.disableAllAlreadyDisabled", { count: selectedCount })
+      : t("bulk.disableSomeAlreadyDisabled", { count: blockedCount, total: selectedCount });
   return (
-    <Hint label={t("bulk.disableAppliesTo", { count: targetCount, total: selectedCount })}>{button}</Hint>
+    <Hint label={reason}>
+      <span tabIndex={0} className="inline-flex cursor-not-allowed">
+        {button}
+      </span>
+    </Hint>
   );
 }
 

@@ -146,5 +146,10 @@
       "full": "Vollständig",
       "incremental": "Inkrementell"
     }
+  },
+  "older": {
+    "showing": "Die {{loaded}} neuesten von {{total}} Läufen werden angezeigt",
+    "load": "Ältere Läufe laden",
+    "loading": "Wird geladen…"
   }
 }

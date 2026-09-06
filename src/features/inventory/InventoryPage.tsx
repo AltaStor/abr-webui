@@ -50,6 +50,7 @@ import { AddEnvironmentDialog } from "./components/AddEnvironmentDialog";
 import { EditEnvironmentDialog } from "./components/EditEnvironmentDialog";
 import { DeleteEnvironmentDialog } from "./components/DeleteEnvironmentDialog";
 import { buildTree, collectVmIds, type TreeNode } from "./topology";
+import { restoreLink } from "@/features/restore/link";
 
 type PowerFilter = "all" | VM["powerState"];
 type OsFilter = "all" | VM["osFamily"];
@@ -373,7 +374,7 @@ export default function InventoryPage() {
                 size="sm"
                 className="text-muted-foreground opacity-100 transition-opacity sm:opacity-0 sm:group-hover/row:opacity-100 sm:group-focus-within/row:opacity-100 sm:focus-visible:opacity-100"
               >
-                <Link to={`/restore?vm=${vm.id}`} onClick={(e) => e.stopPropagation()}>
+                <Link to={restoreLink(vm.id)} onClick={(e) => e.stopPropagation()}>
                   {t("actions.restore")}
                 </Link>
               </Button>

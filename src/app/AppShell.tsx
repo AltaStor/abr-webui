@@ -20,6 +20,7 @@ import { useAppearanceEffects } from "@/app/appearance";
 import { useLanguageEffects } from "@/i18n/apply";
 import { useSidebarAutoCollapse } from "@/app/useSidebarAutoCollapse";
 import { useAutoUpdateCheck } from "@/app/useAutoUpdateCheck";
+import { useEventNotifications } from "@/app/useEventNotifications";
 
 function PageFallback() {
   /* Shape-agnostic placeholder: a title bar (every page has one) plus a single
@@ -52,6 +53,8 @@ export function AppShell() {
   useSidebarAutoCollapse();
   // Poll the live appliance for new releases when "Automatically check" is on.
   useAutoUpdateCheck();
+  // Raise the run/capacity notifications enabled in Settings → Notifications.
+  useEventNotifications();
 
   /* In live mode, the appliance owns the settings — pull them on connect so the
    * store reflects server truth (and other clients' changes) while keeping the

@@ -27,16 +27,18 @@ import {
   refusalKey,
   type RestoreRefusal,
 } from "./refusals";
+import { RESTORE_POINT_PARAM, RESTORE_VM_PARAM } from "./link";
 
 export default function RestorePage() {
   const { t } = useTranslation("restore");
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const preselectVmId = searchParams.get("vm");
-  /* Optional companion to ?vm=. Display-only: it selects a restore point the
-   * operator already picked elsewhere, so the wizard stops substituting the
-   * newest one underneath them. No request shape depends on it. */
-  const preselectPointId = searchParams.get("point");
+  const preselectVmId = searchParams.get(RESTORE_VM_PARAM);
+  /* Optional companion to ?vm=, written by every "Restore" affordance that has
+   * a point in hand (see restoreLink). It selects the restore point the
+   * operator actually picked, so the wizard stops substituting the newest one
+   * underneath them — and `startRestore` therefore sends that point's id. */
+  const preselectPointId = searchParams.get(RESTORE_POINT_PARAM);
 
   const STEPS: StepDef[] = [
     { id: 1, label: t("steps.source.label") },

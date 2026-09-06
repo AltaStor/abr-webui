@@ -488,6 +488,11 @@ export function createSimDriver(handle: WorldHandle): WorldDriver {
 
   /* ------------------------------ actions ------------------------------- */
   const actions: WorldActions = {
+    /* The simulated world is generated whole and held in memory — there is no
+     * older page to go and fetch, so the store's history is already complete
+     * (`sessionsHasMore` stays false) and this has nothing to do. */
+    loadOlderSessions: () => Promise.resolve(),
+
     /* ------------------------------ runJob ----------------------------- */
     runJob: (jobId, triggeredBy = "manual", forceFull = false) => {
       const state = handle.get();
