@@ -22,7 +22,7 @@
  * lifecycle. These keep their export signatures so the WIP-gated pages still
  * compile and render empty.
  *
- * Transport: same-origin `/api/v1/*` (the Vite dev server proxies to :8443).
+ * Transport: same-origin `/api/v1/*` (the Vite dev server proxies to :443).
  * There is NO server-sent-event stream on this backend, so `subscribeEvents`
  * is a polling loop (see the bottom of the file).
  */
@@ -1440,7 +1440,7 @@ const EMPTY_SETTINGS: ApplianceSettings = {
     archiveAfterDays: 30,
     globalThrottleMBps: 0,
   },
-  network: { ipMode: "dhcp", address: "", gateway: "", dns: [], ntpServers: [], proxyUrl: "", managementPort: 8443 },
+  network: { ipMode: "dhcp", address: "", gateway: "", dns: [], ntpServers: [], proxyUrl: "", managementPort: 443 },
   updates: { channel: "stable", autoCheck: true, autoInstall: false, maintenanceWindow: "02:00-04:00" },
   users: [],
   apiTokens: [],

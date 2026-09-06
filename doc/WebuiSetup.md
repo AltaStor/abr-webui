@@ -33,7 +33,7 @@ Follow these steps to get the project running on your local machine.
     run, the dev server falls back to plain HTTP and logs a warning instead
     of failing. Since the certificate is self-signed, the browser will show
     an untrusted-certificate warning the first time -- accept it, the same as
-    for the API on port 8443.
+    for the API on port 443.
 
 ### Build and Lint Commands
 * `npm run build`: Compiles TypeScript and builds the application for production.

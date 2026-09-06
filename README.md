@@ -52,10 +52,10 @@ npm run dev
 The app is served at `https://localhost:3000` (or plain HTTP if the TLS
 bootstrap step above isn't available). Since the certificate is self-signed,
 the browser will show an untrusted-certificate warning the first time —
-accept it, the same as for the API on port 8443.
+accept it, the same as for the API on port 443.
 
 In dev, API requests to `/api/*` are proxied same-origin to the orchestrator
-at `https://127.0.0.1:8443` (override with the `VITE_API_PROXY` env var), so
+at `https://127.0.0.1` (override with the `VITE_API_PROXY` env var), so
 the app never has to deal with CORS. The dev/preview port defaults to 3000
 and can be overridden with `PORT`.
 

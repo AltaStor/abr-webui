@@ -131,9 +131,9 @@ export const DEFAULT_SETTINGS: AppSettings = {
     dns: [],
     ntpServers: ["time.cloudflare.com", "pool.ntp.org"],
     proxyUrl: "",
-    // 8443, matching api.http.ts's EMPTY_SETTINGS and the orchestrator the dev
+    // 443, matching api.http.ts's EMPTY_SETTINGS and the orchestrator the dev
     // proxy targets. 4980 was the other appliance line's control plane.
-    managementPort: 8443,
+    managementPort: 443,
   },
   updates: {
     channel: "stable",

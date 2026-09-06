@@ -11,7 +11,7 @@ import react from "@vitejs/plugin-react";
 // The AltaStor console is a pure client of the Python
 // FastAPI orchestrator. In dev it talks to it same-origin via this proxy, so
 // `api.http.ts` can use relative `/api/v1/*` URLs and avoid CORS entirely.
-const API_TARGET = process.env.VITE_API_PROXY ?? "https://127.0.0.1:8443";
+const API_TARGET = process.env.VITE_API_PROXY ?? "https://127.0.0.1";
 const apiverText = readFileSync(path.resolve(__dirname, "APIVER"), "utf-8");
 const apiverValues = Object.fromEntries(
   apiverText
@@ -68,7 +68,8 @@ export default defineConfig(({ command }) => {
       // Bind to 0.0.0.0 so the dev server is reachable from other devices on the LAN.
       host: true,
       // Project convention: dev server on 3000, proxying the API to the
-      // orchestrator on 8443 (override the target with VITE_API_PROXY).
+      // orchestrator on 443 (override the target with VITE_API_PROXY; a
+      // core that fell back to a high port needs https://127.0.0.1:8443).
       port: process.env.PORT ? Number(process.env.PORT) : 3000,
       strictPort: false,
       https,
