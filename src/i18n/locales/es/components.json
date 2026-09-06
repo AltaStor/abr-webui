@@ -29,20 +29,15 @@
         "label": "Destino",
         "sub": "repositorio · físico"
       },
-      "replicaLabel": "Réplica",
-      "replicaSub": "→ disco virtual",
-      "networkReplicaSub": "al destino · enlace",
       "pulled": "leído",
       "pool": "pool"
     },
     "caption": {
       "staging": "Leyendo y preparando la imagen de origen en la appliance; la transferencia al host de destino comienza a continuación.",
-      "replicaRate": "Escribiendo <1>{{rate}}</1> en el disco virtual de la réplica en el host de destino{{wire}}: sin repositorio, sin pasada de deduplicación.",
-      "replicaBlocks": "Escribiendo los bloques modificados en el disco virtual de la réplica en el host de destino{{wire}}: sin repositorio, sin pasada de deduplicación.",
       "onWire": " ({{rate}} en el enlace)",
       "incremental": "Reconstruyendo la imagen a <1>{{rate}}</1> lógicos: una copia incremental reemite la imagen completa desde el repositorio a través de localhost, por lo que no es el rendimiento del enlace ni de escritura en el repositorio.",
-      "processing": "Procesando <1>{{rate}}</1> de la imagen del invitado; la escritura en el repositorio es la huella física tras la deduplicación + compresión.",
-      "fallback": "La escritura en el repositorio son bytes físicos tras la deduplicación + compresión."
+      "processing": "Procesando <1>{{rate}}</1> de la imagen del invitado; la escritura en el repositorio es la huella física tras la compresión.",
+      "fallback": "La escritura en el repositorio son bytes físicos tras la compresión."
     }
   },
   "logViewer": {

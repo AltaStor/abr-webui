@@ -54,6 +54,22 @@ const PATH_PLACEHOLDER: Record<OfferedRepositoryType, string> = {
  *  just seeds a placeholder that gets replaced on the first scan. */
 const LOCAL_DEFAULT_CAPACITY_GB = 500;
 
+/** The S3 fields the appliance refuses a create without. The endpoint is
+ *  deliberately absent: it is optional on the wire, so flagging it as missing
+ *  would be the console inventing a requirement of its own. */
+type S3RequiredField = "bucket" | "region" | "accessKey" | "secretKey";
+
+/** Same test the orchestrator runs on `endpoint_url` — an http(s) scheme and a
+ *  host — so a URL this accepts is one the appliance will take too. */
+function isHttpUrl(value: string): boolean {
+  try {
+    const parsed = new URL(value);
+    return (parsed.protocol === "http:" || parsed.protocol === "https:") && parsed.host !== "";
+  } catch {
+    return false;
+  }
+}
+
 export function AddRepositoryDialog() {
   const { t } = useTranslation("repositories");
   const createRepository = useWorldStore((s) => s.createRepository);
@@ -75,26 +91,45 @@ export function AddRepositoryDialog() {
   const [testing, setTesting] = useState(false);
   const [testResult, setTestResult] = useState<S3ConnectionTestResult | null>(null);
   // A required field is only *wrong* once the operator has been to it and left
-  // it empty. Without this the dialog opened with the endpoint already outlined
+  // it empty. Without this the dialog opened with the bucket already outlined
   // in red and a refusal underneath it, before anything had been asked for.
-  const [touched, setTouched] = useState<{ bucket?: boolean; endpoint?: boolean }>({});
-  const touch = (field: "bucket" | "endpoint") => () => setTouched((prev) => ({ ...prev, [field]: true }));
+  const [touched, setTouched] = useState<Partial<Record<S3RequiredField, boolean>>>({});
+  const touch = (field: S3RequiredField) => () => setTouched((prev) => ({ ...prev, [field]: true }));
+  // Same courtesy for the endpoint, which is never "missing" but can be
+  // malformed: half a URL is what every URL looks like mid-keystroke, so the
+  // complaint waits until the operator has left the field.
+  const [endpointTouched, setEndpointTouched] = useState(false);
 
   const isS3 = type === "object-lock-s3";
   const bucketValid = bucket.trim().length > 0;
-  const endpointValid = endpointUrl.trim().length > 0;
-  const showBucketError = Boolean(touched.bucket) && !bucketValid;
-  const showEndpointError = Boolean(touched.endpoint) && !endpointValid;
+  const regionValid = region.trim().length > 0;
+  const accessKeyValid = accessKey.trim().length > 0;
+  const secretKeyValid = secretKey.length > 0;
+  // Optional on the wire — an endpoint is only for S3-COMPATIBLE storage; AWS
+  // itself is addressed by region alone. What the orchestrator does reject is a
+  // malformed one, so that is what's checked, and only once something is typed.
+  const endpointTrimmed = endpointUrl.trim();
+  const endpointWellFormed = endpointTrimmed === "" || isHttpUrl(endpointTrimmed);
+  const showEndpointError = endpointTouched && !endpointWellFormed;
+  const showRequiredError = (field: S3RequiredField, valid: boolean) =>
+    Boolean(touched[field]) && !valid;
   const nameTrimmed = name.trim();
   const nameValid =
     nameTrimmed === "" ||
     (nameTrimmed.length <= REPOSITORY_NAME_MAX_LENGTH && REPOSITORY_NAME_PATTERN.test(nameTrimmed));
-  // S3 buckets are elastic, so capacity isn't required; bucket name and the
-  // endpoint they live behind are. Local storage capacity is read from the
-  // filesystem once the repository exists, so there is nothing further to
-  // require here.
-  const formValid = isS3 ? bucketValid && endpointValid : true;
+  // Mirrors the orchestrator's own S3 validation (_validate_s3_configuration):
+  // bucket and region are demanded outright, the access key and secret must
+  // arrive as a pair, and the endpoint is optional but must parse as an http(s)
+  // URL. Enforcing it here is what keeps the dialog from firing a create the
+  // appliance is certain to refuse with a 422. Buckets are elastic so capacity
+  // isn't asked for; local capacity is read from the filesystem after creation.
+  const formValid = isS3
+    ? bucketValid && regionValid && accessKeyValid && secretKeyValid && endpointWellFormed
+    : true;
   const canSubmit = formValid && nameValid && !submitting;
+  // The pre-create test goes through the same server-side validation, so it
+  // needs the same fields before it can say anything useful.
+  const canTest = bucketValid && regionValid && endpointWellFormed && !testing;
 
   function reset() {
     setName("");
@@ -111,6 +146,7 @@ export function AddRepositoryDialog() {
     setTesting(false);
     setTestResult(null);
     setTouched({});
+    setEndpointTouched(false);
   }
 
   // Any change to the S3 settings invalidates a prior test result — it spoke
@@ -123,7 +159,7 @@ export function AddRepositoryDialog() {
   }
 
   async function handleTestConnection() {
-    if (!bucketValid || !endpointValid || testing) return;
+    if (!canTest) return;
     setTesting(true);
     setTestResult(null);
     try {
@@ -249,10 +285,12 @@ export function AddRepositoryDialog() {
                     onChange={(e) => withResultCleared(setBucket)(e.target.value)}
                     onBlur={touch("bucket")}
                     placeholder="my-backup-bucket"
-                    aria-invalid={showBucketError}
-                    className={cn("nums", showBucketError && "border-danger")}
+                    aria-invalid={showRequiredError("bucket", bucketValid)}
+                    className={cn("nums", showRequiredError("bucket", bucketValid) && "border-danger")}
                   />
-                  {showBucketError && <p className="text-xs text-danger">{t("add.s3.bucketRequired")}</p>}
+                  {showRequiredError("bucket", bucketValid) && (
+                    <p className="text-xs text-danger">{t("add.s3.bucketRequired")}</p>
+                  )}
                 </div>
                 <div className="space-y-1.5">
                   <Label htmlFor="repo-region">{t("add.s3.regionLabel")}</Label>
@@ -260,24 +298,36 @@ export function AddRepositoryDialog() {
                     id="repo-region"
                     value={region}
                     onChange={(e) => withResultCleared(setRegion)(e.target.value)}
+                    onBlur={touch("region")}
                     placeholder="us-east-1"
-                    className="nums"
+                    aria-invalid={showRequiredError("region", regionValid)}
+                    className={cn("nums", showRequiredError("region", regionValid) && "border-danger")}
                   />
+                  {showRequiredError("region", regionValid) && (
+                    <p className="text-xs text-danger">{t("add.s3.regionRequired")}</p>
+                  )}
                 </div>
               </div>
 
               <div className="space-y-1.5">
-                <Label htmlFor="repo-endpoint">{t("add.s3.endpointLabel")}</Label>
+                <Label htmlFor="repo-endpoint">
+                  {t("add.s3.endpointLabel")}{" "}
+                  <span className="text-muted-foreground">{t("add.s3.optional")}</span>
+                </Label>
                 <Input
                   id="repo-endpoint"
                   value={endpointUrl}
                   onChange={(e) => withResultCleared(setEndpointUrl)(e.target.value)}
-                  onBlur={touch("endpoint")}
+                  onBlur={() => setEndpointTouched(true)}
                   placeholder="https://s3.example.com"
                   aria-invalid={showEndpointError}
                   className={cn("nums", showEndpointError && "border-danger")}
                 />
-                {showEndpointError && <p className="text-xs text-danger">{t("add.s3.endpointRequired")}</p>}
+                {showEndpointError ? (
+                  <p className="text-xs text-danger">{t("add.s3.endpointInvalid")}</p>
+                ) : (
+                  <p className="text-xs text-muted-foreground">{t("add.s3.endpointHint")}</p>
+                )}
               </div>
 
               <div className="space-y-1.5">
@@ -301,10 +351,15 @@ export function AddRepositoryDialog() {
                     id="repo-access-key"
                     value={accessKey}
                     onChange={(e) => withResultCleared(setAccessKey)(e.target.value)}
+                    onBlur={touch("accessKey")}
                     placeholder="AKIA…"
                     autoComplete="off"
-                    className="nums"
+                    aria-invalid={showRequiredError("accessKey", accessKeyValid)}
+                    className={cn("nums", showRequiredError("accessKey", accessKeyValid) && "border-danger")}
                   />
+                  {showRequiredError("accessKey", accessKeyValid) && (
+                    <p className="text-xs text-danger">{t("add.s3.accessKeyRequired")}</p>
+                  )}
                 </div>
                 <div className="space-y-1.5">
                   <Label htmlFor="repo-secret-key">{t("add.s3.secretKeyLabel")}</Label>
@@ -313,10 +368,15 @@ export function AddRepositoryDialog() {
                     type="password"
                     value={secretKey}
                     onChange={(e) => withResultCleared(setSecretKey)(e.target.value)}
+                    onBlur={touch("secretKey")}
                     placeholder="••••••••"
                     autoComplete="off"
-                    className="nums"
+                    aria-invalid={showRequiredError("secretKey", secretKeyValid)}
+                    className={cn("nums", showRequiredError("secretKey", secretKeyValid) && "border-danger")}
                   />
+                  {showRequiredError("secretKey", secretKeyValid) && (
+                    <p className="text-xs text-danger">{t("add.s3.secretKeyRequired")}</p>
+                  )}
                 </div>
               </div>
 
@@ -339,7 +399,7 @@ export function AddRepositoryDialog() {
                   size="sm"
                   className="w-full"
                   onClick={handleTestConnection}
-                  disabled={!bucketValid || !endpointValid || testing}
+                  disabled={!canTest}
                 >
                   {testing ? (
                     <Loader2 className="h-4 w-4 animate-spin" />

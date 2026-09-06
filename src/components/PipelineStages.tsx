@@ -41,8 +41,8 @@ const BOTTLENECK_LABEL: Record<StageKey, { get label(): string }> = {
  * through — guest read → LAN → repository — each with its live rate and a
  * proportional bar, plus the inferred bottleneck. Every number is a distinct
  * measurement, so they intentionally differ (a full's wire is compressed; the
- * repo write is the physical, deduped footprint). Shown only while an
- * agent-backed run is storing.
+ * repo write is the physical footprint). Shown only while an agent-backed run
+ * is storing.
  */
 export function PipelineStages({ session }: { session: Session }) {
   const { t } = useTranslation("components");

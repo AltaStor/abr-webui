@@ -36,11 +36,14 @@ API and renders no data of its own.
 - **npm** (or `yarn`/`pnpm`)
 - A running AltaStor orchestrator (`python/srv`) to talk to — see the main
   repository for backend setup
-- For HTTPS in dev: a `python3` on `PATH` with `cryptography` installed, so
-  the dev server can reuse the backend's self-signed TLS certificate via
-  `python -m python.srv.core.tls_bootstrap`. If it can't be found or run,
-  the dev server falls back to plain HTTP and logs a warning instead of
-  failing (override the interpreter with `PYTHON_BIN`).
+- For HTTPS in dev: a checkout of the `abr-core` backend repository next to
+  this one (`../abr-core`, or anywhere you point `ABR_CORE_ROOT` at), plus a
+  `python3` on `PATH` with `cryptography` installed, so the dev server can
+  reuse the backend's self-signed TLS certificate via
+  `python -m python.srv.core.tls_bootstrap`. If the checkout can't be found or
+  the command can't be run, the dev server falls back to plain HTTP and logs a
+  warning saying which of the two it was, instead of failing (override the
+  interpreter with `PYTHON_BIN`).
 
 ## Getting started
 

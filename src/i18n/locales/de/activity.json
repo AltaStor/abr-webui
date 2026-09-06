@@ -2,11 +2,10 @@
   "page": {
     "title": "Aktivität",
     "live": "Live",
-    "description": "Live-Ansicht aller Backup-, Replikations- und Wiederherstellungsläufe."
+    "description": "Live-Ansicht aller Backup- und Wiederherstellungsläufe."
   },
   "runKind": {
     "restore": "Wiederherstellung",
-    "replication": "Replikation",
     "backupCopy": "Backup-Kopie",
     "diskBackup": "Datenträger-Backup",
     "fileBackup": "Datei-Backup",

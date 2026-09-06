@@ -2,11 +2,10 @@
   "page": {
     "title": "Activité",
     "live": "En direct",
-    "description": "Vue en direct de chaque exécution de sauvegarde, de réplication et de restauration."
+    "description": "Vue en direct de chaque exécution de sauvegarde et de restauration."
   },
   "runKind": {
     "restore": "Restauration",
-    "replication": "Réplication",
     "backupCopy": "Copie de sauvegarde",
     "diskBackup": "Sauvegarde de disque",
     "fileBackup": "Sauvegarde de fichiers",

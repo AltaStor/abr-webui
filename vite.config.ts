@@ -2,7 +2,7 @@
 // Copyright © 2026 Norvitex OÜ
 
 import { execFileSync } from "node:child_process";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import type { ServerOptions as HttpsServerOptions } from "node:https";
 import path from "node:path";
 import { defineConfig } from "vite";
@@ -20,18 +20,41 @@ const apiverValues = Object.fromEntries(
     .map((line) => line.split("=").map((part) => part.trim())),
 );
 
-const REPO_ROOT = path.resolve(__dirname, "..");
+// The backend used to sit one directory up, back when this console lived at
+// `BR/web/`. It is its own repository now, so the module is looked for instead
+// of assumed: an explicit ABR_CORE_ROOT first, then a sibling `abr-core`
+// checkout, then the old in-repo layout so a pre-split tree still works.
+const CORE_MODULE = path.join("python", "srv", "core", "tls_bootstrap.py");
+
+const CORE_ROOT_CANDIDATES = [
+  process.env.ABR_CORE_ROOT,
+  path.resolve(__dirname, "..", "abr-core"),
+  path.resolve(__dirname, ".."),
+].filter((candidate): candidate is string => Boolean(candidate));
+
+function resolveCoreRoot(): string | undefined {
+  return CORE_ROOT_CANDIDATES.find((root) => existsSync(path.join(root, CORE_MODULE)));
+}
 
 // Reuse the backend's self-signed certificate (python/srv/core/tls_bootstrap.py)
 // instead of minting a separate one for the web UI: this generates it on first
 // run / renews it when it's close to expiry, exactly like the API server does
 // on startup, and prints the resulting cert/key paths.
 function resolveDevTls(): HttpsServerOptions | undefined {
+  const coreRoot = resolveCoreRoot();
+  if (!coreRoot) {
+    warnPlainHttp(
+      `no AltaStor core checkout containing ${CORE_MODULE} was found (looked in ` +
+        `${CORE_ROOT_CANDIDATES.join(", ")}); set ABR_CORE_ROOT to the abr-core checkout`,
+    );
+    return undefined;
+  }
+
   try {
     const output = execFileSync(
       process.env.PYTHON_BIN ?? "python3",
       ["-m", "python.srv.core.tls_bootstrap"],
-      { cwd: REPO_ROOT, encoding: "utf-8" },
+      { cwd: coreRoot, encoding: "utf-8" },
     );
     const [certPath, keyPath] = output.trim().split("\n");
     if (!certPath || !keyPath) {
@@ -39,13 +62,22 @@ function resolveDevTls(): HttpsServerOptions | undefined {
     }
     return { cert: readFileSync(certPath), key: readFileSync(keyPath) };
   } catch (err) {
-    console.warn(
-      "[vite] Could not generate/load the backend's self-signed TLS certificate via " +
-        "`python -m python.srv.core.tls_bootstrap`; serving dev/preview over plain HTTP instead.",
-      err instanceof Error ? err.message : err,
+    warnPlainHttp(
+      `\`python -m python.srv.core.tls_bootstrap\` failed in ${coreRoot}: ` +
+        (err instanceof Error ? err.message : String(err)),
     );
     return undefined;
   }
+}
+
+/** One loud, self-explaining line — the fallback silently halves the dev setup
+ *  (http://, and a browser that then refuses the https API proxy), so it has to
+ *  say what went wrong and where it looked. */
+function warnPlainHttp(reason: string): void {
+  console.warn(
+    `[vite] Serving dev/preview over plain HTTP: could not load the backend's ` +
+      `self-signed TLS certificate — ${reason}.`,
+  );
 }
 
 export default defineConfig(({ command }) => {
