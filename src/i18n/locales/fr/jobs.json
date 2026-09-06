@@ -229,9 +229,10 @@
     "selected": "{{count}} sélectionné(s)",
     "run": "Exécuter",
     "clearSelection": "Effacer la sélection",
-    "disableAllAlreadyDisabled": "Toutes les tâches sélectionnées sont déjà désactivées",
-    "disableAppliesTo_one": "Désactive {{count}} tâche active ; les {{total}} autres sélectionnées sont déjà désactivées",
-    "disableAppliesTo_other": "Désactive {{count}} tâches actives sur les {{total}} sélectionnées ; les autres sont déjà désactivées"
+    "disableAllAlreadyDisabled_one": "La tâche sélectionnée est déjà désactivée",
+    "disableAllAlreadyDisabled_other": "Toutes les tâches sélectionnées sont déjà désactivées",
+    "disableSomeAlreadyDisabled_one": "{{count}} des {{total}} tâches sélectionnées est déjà désactivée — désélectionnez-la pour désactiver les autres",
+    "disableSomeAlreadyDisabled_other": "{{count}} des {{total}} tâches sélectionnées sont déjà désactivées — désélectionnez-les pour désactiver les autres"
   },
   "empty": {
     "noJobs": {
@@ -284,8 +285,6 @@
     "bulkDeleted_other": "{{count}} tâches supprimées",
     "bulkDeletedPartial": "{{deleted}} tâche(s) sur {{total}} supprimée(s)",
     "bulkDeletedPartialDesc": "L’appliance n’a pas confirmé les autres — elles sont inchangées.",
-    "bulkDisabledSkipped_one": "{{count}} était déjà désactivée.",
-    "bulkDisabledSkipped_other": "{{count}} étaient déjà désactivées.",
     "runRefused": "Impossible de démarrer {{name}}",
     "runRefusedDesc": "L’appliance n’a pas démarré l’exécution et n’a donné aucune raison. Réessayez dans un instant.",
     "runRefusedDisabledDesc": "La tâche est désactivée — activez-la pour l’exécuter."
@@ -463,6 +462,7 @@
     "noGfs": "Aucune rétention à long terme (GFS) configurée.",
     "repositoryTitle": "Référentiel",
     "freeOf": "{{free}} libre sur {{total}}",
+    "usedElastic": "{{used}} utilisés · stockage élastique",
     "pathsTitle": "Chemins",
     "noPathsConfigured": "Aucun chemin configuré — modifiez la tâche pour en sélectionner.",
     "noLongerInInventory": "· n’est plus dans l’inventaire",
@@ -604,7 +604,7 @@
     "vmNoun_other": "VM",
     "vmCount_one": "{{count}} VM",
     "vmCount_other": "{{count}} VM",
-    "logicalTitle": "Données logiques capturées sur ces points de restauration, avant déduplication et compression",
+    "logicalTitle": "Données logiques capturées sur ces points de restauration, avant compression",
     "sortLabel": "Trier les points de restauration par date",
     "newestFirst": "Plus récents d’abord",
     "oldestFirst": "Plus anciens d’abord",
@@ -828,6 +828,7 @@
     "replicasNamed": "Les répliques sont nommées <1>{{example}}</1>.",
     "whereToStore": "Sélectionner le référentiel",
     "freeSuffix": "{{free}} libre",
+    "elasticCapacity": "Stockage élastique",
     "howOften": "Définir une planification",
     "preset": {
       "hourly": "Toutes les heures",

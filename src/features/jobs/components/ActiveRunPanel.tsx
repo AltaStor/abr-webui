@@ -12,6 +12,7 @@ import { CountUp } from "@/components/CountUp";
 import { StatusPill, StatusDot } from "@/components/StatusPill";
 import { LogViewer } from "@/components/LogViewer";
 import { Metric } from "@/components/Metric";
+import { CancelRunButton } from "@/components/CancelRunButton";
 import { SESSION_META } from "@/lib/status";
 import { cn } from "@/lib/utils";
 import { formatDuration, formatStorage, formatThroughput } from "@/lib/format";
@@ -145,7 +146,13 @@ export function ActiveRunPanel({ session }: { session: Session }) {
           </span>
           {headline}
         </CardTitle>
-        <StatusPill meta={SESSION_META[session.status]} size="sm" />
+        <div className="flex items-center gap-2">
+          <StatusPill meta={SESSION_META[session.status]} size="sm" />
+          {/* Only while the run is live — a terminal panel lingers for a grace
+              window after the run ends, and a stop button on it would act on a
+              session the appliance has already closed. */}
+          {!terminal && <CancelRunButton session={session} />}
+        </div>
       </CardHeader>
       <CardContent className="space-y-4 pt-0">
         {/* Progress + headline metrics */}

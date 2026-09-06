@@ -51,7 +51,28 @@
     "threats_one": "{{count}} threat",
     "threats_other": "{{count}} threats",
     "markAllRead": "Mark all read",
-    "allCaughtUp": "You're all caught up"
+    "allCaughtUp": "You're all caught up",
+    "event": {
+      "job": {
+        "success": "{{name}} completed",
+        "warning": "{{name}} completed with warnings",
+        "failed": "{{name}} failed"
+      },
+      "restore": {
+        "done": "Recovery finished — {{name}}",
+        "failed": "Recovery failed — {{name}}"
+      },
+      "body": {
+        "success": "The run finished with no errors.",
+        "warning": "The run finished, but the appliance reported warnings.",
+        "failed": "The appliance reported the run as failed."
+      },
+      "capacity": {
+        "warn": "{{name}} is filling up",
+        "critical": "{{name}} is almost full"
+      },
+      "capacityBody": "{{name}} is {{pct}}% full."
+    }
   },
   "apiVersionBanner": {
     "title": "Incompatible API version",

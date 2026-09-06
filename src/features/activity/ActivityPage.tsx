@@ -4,6 +4,7 @@
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { PageHeader } from "@/components/PageHeader";
+import { Button } from "@/components/ui/button";
 import { useWorldStore } from "@/store/world";
 import { ActivitySummary } from "./components/ActivitySummary";
 import { InProgress } from "./components/InProgress";
@@ -14,7 +15,10 @@ import { matchesStatus, runKind, type StatusFilter } from "./lib";
 
 export default function ActivityPage() {
   const { t } = useTranslation("activity");
-  // Live, ~1.2s-tick data straight from the store — the running job advances here.
+  // Live, ~1.2s-tick data straight from the store — the running job advances
+  // here. This is the newest slice of run history, not all of it: the poll
+  // fetches one page (see api.http SESSION_PAGE_SIZE) and `OlderRuns` below
+  // reaches further back on request.
   const sessions = useWorldStore((s) => s.sessions);
   const jobs = useWorldStore((s) => s.jobs);
 
@@ -93,9 +97,40 @@ export default function ActivityPage() {
           onSearch={setSearch}
         />
         <RunFeed sessions={filtered} filtered={isFiltered} onReset={resetFilters} onOpen={setOpenRunId} />
+        <OlderRuns />
       </div>
 
       <RunDetailDrawer sessionId={openRunId} onClose={() => setOpenRunId(null)} />
+    </div>
+  );
+}
+
+/**
+ * The seam between what the console is holding and what the appliance has.
+ *
+ * The run feed above filters client-side over the loaded history, so the honest
+ * thing to show at the bottom is how much of the appliance's history that is —
+ * and a way to pull in more. Absent entirely when everything is already loaded
+ * (and in the simulated world, which has no server to page).
+ */
+function OlderRuns() {
+  const { t } = useTranslation("activity");
+  const loaded = useWorldStore((s) => s.sessions.length);
+  const total = useWorldStore((s) => s.sessionsTotal);
+  const hasMore = useWorldStore((s) => s.sessionsHasMore);
+  const loading = useWorldStore((s) => s.sessionsLoadingMore);
+  const loadOlder = useWorldStore((s) => s.loadOlderSessions);
+
+  if (!hasMore) return null;
+
+  return (
+    <div className="flex flex-wrap items-center justify-center gap-3 border-t border-border pt-3">
+      <span className="nums text-xs text-muted-foreground">
+        {t("older.showing", { loaded, total: Math.max(total, loaded) })}
+      </span>
+      <Button variant="outline" size="sm" onClick={() => void loadOlder()} disabled={loading}>
+        {loading ? t("older.loading") : t("older.load")}
+      </Button>
     </div>
   );
 }

@@ -229,9 +229,10 @@
     "selected": "{{count}} selected",
     "run": "Run",
     "clearSelection": "Clear selection",
-    "disableAllAlreadyDisabled": "Every selected job is already disabled",
-    "disableAppliesTo_one": "Disables {{count}} active job; the other {{total}} selected are already disabled",
-    "disableAppliesTo_other": "Disables {{count}} active jobs of the {{total}} selected; the rest are already disabled"
+    "disableAllAlreadyDisabled_one": "The selected job is already disabled",
+    "disableAllAlreadyDisabled_other": "Every selected job is already disabled",
+    "disableSomeAlreadyDisabled_one": "{{count}} of the {{total}} selected jobs is already disabled — deselect it to disable the rest",
+    "disableSomeAlreadyDisabled_other": "{{count}} of the {{total}} selected jobs are already disabled — deselect them to disable the rest"
   },
   "empty": {
     "noJobs": {
@@ -284,8 +285,6 @@
     "bulkDeleted_other": "Deleted {{count}} jobs",
     "bulkDeletedPartial": "Deleted {{deleted}} of {{total}} jobs",
     "bulkDeletedPartialDesc": "The appliance didn't confirm the rest — they are untouched.",
-    "bulkDisabledSkipped_one": "{{count}} was already disabled.",
-    "bulkDisabledSkipped_other": "{{count}} were already disabled.",
     "runRefused": "Couldn’t start {{name}}",
     "runRefusedDesc": "The appliance didn’t start the run and gave no reason. Try again in a moment.",
     "runRefusedDisabledDesc": "The job is disabled — enable it to run it."
@@ -463,6 +462,7 @@
     "noGfs": "No long-term (GFS) retention configured.",
     "repositoryTitle": "Repository",
     "freeOf": "{{free}} free of {{total}}",
+    "usedElastic": "{{used}} used · elastic storage",
     "pathsTitle": "Paths",
     "noPathsConfigured": "No paths configured — edit the job to pick some.",
     "noLongerInInventory": "· no longer in inventory",
@@ -604,7 +604,7 @@
     "vmNoun_other": "VMs",
     "vmCount_one": "{{count}} VM",
     "vmCount_other": "{{count}} VMs",
-    "logicalTitle": "Logical data captured across these restore points, before deduplication and compression",
+    "logicalTitle": "Logical data captured across these restore points, before compression",
     "sortLabel": "Sort restore points by time",
     "newestFirst": "Newest first",
     "oldestFirst": "Oldest first",
@@ -828,6 +828,7 @@
     "replicasNamed": "Replicas are named <1>{{example}}</1>.",
     "whereToStore": "Select backup repository",
     "freeSuffix": "{{free}} free",
+    "elasticCapacity": "Elastic storage",
     "howOften": "Set a schedule",
     "preset": {
       "hourly": "Hourly",

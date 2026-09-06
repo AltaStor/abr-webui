@@ -59,6 +59,7 @@ export const useWorldStore = create<WorldState>(() => ({
    * harmless no-ops so a stray early call can't crash the app. */
   runJob: (jobId, triggeredBy, forceFull) =>
     driver?.actions.runJob(jobId, triggeredBy, forceFull) ?? Promise.resolve(null),
+  stopSession: (sessionId) => driver?.actions.stopSession(sessionId) ?? Promise.resolve(false),
   createJob: (input) =>
     driver
       ? driver.actions.createJob(input)
@@ -77,6 +78,7 @@ export const useWorldStore = create<WorldState>(() => ({
     driver?.actions.deleteEnvironment(id) ??
     Promise.resolve({ ok: false, reason: "error", message: "world not started" } as const),
   rescanEnvironment: (id) => driver?.actions.rescanEnvironment(id) ?? Promise.resolve(null),
+  loadOlderSessions: () => driver?.actions.loadOlderSessions() ?? Promise.resolve(),
   startRestore: (input) =>
     driver?.actions.startRestore(input) ?? Promise.resolve(null),
   getRestorePlacementOptions: (restorePointId) =>

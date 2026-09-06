@@ -29,6 +29,29 @@
     "disable": "Désactiver",
     "reset": "Réinitialiser"
   },
+  "cancelRun": {
+    "action": "Annuler l’exécution",
+    "stopping": "Arrêt en cours…",
+    "aria": "Annuler l’exécution en cours de {{job}}",
+    "confirm": {
+      "title": "Arrêter cette exécution ?",
+      "lead": "<1>{{job}}</1> s’arrêtera en l’état.",
+      "body": "Les points de restauration déjà écrits restent dans le référentiel et demeurent restaurables ; le travail que cette exécution n’a pas terminé est abandonné et sera relu à la prochaine exécution. Le job, sa planification et son historique ne changent pas.",
+      "keepRunning": "Laisser tourner",
+      "stop": "Arrêter l’exécution",
+      "stopping": "Arrêt en cours…"
+    },
+    "toast": {
+      "requested": {
+        "title": "Arrêt demandé",
+        "description": "L’appliance arrête {{job}} — l’exécution se termine au prochain point de contrôle."
+      },
+      "failed": {
+        "title": "Impossible d’arrêter l’exécution",
+        "description": "{{job}} est toujours en cours — l’appliance n’a pas accepté la demande. Réessayez dans un instant."
+      }
+    }
+  },
   "generic": {
     "loading": "Chargement…",
     "none": "Aucun",

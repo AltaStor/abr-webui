@@ -2,11 +2,10 @@
   "page": {
     "title": "Activity",
     "live": "Live",
-    "description": "Live view of every backup, replication and restore run."
+    "description": "Live view of every backup and restore run."
   },
   "runKind": {
     "restore": "Restore",
-    "replication": "Replication",
     "backupCopy": "Backup copy",
     "diskBackup": "Disk backup",
     "fileBackup": "File backup",
@@ -146,5 +145,10 @@
       "full": "Full",
       "incremental": "Incremental"
     }
+  },
+  "older": {
+    "showing": "Showing the {{loaded}} most recent of {{total}} runs",
+    "load": "Load older runs",
+    "loading": "Loading…"
   }
 }

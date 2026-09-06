@@ -29,20 +29,15 @@
         "label": "Cible",
         "sub": "référentiel · physique"
       },
-      "replicaLabel": "Réplica",
-      "replicaSub": "→ disque virtuel",
-      "networkReplicaSub": "vers la cible · liaison",
       "pulled": "lu",
       "pool": "pool"
     },
     "caption": {
       "staging": "Lecture et préparation de l’image source sur l’appliance — le transfert vers l’hôte cible démarre ensuite.",
-      "replicaRate": "Écriture de <1>{{rate}}</1> dans le disque virtuel du réplica sur l’hôte cible{{wire}} — aucun référentiel, aucune passe de déduplication.",
-      "replicaBlocks": "Écriture des blocs modifiés dans le disque virtuel du réplica sur l’hôte cible{{wire}} — aucun référentiel, aucune passe de déduplication.",
       "onWire": " ({{rate}} sur la liaison)",
       "incremental": "Reconstruction de l’image à <1>{{rate}}</1> logique — une sauvegarde incrémentielle réémet l’image complète depuis le référentiel via localhost, il ne s’agit donc pas du débit de la liaison ni de l’écriture au référentiel.",
-      "processing": "Traitement de <1>{{rate}}</1> de l’image invité ; l’écriture au référentiel correspond à l’empreinte physique après déduplication + compression.",
-      "fallback": "L’écriture au référentiel correspond aux octets physiques après déduplication + compression."
+      "processing": "Traitement de <1>{{rate}}</1> de l’image invité ; l’écriture au référentiel correspond à l’empreinte physique après compression.",
+      "fallback": "L’écriture au référentiel correspond aux octets physiques après compression."
     }
   },
   "logViewer": {

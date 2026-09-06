@@ -29,6 +29,29 @@
     "disable": "Deaktivieren",
     "reset": "Zurücksetzen"
   },
+  "cancelRun": {
+    "action": "Lauf abbrechen",
+    "stopping": "Wird gestoppt…",
+    "aria": "Laufenden {{job}}-Lauf abbrechen",
+    "confirm": {
+      "title": "Diesen Lauf stoppen?",
+      "lead": "<1>{{job}}</1> wird an Ort und Stelle gestoppt.",
+      "body": "Bereits geschriebene Wiederherstellungspunkte bleiben im Repository und weiterhin wiederherstellbar; die von diesem Lauf nicht abgeschlossene Arbeit wird verworfen und beim nächsten Lauf erneut gelesen. Der Auftrag selbst, sein Zeitplan und seine Historie bleiben unverändert.",
+      "keepRunning": "Weiterlaufen lassen",
+      "stop": "Lauf stoppen",
+      "stopping": "Wird gestoppt…"
+    },
+    "toast": {
+      "requested": {
+        "title": "Stopp angefordert",
+        "description": "Die Appliance fährt {{job}} herunter — der Lauf endet am nächsten Prüfpunkt."
+      },
+      "failed": {
+        "title": "Lauf konnte nicht gestoppt werden",
+        "description": "{{job}} läuft weiter — die Appliance hat die Anfrage nicht angenommen. Versuchen Sie es gleich noch einmal."
+      }
+    }
+  },
   "generic": {
     "loading": "Wird geladen…",
     "none": "Keine",

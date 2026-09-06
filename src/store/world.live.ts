@@ -113,6 +113,32 @@ function withRestoreVmName(session: Session, vms: VM[]): Session {
   };
 }
 
+/**
+ * Hard ceiling on retained run history.
+ *
+ * The merge below keeps sessions the console has already loaded, which is what
+ * makes "load older" survive the next poll. On an appliance that starts runs
+ * continuously that set would otherwise grow for as long as the tab is open, so
+ * it is trimmed to the newest `SESSION_RETAIN_MAX` — far more than any screen
+ * renders, and bounded.
+ */
+const SESSION_RETAIN_MAX = 2000;
+
+/**
+ * Fold a freshly-fetched page into the history already held.
+ *
+ * Hydrate fetches only the newest page, so a plain replace would drop every
+ * older page a screen had asked for. Incoming rows win on id (they are the
+ * fresher copy — progress, status, throughput), anything else is kept, and the
+ * result stays newest-first.
+ */
+function mergeSessions(held: Session[], incoming: Session[]): Session[] {
+  const fresh = new Map(incoming.map((s) => [s.id, s]));
+  const merged = [...incoming, ...held.filter((s) => !fresh.has(s.id))];
+  merged.sort((a, b) => new Date(b.startedAt).getTime() - new Date(a.startedAt).getTime());
+  return merged.length > SESSION_RETAIN_MAX ? merged.slice(0, SESSION_RETAIN_MAX) : merged;
+}
+
 /** Only the CreateJobInput-shaped fields of a job patch go over the wire. */
 function toJobPatchPayload(patch: Partial<BackupJob>): Partial<api.CreateJobPayload> {
   const out: Partial<api.CreateJobPayload> = {};
@@ -284,7 +310,7 @@ export function createLiveDriver(handle: WorldHandle): WorldDriver {
       hosts,
       vms,
       jobs,
-      sessions,
+      sessionPage,
       restorePoints,
       repositories,
       alerts,
@@ -297,7 +323,7 @@ export function createLiveDriver(handle: WorldHandle): WorldDriver {
       api.listHosts(),
       api.listVms(),
       api.listJobs(),
-      api.listSessions(),
+      api.listSessionsPage(),
       api.listRestorePoints(),
       api.listRepositories(),
       api.listAlerts(),
@@ -306,11 +332,12 @@ export function createLiveDriver(handle: WorldHandle): WorldDriver {
       api.getMetricsHistory(90).catch(() => []),
       api.listReplicas().catch(() => []),
     ]);
-    const namedSessions = sessions.map((s) => withThroughput(withRestoreVmName(s, vms)));
-    // api.listJobs no longer fetches the session list itself (it used to, which
-    // meant every poll pulled the whole history twice) — attach each job's run
-    // history from the list this hydrate already has.
-    const jobsWithRuns = api.withJobRunStats(jobs, namedSessions);
+    /* The newest page only. Anything older that a screen has already asked for
+     * (see `loadOlderSessions`) is kept by the merge below, so a poll can't
+     * quietly undo a "load older" the operator just did. */
+    const namedSessions = sessionPage.items.map((s) => withThroughput(withRestoreVmName(s, vms)));
+    // Job run strips are computed from the merged history inside `set` below,
+    // where the previously-held sessions are in hand.
     // Logs only for sessions still running — finished ones lazy-load on demand.
     const running = namedSessions.filter((s) => s.status === "running");
     const logs = await Promise.all(
@@ -334,12 +361,21 @@ export function createLiveDriver(handle: WorldHandle): WorldDriver {
         const streamed = (s.liveLogs[sessionId] ?? []).filter((l) => !fetched.has(l.id));
         liveLogs[sessionId] = [...lines, ...streamed].slice(-LOG_CAP);
       }
+      const sessions = mergeSessions(s.sessions, namedSessions);
       return {
       environments,
       hosts,
       vms,
-      jobs: jobsWithRuns,
-      sessions: namedSessions,
+      // api.listJobs no longer fetches the session list itself (it used to,
+      // which meant every poll pulled the whole history twice) — attach each
+      // job's run history from the history this store already holds.
+      jobs: api.withJobRunStats(jobs, sessions),
+      sessions,
+      sessionsTotal: sessionPage.total,
+      // What the store still lacks — not whether the fetched page had a
+      // successor. After a few "load older" rounds the store can hold every
+      // session while page 1 quite correctly still reports `hasNext`.
+      sessionsHasMore: sessions.length < sessionPage.total,
       restorePoints,
       repositories,
       alerts: applyReadState(alerts),
@@ -705,6 +741,29 @@ export function createLiveDriver(handle: WorldHandle): WorldDriver {
       }
     },
 
+    stopSession: async (sessionId) => {
+      try {
+        await api.stopSession(sessionId);
+        if (stopped) return true;
+        // The appliance only *flags* the run; the engine unwinds at its next
+        // checkpoint and the poll/SSE brings the real state along a beat later.
+        // Marking it here is what keeps the button from springing back to
+        // "Cancel run" for the second in between.
+        handle.set((s) => ({
+          sessions: s.sessions.map((x) =>
+            x.id === sessionId && x.status === "running" ? { ...x, stopping: true } : x,
+          ),
+          revision: s.revision + 1,
+        }));
+        return true;
+      } catch (err) {
+        // A 404 (session aged out) or a dead network both mean the same thing
+        // to the caller: the run was NOT asked to stop.
+        console.warn("[world.live] stopSession failed:", err);
+        return false;
+      }
+    },
+
     createJob: async (input) => {
       const job = await api.createJob(input); // payload = input verbatim (incl. runNow)
       if (stopped) return job;
@@ -856,6 +915,38 @@ export function createLiveDriver(handle: WorldHandle): WorldDriver {
         if (!stopped) await refreshInventory();
         console.warn("[world.live] rescanEnvironment failed:", err);
         return null;
+      }
+    },
+
+    /* Older history, on request. The poll deliberately fetches only the newest
+     * page, so this is how a screen reaches past it: one page further back,
+     * merged in and then kept there by every later hydrate. Offsets shift when
+     * a run starts mid-walk, which the id-keyed merge absorbs. */
+    loadOlderSessions: async () => {
+      const { sessions, sessionsHasMore, sessionsLoadingMore } = handle.get();
+      if (!sessionsHasMore || sessionsLoadingMore) return;
+      handle.set(() => ({ sessionsLoadingMore: true }));
+      try {
+        const page = await api.listSessionsPage({ offset: sessions.length });
+        noteFetchOk();
+        if (stopped) return;
+        handle.set((s) => {
+          const named = page.items.map((x) => withThroughput(withRestoreVmName(x, s.vms)));
+          const merged = mergeSessions(s.sessions, named);
+          return {
+            sessions: merged,
+            jobs: api.withJobRunStats(s.jobs, merged),
+            sessionsTotal: page.total,
+            // A page that added nothing new (every row already held, or the
+            // appliance ignoring `offset`) ends the walk rather than looping.
+            sessionsHasMore: merged.length > s.sessions.length && merged.length < page.total,
+          };
+        });
+        bumpRevision();
+      } catch (err) {
+        fetchFailed(err);
+      } finally {
+        if (!stopped) handle.set(() => ({ sessionsLoadingMore: false }));
       }
     },
 

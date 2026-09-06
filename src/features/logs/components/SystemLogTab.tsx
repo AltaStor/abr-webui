@@ -12,28 +12,11 @@ import { LogViewer } from "@/components/LogViewer";
 import { toast } from "@/components/ui/sonner";
 import { downloadText, fileStamp } from "@/lib/download";
 import { formatInt } from "@/lib/format";
-import type { LogSource, SystemLogEntry } from "../types";
+import { KNOWN_LOG_SOURCES, type LogSource, type SystemLogEntry } from "../types";
 
 interface SystemLogTabProps {
   entries: SystemLogEntry[];
 }
-
-/** Order the source chips deterministically; only show sources that appear. */
-const SOURCE_ORDER: LogSource[] = [
-  "scheduler",
-  "session",
-  "engine",
-  "copy",
-  "datad",
-  "raid",
-  "gc",
-  "ntp",
-  "api",
-  "tiering",
-  "vss",
-  "iscsi",
-  "agent",
-];
 
 function toLogLine(e: SystemLogEntry): LogLine {
   return { id: e.id, ts: e.ts, level: e.level, message: e.message, vmName: e.source };
@@ -62,9 +45,15 @@ export function SystemLogTab({ entries }: SystemLogTabProps) {
   const [search, setSearch] = useState("");
   const [active, setActive] = useState<Set<LogSource>>(new Set());
 
+  /* Only sources that actually appear get a chip, ordered so the familiar ones
+   * lead. The live appliance emits whatever its Python modules are called, so
+   * the tail has to be open-ended — an unrecognized source is a real component
+   * that would otherwise be unfilterable, not a bug. */
   const sources = useMemo(() => {
     const present = new Set(entries.map((e) => e.source));
-    return SOURCE_ORDER.filter((s) => present.has(s));
+    const known = KNOWN_LOG_SOURCES.filter((s) => present.has(s));
+    const rest = [...present].filter((s) => !KNOWN_LOG_SOURCES.includes(s)).sort();
+    return [...known, ...rest];
   }, [entries]);
 
   /* `entries` is newest-first; LogViewer expects oldest-first (it appends

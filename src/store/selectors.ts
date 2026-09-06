@@ -42,6 +42,18 @@ export function countByProtection(vms: VM[]): Record<ProtectionStatus, number> {
   };
 }
 
+/**
+ * Dashboard figures, computed over the run history the store is holding.
+ *
+ * That is the newest page plus whatever "Load older runs" has pulled in — not
+ * necessarily every session the appliance has (see api.http SESSION_PAGE_SIZE;
+ * the full list was a ~1.8 MB response refetched every 2.5 s). On an appliance
+ * quiet enough that a page covers the last 14 days these are exact. On a busier
+ * one the 24 h rate and the timeline describe the window that is loaded, so the
+ * older end of the 14-day chart can undercount. Making them exact regardless
+ * wants the appliance to aggregate server-side rather than the console to pull
+ * the archive back over the wire.
+ */
 export function computeDashboardSummary(world: World): DashboardSummary {
   const { vms, sessions, repositories, threats, restorePoints } = world;
   const counts = countByProtection(vms);

@@ -43,6 +43,7 @@ import type {
   Hypervisor,
   JobOptions,
   JobType,
+  LogLevel,
   LogLine,
   MetricSnapshot,
   OsFamily,
@@ -365,6 +366,10 @@ function mapSession(s: Dict): Session {
   // terminal error text once it isn't — `message` above already covers the
   // latter, so only pull this while still running.
   const stageMessage = status === "running" ? strOrNull(s.message) ?? undefined : undefined;
+  // Folded into "running" by sessionStatusOf (it IS still running), so the
+  // distinction has to travel on its own field or the console can't tell a run
+  // that has been asked to stop from one that hasn't.
+  const stopping = state === "stopping";
   const progress = num(s.progress);
   const resultStatus =
     status === "success" || status === "warning" || status === "failed" || status === "running"
@@ -413,6 +418,7 @@ function mapSession(s: Dict): Session {
       : [],
     message,
     stageMessage,
+    stopping,
     // Only the JobScheduler's own runs report "schedule" — Run now/Run full
     // backup, restores and backup-copy sessions are all "manual" (see
     // session_to_dto in abr_v41.py).
@@ -601,16 +607,22 @@ function mapRestorePointFromChainPoint(chain: Dict, point: Dict): RestorePoint {
   };
 }
 
+const LOG_LEVELS: ReadonlySet<string> = new Set(["debug", "info", "warn", "error", "success"]);
+
+/** Anything the appliance can't name is "info" — a line with an unknown level
+ *  is still a line, and dropping or reddening it would both be lies. */
+function logLevelOf(level: string): LogLevel {
+  return LOG_LEVELS.has(level) ? (level as LogLevel) : "info";
+}
+
 function mapLogLines(logs: unknown): LogLine[] {
   if (!Array.isArray(logs)) return [];
-  const levels = new Set(["debug", "info", "warn", "error", "success"]);
   return logs.map((raw, i) => {
     const l = asDict(raw);
-    const level = str(l.level);
     return {
       id: `${str(l.timestamp) || i}-${i}`,
       ts: str(l.timestamp) || new Date().toISOString(),
-      level: (levels.has(level) ? level : "info") as LogLine["level"],
+      level: logLevelOf(str(l.level)),
       message: str(l.message),
       vmName: str(l.vm_name) || undefined,
       component: str(l.component) || undefined,
@@ -868,63 +880,60 @@ export async function getVM(id: string): Promise<VM> {
  * Sessions per request. The appliance keeps one session per VM per run, so an
  * appliance a few months old has thousands: at 1000 they came back as a single
  * ~1.8 MB response, which the poll loop below refetches every 2.5 s while
- * anything is running. `GET /sessions` takes `limit`/`offset` and reports
- * `total`, so the console walks it in bounded chunks instead.
+ * anything is running.
+ *
+ * Paging that response was only half the fix. Walking every page on each poll
+ * moved the same megabytes in more envelopes — so the console now fetches *one*
+ * page, the newest, and treats older history as something to ask for rather
+ * than something to carry. `total` says how much more there is; `loadOlder`
+ * below fetches the next page when a screen actually needs it.
  *
  * The server caps `limit` at 500 (SESSION_PAGE_LIMIT_MAX in abr_v41.py).
  */
-const SESSION_PAGE_SIZE = 250;
+export const SESSION_PAGE_SIZE = 100;
 
-/** Hard stop on the paging loop, so a server that keeps reporting a `total` it
- *  never satisfies can't spin the console forever. */
-const SESSION_PAGE_LIMIT = 40;
+/** One page of sessions, newest first, with the envelope that locates it. */
+export interface SessionPage {
+  items: Session[];
+  /** Match count *before* limit/offset — how many exist, not how many arrived. */
+  total: number;
+  /** Whether a further (older) page follows this one. */
+  hasNext: boolean;
+  /** 1-based position of this page, and how many there are in total. */
+  page: number;
+  pages: number;
+}
 
-/** One page of sessions, newest first, plus the unpaged match count. */
 export async function listSessionsPage(
   opts: { limit?: number; offset?: number } = {},
-): Promise<{ items: Session[]; total: number }> {
+): Promise<SessionPage> {
   const limit = opts.limit ?? SESSION_PAGE_SIZE;
   const offset = opts.offset ?? 0;
   const res = asDict(await request<Dict>(`/sessions?limit=${limit}&offset=${offset}`));
   const items = Array.isArray(res.items) ? (res.items as Dict[]).map(mapSession) : [];
-  // An appliance predating pagination ignores the params and sends everything
-  // with no `total`; falling back to the page length ends the walk after one
-  // request, which is exactly right for that case.
-  return { items, total: num(res.total, items.length) };
-}
-
-/**
- * Every session, walked a page at a time.
- *
- * The store's dashboard aggregates (24 h success rate, the 14-day activity
- * timeline) and each job's run history are computed over the whole history, so
- * this still returns all of it — the win is that it arrives as several small
- * responses rather than one huge one. Offsets shift if a run starts mid-walk,
- * so rows are de-duplicated by id.
- */
-export async function listSessions(): Promise<Session[]> {
-  const all: Session[] = [];
-  const seen = new Set<string>();
-  let total = Infinity;
-  for (let page = 0; page < SESSION_PAGE_LIMIT && all.length < total; page++) {
-    const res = await listSessionsPage({ offset: all.length });
-    total = res.total;
-    if (res.items.length === 0) break;
-    for (const session of res.items) {
-      if (seen.has(session.id)) continue;
-      seen.add(session.id);
-      all.push(session);
-    }
-  }
-  return all;
+  // An appliance predating the envelope ignores the params and sends everything
+  // with no `total`: falling back to the page length makes that look like a
+  // single complete page, which is exactly what it is.
+  const total = num(res.total, items.length);
+  return {
+    items,
+    total,
+    hasNext:
+      typeof res.has_next === "boolean" ? res.has_next : offset + items.length < total,
+    page: num(res.page, Math.floor(offset / limit) + 1),
+    pages: num(res.pages, Math.max(1, Math.ceil(total / Math.max(1, limit)))),
+  };
 }
 
 export async function getSession(id: string): Promise<Session> {
   return mapSession(asDict(await request<Dict>(`/sessions/${id}`)));
 }
 
+/** This job's runs out of the history the console already holds — the same
+ *  source `getJob` reads, so asking for one job's runs never re-fetches the
+ *  session list. */
 export async function getJobSessions(jobId: string): Promise<Session[]> {
-  return (await listSessions()).filter((s) => s.jobId === jobId);
+  return useWorldStore.getState().sessions.filter((s) => s.jobId === jobId);
 }
 
 /** Jobs without run history — the caller attaches it via `withJobRunStats`
@@ -947,6 +956,62 @@ export async function getJob(id: string): Promise<BackupJob> {
 export async function listRepositories(): Promise<Repository[]> {
   const items = await collection<Dict>("/repositories");
   return items.map(mapRepository);
+}
+
+/* ---- Appliance system log (the server's own log file) ---- */
+
+/** One parsed line of `server.log` (see services/system_log_service.py). */
+export interface SystemLogRow {
+  id: string;
+  /** ISO-8601 with the appliance's UTC offset — the file itself is local time. */
+  ts: string;
+  level: LogLevel;
+  /** The emitting module, e.g. "job_scheduler" — what the Logs page groups by. */
+  source: string;
+  /** Full Python logger name behind `source`, e.g. "python.srv.core.job_scheduler". */
+  logger: string;
+  message: string;
+}
+
+export interface SystemLogPage {
+  entries: SystemLogRow[];
+  /** Older lines exist beyond the window the appliance read. */
+  hasMore: boolean;
+  /** Log files actually read — empty when the appliance found none. */
+  files: string[];
+  /** Where it looked. Only interesting when `files` is empty. */
+  searched: string[];
+}
+
+/**
+ * The appliance's OWN log, newest-first (GET /system/logs).
+ *
+ * Not a session log: that is `getSessionLog`, and it only ever covers one run.
+ * This is the server process — scheduler, TLS, database, API — which is the
+ * half of "what happened last night" no per-session view can answer.
+ */
+export async function listSystemLog(
+  opts: { limit?: number; level?: "debug" | "info" | "warn" | "error" } = {},
+): Promise<SystemLogPage> {
+  const params = new URLSearchParams();
+  if (opts.limit) params.set("limit", String(opts.limit));
+  if (opts.level) params.set("level", opts.level);
+  const query = params.toString();
+  const res = asDict(await request<Dict>(`/system/logs${query ? `?${query}` : ""}`));
+  const rows = Array.isArray(res.entries) ? (res.entries as Dict[]) : [];
+  return {
+    entries: rows.map((row, index) => ({
+      id: str(row.id) || `syslog-${index}`,
+      ts: str(row.ts),
+      level: logLevelOf(str(row.level)),
+      source: str(row.source) || "srv",
+      logger: str(row.logger),
+      message: str(row.message),
+    })),
+    hasMore: Boolean(res.has_more),
+    files: Array.isArray(res.files) ? (res.files as unknown[]).map(String) : [],
+    searched: Array.isArray(res.searched) ? (res.searched as unknown[]).map(String) : [],
+  };
 }
 
 export const getSessionLog = async (sessionId: string) => {
@@ -1141,6 +1206,35 @@ export const setJobEnabled = (id: string, enabled: boolean, schedule: Schedule) 
     body: JSON.stringify({ schedule: { ...scheduleToWire(schedule), enabled } }),
   });
 
+export interface StopSessionResult {
+  /** The session's state as the appliance reports it back: "stopping" for a
+   *  run it is now winding down, "stopped" for one cancelled before it started,
+   *  or an already-terminal state when the run finished first. */
+  state: string;
+  message: string;
+}
+
+/**
+ * Ask the appliance to stop one run (POST /sessions/{id}/stop).
+ *
+ * The stop is a REQUEST, not a kill: `stop_session` flags the task and the
+ * engine unwinds at its next checkpoint, so a run that answers here is
+ * "stopping", not stopped. Stopping a finished session is accepted and
+ * answers with its terminal state — the caller doesn't have to race the poll.
+ */
+export async function stopSession(
+  id: string,
+  opts: { force?: boolean } = {},
+): Promise<StopSessionResult> {
+  const res = asDict(
+    await request<Dict>(`/sessions/${id}/stop`, {
+      method: "POST",
+      body: JSON.stringify(opts.force ? { force: true } : {}),
+    }),
+  );
+  return { state: str(res.state), message: str(res.message) };
+}
+
 /**
  * Stop every active session of a job (no per-job stop route on the backend).
  *
@@ -1154,11 +1248,7 @@ export async function stopJob(id: string): Promise<void> {
   // old whole-history scan covered, since sessionStatusOf folds "stopping" into
   // "running". Re-stopping one already stopping is a no-op server-side.
   const active = Array.isArray(job.active_sessions) ? (job.active_sessions as Dict[]) : [];
-  await Promise.all(
-    active.map((s) =>
-      request(`/sessions/${str(s.id)}/stop`, { method: "POST", body: "{}" }).catch(() => undefined),
-    ),
-  );
+  await Promise.all(active.map((s) => stopSession(str(s.id)).catch(() => undefined)));
 }
 
 /* ====================================================================== */

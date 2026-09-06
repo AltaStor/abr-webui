@@ -650,7 +650,14 @@ function JobWizard({
                       <span className="text-muted-foreground">{repository.path}</span>
                     </span>
                     <span className="nums shrink-0 font-medium">
-                      {t("create.freeSuffix", { free: formatStorage(repository.capacityGB - repository.usedGB, 0) })}
+                      {/* S3 reports no capacity, so "capacity - used" was a flat
+                          "0 MB free" on every object-storage repository. There is
+                          no ceiling to report, so say that instead of inventing one. */}
+                      {repository.capacityGB > 0
+                        ? t("create.freeSuffix", {
+                            free: formatStorage(repository.capacityGB - repository.usedGB, 0),
+                          })
+                        : t("create.elasticCapacity")}
                     </span>
                   </div>
                 )}

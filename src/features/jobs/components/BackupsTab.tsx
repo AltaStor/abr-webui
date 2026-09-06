@@ -25,6 +25,7 @@ import {
   type RestorePointJobVmGroup,
 } from "@/lib/restore-points";
 import { useWorldStore } from "@/store/world";
+import { restoreLink } from "@/features/restore/link";
 import { BackupJobRow } from "./BackupJobRow";
 import {
   DeleteJobVmBackupsDialog,
@@ -138,16 +139,12 @@ export function BackupsTab() {
   );
   const totalVms = groups.reduce((a, g) => a + g.vms.length, 0);
 
-  const handleRestoreVm = (vm: RestorePointJobVmGroup) =>
-    navigate(`/restore?vm=${encodeURIComponent(vm.vmId)}`);
+  const handleRestoreVm = (vm: RestorePointJobVmGroup) => navigate(restoreLink(vm.vmId));
 
-  /* `?point=` is a display-only deep link on an existing route — the wizard
-   * opens on the point the operator actually clicked instead of substituting
-   * the newest one. No request shape changes. */
+  /* Opens the wizard on the point the operator actually clicked instead of
+   * substituting the newest one. */
   const handleRestorePoint = (vm: RestorePointJobVmGroup, point: RestorePoint) =>
-    navigate(
-      `/restore?vm=${encodeURIComponent(vm.vmId)}&point=${encodeURIComponent(point.id)}`,
-    );
+    navigate(restoreLink(vm.vmId, point.id));
 
   if (groups.length === 0) {
     return (

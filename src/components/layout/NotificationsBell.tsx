@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 // Copyright © 2026 Norvitex OÜ
 
+import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { AlertOctagon, AlertTriangle, Bell, CheckCircle2, Info, ShieldAlert } from "@/lib/icons";
@@ -10,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { EmptyState } from "@/components/EmptyState";
 import { useWorldStore } from "@/store/world";
+import { useEventAlertsStore } from "@/store/notifications.local";
 import type { Alert, AlertSeverity } from "@/types";
 
 const SEV: Record<AlertSeverity, { icon: typeof Info; cls: string }> = {
@@ -22,17 +24,40 @@ const SEV: Record<AlertSeverity, { icon: typeof Info; cls: string }> = {
 export function NotificationsBell() {
   const navigate = useNavigate();
   const { t } = useTranslation("layout");
-  const alerts = useWorldStore((s) => s.alerts);
+  const applianceAlerts = useWorldStore((s) => s.alerts);
   const threats = useWorldStore((s) => s.threats);
   const markAllAlertsRead = useWorldStore((s) => s.markAllAlertsRead);
   const markAlertRead = useWorldStore((s) => s.markAlertRead);
+  /* Two feeds, one bell: the appliance reports standing problems, and
+   * `useEventNotifications` records the run/capacity events the operator
+   * subscribed to in Settings. Neither can express the other (see
+   * store/notifications.local), so they are merged here, newest first. */
+  const eventAlerts = useEventAlertsStore((s) => s.alerts);
+  const markEventRead = useEventAlertsStore((s) => s.markRead);
+  const markAllEventsRead = useEventAlertsStore((s) => s.markAllRead);
+
+  const alerts = useMemo(
+    () =>
+      [...eventAlerts, ...applianceAlerts].sort(
+        (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+      ),
+    [eventAlerts, applianceAlerts],
+  );
+  const eventIds = useMemo(() => new Set(eventAlerts.map((a) => a.id)), [eventAlerts]);
 
   const unread = alerts.filter((a) => !a.read).length;
   const activeThreats = threats.filter((t) => t.status === "active" || t.status === "investigating").length;
 
+  const markRead = (id: string) => (eventIds.has(id) ? markEventRead(id) : markAlertRead(id));
+  const markAll = () => {
+    markAllEventsRead();
+    markAllAlertsRead();
+  };
+
   const onClick = (a: Alert) => {
-    markAlertRead(a.id);
+    markRead(a.id);
     if (a.entityType === "job" && a.entityId) navigate(`/jobs/${a.entityId}`);
+    else if (a.entityType === "session") navigate("/activity");
     else if (a.category === "threat") navigate("/");
     else if (a.entityType === "repository") navigate("/repositories");
   };
@@ -61,7 +86,7 @@ export function NotificationsBell() {
             )}
           </div>
           {unread > 0 && (
-            <button onClick={markAllAlertsRead} className="text-xs font-medium text-primary hover:underline">
+            <button onClick={markAll} className="text-xs font-medium text-primary hover:underline">
               {t("notifications.markAllRead")}
             </button>
           )}

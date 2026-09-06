@@ -2,11 +2,10 @@
   "page": {
     "title": "Actividad",
     "live": "En vivo",
-    "description": "Vista en vivo de cada ejecución de copia de seguridad, replicación y restauración."
+    "description": "Vista en vivo de cada ejecución de copia de seguridad y restauración."
   },
   "runKind": {
     "restore": "Restauración",
-    "replication": "Replicación",
     "backupCopy": "Copia de seguridad",
     "diskBackup": "Copia de seguridad de disco",
     "fileBackup": "Copia de seguridad de archivos",
@@ -146,5 +145,10 @@
       "full": "Completa",
       "incremental": "Incremental"
     }
+  },
+  "older": {
+    "showing": "Mostrando las {{loaded}} ejecuciones más recientes de {{total}}",
+    "load": "Cargar ejecuciones anteriores",
+    "loading": "Cargando…"
   }
 }

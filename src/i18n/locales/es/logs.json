@@ -1,10 +1,11 @@
 {
   "page": {
     "title": "Registros",
-    "description": "Eventos del sistema en la appliance, incluida la actividad reportada por los agentes de backup."
+    "description": "El registro del sistema de la propia appliance: eventos del programador, del almacenamiento, de TLS y de la API, directamente del servidor."
   },
   "actions": {
-    "export": "Exportar"
+    "export": "Exportar",
+    "refreshLog": "Actualizar el registro del sistema"
   },
   "export": {
     "menuLabel": "Exportar registros",
@@ -20,8 +21,8 @@
     "exportSupportBundleFailed": "No se pudo generar el paquete de soporte"
   },
   "stats": {
-    "systemWarnings": "Advertencias del sistema · 24h",
-    "agentEvents": "Eventos de agente · 24h"
+    "systemErrors": "Errores · 24 h",
+    "systemWarnings": "Avisos · 24 h"
   },
   "filters": {
     "clearSearch": "Borrar búsqueda"
@@ -37,6 +38,9 @@
     "lineCount_one": "{{formatted}} línea",
     "lineCount_other": "{{formatted}} líneas",
     "filteredToSources_one": " · filtrado a {{count}} fuente",
-    "filteredToSources_other": " · filtrado a {{count}} fuentes"
+    "filteredToSources_other": " · filtrado a {{count}} fuentes",
+    "serverLogUnavailable": "Se muestran eventos derivados de los datos de esta consola: no se pudo leer el registro de la appliance ({{reason}}).",
+    "serverLogUnreachable": "la appliance no respondió",
+    "serverLogMissing": "La appliance no encontró ningún registro del servidor. Buscó en: {{paths}}."
   }
 }

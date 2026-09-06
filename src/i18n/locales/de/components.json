@@ -29,20 +29,15 @@
         "label": "Ziel",
         "sub": "Repository · physisch"
       },
-      "replicaLabel": "Replikat",
-      "replicaSub": "→ virtuelle Festplatte",
-      "networkReplicaSub": "zum Ziel · Leitung",
       "pulled": "gelesen",
       "pool": "Pool"
     },
     "caption": {
       "staging": "Das Quellabbild wird auf der Appliance gelesen und bereitgestellt – die Übertragung zum Zielhost startet als Nächstes.",
-      "replicaRate": "Schreibt <1>{{rate}}</1> in die virtuelle Festplatte des Replikats auf dem Zielhost{{wire}} – kein Repository, kein Dedup-Durchlauf.",
-      "replicaBlocks": "Schreibt geänderte Blöcke in die virtuelle Festplatte des Replikats auf dem Zielhost{{wire}} – kein Repository, kein Dedup-Durchlauf.",
       "onWire": " ({{rate}} auf der Leitung)",
       "incremental": "Rekonstruiert das Abbild mit <1>{{rate}}</1> logisch – ein inkrementeller Lauf gibt das vollständige Abbild aus dem Repository über localhost erneut aus, dies ist also kein Leitungs- oder Repository-Schreibdurchsatz.",
-      "processing": "Verarbeitet <1>{{rate}}</1> des Gast-Abbilds; der Repository-Schreibvorgang ist der physische Fußabdruck nach Dedup + Komprimierung.",
-      "fallback": "Der Repository-Schreibvorgang sind physische Bytes nach Dedup + Komprimierung."
+      "processing": "Verarbeitet <1>{{rate}}</1> des Gast-Abbilds; der Repository-Schreibvorgang ist der physische Fußabdruck nach der Komprimierung.",
+      "fallback": "Der Repository-Schreibvorgang sind physische Bytes nach der Komprimierung."
     }
   },
   "logViewer": {

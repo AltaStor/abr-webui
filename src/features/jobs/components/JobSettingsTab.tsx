@@ -80,22 +80,31 @@ export function JobSettingsTab({ job, repository }: Props) {
             <div className="flex items-center justify-between gap-2">
               <span className="truncate font-medium">{repository?.name ?? t("common:generic.na")}</span>
             </div>
-            {repository && (
-              <>
-                <div className="h-1.5 w-full overflow-hidden bg-muted/70">
-                  <div
-                    className="h-full bg-primary/70"
-                    style={{ width: `${usagePercent(repository.usedGB, repository.capacityGB)}%` }}
-                  />
-                </div>
+            {repository &&
+              // Object storage reports no capacity, so there is no ceiling to
+              // fill a bar against and no free figure to quote — subtracting
+              // from a zero capacity printed "0 MB free of 0 MB" for every S3
+              // repository. Say what IS known: how much it holds.
+              (repository.capacityGB > 0 ? (
+                <>
+                  <div className="h-1.5 w-full overflow-hidden bg-muted/70">
+                    <div
+                      className="h-full bg-primary/70"
+                      style={{ width: `${usagePercent(repository.usedGB, repository.capacityGB)}%` }}
+                    />
+                  </div>
+                  <p className="nums text-xs text-muted-foreground">
+                    {t("settings.freeOf", {
+                      free: formatStorage(repository.capacityGB - repository.usedGB, 0),
+                      total: formatStorage(repository.capacityGB, 0),
+                    })}
+                  </p>
+                </>
+              ) : (
                 <p className="nums text-xs text-muted-foreground">
-                  {t("settings.freeOf", {
-                    free: formatStorage(repository.capacityGB - repository.usedGB, 0),
-                    total: formatStorage(repository.capacityGB, 0),
-                  })}
+                  {t("settings.usedElastic", { used: formatStorage(repository.usedGB, 0) })}
                 </p>
-              </>
-            )}
+              ))}
           </CardContent>
         </Card>
       </div>

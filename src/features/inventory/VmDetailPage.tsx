@@ -45,6 +45,7 @@ import { SESSION_META, toneFg } from "@/lib/status";
 import { useWorldStore } from "@/store/world";
 import { accentColor, jobTypeMeta, scheduleLabel } from "@/features/jobs/lib";
 import { vmLocation } from "./topology";
+import { restoreLink } from "@/features/restore/link";
 import type { RestorePoint } from "@/types";
 import { PowerDot } from "./components/PowerDot";
 import { SpecRow } from "./components/SpecRow";
@@ -187,7 +188,7 @@ export default function VmDetailPage() {
           <>
             {vm.protection !== "unprotected" && (
               <Button variant="outline" asChild>
-                <Link to={`/restore?vm=${vm.id}`}>
+                <Link to={restoreLink(vm.id)}>
                   <RotateCcw className="h-4 w-4" />
                   {t("actions.restore")}
                 </Link>
@@ -376,7 +377,7 @@ export default function VmDetailPage() {
                 {points.length > 0 && <RpViewToggle view={rpView} onChange={setRpView} />}
                 {vm.protection !== "unprotected" && (
                   <Button variant="ghost" size="sm" asChild>
-                    <Link to={`/restore?vm=${vm.id}`}>
+                    <Link to={restoreLink(vm.id)}>
                       {t("actions.restore")}
                       <ArrowRight className="h-3.5 w-3.5" />
                     </Link>
@@ -411,7 +412,7 @@ export default function VmDetailPage() {
                     <RestorePointCalendar
                       points={points}
                       offlineRepoIds={offlineRepoIds}
-                      onRestore={() => navigate(`/restore?vm=${vm.id}`)}
+                      onRestore={(rp) => navigate(restoreLink(vm.id, rp.id))}
                       onDelete={(rp) => setPointToDelete(rp)}
                     />
                   ) : (
@@ -425,7 +426,7 @@ export default function VmDetailPage() {
                             key={rp.id}
                             point={rp}
                             unavailable={offlineRepoIds.has(rp.repositoryId)}
-                            onRestore={() => navigate(`/restore?vm=${vm.id}`)}
+                            onRestore={() => navigate(restoreLink(vm.id, rp.id))}
                             onDelete={() => setPointToDelete(rp)}
                           />
                         ))}

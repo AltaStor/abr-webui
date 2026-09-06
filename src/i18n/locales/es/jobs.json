@@ -229,9 +229,10 @@
     "selected": "{{count}} seleccionado(s)",
     "run": "Ejecutar",
     "clearSelection": "Borrar selección",
-    "disableAllAlreadyDisabled": "Todos los trabajos seleccionados ya están deshabilitados",
-    "disableAppliesTo_one": "Deshabilita {{count}} trabajo activo; los otros {{total}} seleccionados ya están deshabilitados",
-    "disableAppliesTo_other": "Deshabilita {{count}} trabajos activos de los {{total}} seleccionados; el resto ya están deshabilitados"
+    "disableAllAlreadyDisabled_one": "El trabajo seleccionado ya está deshabilitado",
+    "disableAllAlreadyDisabled_other": "Todos los trabajos seleccionados ya están deshabilitados",
+    "disableSomeAlreadyDisabled_one": "{{count}} de los {{total}} trabajos seleccionados ya está deshabilitado: deselecciónalo para deshabilitar el resto",
+    "disableSomeAlreadyDisabled_other": "{{count}} de los {{total}} trabajos seleccionados ya están deshabilitados: deselecciónalos para deshabilitar el resto"
   },
   "empty": {
     "noJobs": {
@@ -284,8 +285,6 @@
     "bulkDeleted_other": "{{count}} trabajos eliminados",
     "bulkDeletedPartial": "{{deleted}} de {{total}} trabajos eliminados",
     "bulkDeletedPartialDesc": "El appliance no confirmó el resto; no se han modificado.",
-    "bulkDisabledSkipped_one": "{{count}} ya estaba deshabilitado.",
-    "bulkDisabledSkipped_other": "{{count}} ya estaban deshabilitados.",
     "runRefused": "No se pudo iniciar {{name}}",
     "runRefusedDesc": "La appliance no inició la ejecución ni indicó el motivo. Vuelve a intentarlo en un momento.",
     "runRefusedDisabledDesc": "El trabajo está deshabilitado: habilítalo para ejecutarlo."
@@ -463,6 +462,7 @@
     "noGfs": "No hay retención a largo plazo (GFS) configurada.",
     "repositoryTitle": "Repositorio",
     "freeOf": "{{free}} libre de {{total}}",
+    "usedElastic": "{{used}} usados · almacenamiento elástico",
     "pathsTitle": "Rutas",
     "noPathsConfigured": "No hay rutas configuradas; edita el trabajo para seleccionar algunas.",
     "noLongerInInventory": "· ya no está en el inventario",
@@ -604,7 +604,7 @@
     "vmNoun_other": "VMs",
     "vmCount_one": "{{count}} VM",
     "vmCount_other": "{{count}} VMs",
-    "logicalTitle": "Datos lógicos capturados en estos puntos de restauración, antes de la deduplicación y la compresión",
+    "logicalTitle": "Datos lógicos capturados en estos puntos de restauración, antes de la compresión",
     "sortLabel": "Ordenar los puntos de restauración por fecha",
     "newestFirst": "Más recientes primero",
     "oldestFirst": "Más antiguos primero",
@@ -828,6 +828,7 @@
     "replicasNamed": "Las réplicas se nombran <1>{{example}}</1>.",
     "whereToStore": "Selecciona el repositorio",
     "freeSuffix": "{{free}} libre",
+    "elasticCapacity": "Almacenamiento elástico",
     "howOften": "Define la programación",
     "preset": {
       "hourly": "Cada hora",
