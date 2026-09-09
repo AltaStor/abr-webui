@@ -31,7 +31,7 @@ import { useWorldStore } from "@/store/world";
 import { getSessionLog } from "@/services/api.http";
 import i18n from "@/i18n";
 import type { LogLevel, LogLine, Session, VmRunResult } from "@/types";
-import { isRestore, runKind, runKindIcon } from "../lib";
+import { isRestore, isVerify, runKind, runKindIcon } from "../lib";
 
 const VM_TONE: Record<VmRunResult["status"], string> = {
   success: "success",
@@ -116,6 +116,10 @@ function RunDetail({ session: s, jobExists, onClose }: { session: Session; jobEx
   const logLines = buffered && buffered.length ? buffered : fetched ?? [];
   const running = s.status === "running";
   const restore = isRestore(s);
+  // A verification re-reads a stored chain in place: the appliance reports only
+  // percent + a stage message for it, so every byte and rate figure below is
+  // hidden rather than printed as a zero the operator has to interpret.
+  const verify = isVerify(s);
   const KindIcon = runKindIcon(s);
   const trigger = TRIGGER[s.triggeredBy];
   const TriggerIcon = trigger.icon;
@@ -180,17 +184,19 @@ function RunDetail({ session: s, jobExists, onClose }: { session: Session; jobEx
 
             {/* Live throughput waveform — the run's "beautiful graph", now inside
                 the detail slide-over instead of a standalone widget over the feed. */}
-            <div className="border border-info/20 bg-info/[0.04] p-3">
-              <div className="mb-1.5 flex items-center justify-between">
-                <span className="label-overline flex items-center gap-1.5">
-                  <Gauge className="h-3 w-3" /> {rateLabel}
-                </span>
-                <span className="nums text-sm font-semibold text-info">
-                  <CountUp value={s.throughputMBps} format={(n) => formatThroughput(n)} durationMs={1100} />
-                </span>
+            {!verify && (
+              <div className="border border-info/20 bg-info/[0.04] p-3">
+                <div className="mb-1.5 flex items-center justify-between">
+                  <span className="label-overline flex items-center gap-1.5">
+                    <Gauge className="h-3 w-3" /> {rateLabel}
+                  </span>
+                  <span className="nums text-sm font-semibold text-info">
+                    <CountUp value={s.throughputMBps} format={(n) => formatThroughput(n)} durationMs={1100} />
+                  </span>
+                </div>
+                <LiveThroughput value={s.throughputMBps} active height={48} />
               </div>
-              <LiveThroughput value={s.throughputMBps} active height={48} />
-            </div>
+            )}
 
             {/* Per-stage pipeline (agent-backed backup): guest read → LAN →
                 repository, each a live rate with the inferred bottleneck. */}
@@ -210,19 +216,23 @@ function RunDetail({ session: s, jobExists, onClose }: { session: Session; jobEx
           />
           <Metric label={t("drawer.stat.duration")} value={running ? "—" : formatDuration(s.durationSec)} />
           <Metric label={t("objectNouns.vm.compact")} value={s.vmCount} />
-          <Metric label={t("drawer.stat.read")} value={s.processedGB > 0 ? formatStorage(s.processedGB) : "—"} />
-          <Metric
-            label={t("drawer.stat.transferred")}
-            value={s.transferredGB > 0 ? formatStorage(s.transferredGB) : "—"}
-          />
-          <Metric
-            label={t("drawer.stat.guestRead")}
-            value={s.guestReadMBps && s.guestReadMBps > 0 ? formatThroughput(s.guestReadMBps) : "—"}
-          />
-          <Metric
-            label={t("drawer.stat.throughput")}
-            value={s.throughputMBps > 0 ? formatThroughput(s.throughputMBps) : "—"}
-          />
+          {!verify && (
+            <>
+              <Metric label={t("drawer.stat.read")} value={s.processedGB > 0 ? formatStorage(s.processedGB) : "—"} />
+              <Metric
+                label={t("drawer.stat.transferred")}
+                value={s.transferredGB > 0 ? formatStorage(s.transferredGB) : "—"}
+              />
+              <Metric
+                label={t("drawer.stat.guestRead")}
+                value={s.guestReadMBps && s.guestReadMBps > 0 ? formatThroughput(s.guestReadMBps) : "—"}
+              />
+              <Metric
+                label={t("drawer.stat.throughput")}
+                value={s.throughputMBps > 0 ? formatThroughput(s.throughputMBps) : "—"}
+              />
+            </>
+          )}
         </div>
 
         {s.message && (
@@ -242,8 +252,12 @@ function RunDetail({ session: s, jobExists, onClose }: { session: Session; jobEx
                 <tr className="border-b border-border/50 text-left text-[11px] text-muted-foreground">
                   <th className="py-1.5 pl-3 font-medium">{t("objectNouns.vm.singular")}</th>
                   <th className="py-1.5 pr-3 font-medium">{t("drawer.table.result")}</th>
-                  <th className="hidden py-1.5 pr-3 font-medium sm:table-cell">{t("drawer.table.read")}</th>
-                  <th className="hidden py-1.5 pr-3 font-medium sm:table-cell">{t("drawer.table.sent")}</th>
+                  {!verify && (
+                    <>
+                      <th className="hidden py-1.5 pr-3 font-medium sm:table-cell">{t("drawer.table.read")}</th>
+                      <th className="hidden py-1.5 pr-3 font-medium sm:table-cell">{t("drawer.table.sent")}</th>
+                    </>
+                  )}
                   <th className="py-1.5 pr-3 text-right font-medium">{t("drawer.table.duration")}</th>
                 </tr>
               </thead>
@@ -262,12 +276,16 @@ function RunDetail({ session: s, jobExists, onClose }: { session: Session; jobEx
                         the fallback, and it needs translating rather than
                         printing the raw enum with a capital letter on it. */}
                     <td className="py-1.5 pr-3 text-muted-foreground">{r.message ?? resultLabel(r.status)}</td>
-                    <td className="nums hidden py-1.5 pr-3 text-muted-foreground sm:table-cell">
-                      {r.processedGB > 0 ? formatStorage(r.processedGB) : "—"}
-                    </td>
-                    <td className="nums hidden py-1.5 pr-3 text-muted-foreground sm:table-cell">
-                      {r.transferredGB > 0 ? formatStorage(r.transferredGB) : "—"}
-                    </td>
+                    {!verify && (
+                      <>
+                        <td className="nums hidden py-1.5 pr-3 text-muted-foreground sm:table-cell">
+                          {r.processedGB > 0 ? formatStorage(r.processedGB) : "—"}
+                        </td>
+                        <td className="nums hidden py-1.5 pr-3 text-muted-foreground sm:table-cell">
+                          {r.transferredGB > 0 ? formatStorage(r.transferredGB) : "—"}
+                        </td>
+                      </>
+                    )}
                     <td className="nums py-1.5 pr-3 text-right text-muted-foreground">{formatDuration(r.durationSec)}</td>
                   </tr>
                 ))}

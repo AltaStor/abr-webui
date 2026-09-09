@@ -22,6 +22,14 @@ export function isRestore(session: Session): boolean {
   return session.type === "restore";
 }
 
+/** A verification re-reads a stored chain to check it — it moves no data, and
+ *  the appliance reports only percent + a message for it (no byte counters, no
+ *  rate). Live-run UI uses this to drop the throughput meter and the read/sent
+ *  figures, which for a verify run could only ever read "0" or "—". */
+export function isVerify(session: Session): boolean {
+  return session.type === "verify";
+}
+
 /** Human label for the kind of run — restore / verify / backup. */
 export function runKind(session: Session): string {
   if (isRestore(session)) return i18n.t("activity:runKind.restore");
