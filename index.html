@@ -17,6 +17,26 @@
          self-hosted via @fontsource in src/styles/globals.css — the appliance
          ships air-gapped, so a font CDN would render nothing. -->
     <title>AltaStor · Backup &amp; Replication</title>
+    <!-- Theme, before first paint. The <html> class above is the product
+         default (dark); this restores an explicit choice made earlier, from the
+         same localStorage key the UI store writes (see src/store/ui.ts). It has
+         to run here, synchronously in <head>, rather than when that module
+         loads: by then the page has already painted, and a light-theme session
+         would flash the dark ground on every reload. -->
+    <script>
+      (function () {
+        try {
+          var t = localStorage.getItem("basalt.theme");
+          if (t !== "light" && t !== "dark") return;
+          var r = document.documentElement;
+          r.classList.toggle("dark", t === "dark");
+          r.classList.toggle("light", t === "light");
+          r.style.colorScheme = t;
+        } catch (e) {
+          /* storage disabled — the default in the class attribute stands */
+        }
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

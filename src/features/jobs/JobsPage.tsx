@@ -40,11 +40,11 @@ import { Hint } from "@/components/ui/tooltip";
 import { toast } from "@/components/ui/sonner";
 import { cn } from "@/lib/utils";
 import { formatCountdown, formatDateTime, formatDuration, formatFullDateTime, formatRelative } from "@/lib/format";
-import { JOB_DISABLED_META, lastRunMeta } from "@/lib/status";
+import { JOB_DISABLED_META, JOB_NEVER_RUN_META, SESSION_META, lastRunMeta } from "@/lib/status";
 import { JobDisabledMark } from "./components/JobDisabledMark";
 import { apiErrorMessage } from "@/services/api.http";
 import { useWorldStore } from "@/store/world";
-import type { BackupJob, Repository, Session } from "@/types";
+import type { BackupJob, Repository, Session, SessionStatus } from "@/types";
 import { DatabaseBackup } from "@/lib/icons";
 import { accentColor, jobTypeMeta, scheduleLabel } from "./lib";
 import { JobActionsMenu } from "./components/JobActionsMenu";
@@ -54,29 +54,41 @@ import { BackupsTab } from "./components/BackupsTab";
 
 type TabValue = "jobs" | "backups";
 
-type StatusFilter = "all" | "running" | "healthy" | "warning" | "disabled";
+/**
+ * The "Last run status" filter, in the SAME vocabulary the column renders.
+ *
+ * It used to speak its own dialect — "Healthy" / "Needs attention" for pills
+ * labelled Success / Warning / Failed, and a "Disabled" option that filtered
+ * the Schedule column instead of this one, so picking it hid every row whose
+ * last run had actually succeeded. Both halves are fixed here: the options are
+ * derived from the very metas the pills are drawn from (so they cannot drift
+ * apart again), and a job's enablement — which is not a run outcome, see
+ * JOB_DISABLED_META — moved to its own control below.
+ */
+type RunStatusFilter = "all" | SessionStatus | "never";
 
-const STATUS_FILTERS: { value: StatusFilter; labelKey: string }[] = [
-  { value: "all", labelKey: "filters.status.all" },
-  { value: "running", labelKey: "filters.status.running" },
-  { value: "healthy", labelKey: "filters.status.healthy" },
-  { value: "warning", labelKey: "filters.status.warning" },
-  { value: "disabled", labelKey: "filters.status.disabled" },
+/** Column order, and therefore filter order. "never" is the pill a job with no
+ *  runs yet wears (JOB_NEVER_RUN_META), so it is a value of this column too. */
+const RUN_STATUS_VALUES: SessionStatus[] = ["success", "warning", "failed", "running", "queued"];
+
+/** Enablement, filtered on its own and labelled as what it is. */
+type ScheduleFilter = "all" | "enabled" | "disabled";
+
+const SCHEDULE_FILTERS: { value: ScheduleFilter; labelKey: string }[] = [
+  { value: "all", labelKey: "filters.schedule.all" },
+  { value: "enabled", labelKey: "filters.schedule.enabled" },
+  { value: "disabled", labelKey: "filters.schedule.disabled" },
 ];
 
-function matchesStatus(job: BackupJob, filter: StatusFilter): boolean {
-  switch (filter) {
-    case "running":
-      return job.state === "running";
-    case "disabled":
-      return job.state === "disabled";
-    case "warning":
-      return job.state !== "disabled" && (job.lastStatus === "warning" || job.lastStatus === "failed");
-    case "healthy":
-      return job.state !== "disabled" && job.lastStatus === "success";
-    default:
-      return true;
-  }
+function matchesRunStatus(job: BackupJob, filter: RunStatusFilter): boolean {
+  if (filter === "all") return true;
+  if (filter === "never") return job.lastStatus === null;
+  return job.lastStatus === filter;
+}
+
+function matchesSchedule(job: BackupJob, filter: ScheduleFilter): boolean {
+  if (filter === "all") return true;
+  return filter === "disabled" ? job.state === "disabled" : job.state !== "disabled";
 }
 
 export default function JobsPage() {
@@ -107,7 +119,8 @@ export default function JobsPage() {
   };
 
   const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
+  const [statusFilter, setStatusFilter] = useState<RunStatusFilter>("all");
+  const [scheduleFilter, setScheduleFilter] = useState<ScheduleFilter>("all");
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
   const [deleteTarget, setDeleteTarget] = useState<BackupJob | null>(null);
   const [cancelTarget, setCancelTarget] = useState<Session | null>(null);
@@ -162,7 +175,21 @@ export default function JobsPage() {
     return map;
   }, [sessions]);
 
-  const filtered = useMemo(() => jobs.filter((j) => matchesStatus(j, statusFilter)), [jobs, statusFilter]);
+  const filtered = useMemo(
+    () => jobs.filter((j) => matchesRunStatus(j, statusFilter) && matchesSchedule(j, scheduleFilter)),
+    [jobs, statusFilter, scheduleFilter],
+  );
+
+  /* Labels come from the same metas the pills use, so the option a reader picks
+   * is character-for-character the word they saw in the column. */
+  const runStatusFilters = useMemo(
+    () => [
+      { value: "all" as const, label: t("filters.status.all") },
+      ...RUN_STATUS_VALUES.map((v) => ({ value: v, label: SESSION_META[v].label })),
+      { value: "never" as const, label: JOB_NEVER_RUN_META.label },
+    ],
+    [t],
+  );
 
   /* ----------------------------- summary strip ---------------------------- */
   const runningCount = jobs.filter((j) => j.state === "running").length;
@@ -547,12 +574,24 @@ export default function JobsPage() {
             aria-label={t("toolbar.searchLabel")}
           />
         </div>
-        <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as StatusFilter)}>
+        <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as RunStatusFilter)}>
           <SelectTrigger className="w-full sm:w-48" aria-label={t("toolbar.filterByStatus")}>
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            {STATUS_FILTERS.map((f) => (
+            {runStatusFilters.map((f) => (
+              <SelectItem key={f.value} value={f.value}>
+                {f.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select value={scheduleFilter} onValueChange={(v) => setScheduleFilter(v as ScheduleFilter)}>
+          <SelectTrigger className="w-full sm:w-44" aria-label={t("toolbar.filterBySchedule")}>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {SCHEDULE_FILTERS.map((f) => (
               <SelectItem key={f.value} value={f.value}>
                 {t(f.labelKey)}
               </SelectItem>
@@ -609,7 +648,7 @@ export default function JobsPage() {
         pageSize={12}
         // `search` already resets the page through `globalFilter`; the status
         // chips filter `data` before the table sees it, so they need this.
-        resetPageKey={statusFilter}
+        resetPageKey={`${statusFilter}:${scheduleFilter}`}
         emptyState={
           jobs.length === 0 ? (
             <EmptyState

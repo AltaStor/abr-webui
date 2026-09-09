@@ -77,6 +77,7 @@ export default function RepositoriesPage() {
   const actionsFor = (repo: Repository): RepositoryActions => ({
     onEdit: () => mgmt.openEdit(repo),
     onRescan: () => mgmt.rescan(repo),
+    onVerify: () => void mgmt.verify(repo),
     onDelete: () => mgmt.openDelete(repo),
   });
 
@@ -160,6 +161,7 @@ export default function RepositoriesPage() {
               onOpen={() => setSelectedId(repo.id)}
               actions={actionsFor(repo)}
               scanning={mgmt.isScanning(repo)}
+              verifying={mgmt.isVerifying(repo)}
               threatLock={threatLocks.get(repo.id)}
             />
           ))}
@@ -174,12 +176,15 @@ export default function RepositoriesPage() {
         onClose={() => setSelectedId(null)}
         actions={selected ? actionsFor(selected) : NO_ACTIONS}
         scanning={selected ? mgmt.isScanning(selected) : false}
+        verifying={selected ? mgmt.isVerifying(selected) : false}
+        verification={selected ? mgmt.verificationFor(selected) : null}
         threatLock={selected ? threatLocks.get(selected.id) : null}
       />
 
       {/* Management dialogs (shared across card + detail) */}
       <EditRepositoryDialog
         repo={dialogRepo}
+        restorePointCount={dialogRepo ? (rpByRepo.get(dialogRepo.id) ?? 0) : 0}
         open={mgmt.dialog?.kind === "edit"}
         onOpenChange={(open) => !open && mgmt.closeDialog()}
       />
@@ -196,6 +201,7 @@ export default function RepositoriesPage() {
 const NO_ACTIONS: RepositoryActions = {
   onEdit: () => {},
   onRescan: () => {},
+  onVerify: () => {},
   onDelete: () => {},
 };
 

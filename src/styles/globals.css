@@ -115,9 +115,14 @@
     --radius: 0px;
 
     --grid-line: 205 18% 86%;
-    --terminal: 205 30% 5%;
-    /* Terminal surfaces stay dark in both themes, so their text stays light in both. */
-    --terminal-foreground: 204 31% 94%;
+    /* Terminal surfaces follow the theme. They used to be pinned near-black in
+       both, which left the log view a black slab in the middle of an otherwise
+       white console — the one surface that ignored the operator's choice. On
+       light it is the same raised white as a card, with Night ink; the level
+       colours inside come from the `-text` rungs, which are the darkened ones
+       on this theme (see LogViewer). */
+    --terminal: 0 0% 100%;
+    --terminal-foreground: 210 24% 8%;
 
     /* Separation is carried by hairlines and the one raised step — never by a
        shadow. The single surviving shadow lifts *floating* layers (menus,
@@ -204,6 +209,8 @@
 
     /* Band hairline #1A2128 — the fainter rule used behind drawn geometry. */
     --grid-line: 210 21% 13%;
+    /* Deeper than the page ground, so a terminal still reads as an inset well
+       on night rather than merging with the card behind it. */
     --terminal: 205 30% 5%;
     --terminal-foreground: 204 31% 94%;
 

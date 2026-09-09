@@ -13,9 +13,10 @@ import { StatusPill } from "@/components/StatusPill";
 import { CancelRunButton } from "@/components/CancelRunButton";
 import { SESSION_META } from "@/lib/status";
 import { formatDateTime, formatDuration, formatRelative, formatStorage, formatThroughput } from "@/lib/format";
+import { cn } from "@/lib/utils";
 import { useWorldStore } from "@/store/world";
 import type { Session } from "@/types";
-import { currentVmName, isRestore, runKind, runKindIcon } from "../lib";
+import { currentVmName, isRestore, isVerify, runKind, runKindIcon } from "../lib";
 
 /**
  * Prominent "In progress" section. Each running session renders a rich live card
@@ -92,6 +93,10 @@ export function InProgress() {
 function RunningCard({ session: s }: { session: Session }) {
   const { t } = useTranslation("activity");
   const restore = isRestore(s);
+  // A verification only re-reads what is already stored: it has no rate and no
+  // byte counters behind it, so the card drops the meter and the read/sent
+  // tiles rather than animating a flatline and two dashes.
+  const verify = isVerify(s);
   const current = currentVmName(s);
   const target = restore ? "/restore" : `/jobs/${s.jobId}`;
   const doneVms = s.vmResults.filter((r) => r.status === "success").length;
@@ -136,45 +141,54 @@ function RunningCard({ session: s }: { session: Session }) {
 
       <ProgressBar value={s.progress} tone="info" active className="mt-3" label={t("row.progressLabel", { job: s.jobName, kind: runKind(s).toLowerCase() })} />
 
-      {/* Live throughput monitor — scrolls smoothly between ticks. */}
+      {/* Stage line — plus, for runs that actually move data, the live
+          throughput monitor that scrolls smoothly between ticks. */}
       <div className="mt-3">
-        <div className="mb-1 flex items-center justify-between gap-2 text-xs">
+        <div className="flex items-center justify-between gap-2 text-xs">
           <span className="flex min-w-0 items-center gap-1.5 text-muted-foreground" title={s.stageMessage}>
             <Server className="h-3.5 w-3.5 shrink-0" />
             <span className="truncate">{s.stageMessage ?? t("inProgress.processing", { name: current })}</span>
           </span>
-          <span className="nums shrink-0 font-semibold text-info">
-            <CountUp value={s.throughputMBps} format={(n) => formatThroughput(n)} durationMs={1100} />
-          </span>
+          {!verify && (
+            <span className="nums shrink-0 font-semibold text-info">
+              <CountUp value={s.throughputMBps} format={(n) => formatThroughput(n)} durationMs={1100} />
+            </span>
+          )}
         </div>
-        <div className="overflow-hidden bg-info/[0.04]">
-          <LiveThroughput value={s.throughputMBps} active height={34} />
-        </div>
+        {!verify && (
+          <div className="mt-1 overflow-hidden bg-info/[0.04]">
+            <LiveThroughput value={s.throughputMBps} active height={34} />
+          </div>
+        )}
       </div>
 
-      <div className="mt-3 grid grid-cols-4 gap-2 border-t border-info/15 pt-3">
-        <Metric
-          icon={Gauge}
-          label={t("feed.columns.read")}
-          value={
-            s.processedGB > 0 ? (
-              <CountUp value={s.processedGB} format={(n) => formatStorage(n, 0)} durationMs={1100} />
-            ) : (
-              "—"
-            )
-          }
-        />
-        <Metric
-          icon={Layers}
-          label={t("feed.columns.sent")}
-          value={
-            s.transferredGB > 0 ? (
-              <CountUp value={s.transferredGB} format={(n) => formatStorage(n, 0)} durationMs={1100} />
-            ) : (
-              "—"
-            )
-          }
-        />
+      <div className={cn("mt-3 grid gap-2 border-t border-info/15 pt-3", verify ? "grid-cols-2" : "grid-cols-4")}>
+        {!verify && (
+          <>
+            <Metric
+              icon={Gauge}
+              label={t("feed.columns.read")}
+              value={
+                s.processedGB > 0 ? (
+                  <CountUp value={s.processedGB} format={(n) => formatStorage(n, 0)} durationMs={1100} />
+                ) : (
+                  "—"
+                )
+              }
+            />
+            <Metric
+              icon={Layers}
+              label={t("feed.columns.sent")}
+              value={
+                s.transferredGB > 0 ? (
+                  <CountUp value={s.transferredGB} format={(n) => formatStorage(n, 0)} durationMs={1100} />
+                ) : (
+                  "—"
+                )
+              }
+            />
+          </>
+        )}
         {/* A "done/total" ratio only says something when the run actually spans
             several objects. The appliance reports one VM per session, so there
             the ratio could only ever read 0/1 — the VM's name is the real

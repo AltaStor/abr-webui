@@ -19,6 +19,7 @@ import { formatDuration, formatStorage, formatThroughput } from "@/lib/format";
 import { useWorldStore } from "@/store/world";
 import type { Session, VmRunResult } from "@/types";
 import { PipelineStages } from "@/components/PipelineStages";
+import { isVerify } from "@/features/activity/lib";
 import i18n from "@/i18n";
 
 const VM_TONE: Record<VmRunResult["status"], string> = {
@@ -81,6 +82,11 @@ export function ActiveRunPanel({ session }: { session: Session }) {
   // Terminal states — the run has finished; show a completion banner, not a
   // live meter.
   const terminal = session.status !== "running";
+  // A verification re-reads a stored chain: no bytes move, and the appliance
+  // reports only percent + a message for it. Without this the panel would show
+  // a dead rate meter — or, since the rate is permanently 0, sit in the
+  // "preparing" state for the whole run — and two byte tiles stuck at 0 GB.
+  const verify = isVerify(session);
   // "storing": the guest read is done and real bytes are streaming into the
   // repository (agent-backed VMs) — a distinct, honest phase so the run
   // isn't reported "done" while gigabytes are still moving to disk.
@@ -92,7 +98,7 @@ export function ActiveRunPanel({ session }: { session: Session }) {
   // "preparing": an agent-backed run whose real guest read hasn't started yet
   // (the agent is taking a VSS snapshot) — no pipeline and no rate. Once real
   // bytes move, hasPipeline lights up and we show the live graph instead.
-  const preparing = !terminal && !storing && !hasPipeline && (session.throughputMBps ?? 0) === 0;
+  const preparing = !terminal && !storing && !hasPipeline && !verify && (session.throughputMBps ?? 0) === 0;
 
   const tone = terminal
     ? session.status === "success"
@@ -183,7 +189,7 @@ export function ActiveRunPanel({ session }: { session: Session }) {
             storing — so the graph isn't dark while gigabytes stream. */}
         {hasPipeline && <PipelineStages session={session} />}
 
-        {preparing ? (
+        {verify ? null : preparing ? (
           /* Agent-backed run before the real read starts — no honest rate yet. */
           <div className="flex items-center gap-2 border border-info/20 bg-info/[0.04] px-3 py-2.5 text-sm text-muted-foreground">
             <span className="relative flex h-2 w-2">
@@ -208,11 +214,15 @@ export function ActiveRunPanel({ session }: { session: Session }) {
           </div>
         )}
 
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <div className={cn("grid gap-3", verify ? "grid-cols-2" : "grid-cols-2 sm:grid-cols-4")}>
           <Metric className="bg-muted/30 px-3 py-2" icon={Radio} label={t("run.metrics.objectsDone", { objects: objectsShort })} value={`${doneCount}/${session.vmCount}`} />
           <Metric className="bg-muted/30 px-3 py-2" icon={Timer} label={t("run.metrics.elapsed")} value={formatDuration(session.durationSec)} />
-          <Metric className="bg-muted/30 px-3 py-2" label={t("run.metrics.readGuest")} value={<CountUp value={session.processedGB} format={(n) => formatStorage(n)} durationMs={1100} />} />
-          <Metric className="bg-muted/30 px-3 py-2" label={t("run.metrics.storedRepo")} value={<CountUp value={session.transferredGB} format={(n) => formatStorage(n)} durationMs={1100} />} />
+          {!verify && (
+            <>
+              <Metric className="bg-muted/30 px-3 py-2" label={t("run.metrics.readGuest")} value={<CountUp value={session.processedGB} format={(n) => formatStorage(n)} durationMs={1100} />} />
+              <Metric className="bg-muted/30 px-3 py-2" label={t("run.metrics.storedRepo")} value={<CountUp value={session.transferredGB} format={(n) => formatStorage(n)} durationMs={1100} />} />
+            </>
+          )}
         </div>
 
         {/* Per-VM list — each machine ripples as it completes. */}
@@ -222,7 +232,7 @@ export function ActiveRunPanel({ session }: { session: Session }) {
           </div>
           <div className="max-h-44 divide-y divide-border/50 overflow-y-auto">
             {session.vmResults.map((r) => (
-              <VmRunRow key={r.vmId} r={r} />
+              <VmRunRow key={r.vmId} r={r} hideBytes={verify} />
             ))}
           </div>
         </div>
@@ -242,7 +252,7 @@ export function ActiveRunPanel({ session }: { session: Session }) {
 const TERMINAL = new Set(["success", "warning", "failed"]);
 
 /** A per-VM row that ripples — a tone-flash + label pop — the moment it completes. */
-function VmRunRow({ r }: { r: VmRunResult }) {
+function VmRunRow({ r, hideBytes }: { r: VmRunResult; hideBytes?: boolean }) {
   const prev = useRef(r.status);
   const [flash, setFlash] = useState<string | null>(null);
 
@@ -273,9 +283,11 @@ function VmRunRow({ r }: { r: VmRunResult }) {
       <span className={cn("min-w-0 flex-1 truncate text-sm", r.status === "pending" && "text-muted-foreground")}>
         {r.vmName}
       </span>
-      <span className="nums hidden shrink-0 text-xs text-muted-foreground sm:block">
-        {r.processedGB > 0 ? formatStorage(r.processedGB) : "—"}
-      </span>
+      {!hideBytes && (
+        <span className="nums hidden shrink-0 text-xs text-muted-foreground sm:block">
+          {r.processedGB > 0 ? formatStorage(r.processedGB) : "—"}
+        </span>
+      )}
       <motion.span
         key={r.status}
         initial={{ opacity: 0, y: -3 }}

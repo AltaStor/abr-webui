@@ -13,21 +13,26 @@
 import type {
   AccentKey,
   Alert,
+  ApplyImmutabilityResult,
   AuditEvent,
   BackupJob,
   CreateEnvironmentInput,
   CreateRepositoryInput,
   Environment,
   Host,
+  ImmutabilityEffect,
   JobOptions,
   LogLine,
   MetricSnapshot,
   Replica,
   ReplicaTarget,
   Repository,
+  RepositoryImmutability,
+  RepositoryValidationResult,
   RestorePlacementOptions,
   RestorePoint,
   Retention,
+  S3ConnectionCheck,
   S3ConnectionTestResult,
   S3RepositoryConfig,
   Schedule,
@@ -83,6 +88,9 @@ export interface RepositoryEdit {
   ioThrottleMBps?: number;
   maxConcurrentTasks?: number;
   maintenanceMode?: boolean;
+  /** Object Lock. Omitted leaves the repository's setting untouched; included,
+   *  it replaces it — mode "none" turns the lock off for future backups. */
+  immutability?: RepositoryImmutability;
 }
 
 /** Editable environment fields for the edit dialog / world action. */
@@ -101,6 +109,28 @@ export interface BlockingJobRef {
   id: string;
   name: string;
 }
+
+/** Outcome of asking the appliance to verify one or more stored backup chains.
+ *  Each chain is its own run, so the ids come back as a list: a VM's backups
+ *  within one job normally live in a single chain, but span two when the job's
+ *  target repository changed part-way through that VM's history. */
+export type VerifyBackupResult =
+  | { ok: true; sessionIds: string[] }
+  | { ok: false; message: string };
+
+/**
+ * Outcome of creating or editing a repository.
+ *
+ * Not `Repository | null`: the appliance refuses an unusable Object Lock
+ * configuration with a 422 that names the individual probes that failed
+ * (`_assert_immutability_is_usable`), and a null throws that away — leaving the
+ * dialog to say "something went wrong" about a bucket that told it exactly what
+ * was wrong. `immutabilityEffect` is the appliance's account of what the
+ * setting now does, and what it cannot reach.
+ */
+export type RepositoryWriteResult =
+  | { ok: true; repository: Repository; immutabilityEffect: ImmutabilityEffect | null }
+  | { ok: false; message: string; checks: S3ConnectionCheck[] };
 
 /** Outcome of a repository delete — the guard reasons are surfaced to the UI. */
 export type RepoDeleteResult =
@@ -191,7 +221,10 @@ export interface WorldState extends WorldData {
   markAlertRead(id: string): Promise<void>;
   dismissThreat(id: string): Promise<void>;
   /* --------------- hypervisor environment lifecycle --------------- */
-  /** Register a vSphere/ESXi/Hyper-V environment and discover its VMs. */
+  /** Register a vSphere/ESXi/Hyper-V environment. Resolves once the record
+   *  exists — discovery is the separate `rescanEnvironment` call, which the
+   *  caller runs next and need not block its UI on: an unresponsive vCenter
+   *  must not hold a dialog open on an environment that is already created. */
   createEnvironment(input: CreateEnvironmentInput): Promise<Environment | null>;
   editEnvironment(id: string, patch: EnvironmentEdit): Promise<void>;
   deleteEnvironment(id: string): Promise<EnvDeleteResult>;
@@ -209,15 +242,30 @@ export interface WorldState extends WorldData {
    *  backup and the incrementals chained onto it. There's no single-point
    *  delete; a point is never removed on its own, only as part of its segment. */
   deleteRestorePoint(chainId: string, segmentId?: string): Promise<RestorePointDeleteResult>;
+  /** Re-read every artifact in these backup chains and check it against what
+   *  the catalog recorded. Starts the runs and resolves — the verification
+   *  itself reports through the session feed like any other run. */
+  verifyBackups(chainIds: string[]): Promise<VerifyBackupResult>;
   /* -------- repository lifecycle (advanced storage management) -------- */
-  createRepository(input: CreateRepositoryInput): Promise<Repository | null>;
-  editRepository(id: string, patch: RepositoryEdit): Promise<void>;
+  createRepository(input: CreateRepositoryInput): Promise<RepositoryWriteResult>;
+  editRepository(id: string, patch: RepositoryEdit): Promise<RepositoryWriteResult>;
   deleteRepository(id: string): Promise<RepoDeleteResult>;
   rescanRepository(id: string): Promise<void>;
   setRepositoryMaintenance(id: string, maintenance: boolean): Promise<void>;
   /** Real S3 connectivity test before a repository exists — probes the given
    *  credentials/endpoint, it doesn't just check the fields are non-empty. */
   testS3Connection(config: S3RepositoryConfig): Promise<S3ConnectionTestResult>;
+  /* ------------------- repository validation / Object Lock ------------- */
+  /** Validate an existing repository end to end: reachable, Object Lock still
+   *  as configured, and the backups it holds still consistent. */
+  verifyRepository(id: string): Promise<RepositoryValidationResult>;
+  /** Validate just the Object Lock configuration, by really writing a locked
+   *  probe object and trying to delete it — and report what the current
+   *  setting does and does not cover. */
+  verifyRepositoryImmutability(id: string): Promise<RepositoryValidationResult>;
+  /** Put the backups already stored in this repository under its current
+   *  Object Lock setting. Changing the setting alone never touches them. */
+  applyRepositoryImmutability(id: string): Promise<ApplyImmutabilityResult>;
   /* ----------------------- VM replication ------------------------ */
   failoverReplica(id: string, input: FailoverInput): Promise<void>;
   failbackReplica(id: string): Promise<void>;
@@ -244,12 +292,16 @@ export type WorldActions = Pick<
   | "startRestore"
   | "getRestorePlacementOptions"
   | "deleteRestorePoint"
+  | "verifyBackups"
   | "createRepository"
   | "editRepository"
   | "deleteRepository"
   | "rescanRepository"
   | "setRepositoryMaintenance"
   | "testS3Connection"
+  | "verifyRepository"
+  | "verifyRepositoryImmutability"
+  | "applyRepositoryImmutability"
   | "failoverReplica"
   | "failbackReplica"
   | "undoFailover"

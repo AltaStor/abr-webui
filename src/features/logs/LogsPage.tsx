@@ -1,25 +1,17 @@
 // SPDX-License-Identifier: Apache-2.0
 // Copyright © 2026 Norvitex OÜ
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
-import { AlertTriangle, Cpu, Download, FileText, Package, RotateCw, type LucideIcon } from "@/lib/icons";
+import { AlertTriangle, Cpu, FileText, Loader2, Package, RotateCw, type LucideIcon } from "@/lib/icons";
 import { type Tone } from "@/lib/status";
 import { PageHeader } from "@/components/PageHeader";
 import { KpiBand } from "@/components/KpiBand";
 import { KpiCard } from "@/components/KpiCard";
 import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { toast } from "@/components/ui/sonner";
-import { downloadBlob, downloadText, fileStamp } from "@/lib/download";
+import { downloadBlob } from "@/lib/download";
 import { qk } from "@/lib/query";
 import { apiErrorMessage, getSupportBundle, listSystemLog, type SystemLogRow } from "@/services/api.http";
 import { useWorldStore } from "@/store/world";
@@ -118,7 +110,14 @@ export default function LogsPage() {
     ];
   }, [system, t]);
 
-  const onExportSupportBundle = async () => {
+  /* The support bundle is built server-side (POST /system/support-bundle
+   * collects logs, config and the catalog into one archive), so it can take a
+   * few seconds — the button says so rather than looking inert. */
+  const [bundling, setBundling] = useState(false);
+
+  const onDownloadSupportBundle = async () => {
+    if (bundling) return;
+    setBundling(true);
     try {
       const { blob, filename } = await getSupportBundle();
       downloadBlob(filename, blob);
@@ -127,6 +126,8 @@ export default function LogsPage() {
       toast.error(t("toast.exportSupportBundleFailed"), {
         description: apiErrorMessage(err) ?? undefined,
       });
+    } finally {
+      setBundling(false);
     }
   };
 
@@ -161,37 +162,24 @@ export default function LogsPage() {
                 {t("common:actions.refresh")}
               </Button>
             )}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline">
-                  <Download className="mr-1.5 h-4 w-4" />
-                  {t("actions.export")}
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-64">
-                <DropdownMenuLabel>{t("export.menuLabel")}</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => void onExportSupportBundle()}>
-                  <Package className="mr-2 h-4 w-4" />
-                  {t("export.supportBundle")}
-                </DropdownMenuItem>
-                {/* The whole system log, unfiltered — the log view below has its
-                    own button for the filtered view. Same bytes, different scope,
-                    so the label and the filename both have to say which is which. */}
-                <DropdownMenuItem
-                  onClick={() => {
-                    downloadText(
-                      `altastor-system-full-${fileStamp()}.log`,
-                      system.map((e) => `${e.ts} ${e.level.toUpperCase()} [${e.source}] ${e.message}`).join("\n"),
-                    );
-                    toast.success(t("toast.exportedSystem", { count: system.length }));
-                  }}
-                >
-                  <FileText className="mr-2 h-4 w-4" />
-                  {t("export.systemLog")}
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            {/* One action, named for what it does. It used to be an "Export"
+                menu of two, whose second item wrote the system log — which the
+                log view below already downloads, from its own button, with the
+                filters the reader can see applied. A menu that exists to offer
+                one thing plus a duplicate of a nearby button is a click in the
+                way of the only thing anyone opens it for. */}
+            <Button
+              variant="outline"
+              onClick={() => void onDownloadSupportBundle()}
+              disabled={bundling}
+            >
+              {bundling ? (
+                <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
+              ) : (
+                <Package className="mr-1.5 h-4 w-4" />
+              )}
+              {bundling ? t("actions.bundling") : t("actions.downloadSupportBundle")}
+            </Button>
           </div>
         }
       />

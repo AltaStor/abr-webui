@@ -9,10 +9,13 @@
  * banner reflects reality without a manual click.
  *
  * A no-op in sim/demo mode: an update check only means something against the
- * real control plane, so we never poll the mock world.
+ * real control plane, so we never poll the mock world. Also a no-op while
+ * signed out — `/system/version` is behind the session guard, so the check
+ * would only produce a 401 on the sign-in screen.
  */
 import { useEffect } from "react";
 import { checkForUpdates } from "@/services/api.http";
+import { useAuthStore } from "@/store/auth";
 import { useSettingsStore } from "@/store/settings";
 import { useWorldStore } from "@/store/world";
 import { useUpdatesStore } from "@/store/updates";
@@ -27,9 +30,10 @@ export function useAutoUpdateCheck(): void {
   // committed value. mode gates us to live: never poll the sim world.
   const autoCheck = useSettingsStore((s) => s.updates.autoCheck);
   const mode = useWorldStore((s) => s.mode);
+  const authStatus = useAuthStore((s) => s.status);
 
   useEffect(() => {
-    if (!autoCheck || mode !== "live") return;
+    if (!autoCheck || mode !== "live" || authStatus !== "signed-in") return;
 
     let cancelled = false;
     let inFlight = false;
@@ -54,5 +58,5 @@ export function useAutoUpdateCheck(): void {
       cancelled = true;
       window.clearInterval(id);
     };
-  }, [autoCheck, mode]);
+  }, [autoCheck, mode, authStatus]);
 }

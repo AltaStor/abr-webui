@@ -14,20 +14,26 @@ import { clamp, pick, seededRandom } from "@/lib/utils";
 import { createSeedWorld, type World } from "@/mock/seed";
 import { applyReadState, persistAllAlertsRead, persistAlertRead } from "@/store/notifications.persist";
 import { segmentChainPoints, simChainId, simCompressionRatio } from "@/lib/restore-points";
+import { verifyRunName } from "@/lib/format";
 import type {
   Alert,
+  ApplyImmutabilityResult,
   BackupJob,
   Environment,
   EnvironmentType,
   Host,
   Hypervisor,
+  ImmutabilityEffect,
   LogLine,
   Repository,
+  RepositoryImmutability,
+  RepositoryValidationResult,
   RestoreDatastoreOption,
   RestoreExistingVmOption,
   RestoreNetworkOption,
   RestorePoint,
   RestoreSourceNic,
+  S3ConnectionCheck,
   Schedule,
   Session,
   SessionStatus,
@@ -38,10 +44,13 @@ import type {
   BlockingJobRef,
   EnvDeleteResult,
   RepoDeleteResult,
+  RepositoryWriteResult,
   RestorePointDeleteResult,
+  VerifyBackupResult,
   WorldActions,
   WorldDriver,
   WorldHandle,
+  WorldState,
 } from "@/store/world.types";
 
 /* --------------------------- id / time helpers -------------------------- */
@@ -50,6 +59,87 @@ const uid = (p: string) => `${p}-${Date.now().toString(36)}-${(_id++).toString(3
 const nowIso = () => new Date().toISOString();
 const TICK_MS = 1200;
 const TICK_SECONDS = TICK_MS / 1000;
+
+/**
+ * The demo world's stand-in for the appliance's `immutability_effect` report.
+ *
+ * Written to say the same things the real one says — what the setting governs
+ * from now on, what it cannot reach (the points already stored), and where it
+ * disagrees with the retention of the jobs writing here — because this text is
+ * the whole point of the panel that renders it. What it can't do is inspect a
+ * bucket, so it never reports a storage-side limitation.
+ */
+function simImmutabilityEffect(
+  state: WorldState,
+  repositoryId: string,
+  lock: { previous: RepositoryImmutability; current: RepositoryImmutability },
+): ImmutabilityEffect {
+  const { previous, current } = lock;
+  const enabled = (c: RepositoryImmutability) => c.mode !== "none" && c.retentionDays > 0;
+  const existing = state.restorePoints.filter((p) => p.repositoryId === repositoryId).length;
+  const effect = enabled(current)
+    ? [
+        `Backups created from now on are written under ${current.mode} Object Lock retention and cannot be ` +
+          `deleted or overwritten for ${current.retentionDays} day(s), counted from each backup's own creation time.`,
+      ]
+    : ["Immutability is disabled: new backups are written without Object Lock retention and stay deletable."];
+
+  const limitations: string[] = [];
+  if (existing > 0) {
+    limitations.push(
+      `${existing} restore point(s) are already stored in this repository. Changing this setting does not touch ` +
+        "them; apply it to stored backups to put them under the current one.",
+    );
+    limitations.push(
+      enabled(previous)
+        ? `Each keeps the retention it was written with: ${previous.mode} for ${previous.retentionDays} day(s) ` +
+          "from its own creation for those written under that setting, none for any written before immutability was enabled."
+        : "They were written without Object Lock, so they stay deletable and are not protected by this configuration.",
+    );
+  }
+  const rank = (mode: RepositoryImmutability["mode"]) =>
+    mode === "compliance" ? 2 : mode === "governance" ? 1 : 0;
+  if (
+    rank(current.mode) < rank(previous.mode) ||
+    (enabled(current) && enabled(previous) && current.retentionDays < previous.retentionDays)
+  ) {
+    limitations.push(
+      "Object Lock retention that is already written can never be shortened or removed, so relaxing immutability " +
+        "only affects backups created from now on.",
+    );
+  }
+
+  const warnings: string[] = [];
+  if (enabled(current)) {
+    for (const job of state.jobs.filter((j) => j.repositoryId === repositoryId)) {
+      const keep = job.retention.keepDays;
+      if (keep <= 0) continue;
+      if (keep < current.retentionDays) {
+        warnings.push(
+          `Job '${job.name}' keeps restore points for ${keep} day(s), but backups written to this repository stay ` +
+            `locked for ${current.retentionDays} day(s); retention cannot delete them until the lock expires.`,
+        );
+      } else if (current.retentionDays < keep) {
+        warnings.push(
+          `Job '${job.name}' keeps restore points for ${keep} day(s), but they are locked for only ` +
+            `${current.retentionDays} day(s); from day ${current.retentionDays} to day ${keep} its backups are ` +
+            "still needed but can be deleted. Raise the immutability period to cover the whole retention.",
+        );
+      }
+    }
+  }
+
+  return {
+    previous,
+    current,
+    changed: previous.mode !== current.mode || previous.retentionDays !== current.retentionDays,
+    existingRestorePoints: existing,
+    existingDataProtected: false,
+    effect,
+    limitations,
+    warnings,
+  };
+}
 
 function makeLog(level: LogLine["level"], message: string, vmName?: string): LogLine {
   return { id: uid("log"), ts: nowIso(), level, message, vmName };
@@ -896,23 +986,49 @@ export function createSimDriver(handle: WorldHandle): WorldDriver {
 
     /* --------------------- repository lifecycle --------------------- */
     editRepository: (id, patch) => {
+      const before = handle.get().repositories.find((r) => r.id === id);
+      if (!before) {
+        return Promise.resolve<RepositoryWriteResult>({
+          ok: false,
+          message: "Repository not found",
+          checks: [],
+        });
+      }
+      // Mirrors the appliance's refusal: Object Lock exists only where the
+      // backend has the concept, so the demo world rejects it in the same
+      // place rather than silently accepting a setting that means nothing.
+      if (patch.immutability && !before.supportsImmutability) {
+        return Promise.resolve<RepositoryWriteResult>({
+          ok: false,
+          message: "Immutability is only available for S3 repositories",
+          checks: [],
+        });
+      }
+      const updated: Repository = {
+        ...before,
+        ...(patch.name !== undefined && { name: patch.name }),
+        ...(patch.capacityGB !== undefined && { capacityGB: patch.capacityGB }),
+        ...(patch.compression !== undefined && { compression: patch.compression }),
+        ...(patch.ioThrottleMBps !== undefined && { ioThrottleMBps: patch.ioThrottleMBps }),
+        ...(patch.maxConcurrentTasks !== undefined && { maxConcurrentTasks: patch.maxConcurrentTasks }),
+        ...(patch.maintenanceMode !== undefined && { maintenanceMode: patch.maintenanceMode }),
+        ...(patch.immutability !== undefined && { immutability: patch.immutability }),
+      };
       handle.set((state) => ({
-        repositories: state.repositories.map((r) =>
-          r.id === id
-            ? {
-                ...r,
-                ...(patch.name !== undefined && { name: patch.name }),
-                ...(patch.capacityGB !== undefined && { capacityGB: patch.capacityGB }),
-                ...(patch.compression !== undefined && { compression: patch.compression }),
-                ...(patch.ioThrottleMBps !== undefined && { ioThrottleMBps: patch.ioThrottleMBps }),
-                ...(patch.maxConcurrentTasks !== undefined && { maxConcurrentTasks: patch.maxConcurrentTasks }),
-                ...(patch.maintenanceMode !== undefined && { maintenanceMode: patch.maintenanceMode }),
-              }
-            : r,
-        ),
+        repositories: state.repositories.map((r) => (r.id === id ? updated : r)),
         revision: state.revision + 1,
       }));
-      return Promise.resolve();
+      return Promise.resolve<RepositoryWriteResult>({
+        ok: true,
+        repository: updated,
+        immutabilityEffect:
+          patch.immutability === undefined
+            ? null
+            : simImmutabilityEffect(handle.get(), id, {
+                previous: before.immutability ?? { mode: "none", retentionDays: 0 },
+                current: patch.immutability,
+              }),
+      });
     },
 
     deleteRestorePoint: (chainId, segmentId) => {
@@ -960,6 +1076,81 @@ export function createSimDriver(handle: WorldHandle): WorldDriver {
       return Promise.resolve<RestorePointDeleteResult>({ ok: true });
     },
 
+    /* The demo world has no artifacts to re-read, so this stages the run the
+     * appliance would produce — a verify session per chain, settling clean a
+     * few seconds later — rather than resolving into nothing. What it cannot
+     * do is FIND corruption: every simulated verification passes. */
+    verifyBackups: (chainIds) => {
+      const state = handle.get();
+      const sessionIds: string[] = [];
+      const sessions: Session[] = [];
+      const logs: Record<string, LogLine[]> = {};
+      for (const chainId of chainIds) {
+        const points = state.restorePoints.filter((p) => p.chainId === chainId);
+        if (points.length === 0) continue;
+        const id = uid("sess");
+        sessionIds.push(id);
+        const vmName = points[0].vmName;
+        sessions.push({
+          id,
+          jobId: points[0].jobId,
+          jobName: verifyRunName(vmName),
+          type: "verify",
+          status: "running",
+          backupType: "full",
+          startedAt: nowIso(),
+          finishedAt: null,
+          durationSec: 0,
+          progress: 0,
+          processedGB: 0,
+          transferredGB: 0,
+          throughputMBps: 0,
+          vmCount: 1,
+          vmResults: [
+            { vmId: points[0].vmId, vmName, status: "running", processedGB: 0, transferredGB: 0, durationSec: 0 },
+          ],
+          triggeredBy: "manual",
+        });
+        logs[id] = [
+          makeLog("info", `Verifying ${points.length} restore point(s) of ${vmName}`, vmName),
+        ];
+      }
+      if (sessionIds.length === 0) {
+        return Promise.resolve<VerifyBackupResult>({ ok: false, message: "No stored backups to verify" });
+      }
+      handle.set((s) => ({
+        sessions: [...sessions, ...s.sessions],
+        liveLogs: { ...s.liveLogs, ...logs },
+        revision: s.revision + 1,
+      }));
+      const done = new Set(sessionIds);
+      setTimeout(() => {
+        // Guarded against a mode switch, same as the simulated repository scan.
+        if (intervalId === null) return;
+        handle.set((s) => ({
+          sessions: s.sessions.map((session) =>
+            done.has(session.id)
+              ? {
+                  ...session,
+                  status: "success" as const,
+                  progress: 100,
+                  finishedAt: nowIso(),
+                  durationSec: 4,
+                  vmResults: session.vmResults.map((r) => ({ ...r, status: "success" as const, durationSec: 4 })),
+                }
+              : session,
+          ),
+          liveLogs: Object.fromEntries(
+            Object.entries(s.liveLogs).map(([id, lines]) =>
+              done.has(id) ? [id, [...lines, makeLog("success", "All artifacts verified")]] : [id, lines],
+            ),
+          ),
+          revision: s.revision + 1,
+        }));
+      }, 4000);
+      return Promise.resolve<VerifyBackupResult>({ ok: true, sessionIds });
+    },
+
     createRepository: (input) => {
       const repo: Repository = {
         id: uid("repo"),
@@ -973,12 +1164,28 @@ export function createSimDriver(handle: WorldHandle): WorldDriver {
         usageTrend: Array.from({ length: 14 }, () => 0),
         integrityStatus: "never",
         lastScanAt: null,
+        // Read back the way the appliance reports it, so the demo world's
+        // repository card carries the same lock badge a real one does.
+        supportsImmutability: input.type === "object-lock-s3",
+        immutability:
+          input.type === "object-lock-s3"
+            ? (input.s3?.immutability ?? { mode: "none", retentionDays: 0 })
+            : null,
       };
       handle.set((s) => ({
         repositories: [...s.repositories, repo],
         revision: s.revision + 1,
       }));
-      return Promise.resolve(repo);
+      return Promise.resolve<RepositoryWriteResult>({
+        ok: true,
+        repository: repo,
+        immutabilityEffect: repo.immutability
+          ? simImmutabilityEffect(handle.get(), repo.id, {
+              previous: { mode: "none", retentionDays: 0 },
+              current: repo.immutability,
+            })
+          : null,
+      });
     },
 
     deleteRepository: (id) => {
@@ -1077,8 +1284,168 @@ export function createSimDriver(handle: WorldHandle): WorldDriver {
       }
 
       checks.push({ name: "connectivity", status: "ok", message: "Bucket/prefix access validated (simulated)" });
+
+      // The demo bucket always supports Object Lock; the point of running the
+      // check here is that the dialog's result panel looks the same in both
+      // worlds, not that anything is really probed.
+      const lock = config.immutability;
+      let message = "S3 connection succeeded";
+      if (lock && lock.mode !== "none") {
+        checks.push({
+          name: "immutability_mode",
+          status: "ok",
+          message: `${lock.mode} is available on this bucket (simulated)`,
+        });
+        checks.push({
+          name: "retention_period",
+          status: "ok",
+          message: `${lock.retentionDays} day(s) requested (simulated)`,
+        });
+        message = `S3 repository is validated for immutable backups: ${lock.mode} for ${lock.retentionDays} day(s)`;
+      }
+
+      return new Promise((resolve) => setTimeout(() => resolve({ ok: true, message, checks }), 600));
+    },
+
+    /* ------------------- repository validation / Object Lock ------------- */
+    /* Nothing to dial out to here, so these replay the SHAPE of the appliance's
+     * answers — the same checks by name, the same verdict fields — so the panel
+     * that renders them looks and behaves the same in both worlds. What they
+     * cannot do is find a real problem: every simulated validation passes. */
+    verifyRepository: (id) => {
+      const repo = handle.get().repositories.find((r) => r.id === id);
+      if (!repo) {
+        return Promise.resolve<RepositoryValidationResult>({
+          ok: false,
+          message: "Repository not found",
+          checks: [],
+        });
+      }
+      const lock = repo.immutability;
+      const locked = Boolean(lock && lock.mode !== "none" && lock.retentionDays > 0);
+      const checks: S3ConnectionCheck[] = [
+        { name: "connectivity", status: "ok", message: `${repo.path} is reachable (simulated)` },
+      ];
+      if (repo.supportsImmutability) {
+        checks.push(
+          locked
+            ? {
+                name: "immutability",
+                status: "ok",
+                message: `${lock!.mode} for ${lock!.retentionDays} day(s) (simulated)`,
+              }
+            : {
+                name: "immutability",
+                status: "skipped",
+                message:
+                  "Repository immutability is disabled; backups are written without Object Lock retention",
+              },
+        );
+      }
+      checks.push({
+        name: "block_consistency",
+        status: "ok",
+        message: "All stored backups are consistent (simulated)",
+      });
+      handle.set((state) => ({
+        repositories: state.repositories.map((r) =>
+          r.id === id ? { ...r, integrityStatus: "verified" as const, lastScanAt: nowIso() } : r,
+        ),
+        revision: state.revision + 1,
+      }));
       return new Promise((resolve) =>
-        setTimeout(() => resolve({ ok: true, message: "S3 connection succeeded", checks }), 600),
+        setTimeout(
+          () =>
+            resolve({
+              ok: true,
+              message: `Repository is available; immutability: ${
+                locked ? `${lock!.mode} for ${lock!.retentionDays} day(s)` : "disabled, backups stay deletable"
+              }`,
+              checks,
+            }),
+          700,
+        ),
+      );
+    },
+
+    verifyRepositoryImmutability: (id) => {
+      const state = handle.get();
+      const repo = state.repositories.find((r) => r.id === id);
+      if (!repo || !repo.supportsImmutability) {
+        return Promise.resolve<RepositoryValidationResult>({
+          ok: false,
+          message: "Immutability is only available for S3 repositories",
+          checks: [],
+        });
+      }
+      const lock = repo.immutability ?? { mode: "none" as const, retentionDays: 0 };
+      const locked = lock.mode !== "none" && lock.retentionDays > 0;
+      const checks: S3ConnectionCheck[] = [
+        { name: "object_lock", status: "ok", message: "Object Lock is enabled, up to 'compliance' mode (simulated)" },
+        { name: "versioning", status: "ok", message: "Bucket versioning confirmed by behaviour (simulated)" },
+      ];
+      if (locked) {
+        checks.push(
+          { name: "immutability_mode", status: "ok", message: `${lock.mode} is available on this bucket` },
+          { name: "retention_period", status: "ok", message: `${lock.retentionDays} day(s) requested` },
+          { name: "write_retention", status: "ok", message: `A test backup was written under ${lock.mode} Object Lock retention` },
+          { name: "worm_enforcement", status: "ok", message: "Deleting the locked test backup was refused by the storage" },
+        );
+      } else {
+        checks.push({
+          name: "immutability_mode",
+          status: "skipped",
+          message: "Repository immutability is disabled; the bucket would support it if it is enabled",
+        });
+      }
+      return new Promise((resolve) =>
+        setTimeout(
+          () =>
+            resolve({
+              ok: true,
+              message: locked
+                ? `Repository is validated for immutable backups: ${lock.mode} for ${lock.retentionDays} day(s)`
+                : "Bucket supports immutable backups; repository immutability is currently disabled",
+              checks,
+              immutabilityEffect: simImmutabilityEffect(state, id, { previous: lock, current: lock }),
+            }),
+          900,
+        ),
+      );
+    },
+
+    applyRepositoryImmutability: (id) => {
+      const state = handle.get();
+      const repo = state.repositories.find((r) => r.id === id);
+      const lock = repo?.immutability ?? { mode: "none" as const, retentionDays: 0 };
+      const points = state.restorePoints.filter((p) => p.repositoryId === id).length;
+      if (!repo || lock.mode === "none" || lock.retentionDays <= 0) {
+        return Promise.resolve<ApplyImmutabilityResult>({
+          ok: false,
+          message: "Repository immutability is disabled; enable it before applying it to stored backups",
+          immutability: lock,
+          restorePointCount: points,
+          updatedRestorePoints: 0,
+          failedRestorePoints: 0,
+          actualRetentionDays: [],
+        });
+      }
+      return new Promise((resolve) =>
+        setTimeout(
+          () =>
+            resolve({
+              ok: true,
+              message: points
+                ? `${points} restore point(s) are now held in ${lock.mode} mode for ${lock.retentionDays} day(s), counted from now`
+                : "Repository holds no restore points; nothing to place under Object Lock",
+              immutability: lock,
+              restorePointCount: points,
+              updatedRestorePoints: points,
+              failedRestorePoints: 0,
+              actualRetentionDays: points ? [lock.retentionDays] : [],
+            }),
+          1100,
+        ),
       );
     },
 

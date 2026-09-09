@@ -48,7 +48,8 @@
   "retention": {
     "days_one": "{{count}} día",
     "days_other": "{{count}} días",
-    "withGfs": "{{base}} · GFS {{tail}}"
+    "withGfs": "{{base}} · GFS {{tail}}",
+    "withGfsSuspended": "{{base}} · GFS {{tail}} (suspendido)"
   },
   "type": {
     "replication": "Replicación",
@@ -174,11 +175,12 @@
   },
   "filters": {
     "status": {
-      "all": "Todos los estados",
-      "running": "En ejecución",
-      "healthy": "Correcto",
-      "warning": "Requiere atención",
-      "disabled": "Deshabilitado"
+      "all": "Todos los estados"
+    },
+    "schedule": {
+      "all": "Todas las programaciones",
+      "enabled": "Programación activada",
+      "disabled": "Programación desactivada"
     }
   },
   "table": {
@@ -200,7 +202,7 @@
     "lastRunRunningSince": "En curso desde {{value}}",
     "lastRunStarted": "Inicio: {{value}}",
     "lastRunStatus": "Estado de la última ejecución",
-    "lastRunStatusHint": "Resultado de la ejecución más reciente. «Deshabilitado» significa que el trabajo está deshabilitado y no seguirá su programación.",
+    "lastRunStatusHint": "Resultado de la ejecución más reciente: Correcto, Advertencia, Fallido, En ejecución, En cola o «Nunca ejecutado» si el trabajo aún no se ha ejecutado. Si el trabajo está habilitado se indica en la columna Programación.",
     "nextRunHint": "Próximo inicio programado. Ejecutar el trabajo manualmente no lo cambia.",
     "scheduleHint": "Cuándo se inicia el trabajo por sí solo. Los trabajos deshabilitados conservan su programación pero la omiten.",
     "repositoryHint": "Dónde se guardan las copias de este trabajo. Un escudo indica un repositorio inmutable.",
@@ -223,7 +225,8 @@
   "toolbar": {
     "searchPlaceholder": "Buscar trabajos por nombre o alcance…",
     "searchLabel": "Buscar trabajos",
-    "filterByStatus": "Filtrar por estado"
+    "filterByStatus": "Filtrar por estado de la última ejecución",
+    "filterBySchedule": "Filtrar por estado de programación"
   },
   "bulk": {
     "selected": "{{count}} seleccionado(s)",
@@ -456,6 +459,9 @@
     "fileHealth": "Estado de los archivos",
     "retentionTitle": "Retención",
     "keep": "Conservar",
+    "gfsProtection": "Protección GFS",
+    "gfsActive": "Activa",
+    "gfsSuspended": "Suspendida",
     "gfsWeekly": "Semanal (GFS)",
     "gfsMonthly": "Mensual (GFS)",
     "gfsYearly": "Anual (GFS)",
@@ -611,6 +617,21 @@
     "restoreVmAria": "Restaurar {{vm}} desde {{job}}",
     "deleteVmAria": "Eliminar la copia de seguridad de {{vm}} de {{job}}",
     "deleteVmTip": "Eliminar la copia de seguridad de esta VM de este trabajo",
+    "verify": {
+      "tip": "Verificar la copia de esta VM: vuelve a leer cada artefacto almacenado y lo contrasta con el catálogo",
+      "aria": "Verificar la copia de {{vm}} de {{job}}",
+      "running": "Verificando",
+      "runningTip": "Se está ejecutando una comprobación de integridad sobre la copia almacenada de esta VM. Síguela en la página Actividad.",
+      "toast": {
+        "started": "Verificando {{vm}}",
+        "startedDesc_one": "Releyendo {{count}} punto de restauración. Síguelo en la página Actividad.",
+        "startedDesc_other": "Releyendo {{count}} puntos de restauración. Síguelo en la página Actividad.",
+        "failedToStart": "No se pudo iniciar la verificación",
+        "valid": "Copia de {{vm}} verificada",
+        "warnings": "Copia de {{vm}} verificada con advertencias",
+        "invalid": "La copia de {{vm}} no superó la verificación"
+      }
+    },
     "kpi": {
       "points": "Puntos de restauración",
       "acrossObjects": "En {{jobs}} trabajos · {{vms}} VM",
@@ -873,6 +894,12 @@
     "gfsTerm": "Retención GFS",
     "gfsHelp": "Grandfather-father-son (GFS): conserva copias semanales, mensuales y anuales adicionales para el archivado a largo plazo, además de tus puntos de restauración diarios.",
     "gfsDescription": "Copias de archivado opcionales conservadas más allá de la retención regular de arriba. Déjalo en 0 para omitir.",
+    "gfsEnabledLabel": "Protección activa",
+    "gfsEnabledTerm": "Protección GFS",
+    "gfsEnabledHelp": "Suspende o reanuda el archivado GFS sin tocar los valores de abajo. Mientras está suspendido no se marcan nuevas copias semanales/mensuales/anuales y los puntos de archivado existentes caducan bajo la retención regular de arriba.",
+    "gfsEnabledHint": "Se marcan y conservan copias semanales, mensuales y anuales.",
+    "gfsEnabledNoCounts": "Define al menos un valor abajo para que se conserven copias de archivado.",
+    "gfsSuspendedHint": "El archivado está suspendido. Los valores de abajo se conservan para cuando lo reanudes.",
     "gfsWeekly": "Semanal",
     "gfsMonthly": "Mensual",
     "gfsYearly": "Anual",

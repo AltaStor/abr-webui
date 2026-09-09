@@ -57,6 +57,16 @@ export function JobSettingsTab({ job, repository }: Props) {
             <Row icon={Layers} label={t("settings.keep")} value={t("retention.days", { count: retention.keepDays })} />
             {retention.gfs ? (
               <>
+                {/* Archiving on/off is its own setting on the appliance, so it
+                    is reported as its own row — the counts below stay visible
+                    while suspended because that is what resuming restores. */}
+                <Row
+                  icon={retention.gfs.enabled ? Check : Minus}
+                  label={t("settings.gfsProtection")}
+                  value={
+                    retention.gfs.enabled ? t("settings.gfsActive") : t("settings.gfsSuspended")
+                  }
+                />
                 <Row icon={Sparkles} label={t("settings.gfsWeekly")} value={`${retention.gfs.weekly}`} />
                 <Row icon={Sparkles} label={t("settings.gfsMonthly")} value={`${retention.gfs.monthly}`} />
                 <Row icon={Sparkles} label={t("settings.gfsYearly")} value={`${retention.gfs.yearly}`} />

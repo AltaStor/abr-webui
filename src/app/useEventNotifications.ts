@@ -130,6 +130,13 @@ export function useEventNotifications(): void {
       // finishing something.
       if (previous === undefined && !startedSinceBaseline(session, baselineAt.current)) continue;
 
+      // A verification has no job behind it (the appliance runs it against a
+      // stored chain), so the bell's job routing below would deep-link to an
+      // empty job id. It is also already reported where it was asked for — the
+      // Backups tab toasts each run's verdict — and the Activity feed keeps the
+      // record either way, so it does not belong in this loop.
+      if (session.type === "verify") continue;
+
       const key = eventKeyFor(session);
       if (!events[key]) continue;
 

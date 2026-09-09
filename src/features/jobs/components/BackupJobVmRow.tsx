@@ -2,7 +2,17 @@
 // Copyright © 2026 Norvitex OÜ
 
 import { useTranslation } from "react-i18next";
-import { ChevronRight, Lock, LockOpen, RotateCcw, Server, ServerOff, Trash2 } from "@/lib/icons";
+import {
+  ChevronRight,
+  Loader2,
+  Lock,
+  LockOpen,
+  RotateCcw,
+  Server,
+  ServerOff,
+  ShieldCheck,
+  Trash2,
+} from "@/lib/icons";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -15,11 +25,13 @@ import {
 import type { RestorePoint } from "@/types";
 
 /**
- * One VM within a job's expanded tree: a header row (name, stats, restore,
- * the one delete action for this whole VM-from-job backup) and — expanded —
- * its flat restore points list, full and incremental together, sorted by the
- * tab's shared time order. There is no per-point delete here; that lives only
- * on this row, and removes the VM's entire chain(s) for this job at once.
+ * One VM within a job's expanded tree: a header row (name, stats, verify,
+ * restore, the one delete action for this whole VM-from-job backup) and —
+ * expanded — its flat restore points list, full and incremental together,
+ * sorted by the tab's shared time order. There is no per-point delete here;
+ * that lives only on this row, and removes the VM's entire chain(s) for this
+ * job at once. Verify is scoped the same way, because a chain is the unit the
+ * appliance verifies (`POST /backups/{chainId}/verify`).
  */
 export function BackupJobVmRow({
   jobName,
@@ -29,6 +41,8 @@ export function BackupJobVmRow({
   sortDir,
   offlineRepoIds,
   restoreBlockedReason,
+  verifying,
+  onVerify,
   onRestore,
   onRestorePoint,
   onDelete,
@@ -41,6 +55,12 @@ export function BackupJobVmRow({
   offlineRepoIds: Set<string>;
   /** Why restore is disabled — e.g. the source VM is gone from inventory. */
   restoreBlockedReason?: string;
+  /** A verification of this VM's chain(s) is running right now. */
+  verifying: boolean;
+  /** Re-read every artifact behind these points and check it against the
+   *  catalog. Unlike restore, this needs no source VM — it reads what is
+   *  stored, so it stays available for a VM that has since been removed. */
+  onVerify: () => void;
   /** The VM-level action: recover this machine, wizard picks the newest point. */
   onRestore: () => void;
   /** The point-level action. Distinct on purpose — an operator who opens the
@@ -93,6 +113,16 @@ export function BackupJobVmRow({
                   title={restoreBlockedReason}
                 >
                   {t("backupsTab.sourceRemoved")}
+                </Badge>
+              )}
+              {verifying && (
+                <Badge
+                  variant="outline"
+                  className="shrink-0 gap-1 border-info/40 font-normal text-info-text"
+                  title={t("backupsTab.verify.runningTip")}
+                >
+                  <Loader2 className="h-3 w-3 animate-spin" />
+                  {t("backupsTab.verify.running")}
                 </Badge>
               )}
               {encryption === "none" ? (
@@ -171,6 +201,21 @@ export function BackupJobVmRow({
           </span>
         </button>
         <div className="flex shrink-0 items-center gap-0.5">
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            aria-label={t("backupsTab.verify.aria", { vm: vm.name, job: jobName })}
+            title={allUnreachable ? offlineTip : t("backupsTab.verify.tip")}
+            className="text-muted-foreground"
+            onClick={onVerify}
+            disabled={allUnreachable || verifying}
+          >
+            {verifying ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            ) : (
+              <ShieldCheck className="h-3.5 w-3.5" />
+            )}
+          </Button>
           <Button
             variant="ghost"
             size="icon-sm"

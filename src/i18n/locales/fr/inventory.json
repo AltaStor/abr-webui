@@ -391,7 +391,10 @@
     "error": "L’orchestrateur a rejeté l’enregistrement. Vérifiez l’adresse et les identifiants.",
     "toast": {
       "registered": "{{platform}} enregistré",
-      "registeredDesc": "Découverte des VMs sur {{endpoint}}…",
+      "discovering": "Découverte de l’inventaire {{platform}}",
+      "discoveringDesc": "Analyse de {{endpoint}} à la recherche de VM. Vous pouvez continuer à travailler.",
+      "discoveredDesc_one": "{{endpoint}} · {{count}} VM découverte",
+      "discoveredDesc_other": "{{endpoint}} · {{count}} VM découvertes",
       "discoveryFailed": "{{platform}} enregistré, mais la découverte a échoué"
     }
   },

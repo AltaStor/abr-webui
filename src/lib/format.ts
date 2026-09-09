@@ -3,17 +3,28 @@
 
 import { formatDistanceToNowStrict, format as formatDate } from "date-fns";
 
+/**
+ * A NON-BREAKING space, used everywhere below between a number and its unit.
+ *
+ * A measurement is one token: "130 GB" broken across two lines reads as the
+ * number 130 followed by an unrelated "GB", and in a narrow table column — the
+ * VM size and backup size columns on Inventory, especially — that is exactly
+ * where a plain space lets the browser break it. Nothing here is ever parsed
+ * back, so the character is free to be the right one.
+ */
+const NBSP = "\u00a0";
+
 /** Format a GB value into a human storage string (KB/MB/GB/TB/PB). Sub-MB
  * values fall through to KB so a heavily-deduped incremental (a few hundred KB
  * stored) reads as e.g. "244 KB" rather than a misleading "0 MB". */
 export function formatStorage(gb: number, digits = 1): string {
-  if (gb <= 0) return "0 MB";
+  if (gb <= 0) return `0${NBSP}MB`;
   const mb = gb * 1024;
-  if (mb < 1) return `${(mb * 1024).toFixed(0)} KB`;
-  if (gb < 1) return `${mb.toFixed(mb < 10 ? 1 : 0)} MB`;
-  if (gb < 1024) return `${trimZero(gb.toFixed(digits))} GB`;
-  if (gb < 1024 * 1024) return `${trimZero((gb / 1024).toFixed(digits))} TB`;
-  return `${trimZero((gb / 1024 / 1024).toFixed(digits))} PB`;
+  if (mb < 1) return `${(mb * 1024).toFixed(0)}${NBSP}KB`;
+  if (gb < 1) return `${mb.toFixed(mb < 10 ? 1 : 0)}${NBSP}MB`;
+  if (gb < 1024) return `${trimZero(gb.toFixed(digits))}${NBSP}GB`;
+  if (gb < 1024 * 1024) return `${trimZero((gb / 1024).toFixed(digits))}${NBSP}TB`;
+  return `${trimZero((gb / 1024 / 1024).toFixed(digits))}${NBSP}PB`;
 }
 
 /**
@@ -31,10 +42,18 @@ export function restoreRunName(vmName: string | undefined | null): string {
   return name ? `Restore · ${name}` : "Restore";
 }
 
+/** Display name for a verification run — same problem and same shape as
+ *  `restoreRunName`: an integrity check runs against a stored chain, not a job,
+ *  so it has no job.name to fall back to. */
+export function verifyRunName(vmName: string | undefined | null): string {
+  const name = (vmName ?? "").trim();
+  return name ? `Verify · ${name}` : "Verify";
+}
+
 /** Throughput in MB/s with sensible scaling. */
 export function formatThroughput(mbps: number): string {
-  if (mbps >= 1024) return `${(mbps / 1024).toFixed(1)} GB/s`;
-  return `${mbps.toFixed(0)} MB/s`;
+  if (mbps >= 1024) return `${(mbps / 1024).toFixed(1)}${NBSP}GB/s`;
+  return `${mbps.toFixed(0)}${NBSP}MB/s`;
 }
 
 /** Compact integer formatting (1.2k, 3.4M). */
@@ -61,8 +80,8 @@ export function formatDuration(totalSec: number): string {
   const h = Math.floor(totalSec / 3600);
   const m = Math.floor((totalSec % 3600) / 60);
   const s = Math.floor(totalSec % 60);
-  if (h > 0) return `${h}h ${m.toString().padStart(2, "0")}m`;
-  return `${m}m ${s.toString().padStart(2, "0")}s`;
+  if (h > 0) return `${h}h${NBSP}${m.toString().padStart(2, "0")}m`;
+  return `${m}m${NBSP}${s.toString().padStart(2, "0")}s`;
 }
 
 /** "2 hours ago", "in 4 hours". Falls back gracefully for null. */

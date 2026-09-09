@@ -391,7 +391,10 @@
     "error": "The orchestrator rejected the registration. Check the address and credentials.",
     "toast": {
       "registered": "{{platform}} registered",
-      "registeredDesc": "Discovering VMs on {{endpoint}}…",
+      "discovering": "Discovering {{platform}} inventory",
+      "discoveringDesc": "Scanning {{endpoint}} for VMs. You can carry on working.",
+      "discoveredDesc_one": "{{endpoint}} · {{count}} VM discovered",
+      "discoveredDesc_other": "{{endpoint}} · {{count}} VMs discovered",
       "discoveryFailed": "{{platform}} registered, but discovery failed"
     }
   },

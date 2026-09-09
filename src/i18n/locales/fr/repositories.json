@@ -66,6 +66,82 @@
       "blurb": "Ce référentiel n'a pas encore fait l'objet d'un contrôle d'intégrité."
     }
   },
+  "immutability": {
+    "summary": "Verrou {{mode}} · {{days}} jours",
+    "mode": {
+      "governance": "Governance",
+      "compliance": "Compliance"
+    },
+    "currentLabel": "Actuellement",
+    "unsupported": "Ce backend de stockage ne dispose pas d’Object Lock ; l’immuabilité ne peut donc pas y être configurée. Les référentiels de stockage objet (S3) peuvent verrouiller chaque sauvegarde qu’ils reçoivent.",
+    "validate": "Valider sur le bucket",
+    "validating": "Validation…",
+    "validateHint": "Écrit un objet de test verrouillé, relit sa rétention et tente de le supprimer — le seul moyen de savoir si le bucket applique réellement ce qui est configuré ici.",
+    "validateDirtyHint": "Valide le paramètre ENREGISTRÉ, pas la modification ci-dessus. Enregistrez d’abord pour vérifier le nouveau.",
+    "change": {
+      "unchanged": "",
+      "enabled_zero": "Les sauvegardes écrites à partir de maintenant seront verrouillées. Rien n’est encore stocké ici, donc rien n’est laissé de côté.",
+      "enabled_one": "Les sauvegardes écrites à partir de maintenant seront verrouillées. Le {{count}} point de restauration déjà stocké a été écrit sans verrou et reste supprimable jusqu’à ce que vous lui appliquiez l’immuabilité ci-dessous.",
+      "enabled_other": "Les sauvegardes écrites à partir de maintenant seront verrouillées. Les {{count}} points de restauration déjà stockés ont été écrits sans verrou et restent supprimables jusqu’à ce que vous leur appliquiez l’immuabilité ci-dessous.",
+      "strengthened_zero": "Le paramètre renforcé — période plus longue, mode plus strict, ou les deux — s’applique aux sauvegardes écrites à partir de maintenant.",
+      "strengthened_one": "Le paramètre renforcé — période plus longue, mode plus strict, ou les deux — s’applique aux sauvegardes écrites à partir de maintenant. Le {{count}} point de restauration déjà stocké conserve le verrou avec lequel il a été écrit : un verrou déjà écrit n’est jamais prolongé ni renforcé par un changement de paramètre. Appliquez-lui l’immuabilité ci-dessous pour le placer sous le nouveau.",
+      "strengthened_other": "Le paramètre renforcé — période plus longue, mode plus strict, ou les deux — s’applique aux sauvegardes écrites à partir de maintenant. Les {{count}} points de restauration déjà stockés conservent les verrous avec lesquels ils ont été écrits : un verrou déjà écrit n’est jamais prolongé ni renforcé par un changement de paramètre. Appliquez-leur l’immuabilité ci-dessous pour les placer sous le nouveau.",
+      "relaxed": "Cela n’affecte que les sauvegardes écrites à partir de maintenant. Une rétention Object Lock déjà écrite ne peut jamais être raccourcie ni supprimée : tout ce qui est déjà stocké reste verrouillé pour sa période initiale complète.",
+      "disabled": "Les sauvegardes écrites à partir de maintenant ne seront PAS verrouillées et pourront être supprimées ou écrasées. Ce qui a déjà été écrit sous un verrou le reste jusqu’à son expiration."
+    },
+    "effect": {
+      "title": "Ce que cela fait",
+      "limitationsTitle": "Ce que cela ne couvre pas",
+      "warningsTitle": "Conflits avec les tâches qui écrivent ici",
+      "existingProtected_one": "{{count}} point de restauration stocké relève de la configuration actuelle.",
+      "existingProtected_other": "{{count}} points de restauration stockés relèvent de la configuration actuelle.",
+      "existingUnprotected_one": "{{count}} point de restauration stocké n’est pas couvert par la configuration actuelle.",
+      "existingUnprotected_other": "{{count}} points de restauration stockés ne sont pas couverts par la configuration actuelle."
+    },
+    "apply": {
+      "title": "Sauvegardes stockées",
+      "description_one": "{{count}} point de restauration est déjà stocké ici. Modifier le paramètre ci-dessus ne le touche jamais ; ceci le place sous le verrou actuel, compté à partir de maintenant et non de son écriture.",
+      "description_other": "{{count}} points de restauration sont déjà stockés ici. Modifier le paramètre ci-dessus ne les touche jamais ; ceci les place sous le verrou actuel, compté à partir de maintenant et non de leur écriture.",
+      "action": "Appliquer aux sauvegardes stockées",
+      "needsEnabled": "Activez et enregistrez l’immuabilité avant de pouvoir l’appliquer aux sauvegardes stockées.",
+      "needsSaved": "Enregistrez d’abord la modification ci-dessus — ceci applique le paramètre enregistré du référentiel, pas le brouillon.",
+      "confirm_one": "Verrouille {{count}} point de restauration stocké en mode {{mode}} pendant {{days}} jours, compté à partir de maintenant. En mode compliance, personne ne peut l’annuler, et le stockage est payé jusqu’à son expiration.",
+      "confirm_other": "Verrouille {{count}} points de restauration stockés en mode {{mode}} pendant {{days}} jours, compté à partir de maintenant. En mode compliance, personne ne peut l’annuler, et le stockage est payé jusqu’à son expiration.",
+      "confirmAction": "Verrouiller les sauvegardes stockées",
+      "toast": {
+        "done": "Sauvegardes stockées verrouillées",
+        "failed": "Impossible de verrouiller les sauvegardes stockées"
+      }
+    },
+    "toast": {
+      "existingNotCovered": {
+        "title": "{{name}} créé avec l’immuabilité activée",
+        "description_one": "{{count}} sauvegarde déjà présente dans ce bucket a été écrite sans verrou et n’est pas couverte. Appliquez-lui l’immuabilité depuis les paramètres du référentiel.",
+        "description_other": "{{count}} sauvegardes déjà présentes dans ce bucket ont été écrites sans verrou et ne sont pas couvertes. Appliquez-leur l’immuabilité depuis les paramètres du référentiel."
+      }
+    }
+  },
+  "validation": {
+    "passedChecks_one": "{{count}} vérification réussie",
+    "passedChecks_other": "{{count}} vérifications réussies",
+    "check": {
+      "unknown": "{{name}}",
+      "bucket": "Bucket",
+      "region": "Région",
+      "endpoint_url": "URL du point de terminaison",
+      "endpoint_reachable": "Point de terminaison joignable",
+      "connectivity": "Accès au bucket",
+      "object_lock": "Object Lock sur le bucket",
+      "versioning": "Versionnage du bucket",
+      "immutability": "Immuabilité",
+      "immutability_mode": "Mode de verrouillage",
+      "retention_period": "Période de rétention",
+      "write_retention": "Écriture verrouillée",
+      "retention_readback": "Rétention relue",
+      "worm_enforcement": "Suppression refusée",
+      "block_consistency": "Intégrité des sauvegardes"
+    }
+  },
   "compression": {
     "none": {
       "label": "Aucune",
@@ -85,6 +161,8 @@
     "editSettings": "Modifier les paramètres",
     "scanning": "Analyse en cours…",
     "rescan": "Réanalyser / vérifier l'intégrité",
+    "verify": "Vérifier le référentiel",
+    "verifying": "Vérification…",
     "exitMaintenance": "Quitter la maintenance",
     "enterMaintenance": "Passer en maintenance",
     "delete": "Supprimer le référentiel"
@@ -97,6 +175,12 @@
     "rescanFailed": {
       "title": "Impossible de démarrer l'analyse d'intégrité",
       "description": "{{name}} n'a pas pu être analysé. Réessayez dans un instant."
+    },
+    "verifyOk": {
+      "title": "{{name}} vérifié"
+    },
+    "verifyFailed": {
+      "title": "{{name}} a échoué à la validation"
     },
     "maintenanceOn": {
       "title": "Mode maintenance activé",
@@ -118,6 +202,7 @@
     "threatLocked": "Verrouillé par menace",
     "maintenance": "Maintenance",
     "scanningIntegrity": "Analyse de l'intégrité",
+    "verifying": "Vérification",
     "capacityOfFree": "sur {{capacity}} · {{free}} libres",
     "elasticNote": "Stockage élastique · pas de capacité fixe",
     "percentUsed": "{{pct}} % utilisés",
@@ -133,6 +218,13 @@
     "threatLockedTitle": "Verrouillé par menace · scellé par la réponse aux menaces",
     "threatLockedBody": "Ce référentiel conserve les points de restauration de {{names}}, actuellement sous investigation active pour menace. Tout point immuable ici reste protégé. Le scellement se lève automatiquement lorsque la menace est contenue ou écartée.",
     "storagePath": "Chemin de stockage",
+    "immutability": "Immuabilité",
+    "immutabilityOff": "Désactivée — les sauvegardes restent supprimables",
+    "immutabilityConfiguredNote_zero": "Il s’agit du paramètre configuré. Lancez « Vérifier le référentiel » pour confirmer que le bucket l’applique réellement.",
+    "immutabilityConfiguredNote_one": "Il s’agit du paramètre configuré ; il s’applique aux sauvegardes écrites à partir de maintenant. {{count}} point de restauration déjà stocké conserve le verrou avec lequel il a été écrit. Lancez « Vérifier le référentiel » pour confirmer son application.",
+    "immutabilityConfiguredNote_other": "Il s’agit du paramètre configuré ; il s’applique aux sauvegardes écrites à partir de maintenant. {{count}} points de restauration déjà stockés conservent le verrou avec lequel ils ont été écrits. Lancez « Vérifier le référentiel » pour confirmer son application.",
+    "immutabilityOffNote": "Les sauvegardes écrites ici peuvent être supprimées ou écrasées. Activez Object Lock via « Modifier les paramètres ».",
+    "validationTitle": "Validation",
     "shareAccount": "Compte de partage",
     "storageMode": "Mode de stockage",
     "directNoDedup": "Direct (sans déduplication)",
@@ -168,7 +260,8 @@
         "title": "Référentiel ajouté",
         "smbDedup": "{{name}} — monté, dédupliqué, prêt à recevoir des sauvegardes.",
         "smbDirect": "{{name}} — monté, direct (sans déduplication), prêt à recevoir des sauvegardes.",
-        "ready": "{{name}} — {{size}} prêts à recevoir des sauvegardes."
+        "ready": "{{name}} — {{size}} prêts à recevoir des sauvegardes.",
+        "readyElastic": "{{name}} — stockage élastique, prêt à recevoir des sauvegardes."
       }
     },
     "trigger": "Ajouter un référentiel",
@@ -216,6 +309,23 @@
       "secretKeyRequired": "Saisissez une clé d’accès secrète.",
       "verifyTlsLabel": "Vérifier le certificat TLS",
       "verifyTlsAria": "Vérifier le certificat TLS du point de terminaison",
+      "immutability": {
+        "label": "Sauvegardes immuables (Object Lock)",
+        "hint": "Chaque sauvegarde écrite ici est verrouillée dans le bucket pendant la période de rétention et ne peut être ni supprimée ni écrasée avant son expiration — ni par cette appliance, ni par quiconque s’empare de ses identifiants.",
+        "aria": "Écrire les sauvegardes sous rétention S3 Object Lock",
+        "modeLabel": "Mode de verrouillage",
+        "mode": {
+          "governance": "Governance",
+          "compliance": "Compliance"
+        },
+        "modeHint": {
+          "governance": "Un compte disposant de l’autorisation de contournement peut encore lever un verrou en avance. Protège d’un compte de sauvegarde compromis tout en laissant une issue à un administrateur délibéré.",
+          "compliance": "Personne ne peut raccourcir ni retirer un verrou avant son expiration — ni l’appliance, ni le compte racine. Le stockage est payé jusqu’à l’expiration du dernier verrou."
+        },
+        "retentionLabel": "Verrouiller pendant (jours)",
+        "retentionInvalid": "Saisissez un nombre entier de jours compris entre 1 et {{max}}.",
+        "existingNote": "S’applique aux sauvegardes écrites à partir de maintenant. Les sauvegardes déjà présentes dans le bucket n’en sont pas verrouillées — appliquez-le-leur depuis les paramètres du référentiel une fois celui-ci créé."
+      },
       "test": "Tester la connexion",
       "testing": "Test en cours…"
     }

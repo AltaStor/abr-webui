@@ -13,7 +13,7 @@ import { TimeStamp } from "@/components/TimeStamp";
 import { SESSION_META, toneFg } from "@/lib/status";
 import { formatDateTime, formatDuration, formatRelative, formatStorage, formatThroughput } from "@/lib/format";
 import { useWorldStore } from "@/store/world";
-import { runKind } from "@/features/activity/lib";
+import { isVerify, runKind } from "@/features/activity/lib";
 
 export function LiveActivityPanel() {
   const { t } = useTranslation("dashboard");
@@ -117,13 +117,18 @@ export function LiveActivityPanel() {
                     <span className="truncate" title={s.stageMessage}>
                       {s.stageMessage ?? t("live.processing", { name: current })}
                     </span>
-                    <span className="flex shrink-0 items-center gap-3 nums">
-                      <span className="flex items-center gap-1">
-                        <Gauge className="h-3 w-3" />
-                        {formatThroughput(s.throughputMBps)}
+                    {/* A verification moves no data — the appliance reports only
+                        percent for it, so the rate and read figures are dropped
+                        rather than shown as a permanent "0.0 MB/s · 0 GB". */}
+                    {!isVerify(s) && (
+                      <span className="flex shrink-0 items-center gap-3 nums">
+                        <span className="flex items-center gap-1">
+                          <Gauge className="h-3 w-3" />
+                          {formatThroughput(s.throughputMBps)}
+                        </span>
+                        <span>{formatStorage(s.processedGB)}</span>
                       </span>
-                      <span>{formatStorage(s.processedGB)}</span>
-                    </span>
+                    )}
                   </div>
                 </motion.div>
               );

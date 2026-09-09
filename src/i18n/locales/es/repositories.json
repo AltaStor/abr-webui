@@ -66,6 +66,82 @@
       "blurb": "Este repositorio aún no ha pasado una comprobación de integridad."
     }
   },
+  "immutability": {
+    "summary": "Bloqueo {{mode}} · {{days}} días",
+    "mode": {
+      "governance": "Governance",
+      "compliance": "Compliance"
+    },
+    "currentLabel": "Actualmente",
+    "unsupported": "Este backend de almacenamiento no tiene Object Lock, así que no se puede configurar la inmutabilidad. Los repositorios de almacenamiento de objetos (S3) sí pueden bloquear cada copia que reciben.",
+    "validate": "Validar contra el bucket",
+    "validating": "Validando…",
+    "validateHint": "Escribe un objeto de prueba bloqueado, vuelve a leer su retención e intenta eliminarlo: la única forma de saber si el bucket aplica realmente lo configurado aquí.",
+    "validateDirtyHint": "Valida la configuración GUARDADA, no el cambio de arriba. Guarda primero para comprobar la nueva.",
+    "change": {
+      "unchanged": "",
+      "enabled_zero": "Las copias escritas de ahora en adelante quedarán bloqueadas. Aquí todavía no hay nada almacenado, así que no queda nada atrás.",
+      "enabled_one": "Las copias escritas de ahora en adelante quedarán bloqueadas. El {{count}} punto de restauración ya almacenado se escribió sin bloqueo y se podrá eliminar hasta que le apliques la inmutabilidad abajo.",
+      "enabled_other": "Las copias escritas de ahora en adelante quedarán bloqueadas. Los {{count}} puntos de restauración ya almacenados se escribieron sin bloqueo y se podrán eliminar hasta que les apliques la inmutabilidad abajo.",
+      "strengthened_zero": "La configuración más estricta —un periodo más largo, un modo más severo o ambos— se aplica a las copias escritas de ahora en adelante.",
+      "strengthened_one": "La configuración más estricta —un periodo más largo, un modo más severo o ambos— se aplica a las copias escritas de ahora en adelante. El {{count}} punto de restauración ya almacenado conserva el bloqueo con el que se escribió: un bloqueo ya escrito nunca se amplía ni se endurece con un cambio de configuración. Aplícale la inmutabilidad abajo para acogerlo al nuevo.",
+      "strengthened_other": "La configuración más estricta —un periodo más largo, un modo más severo o ambos— se aplica a las copias escritas de ahora en adelante. Los {{count}} puntos de restauración ya almacenados conservan los bloqueos con los que se escribieron: un bloqueo ya escrito nunca se amplía ni se endurece con un cambio de configuración. Aplícales la inmutabilidad abajo para acogerlos al nuevo.",
+      "relaxed": "Esto solo afecta a las copias escritas de ahora en adelante. La retención de Object Lock ya escrita nunca se puede acortar ni eliminar, así que todo lo ya almacenado sigue bloqueado durante su periodo original completo.",
+      "disabled": "Las copias escritas de ahora en adelante NO quedarán bloqueadas y se podrán eliminar o sobrescribir. Lo ya escrito bajo un bloqueo sigue bloqueado hasta que este caduque."
+    },
+    "effect": {
+      "title": "Qué hace esto",
+      "limitationsTitle": "Qué no cubre",
+      "warningsTitle": "Conflictos con los trabajos que escriben aquí",
+      "existingProtected_one": "{{count}} punto de restauración almacenado está bajo la configuración actual.",
+      "existingProtected_other": "{{count}} puntos de restauración almacenados están bajo la configuración actual.",
+      "existingUnprotected_one": "{{count}} punto de restauración almacenado no está cubierto por la configuración actual.",
+      "existingUnprotected_other": "{{count}} puntos de restauración almacenados no están cubiertos por la configuración actual."
+    },
+    "apply": {
+      "title": "Copias almacenadas",
+      "description_one": "Ya hay {{count}} punto de restauración almacenado aquí. Cambiar la configuración de arriba nunca lo toca; esto lo acoge al bloqueo actual, contado desde ahora y no desde cuando se escribió.",
+      "description_other": "Ya hay {{count}} puntos de restauración almacenados aquí. Cambiar la configuración de arriba nunca los toca; esto los acoge al bloqueo actual, contado desde ahora y no desde cuando se escribieron.",
+      "action": "Aplicar a las copias almacenadas",
+      "needsEnabled": "Activa y guarda la inmutabilidad antes de poder aplicarla a las copias almacenadas.",
+      "needsSaved": "Guarda primero el cambio de arriba: esto aplica la configuración guardada del repositorio, no el borrador.",
+      "confirm_one": "Bloquea {{count}} punto de restauración almacenado en modo {{mode}} durante {{days}} días, contados desde ahora. En modo compliance nadie puede deshacerlo, y el almacenamiento se paga hasta que caduque.",
+      "confirm_other": "Bloquea {{count}} puntos de restauración almacenados en modo {{mode}} durante {{days}} días, contados desde ahora. En modo compliance nadie puede deshacerlo, y el almacenamiento se paga hasta que caduque.",
+      "confirmAction": "Bloquear copias almacenadas",
+      "toast": {
+        "done": "Copias almacenadas bloqueadas",
+        "failed": "No se pudieron bloquear las copias almacenadas"
+      }
+    },
+    "toast": {
+      "existingNotCovered": {
+        "title": "{{name}} creado con la inmutabilidad activada",
+        "description_one": "{{count}} copia que ya estaba en este bucket se escribió sin bloqueo y no está cubierta. Aplícale la inmutabilidad desde la configuración del repositorio.",
+        "description_other": "{{count}} copias que ya estaban en este bucket se escribieron sin bloqueo y no están cubiertas. Aplícales la inmutabilidad desde la configuración del repositorio."
+      }
+    }
+  },
+  "validation": {
+    "passedChecks_one": "{{count}} comprobación superada",
+    "passedChecks_other": "{{count}} comprobaciones superadas",
+    "check": {
+      "unknown": "{{name}}",
+      "bucket": "Bucket",
+      "region": "Región",
+      "endpoint_url": "URL del endpoint",
+      "endpoint_reachable": "Endpoint accesible",
+      "connectivity": "Acceso al bucket",
+      "object_lock": "Object Lock en el bucket",
+      "versioning": "Versionado del bucket",
+      "immutability": "Inmutabilidad",
+      "immutability_mode": "Modo de bloqueo",
+      "retention_period": "Periodo de retención",
+      "write_retention": "Escritura bloqueada",
+      "retention_readback": "Retención releída",
+      "worm_enforcement": "Eliminación rechazada",
+      "block_consistency": "Integridad de las copias"
+    }
+  },
   "compression": {
     "none": {
       "label": "Ninguna",
@@ -85,6 +161,8 @@
     "editSettings": "Editar ajustes",
     "scanning": "Analizando…",
     "rescan": "Reanalizar / verificar integridad",
+    "verify": "Verificar repositorio",
+    "verifying": "Verificando…",
     "exitMaintenance": "Salir de mantenimiento",
     "enterMaintenance": "Entrar en mantenimiento",
     "delete": "Eliminar repositorio"
@@ -97,6 +175,12 @@
     "rescanFailed": {
       "title": "No se pudo iniciar el análisis de integridad",
       "description": "No se pudo analizar {{name}}. Vuelva a intentarlo en un momento."
+    },
+    "verifyOk": {
+      "title": "{{name}} verificado"
+    },
+    "verifyFailed": {
+      "title": "{{name}} no superó la validación"
     },
     "maintenanceOn": {
       "title": "Modo de mantenimiento activado",
@@ -118,6 +202,7 @@
     "threatLocked": "Bloqueado por amenaza",
     "maintenance": "Mantenimiento",
     "scanningIntegrity": "Analizando integridad",
+    "verifying": "Verificando",
     "capacityOfFree": "de {{capacity}} · {{free}} libres",
     "elasticNote": "Almacenamiento elástico · sin capacidad fija",
     "percentUsed": "{{pct}} % usado",
@@ -133,6 +218,13 @@
     "threatLockedTitle": "Bloqueado por amenaza · sellado por respuesta a amenazas",
     "threatLockedBody": "Este repositorio conserva puntos de restauración para {{names}}, actualmente bajo investigación activa de amenazas. Cualquier punto inmutable aquí permanece protegido. El sellado se levanta automáticamente cuando la amenaza se contiene o se descarta.",
     "storagePath": "Ruta de almacenamiento",
+    "immutability": "Inmutabilidad",
+    "immutabilityOff": "Desactivada: las copias siguen siendo eliminables",
+    "immutabilityConfiguredNote_zero": "Esta es la configuración establecida. Ejecuta «Verificar repositorio» para confirmar que el bucket realmente la aplica.",
+    "immutabilityConfiguredNote_one": "Esta es la configuración establecida y se aplica a las copias escritas de ahora en adelante. {{count}} punto de restauración ya almacenado conserva el bloqueo con el que se escribió. Ejecuta «Verificar repositorio» para confirmar que el bucket la aplica.",
+    "immutabilityConfiguredNote_other": "Esta es la configuración establecida y se aplica a las copias escritas de ahora en adelante. {{count}} puntos de restauración ya almacenados conservan el bloqueo con el que se escribieron. Ejecuta «Verificar repositorio» para confirmar que el bucket la aplica.",
+    "immutabilityOffNote": "Las copias escritas aquí se pueden eliminar o sobrescribir. Activa Object Lock en «Editar configuración».",
+    "validationTitle": "Validación",
     "shareAccount": "Cuenta del recurso compartido",
     "storageMode": "Modo de almacenamiento",
     "directNoDedup": "Directo (sin deduplicación)",
@@ -168,7 +260,8 @@
         "title": "Repositorio añadido",
         "smbDedup": "{{name}} — montado, deduplicado, listo para recibir copias de seguridad.",
         "smbDirect": "{{name}} — montado, directo (sin deduplicación), listo para recibir copias de seguridad.",
-        "ready": "{{name}} — {{size}} listos para recibir copias de seguridad."
+        "ready": "{{name}} — {{size}} listos para recibir copias de seguridad.",
+        "readyElastic": "{{name}} — almacenamiento elástico, listo para recibir copias de seguridad."
       }
     },
     "trigger": "Añadir repositorio",
@@ -216,6 +309,23 @@
       "secretKeyRequired": "Introduzca una clave de acceso secreta.",
       "verifyTlsLabel": "Verificar el certificado TLS",
       "verifyTlsAria": "Verificar el certificado TLS del endpoint",
+      "immutability": {
+        "label": "Copias de seguridad inmutables (Object Lock)",
+        "hint": "Cada copia escrita aquí queda bloqueada en el bucket durante el periodo de retención y no puede eliminarse ni sobrescribirse hasta que expire: ni por esta appliance ni por quien se haga con sus credenciales.",
+        "aria": "Escribir copias de seguridad con retención de S3 Object Lock",
+        "modeLabel": "Modo de bloqueo",
+        "mode": {
+          "governance": "Governance",
+          "compliance": "Compliance"
+        },
+        "modeHint": {
+          "governance": "Una cuenta con el permiso de omisión aún puede levantar un bloqueo antes de tiempo. Protege frente a una cuenta de copia comprometida y deja una salida a un administrador deliberado.",
+          "compliance": "Nadie puede acortar ni retirar un bloqueo antes de que expire: ni la appliance ni la cuenta raíz. El almacenamiento se paga hasta que caduque el último bloqueo."
+        },
+        "retentionLabel": "Bloquear durante (días)",
+        "retentionInvalid": "Introduzca un número entero de días entre 1 y {{max}}.",
+        "existingNote": "Se aplica a las copias escritas de ahora en adelante. Las copias que ya están en el bucket no quedan bloqueadas por esto: aplícaselo desde la configuración del repositorio una vez creado."
+      },
       "test": "Probar la conexión",
       "testing": "Probando…"
     }

@@ -6,6 +6,7 @@ import {
   MoreHorizontal,
   Pencil,
   RefreshCw,
+  ShieldCheck,
   Trash2,
 } from "@/lib/icons";
 import { Button } from "@/components/ui/button";
@@ -20,12 +21,18 @@ import {
 export interface RepositoryActions {
   onEdit: () => void;
   onRescan: () => void;
+  /** Full repository validation — reachable, Object Lock still as configured,
+   *  stored backups still consistent. Distinct from rescan, which only re-reads
+   *  the catalog to find what is there. */
+  onVerify: () => void;
   onDelete: () => void;
 }
 
 interface RepositoryActionsMenuProps extends RepositoryActions {
   /** Disables the rescan item while a transient scan is in flight. */
   scanning?: boolean;
+  /** Disables the verify item while a validation is in flight. */
+  verifying?: boolean;
   /** Visual size of the trigger; card uses the small overlay, dialog uses default. */
   triggerSize?: "sm" | "default";
   repoName: string;
@@ -39,8 +46,10 @@ interface RepositoryActionsMenuProps extends RepositoryActions {
 export function RepositoryActionsMenu({
   onEdit,
   onRescan,
+  onVerify,
   onDelete,
   scanning = false,
+  verifying = false,
   triggerSize = "default",
   repoName,
 }: RepositoryActionsMenuProps) {
@@ -69,6 +78,10 @@ export function RepositoryActionsMenu({
         <DropdownMenuItem onSelect={onRescan} disabled={scanning}>
           <RefreshCw className={scanning ? "h-4 w-4 animate-spin" : "h-4 w-4"} />
           {scanning ? t("actions.scanning") : t("actions.rescan")}
+        </DropdownMenuItem>
+        <DropdownMenuItem onSelect={onVerify} disabled={verifying}>
+          <ShieldCheck className={verifying ? "h-4 w-4 animate-pulse" : "h-4 w-4"} />
+          {verifying ? t("actions.verifying") : t("actions.verify")}
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem destructive onSelect={onDelete}>

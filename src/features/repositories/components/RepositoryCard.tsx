@@ -2,7 +2,7 @@
 // Copyright © 2026 Norvitex OÜ
 
 import { useTranslation } from "react-i18next";
-import { Database, Layers, ShieldAlert } from "@/lib/icons";
+import { Database, Layers, Lock, ShieldAlert } from "@/lib/icons";
 import { cn } from "@/lib/utils";
 import { Metric } from "@/components/Metric";
 import { Sparkline } from "@/components/Sparkline";
@@ -11,7 +11,7 @@ import { useCapacityLevel } from "@/lib/capacity";
 import type { RepoThreatLock } from "@/lib/threatLock";
 import { formatStorage, usagePercent } from "@/lib/format";
 import type { Repository } from "@/types";
-import { REPO_STATUS_META, REPO_TYPE_META } from "./repoMeta";
+import { immutabilityLabel, REPO_STATUS_META, REPO_TYPE_META } from "./repoMeta";
 import { RepositoryActionsMenu, type RepositoryActions } from "./RepositoryActionsMenu";
 
 interface RepositoryCardProps {
@@ -21,6 +21,8 @@ interface RepositoryCardProps {
   onOpen: () => void;
   actions: RepositoryActions;
   scanning: boolean;
+  /** A full repository validation is in flight from this card's menu. */
+  verifying: boolean;
   /** Set when auto-lock-on-threat has sealed this repo (derived, presentational). */
   threatLock?: RepoThreatLock | null;
 }
@@ -32,6 +34,7 @@ export function RepositoryCard({
   onOpen,
   actions,
   scanning,
+  verifying,
   threatLock,
 }: RepositoryCardProps) {
   const { t } = useTranslation("repositories");
@@ -42,6 +45,9 @@ export function RepositoryCard({
   // ever gives a real "used" figure for it, so the percent bar and free-space
   // caption (which need a ceiling to mean anything) are skipped for it.
   const elastic = repo.capacityGB <= 0;
+  // Object Lock is the one repository setting that changes what happens to data
+  // after it is written, so it belongs on the card rather than two clicks in.
+  const lockLabel = immutabilityLabel(repo);
   const pct = usagePercent(repo.usedGB, repo.capacityGB);
   const freeGB = Math.max(0, repo.capacityGB - repo.usedGB);
   const level = useCapacityLevel(pct);
@@ -58,7 +64,13 @@ export function RepositoryCard({
       {/* Kebab overlay — a real button, sibling to the clickable body so it never
           nests interactive elements inside the card <button>. */}
       <div className="absolute right-3 top-3 z-20">
-        <RepositoryActionsMenu {...actions} scanning={scanning} triggerSize="sm" repoName={repo.name} />
+        <RepositoryActionsMenu
+          {...actions}
+          scanning={scanning}
+          verifying={verifying}
+          triggerSize="sm"
+          repoName={repo.name}
+        />
       </div>
 
       {/* Clickable body */}
@@ -84,9 +96,15 @@ export function RepositoryCard({
           <StatusPill meta={{ ...statusMeta, icon: Database }} size="sm" />
         </div>
 
-        {/* Status chips row: threat-lock / scanning */}
-        {(threatLock || scanning) && (
+        {/* Status chips row: immutability / threat-lock / scanning */}
+        {(lockLabel || threatLock || scanning || verifying) && (
           <div className="mt-3 flex flex-wrap items-center gap-1.5">
+            {lockLabel && (
+              <span className="inline-flex items-center gap-1 bg-immutable-subtle px-2 py-0.5 text-[11px] font-medium text-immutable-text">
+                <Lock className="h-3 w-3" />
+                {lockLabel}
+              </span>
+            )}
             {threatLock && (
               <span
                 className="inline-flex items-center gap-1 bg-danger-subtle px-2 py-0.5 text-[11px] font-medium text-danger-text"
@@ -100,6 +118,12 @@ export function RepositoryCard({
               <span className="inline-flex items-center gap-1 bg-info-subtle px-2 py-0.5 text-[11px] font-medium text-info-text">
                 <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-info" />
                 {t("card.scanningIntegrity")}
+              </span>
+            )}
+            {verifying && (
+              <span className="inline-flex items-center gap-1 bg-info-subtle px-2 py-0.5 text-[11px] font-medium text-info-text">
+                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-info" />
+                {t("card.verifying")}
               </span>
             )}
           </div>

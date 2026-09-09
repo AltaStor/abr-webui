@@ -5,6 +5,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { AlertTriangle, ArrowDown, ArrowUp, Database, History, Info, Search } from "@/lib/icons";
+import { toast } from "@/components/ui/sonner";
 import { Card } from "@/components/ui/card";
 import { KpiBand } from "@/components/KpiBand";
 import { KpiCard } from "@/components/KpiCard";
@@ -18,7 +19,7 @@ import {
 } from "@/components/ui/select";
 import { EmptyState } from "@/components/EmptyState";
 import { formatStorage } from "@/lib/format";
-import type { RestorePoint } from "@/types";
+import type { RestorePoint, Session } from "@/types";
 import {
   compressionRatioLabel,
   groupRestorePointsByJob,
@@ -37,6 +38,26 @@ type SortDir = "asc" | "desc";
 
 /** Groups auto-expand only for a small estate; above this, start collapsed. */
 const AUTO_EXPAND_LIMIT = 5;
+
+/**
+ * A verification the operator started here, followed until it settles.
+ *
+ * `verifyBackups` resolves once the runs have STARTED — the appliance verifies
+ * on its own thread and reports through the session feed — so the row's state
+ * has to be read back off those sessions rather than off the call.
+ */
+interface VerifyRun {
+  vmName: string;
+  sessionIds: string[];
+  /** ms, for the give-up below. */
+  startedAt: number;
+}
+
+/** How long to keep waiting for a started run to appear in the session feed
+ *  before letting the row go quiet. The runs are real either way — Activity is
+ *  where they live — so a feed that never catches up must not leave a spinner
+ *  turning for the rest of the session. */
+const VERIFY_FEED_GRACE_MS = 60_000;
 
 /**
  * The estate's stored backups, as a tree: job → VM → restore points (full and
@@ -62,6 +83,10 @@ export function BackupsTab() {
   const [scopeFilter, setScopeFilter] = useState<ScopeFilter>("all");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
   const [deleteTarget, setDeleteTarget] = useState<DeleteJobVmBackupsTarget | null>(null);
+  const [verifyRuns, setVerifyRuns] = useState<Record<string, VerifyRun>>({});
+
+  const verifyBackups = useWorldStore((s) => s.verifyBackups);
+  const sessions = useWorldStore((s) => s.sessions);
 
   const jobById = useMemo(() => new Map(jobs.map((j) => [j.id, j])), [jobs]);
   const offlineRepoIds = useMemo(
@@ -126,6 +151,76 @@ export function BackupsTab() {
       else next.add(key);
       return next;
     });
+
+  /* --------------------------- verification --------------------------- */
+  const handleVerifyVm = async (jobId: string, vm: RestorePointJobVmGroup) => {
+    const key = vmKey(jobId, vm.vmId);
+    if (verifyRuns[key]) return;
+    const result = await verifyBackups(vm.chainIds);
+    if (!result.ok) {
+      toast.error(t("backupsTab.verify.toast.failedToStart"), { description: result.message });
+      return;
+    }
+    toast.info(t("backupsTab.verify.toast.started", { vm: vm.name }), {
+      description: t("backupsTab.verify.toast.startedDesc", { count: vm.points.length }),
+    });
+    setVerifyRuns((prev) => ({
+      ...prev,
+      [key]: { vmName: vm.name, sessionIds: result.sessionIds, startedAt: Date.now() },
+    }));
+  };
+
+  /* Follow the runs started above through the session feed and report each one
+   * once it settles. Reading the outcome off the sessions rather than off the
+   * start call is the only honest option: the appliance verifies asynchronously,
+   * so the call itself knows nothing about what the check found. */
+  useEffect(() => {
+    const keys = Object.keys(verifyRuns);
+    if (keys.length === 0) return;
+    const settled: string[] = [];
+    for (const key of keys) {
+      const run = verifyRuns[key];
+      const found = run.sessionIds
+        .map((id) => sessions.find((s) => s.id === id))
+        .filter((s): s is Session => s !== undefined);
+      const visible = found.length === run.sessionIds.length;
+      if (!visible || found.some((s) => s.status === "running" || s.status === "queued")) {
+        // Give up quietly once the feed has clearly not caught up: the runs are
+        // still real and still in Activity, this row just stops claiming to
+        // know about them.
+        if (Date.now() - run.startedAt > VERIFY_FEED_GRACE_MS) settled.push(key);
+        continue;
+      }
+      settled.push(key);
+      const failed = found.filter((s) => s.status === "failed").length;
+      const warned = found.filter((s) => s.status === "warning").length;
+      if (failed > 0) {
+        toast.error(t("backupsTab.verify.toast.invalid", { vm: run.vmName }), {
+          description: found.find((s) => s.status === "failed")?.message,
+        });
+      } else if (warned > 0) {
+        toast.warning(t("backupsTab.verify.toast.warnings", { vm: run.vmName }), {
+          description: found.find((s) => s.status === "warning")?.message,
+        });
+      } else {
+        toast.success(t("backupsTab.verify.toast.valid", { vm: run.vmName }));
+      }
+    }
+    if (settled.length === 0) return;
+    setVerifyRuns((prev) => {
+      const next = { ...prev };
+      for (const key of settled) delete next[key];
+      return next;
+    });
+  }, [sessions, verifyRuns, t]);
+
+  /** VM ids under a given job with a verification in flight. */
+  const verifyingVmIdsFor = (jobId: string) =>
+    new Set(
+      Object.keys(verifyRuns)
+        .filter((key) => key.startsWith(`${jobId}:`))
+        .map((key) => key.slice(jobId.length + 1)),
+    );
 
   const totalPoints = groups.reduce((a, g) => a + g.points.length, 0);
   const totalStored = groups.reduce((a, g) => a + g.storedGB, 0);
@@ -301,6 +396,8 @@ export function BackupsTab() {
               onToggleVm={(vmId) => toggleVm(group.jobId, vmId)}
               sortDir={sortDir}
               offlineRepoIds={offlineRepoIds}
+              verifyingVmIds={verifyingVmIdsFor(group.jobId)}
+              onVerifyVm={(vm) => void handleVerifyVm(group.jobId, vm)}
               onRestoreVm={handleRestoreVm}
               onRestorePoint={handleRestorePoint}
               onDeleteVm={(vm) => setDeleteTarget({ jobName: group.jobName, vm })}

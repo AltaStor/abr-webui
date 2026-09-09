@@ -3,7 +3,7 @@
 
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { CheckCircle2, Loader2, Plus, Wifi, XCircle } from "@/lib/icons";
+import { Loader2, Plus, Wifi } from "@/lib/icons";
 import {
   Dialog,
   DialogClose,
@@ -29,8 +29,17 @@ import { toast } from "@/components/ui/sonner";
 import { cn } from "@/lib/utils";
 import { formatStorage } from "@/lib/format";
 import { useWorldStore } from "@/store/world";
-import type { RepositoryType, S3ConnectionTestResult } from "@/types";
+import type { ImmutabilityEffect, RepositoryType, S3ConnectionCheck, S3ConnectionTestResult } from "@/types";
 import { REPO_TYPE_META, REPOSITORY_NAME_MAX_LENGTH, REPOSITORY_NAME_PATTERN } from "./repoMeta";
+import { ImmutabilityFields } from "./ImmutabilityFields";
+import { ValidationResultPanel } from "./ValidationResultPanel";
+import {
+  DEFAULT_LOCK_DAYS,
+  DEFAULT_LOCK_MODE,
+  draftToImmutability,
+  draftValid,
+  type ImmutabilityDraft,
+} from "./immutability";
 
 /**
  * The only two backends the orchestrator can create: `createRepository` maps
@@ -88,8 +97,21 @@ export function AddRepositoryDialog() {
   const [accessKey, setAccessKey] = useState("");
   const [secretKey, setSecretKey] = useState("");
   const [verifyTls, setVerifyTls] = useState(true);
+  // Object Lock. Off by default: it makes backups undeletable for the whole
+  // period, which is a bill and a commitment nobody should acquire by accident.
+  const [lock, setLock] = useState<ImmutabilityDraft>({
+    enabled: false,
+    mode: DEFAULT_LOCK_MODE,
+    days: DEFAULT_LOCK_DAYS,
+  });
   const [testing, setTesting] = useState(false);
   const [testResult, setTestResult] = useState<S3ConnectionTestResult | null>(null);
+  /* What the appliance said when it refused the create. Its 422 for an unusable
+   * Object Lock configuration carries the individual probes that failed, and
+   * those are the actionable part — "the bucket has no Object Lock" and "the
+   * bucket's own default rule is stronger than what you asked for" need
+   * completely different fixes. */
+  const [createError, setCreateError] = useState<{ message: string; checks: S3ConnectionCheck[] } | null>(null);
   // A required field is only *wrong* once the operator has been to it and left
   // it empty. Without this the dialog opened with the bucket already outlined
   // in red and a refusal underneath it, before anything had been asked for.
@@ -113,6 +135,8 @@ export function AddRepositoryDialog() {
   const showEndpointError = endpointTouched && !endpointWellFormed;
   const showRequiredError = (field: S3RequiredField, valid: boolean) =>
     Boolean(touched[field]) && !valid;
+  const lockDaysOk = draftValid(lock);
+  const immutability = draftToImmutability(lock);
   const nameTrimmed = name.trim();
   const nameValid =
     nameTrimmed === "" ||
@@ -124,12 +148,12 @@ export function AddRepositoryDialog() {
   // appliance is certain to refuse with a 422. Buckets are elastic so capacity
   // isn't asked for; local capacity is read from the filesystem after creation.
   const formValid = isS3
-    ? bucketValid && regionValid && accessKeyValid && secretKeyValid && endpointWellFormed
+    ? bucketValid && regionValid && accessKeyValid && secretKeyValid && endpointWellFormed && lockDaysOk
     : true;
   const canSubmit = formValid && nameValid && !submitting;
   // The pre-create test goes through the same server-side validation, so it
   // needs the same fields before it can say anything useful.
-  const canTest = bucketValid && regionValid && endpointWellFormed && !testing;
+  const canTest = bucketValid && regionValid && endpointWellFormed && lockDaysOk && !testing;
 
   function reset() {
     setName("");
@@ -143,8 +167,10 @@ export function AddRepositoryDialog() {
     setAccessKey("");
     setSecretKey("");
     setVerifyTls(true);
+    setLock({ enabled: false, mode: DEFAULT_LOCK_MODE, days: DEFAULT_LOCK_DAYS });
     setTesting(false);
     setTestResult(null);
+    setCreateError(null);
     setTouched({});
     setEndpointTouched(false);
   }
@@ -154,6 +180,7 @@ export function AddRepositoryDialog() {
   function withResultCleared<A extends unknown[]>(setter: (...args: A) => void) {
     return (...args: A) => {
       setTestResult(null);
+      setCreateError(null);
       setter(...args);
     };
   }
@@ -171,6 +198,7 @@ export function AddRepositoryDialog() {
         accessKey: accessKey.trim(),
         secretKey,
         verifyTls,
+        immutability,
       });
       setTestResult(result);
     } finally {
@@ -183,7 +211,8 @@ export function AddRepositoryDialog() {
     if (!canSubmit) return;
     const label = name.trim() || t("add.defaultName");
     setSubmitting(true);
-    const repo = await createRepository({
+    setCreateError(null);
+    const result = await createRepository({
       name: label,
       type,
       path: isS3 ? `s3://${bucket.trim()}` : path.trim() || PATH_PLACEHOLDER[type],
@@ -197,26 +226,48 @@ export function AddRepositoryDialog() {
             accessKey: accessKey.trim(),
             secretKey,
             verifyTls,
+            immutability,
           }
         : undefined,
     });
     setSubmitting(false);
-    if (!repo) {
-      toast.error(t("add.toast.failed.title"), {
-        description: isS3
-          ? t("add.toast.failed.s3Description")
-          : t("add.toast.failed.description"),
-      });
+    if (!result.ok) {
+      // Kept in the dialog rather than fired off as a toast: the operator has
+      // to change a field in front of them to fix this, and a refusal that
+      // names a failing probe deserves more than four seconds on screen.
+      setCreateError({ message: result.message, checks: result.checks });
+      toast.error(t("add.toast.failed.title"), { description: result.message });
       return;
     }
+    const repo = result.repository;
     toast.success(t("add.toast.added.title"), {
-      description: t("add.toast.added.ready", {
-        name: repo.name,
-        size: formatStorage(repo.capacityGB, 0),
-      }),
+      // Object storage reports no capacity, so quoting one read "0 MB ready to
+      // receive backups" on every S3 repository — the same zero the job pages
+      // used to print. There is no ceiling to name here, so don't name one.
+      description:
+        repo.capacityGB > 0
+          ? t("add.toast.added.ready", { name: repo.name, size: formatStorage(repo.capacityGB, 0) })
+          : t("add.toast.added.readyElastic", { name: repo.name }),
     });
+    // A repository created WITH Object Lock on, into a bucket that may already
+    // hold backups, has some data locked and some not. The appliance says which
+    // in its effect report, and that is worth more than a toast — carry it into
+    // a second toast rather than dropping it on the floor.
+    reportImmutabilityEffect(result.immutabilityEffect, repo.name);
     setOpen(false);
     reset();
+  }
+
+  /** Surfaces the limitations half of the appliance's effect report after a
+   *  successful create — the dialog is closing, so anything that still needs
+   *  saying has to travel with the toast. */
+  function reportImmutabilityEffect(effect: ImmutabilityEffect | null, repoName: string) {
+    if (!effect || effect.existingRestorePoints === 0) return;
+    toast.warning(t("immutability.toast.existingNotCovered.title", { name: repoName }), {
+      description: t("immutability.toast.existingNotCovered.description", {
+        count: effect.existingRestorePoints,
+      }),
+    });
   }
 
   return (
@@ -392,6 +443,24 @@ export function AddRepositoryDialog() {
                 />
               </div>
 
+              {/* Object Lock. Its own bordered block, not another line in the
+                  credential list: it is the one setting here that changes what
+                  happens to data after it is written, and it cannot be undone
+                  for backups already stored under it. */}
+              <div className="border-t border-border pt-3">
+                <ImmutabilityFields
+                  idPrefix="repo"
+                  draft={lock}
+                  onChange={(next) => withResultCleared(setLock)(next)}
+                >
+                  {lock.enabled && (
+                    <p className="text-[11px] leading-relaxed text-muted-foreground">
+                      {t("add.s3.immutability.existingNote")}
+                    </p>
+                  )}
+                </ImmutabilityFields>
+              </div>
+
               <div className="space-y-2 border-t border-border pt-3">
                 <Button
                   type="button"
@@ -409,34 +478,11 @@ export function AddRepositoryDialog() {
                   {testing ? t("add.s3.testing") : t("add.s3.test")}
                 </Button>
                 {testResult && (
-                  <div
-                    className={cn(
-                      "flex items-start gap-2 px-3 py-2.5 text-xs",
-                      testResult.ok
-                        ? "bg-success-subtle text-success-text"
-                        : "bg-danger-subtle text-danger-text",
-                    )}
-                  >
-                    {testResult.ok ? (
-                      <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-                    ) : (
-                      <XCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-                    )}
-                    <div className="min-w-0">
-                      <p className="font-medium">{testResult.message}</p>
-                      {testResult.checks.some((c) => c.status === "failed") && (
-                        <ul className="mt-1 space-y-0.5 text-[11px] opacity-90">
-                          {testResult.checks
-                            .filter((c) => c.status === "failed" && c.message)
-                            .map((c) => (
-                              <li key={c.name} className="break-words">
-                                {c.message}
-                              </li>
-                            ))}
-                        </ul>
-                      )}
-                    </div>
-                  </div>
+                  <ValidationResultPanel
+                    ok={testResult.ok}
+                    message={testResult.message}
+                    checks={testResult.checks}
+                  />
                 )}
               </div>
             </div>
@@ -452,6 +498,10 @@ export function AddRepositoryDialog() {
                 spellCheck={false}
               />
             </div>
+          )}
+
+          {createError && (
+            <ValidationResultPanel ok={false} message={createError.message} checks={createError.checks} />
           )}
 
           <DialogFooter>
