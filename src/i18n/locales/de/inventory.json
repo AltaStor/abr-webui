@@ -391,7 +391,10 @@
     "error": "Der Orchestrator hat die Registrierung abgelehnt. Prüfen Sie Adresse und Anmeldedaten.",
     "toast": {
       "registered": "{{platform}} registriert",
-      "registeredDesc": "VMs auf {{endpoint}} werden erkannt…",
+      "discovering": "{{platform}}-Bestand wird erfasst",
+      "discoveringDesc": "{{endpoint}} wird nach VMs durchsucht. Sie können weiterarbeiten.",
+      "discoveredDesc_one": "{{endpoint}} · {{count}} VM erkannt",
+      "discoveredDesc_other": "{{endpoint}} · {{count}} VMs erkannt",
       "discoveryFailed": "{{platform}} registriert, aber die Erkennung ist fehlgeschlagen"
     }
   },

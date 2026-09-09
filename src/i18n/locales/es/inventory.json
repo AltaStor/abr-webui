@@ -391,7 +391,10 @@
     "error": "El orquestador rechazó el registro. Compruebe la dirección y las credenciales.",
     "toast": {
       "registered": "{{platform}} registrado",
-      "registeredDesc": "Detectando VMs en {{endpoint}}…",
+      "discovering": "Detectando el inventario de {{platform}}",
+      "discoveringDesc": "Analizando {{endpoint}} en busca de VMs. Puedes seguir trabajando.",
+      "discoveredDesc_one": "{{endpoint}} · {{count}} VM detectada",
+      "discoveredDesc_other": "{{endpoint}} · {{count}} VMs detectadas",
       "discoveryFailed": "{{platform}} registrado, pero la detección falló"
     }
   },

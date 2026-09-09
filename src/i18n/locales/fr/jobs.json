@@ -48,7 +48,8 @@
   "retention": {
     "days_one": "{{count}} jour",
     "days_other": "{{count}} jours",
-    "withGfs": "{{base}} · GFS {{tail}}"
+    "withGfs": "{{base}} · GFS {{tail}}",
+    "withGfsSuspended": "{{base}} · GFS {{tail}} (suspendu)"
   },
   "type": {
     "replication": "Réplication",
@@ -174,11 +175,12 @@
   },
   "filters": {
     "status": {
-      "all": "Tous les statuts",
-      "running": "En cours",
-      "healthy": "Sain",
-      "warning": "Attention requise",
-      "disabled": "Désactivée"
+      "all": "Tous les statuts"
+    },
+    "schedule": {
+      "all": "Toutes les planifications",
+      "enabled": "Planification activée",
+      "disabled": "Planification désactivée"
     }
   },
   "table": {
@@ -200,7 +202,7 @@
     "lastRunRunningSince": "En cours depuis {{value}}",
     "lastRunStarted": "Début : {{value}}",
     "lastRunStatus": "Statut de la dernière exécution",
-    "lastRunStatusHint": "Résultat de l’exécution la plus récente. « Désactivée » signifie que la tâche est désactivée et ne suivra pas sa planification.",
+    "lastRunStatusHint": "Résultat de l’exécution la plus récente : Réussite, Avertissement, Échec, En cours, En file d’attente, ou « Jamais exécutée » pour une tâche qui n’a pas encore été exécutée. L’activation de la tâche est indiquée dans la colonne Planification.",
     "nextRunHint": "Prochain démarrage planifié. Une exécution manuelle ne le modifie pas.",
     "scheduleHint": "Quand la tâche démarre d’elle-même. Les tâches désactivées conservent leur planification mais l’ignorent.",
     "repositoryHint": "Où sont stockées les sauvegardes de cette tâche. Un bouclier signale un référentiel immuable.",
@@ -223,7 +225,8 @@
   "toolbar": {
     "searchPlaceholder": "Rechercher des tâches par nom ou périmètre…",
     "searchLabel": "Rechercher des tâches",
-    "filterByStatus": "Filtrer par statut"
+    "filterByStatus": "Filtrer par statut de la dernière exécution",
+    "filterBySchedule": "Filtrer par état de planification"
   },
   "bulk": {
     "selected": "{{count}} sélectionné(s)",
@@ -456,6 +459,9 @@
     "fileHealth": "État des fichiers",
     "retentionTitle": "Rétention",
     "keep": "Conserver",
+    "gfsProtection": "Protection GFS",
+    "gfsActive": "Active",
+    "gfsSuspended": "Suspendue",
     "gfsWeekly": "Hebdomadaire (GFS)",
     "gfsMonthly": "Mensuel (GFS)",
     "gfsYearly": "Annuel (GFS)",
@@ -611,6 +617,21 @@
     "restoreVmAria": "Restaurer {{vm}} depuis {{job}}",
     "deleteVmAria": "Supprimer la sauvegarde de {{vm}} issue de {{job}}",
     "deleteVmTip": "Supprimer la sauvegarde de cette VM issue de cette tâche",
+    "verify": {
+      "tip": "Vérifier la sauvegarde de cette VM — relit chaque artefact stocké et le confronte au catalogue",
+      "aria": "Vérifier la sauvegarde de {{vm}} issue de {{job}}",
+      "running": "Vérification",
+      "runningTip": "Un contrôle d’intégrité est en cours sur la sauvegarde stockée de cette VM. Suivez-le sur la page Activité.",
+      "toast": {
+        "started": "Vérification de {{vm}}",
+        "startedDesc_one": "Relecture de {{count}} point de restauration. Suivez-la sur la page Activité.",
+        "startedDesc_other": "Relecture de {{count}} points de restauration. Suivez-la sur la page Activité.",
+        "failedToStart": "Impossible de démarrer la vérification",
+        "valid": "Sauvegarde de {{vm}} vérifiée",
+        "warnings": "Sauvegarde de {{vm}} vérifiée avec des avertissements",
+        "invalid": "Échec de la vérification de la sauvegarde de {{vm}}"
+      }
+    },
     "kpi": {
       "points": "Points de restauration",
       "acrossObjects": "Sur {{jobs}} travaux · {{vms}} VM",
@@ -873,6 +894,12 @@
     "gfsTerm": "Rétention GFS",
     "gfsHelp": "Grandfather-father-son (GFS) : conservez des copies hebdomadaires, mensuelles et annuelles supplémentaires pour l’archivage à long terme, en plus de vos points de restauration quotidiens.",
     "gfsDescription": "Copies d’archivage facultatives conservées au-delà de la rétention régulière ci-dessus. Laissez à 0 pour ignorer.",
+    "gfsEnabledLabel": "Protection active",
+    "gfsEnabledTerm": "Protection GFS",
+    "gfsEnabledHelp": "Suspend ou reprend l’archivage GFS sans modifier les valeurs ci-dessous. Pendant la suspension, aucune nouvelle copie hebdomadaire/mensuelle/annuelle n’est marquée et les points d’archivage existants expirent selon la rétention régulière ci-dessus.",
+    "gfsEnabledHint": "Les copies hebdomadaires, mensuelles et annuelles sont marquées et conservées.",
+    "gfsEnabledNoCounts": "Définissez au moins une valeur ci-dessous pour que des copies d’archivage soient conservées.",
+    "gfsSuspendedHint": "L’archivage est suspendu. Les valeurs ci-dessous sont conservées pour la reprise.",
     "gfsWeekly": "Hebdomadaire",
     "gfsMonthly": "Mensuel",
     "gfsYearly": "Annuel",

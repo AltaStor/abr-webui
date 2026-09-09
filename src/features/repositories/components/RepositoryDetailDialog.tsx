@@ -6,10 +6,12 @@ import { Link } from "react-router-dom";
 import {
   ArrowRight,
   Database,
+  Loader2,
   Lock,
   RefreshCw,
   ServerCog,
   ShieldAlert,
+  ShieldCheck,
   Trash2,
   X,
   type LucideIcon,
@@ -31,9 +33,10 @@ import { cn } from "@/lib/utils";
 import { useCapacityLevel } from "@/lib/capacity";
 import { formatDateTime, formatInt, formatRelative, formatStorage, usagePercent } from "@/lib/format";
 import type { RepoThreatLock } from "@/lib/threatLock";
-import type { BackupJob, Repository } from "@/types";
+import type { BackupJob, Repository, RepositoryValidationResult } from "@/types";
 import { immutabilityLabel, REPO_STATUS_META, REPO_TYPE_META } from "./repoMeta";
 import { RepositoryActionsMenu, type RepositoryActions } from "./RepositoryActionsMenu";
+import { ValidationResultPanel } from "./ValidationResultPanel";
 
 interface RepositoryDetailDialogProps {
   repo: Repository | null;
@@ -42,6 +45,11 @@ interface RepositoryDetailDialogProps {
   onClose: () => void;
   actions: RepositoryActions;
   scanning: boolean;
+  /** A full repository validation is in flight. */
+  verifying: boolean;
+  /** The last validation verdict for this repository, or null if none has been
+   *  run in this session. Owned by the page, so it survives closing the panel. */
+  verification: RepositoryValidationResult | null;
   /** Set when auto-lock-on-threat has sealed this repo (derived, presentational). */
   threatLock?: RepoThreatLock | null;
 }
@@ -53,6 +61,8 @@ export function RepositoryDetailDialog({
   onClose,
   actions,
   scanning,
+  verifying,
+  verification,
   threatLock,
 }: RepositoryDetailDialogProps) {
   return (
@@ -69,6 +79,8 @@ export function RepositoryDetailDialog({
             restorePointCount={restorePointCount}
             actions={actions}
             scanning={scanning}
+            verifying={verifying}
+            verification={verification}
             threatLock={threatLock}
           />
         )}
@@ -83,6 +95,8 @@ function RepositoryDetailBody({
   restorePointCount,
   actions,
   scanning,
+  verifying,
+  verification,
   threatLock,
 }: {
   repo: Repository;
@@ -90,6 +104,8 @@ function RepositoryDetailBody({
   restorePointCount: number;
   actions: RepositoryActions;
   scanning: boolean;
+  verifying: boolean;
+  verification: RepositoryValidationResult | null;
   threatLock?: RepoThreatLock | null;
 }) {
   const { t } = useTranslation("repositories");
@@ -125,7 +141,12 @@ function RepositoryDetailBody({
               withIcon={false}
               className="mr-1"
             />
-            <RepositoryActionsMenu {...actions} scanning={scanning} repoName={repo.name} />
+            <RepositoryActionsMenu
+              {...actions}
+              scanning={scanning}
+              verifying={verifying}
+              repoName={repo.name}
+            />
             <DialogClose asChild>
               <Button variant="ghost" size="icon" aria-label={tCommon("actions.close")}>
                 <X className="h-4 w-4" />
@@ -158,16 +179,26 @@ function RepositoryDetailBody({
               local repository isn't told it has immutability "off" when the
               setting does not exist for it at all. */}
           {repo.supportsImmutability && (
-            <Field icon={Lock} label={t("detail.immutability")}>
-              {lockLabel ? (
-                <span className="inline-flex items-center gap-1.5 bg-immutable-subtle px-2 py-1 text-xs font-medium text-immutable-text">
-                  <Lock className="h-3 w-3" />
-                  {lockLabel}
-                </span>
-              ) : (
-                <span className="text-xs text-muted-foreground">{t("detail.immutabilityOff")}</span>
-              )}
-            </Field>
+            <div className="space-y-2">
+              <Field icon={Lock} label={t("detail.immutability")}>
+                {lockLabel ? (
+                  <span className="inline-flex items-center gap-1.5 bg-immutable-subtle px-2 py-1 text-xs font-medium text-immutable-text">
+                    <Lock className="h-3 w-3" />
+                    {lockLabel}
+                  </span>
+                ) : (
+                  <span className="text-xs text-muted-foreground">{t("detail.immutabilityOff")}</span>
+                )}
+              </Field>
+              {/* "Configured" and "actually enforced by the bucket" are two
+                  different claims, and a badge alone only makes the first. Say
+                  which one this is, and point at the check that settles it. */}
+              <p className="text-[11px] leading-relaxed text-muted-foreground">
+                {lockLabel
+                  ? t("detail.immutabilityConfiguredNote", { count: restorePointCount })
+                  : t("detail.immutabilityOffNote")}
+              </p>
+            </div>
           )}
 
           {/* Capacity */}
@@ -249,6 +280,23 @@ function RepositoryDetailBody({
             </span>
           </Field>
 
+          {/* Validation — the appliance's verdict on this repository, kept on
+              screen rather than only flashed as a toast: the failing check is
+              the part an operator has to act on. */}
+          {verification && (
+            <div className="space-y-1.5">
+              <span className="flex items-center gap-2 text-sm font-medium">
+                <ShieldCheck className="h-4 w-4 text-muted-foreground" />
+                {t("detail.validationTitle")}
+              </span>
+              <ValidationResultPanel
+                ok={verification.ok}
+                message={verification.message}
+                checks={verification.checks}
+              />
+            </div>
+          )}
+
           {/* Jobs writing here */}
           <div>
             <div className="mb-2 flex items-center justify-between">
@@ -300,6 +348,14 @@ function RepositoryDetailBody({
         <Button variant="outline" size="sm" onClick={actions.onRescan} disabled={scanning}>
           <RefreshCw className={scanning ? "h-4 w-4 animate-spin" : "h-4 w-4"} />
           {scanning ? t("actions.scanning") : t("detail.footer.rescan")}
+        </Button>
+        <Button variant="outline" size="sm" onClick={actions.onVerify} disabled={verifying}>
+          {verifying ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <ShieldCheck className="h-4 w-4" />
+          )}
+          {verifying ? t("actions.verifying") : t("actions.verify")}
         </Button>
         <Button variant="outline" size="sm" onClick={actions.onEdit}>
           {t("actions.editSettings")}

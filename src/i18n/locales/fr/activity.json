@@ -6,6 +6,7 @@
   },
   "runKind": {
     "restore": "Restauration",
+    "verify": "Vérification",
     "backupCopy": "Copie de sauvegarde",
     "diskBackup": "Sauvegarde de disque",
     "fileBackup": "Sauvegarde de fichiers",

@@ -27,11 +27,12 @@
  * is a polling loop (see the bottom of the file).
  */
 import { fileStamp } from "@/lib/download";
-import { restoreRunName } from "@/lib/format";
+import { restoreRunName, verifyRunName } from "@/lib/format";
 import { useWorldStore } from "@/store/world";
 import type {
   Alert,
   ApplianceSettings,
+  ApplyImmutabilityResult,
   AuditEvent,
   BackupJob,
   CreateEnvironmentInput,
@@ -41,6 +42,7 @@ import type {
   EnvironmentType,
   Host,
   Hypervisor,
+  ImmutabilityEffect,
   ImmutabilityMode,
   JobOptions,
   JobType,
@@ -54,9 +56,11 @@ import type {
   Repository,
   RepositoryImmutability,
   RepositoryType,
+  RepositoryValidationResult,
   RestorePlacementOptions,
   RestorePoint,
   Retention,
+  S3ConnectionCheck,
   S3ConnectionTestResult,
   S3RepositoryConfig,
   Schedule,
@@ -348,6 +352,10 @@ function mapSession(s: Dict): Session {
   const backupType = /inc/i.test(str(s.resolved_backup_type)) ? "incremental" : "full";
   const vmId = str(s.vm_id);
   const isRestore = str(s.type) === "restore";
+  // An integrity check over one stored chain. Like a restore it has no job
+  // behind it, so it too has to name itself after the VM it acts on rather
+  // than fall through to the "—" a missing job.name leaves.
+  const isVerify = str(s.type) === "verify";
   // The VM this run acts on, by name, straight from the orchestrator (see
   // _session_vm_names in abr_v41.py). For a restore that's the VM being
   // created; source_vm_name is where the point came from.
@@ -360,7 +368,9 @@ function mapSession(s: Dict): Session {
   // couldn't supply one (older sessions predating the vm_name field).
   const jobName = isRestore
     ? restoreRunName(vmName || sourceVmName)
-    : str(job.name) || "—";
+    : isVerify
+      ? verifyRunName(vmName)
+      : str(job.name) || "—";
   const message = errors.length ? friendlyError(str(errors[0].message)) : undefined;
   // The orchestrator's `message` field carries the live per-disk stage caption
   // while a session is running (see _emit_progress in vcenter_backup.py /
@@ -381,7 +391,7 @@ function mapSession(s: Dict): Session {
     id: str(s.id),
     jobId: str(job.id),
     jobName,
-    type: isRestore ? "restore" : "backup",
+    type: isRestore ? "restore" : isVerify ? "verify" : "backup",
     status,
     backupType,
     startedAt,
@@ -480,7 +490,14 @@ function mapRetention(job: Dict): Retention {
   const keep = num(job.retention_days, 7);
   const out: Retention = { keepDays: keep };
   if (gfs.weekly || gfs.monthly || gfs.yearly) {
-    out.gfs = { weekly: num(gfs.weekly), monthly: num(gfs.monthly), yearly: num(gfs.yearly) };
+    out.gfs = {
+      weekly: num(gfs.weekly),
+      monthly: num(gfs.monthly),
+      yearly: num(gfs.yearly),
+      // The appliance defaults this to true (`_coerce_gfs_enabled`), and an
+      // older record has no key at all — absent must not read as "suspended".
+      enabled: gfs.enabled === undefined ? true : Boolean(gfs.enabled),
+    };
   }
   return out;
 }
@@ -1161,11 +1178,14 @@ function createJobBody(payload: Partial<CreateJobPayload>): Dict {
     // Create (CreateJobRequest) reads a nested `gfs` object; update
     // (UpdateJobRequest, PATCH) only reads flat gfs_weekly/monthly/yearly —
     // send both shapes so this body works unmodified for either endpoint.
-    const gfs = payload.retention.gfs ?? { weekly: 0, monthly: 0, yearly: 0 };
+    const gfs = payload.retention.gfs ?? { weekly: 0, monthly: 0, yearly: 0, enabled: true };
     body.gfs = gfs;
     body.gfs_weekly = gfs.weekly;
     body.gfs_monthly = gfs.monthly;
     body.gfs_yearly = gfs.yearly;
+    // Archiving on/off is a separate switch from the counts on both endpoints:
+    // create reads it inside the nested object, PATCH as a flat `gfs_enabled`.
+    body.gfs_enabled = gfs.enabled;
   }
   if (payload.options) body.task_parameters = optionsToTaskParams(payload.options);
   return body;
@@ -1382,6 +1402,23 @@ export const deleteRestorePoint = (chainId: string, segmentId?: string) =>
     { method: "DELETE" },
   );
 
+/**
+ * Starts an integrity check over one stored backup chain
+ * (`POST /backups/{id}/verify`) and returns the session it runs under.
+ *
+ * `wait=false` deliberately: with `wait=true` the appliance re-reads every
+ * artifact in the chain before it answers, which is minutes of a held-open
+ * request for a large chain — long enough for a proxy to give up on it. The
+ * run is a normal session either way, so the console follows it the way it
+ * follows a backup: through the session feed.
+ */
+export async function verifyBackupChain(chainId: string): Promise<{ sessionId: string }> {
+  const res = asDict(
+    await request<Dict>(`/backups/${chainId}/verify?wait=false`, { method: "POST", body: "{}" }),
+  );
+  return { sessionId: str(res.session_id) || str(res.id) };
+}
+
 /* ====================================================================== */
 /* Mutations — repositories                                                */
 /* ====================================================================== */
@@ -1424,14 +1461,69 @@ function mapImmutability(raw: unknown): RepositoryImmutability | null {
   };
 }
 
-export async function createRepository(input: CreateRepositoryInput): Promise<Repository> {
+/** Wire `checks` array → the console shape. Every repository-validation
+ *  endpoint returns the same list of probes, so they all read it through here. */
+function mapChecks(raw: unknown): S3ConnectionCheck[] {
+  if (!Array.isArray(raw)) return [];
+  return raw.map((c) => {
+    const check = asDict(c);
+    return {
+      name: str(check.name),
+      status: str(check.status, "failed") as S3ConnectionCheck["status"],
+      message: strOrNull(check.message) ?? undefined,
+    };
+  });
+}
+
+/** The appliance attaches the probes it ran to a 422 it raises over them
+ *  (`_assert_immutability_is_usable` passes `checks=` into `api_error`), so a
+ *  rejected create/edit can say WHICH check refused instead of one summary
+ *  line. Anything else yields an empty list and the message stands alone. */
+export function apiErrorChecks(err: unknown): S3ConnectionCheck[] {
+  if (!(err instanceof ApiError)) return [];
+  const body = err.body as { error?: { details?: unknown } } | null;
+  const details = body?.error?.details;
+  if (!details || typeof details !== "object") return [];
+  return mapChecks((details as Dict).checks);
+}
+
+/** Wire `immutability_effect` → the console shape. Null when the endpoint
+ *  reported none, which is every non-S3 repository. */
+function mapImmutabilityEffect(raw: unknown): ImmutabilityEffect | null {
+  if (!raw || typeof raw !== "object") return null;
+  const effect = asDict(raw);
+  const lines = (value: unknown): string[] =>
+    Array.isArray(value) ? value.map((v) => str(v)).filter(Boolean) : [];
+  return {
+    previous: mapImmutability(effect.previous) ?? { mode: "none", retentionDays: 0 },
+    current: mapImmutability(effect.current) ?? { mode: "none", retentionDays: 0 },
+    changed: Boolean(effect.changed),
+    existingRestorePoints: num(effect.existing_restore_points),
+    existingDataProtected: Boolean(effect.existing_data_protected),
+    effect: lines(effect.effect),
+    limitations: lines(effect.limitations),
+    warnings: lines(effect.warnings),
+  };
+}
+
+export async function createRepository(
+  input: CreateRepositoryInput,
+): Promise<{ repository: Repository; immutabilityEffect: ImmutabilityEffect | null }> {
   const wireType = input.type === "object-lock-s3" ? "s3" : input.type === "nfs" ? "nfs" : "local";
   const body: Dict = { name: input.name, type: wireType, address: input.path, description: "" };
   // Without it the backend rejects the create with "S3 bucket is required".
   if (wireType === "s3" && input.s3) {
     body.s3 = s3ConfigWireBody(input.s3);
   }
-  return mapRepository(asDict(await request<Dict>("/repositories", { method: "POST", body: JSON.stringify(body) })));
+  const created = asDict(await request<Dict>("/repositories", { method: "POST", body: JSON.stringify(body) }));
+  // Creating an S3 repository with Object Lock on comes back with the same
+  // effect report an edit does — what the setting does to data written from
+  // now on, and what it cannot reach. Worth showing: a bucket that already
+  // held backups now has some under lock and some not.
+  return {
+    repository: mapRepository(created),
+    immutabilityEffect: mapImmutabilityEffect(created.immutability_effect),
+  };
 }
 
 /** Real pre-create S3 connectivity test — probes the given settings through
@@ -1442,18 +1534,10 @@ export async function testS3RepositoryConnection(s3: S3RepositoryConfig): Promis
   const res = asDict(
     await request<Dict>("/repositories/test-s3", { method: "POST", body: JSON.stringify(body) }),
   );
-  const checks = Array.isArray(res.checks) ? res.checks : [];
   return {
     ok: str(res.status) === "success",
     message: str(res.message) || (str(res.status) === "success" ? "S3 connection succeeded" : "S3 connection failed"),
-    checks: checks.map((c) => {
-      const check = asDict(c);
-      return {
-        name: str(check.name),
-        status: (str(check.status, "failed") as "ok" | "failed" | "skipped"),
-        message: strOrNull(check.message) ?? undefined,
-      };
-    }),
+    checks: mapChecks(res.checks),
   };
 }
 
@@ -1473,18 +1557,10 @@ export async function testS3RepositoryImmutability(
   const res = asDict(
     await request<Dict>("/repositories/test-immutability", { method: "POST", body: JSON.stringify(body) }),
   );
-  const checks = Array.isArray(res.checks) ? res.checks : [];
   return {
     ok: str(res.status) === "success",
     message: str(res.message) || (str(res.status) === "success" ? "Immutability verified" : "Immutability check failed"),
-    checks: checks.map((c) => {
-      const check = asDict(c);
-      return {
-        name: str(check.name),
-        status: str(check.status, "failed") as "ok" | "failed" | "skipped",
-        message: strOrNull(check.message) ?? undefined,
-      };
-    }),
+    checks: mapChecks(res.checks),
   };
 }
 
@@ -1495,16 +1571,33 @@ export interface RepositoryPatch {
   ioThrottleMBps?: number;
   maxConcurrentTasks?: number;
   maintenanceMode?: boolean;
+  /** Object Lock. Sent as the appliance's strictly-paired block — mode "none"
+   *  with 0 days turns it off, any other mode needs at least 1 day. */
+  immutability?: RepositoryImmutability;
 }
 
-export async function patchRepository(id: string, patch: RepositoryPatch): Promise<Repository> {
-  // Only name round-trips to the backend; storage-management fields
-  // (throttle, maintenance) have no orchestrator support yet.
+export async function patchRepository(
+  id: string,
+  patch: RepositoryPatch,
+): Promise<{ repository: Repository; immutabilityEffect: ImmutabilityEffect | null }> {
+  // Name and Object Lock round-trip to the backend; the storage-management
+  // fields (throttle, maintenance) have no orchestrator support yet.
   const body: Dict = {};
   if (patch.name !== undefined) body.name = patch.name;
-  return mapRepository(
-    asDict(await request<Dict>(`/repositories/${id}`, { method: "PATCH", body: JSON.stringify(body) })),
+  if (patch.immutability !== undefined) {
+    body.immutability = {
+      mode: patch.immutability.mode,
+      retention_days:
+        patch.immutability.mode === "none" ? 0 : patch.immutability.retentionDays,
+    };
+  }
+  const updated = asDict(
+    await request<Dict>(`/repositories/${id}`, { method: "PATCH", body: JSON.stringify(body) }),
   );
+  return {
+    repository: mapRepository(updated),
+    immutabilityEffect: mapImmutabilityEffect(updated.immutability_effect),
+  };
 }
 
 export const deleteRepository = (id: string) => request<void>(`/repositories/${id}`, { method: "DELETE" });
@@ -1512,6 +1605,74 @@ export const deleteRepository = (id: string) => request<void>(`/repositories/${i
 export async function rescanRepository(id: string): Promise<Repository> {
   await request(`/repositories/${id}/rescan`, { method: "POST", body: "{}" }).catch(() => undefined);
   return mapRepository(asDict(await request<Dict>(`/repositories/${id}`)));
+}
+
+/**
+ * Validate a repository that already exists — `POST /repositories/{id}/verify`.
+ *
+ * The whole repository, not just its lock: reachability, then (for S3 with
+ * Object Lock on) that the bucket still supports the configured mode and
+ * period, then a block-consistency pass over the backups it holds. This is
+ * what "Repository validation results are displayed to the user" reads from.
+ */
+export async function verifyRepository(id: string): Promise<RepositoryValidationResult> {
+  const res = asDict(await request<Dict>(`/repositories/${id}/verify`, { method: "POST", body: "{}" }));
+  return {
+    ok: str(res.status) === "success",
+    message: str(res.message) || (str(res.status) === "success" ? "Repository verified" : "Repository check failed"),
+    checks: mapChecks(res.checks),
+  };
+}
+
+/**
+ * Validate just the Object Lock configuration of an existing repository —
+ * `POST /repositories/{id}/verify-immutability`.
+ *
+ * A stricter question than `verifyRepository` asks: this one WRITES a probe
+ * object under the configured retention, reads its lock back and tries to
+ * delete it, so it answers "will this bucket really hold a backup immutable"
+ * rather than "does its configuration look right". It also returns the effect
+ * report, which is where the console gets its account of what the current
+ * setting does and does not cover.
+ */
+export async function verifyRepositoryImmutability(id: string): Promise<RepositoryValidationResult> {
+  const res = asDict(
+    await request<Dict>(`/repositories/${id}/verify-immutability`, { method: "POST", body: "{}" }),
+  );
+  return {
+    ok: str(res.status) === "success",
+    message:
+      str(res.message) ||
+      (str(res.status) === "success" ? "Immutability verified" : "Immutability check failed"),
+    checks: mapChecks(res.checks),
+    immutabilityEffect: mapImmutabilityEffect(res.immutability_effect),
+  };
+}
+
+/**
+ * Put the backups ALREADY stored in a repository under its current Object Lock
+ * setting — `POST /repositories/{id}/apply-immutability`.
+ *
+ * This is the answer to "a repository containing existing backups without
+ * immutability can be configured for immutability": changing the setting only
+ * governs what is written after it, so without this the existing points stay
+ * deletable forever. The lock it writes runs from NOW, not from each point's
+ * own creation time.
+ */
+export async function applyRepositoryImmutability(id: string): Promise<ApplyImmutabilityResult> {
+  const res = asDict(
+    await request<Dict>(`/repositories/${id}/apply-immutability`, { method: "POST", body: "{}" }),
+  );
+  const days = Array.isArray(res.actual_retention_days) ? res.actual_retention_days : [];
+  return {
+    ok: str(res.status) === "success",
+    message: str(res.message),
+    immutability: mapImmutability(res.immutability) ?? { mode: "none", retentionDays: 0 },
+    restorePointCount: num(res.restore_point_count),
+    updatedRestorePoints: num(res.updated_restore_points),
+    failedRestorePoints: num(res.failed_restore_points),
+    actualRetentionDays: days.map((d) => num(d)).filter((d) => d > 0),
+  };
 }
 
 export async function setRepositoryMaintenance(_id: string, _maintenance: boolean): Promise<Repository> {

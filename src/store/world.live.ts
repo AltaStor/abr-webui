@@ -15,11 +15,12 @@
  */
 import * as api from "@/services/api.http";
 import type { ApplianceEventMessage } from "@/services/api.http";
-import type { BackupJob, LogLine, Session, VM } from "@/types";
+import type { BackupJob, LogLine, RepositoryValidationResult, Session, VM } from "@/types";
 import type {
   BlockingJobRef,
   EnvDeleteResult,
   RepoDeleteResult,
+  RepositoryWriteResult,
   RestorePointDeleteResult,
   WorldActions,
   WorldDriver,
@@ -45,6 +46,28 @@ function blockingJobsFromApiError(body: unknown): BlockingJobRef[] {
   return rawJobs
     .filter((job): job is Record<string, unknown> => !!job && typeof job === "object")
     .map((job) => ({ id: String(job.id ?? ""), name: String(job.name ?? "") || "Job" }));
+}
+
+/** One message for anything that came back from a failed request, whatever
+ *  shape it arrived in. Prefers the appliance's own text over a status code —
+ *  "S3 bucket 'x' does not support compliance immutability" beats "422". */
+function apiFailureMessage(err: unknown): string {
+  if (err instanceof api.ApiError) {
+    return api.apiErrorMessage(err) ?? `Request failed (${err.status})`;
+  }
+  return "Appliance unreachable";
+}
+
+/** A rejected repository create/edit, with the probes the appliance blamed. */
+function repositoryWriteFailure(err: unknown): RepositoryWriteResult {
+  return { ok: false, message: apiFailureMessage(err), checks: api.apiErrorChecks(err) };
+}
+
+/** A validation request that never got an answer. Reported as a failed result
+ *  rather than thrown: the panel has one place to render a verdict, and a
+ *  request that didn't land IS a verdict the operator needs to see. */
+function repositoryValidationFailure(err: unknown): RepositoryValidationResult {
+  return { ok: false, message: apiFailureMessage(err), checks: api.apiErrorChecks(err) };
 }
 
 /* ------------------------------ log lines ------------------------------- */
@@ -849,24 +872,23 @@ export function createLiveDriver(handle: WorldHandle): WorldDriver {
 
     /* --------------- hypervisor environment lifecycle --------------- */
     createEnvironment: async (input) => {
+      // Resolves as soon as POST /inventories returns — the environment record
+      // exists at that point per the REST contract, and the discovery scan that
+      // follows is a SEPARATE call (`rescanEnvironment`) the caller runs next.
+      //
+      // It used to await that scan too, which meant an unresponsive vCenter
+      // held this promise open for as long as the appliance's own timeout, with
+      // the caller's dialog wedged shut on a record that had already been
+      // created. Discovery failing is not registration failing: the appliance
+      // persists the reason on the record (rescan_inventory's last_scan_error →
+      // `statusError`), so it stays visible on the environment afterwards.
       const env = await api.createEnvironment(input);
       if (stopped) return env;
       handle.set((s) => ({
         environments: [...s.environments.filter((e) => e.id !== env.id), env],
         revision: s.revision + 1,
       }));
-      // Discover its VMs/hosts, then reconcile all inventory-derived state.
-      // A discovery failure (e.g. a TLS certificate error) does not fail
-      // registration -- the environment record already exists -- but it is
-      // not silently dropped either: refreshInventory() below re-fetches the
-      // record, and the appliance persists the failure reason on it (see
-      // rescan_inventory's last_scan_error), so the Environment this resolves
-      // with carries the real post-scan status/statusError instead of the
-      // "unknown" placeholder from the moment of creation.
-      await api.refreshEnvironment(env.id).catch(() => undefined);
-      await refreshInventory();
-      if (stopped) return env;
-      return handle.get().environments.find((e) => e.id === env.id) ?? env;
+      return env;
     },
 
     editEnvironment: async (id, patch) => {
@@ -1027,15 +1049,17 @@ export function createLiveDriver(handle: WorldHandle): WorldDriver {
     /* --------------------- repository lifecycle --------------------- */
     editRepository: async (id, patch) => {
       try {
-        const repo = await api.patchRepository(id, patch);
-        if (stopped) return;
-        handle.set((s) => ({
-          repositories: s.repositories.map((r) => (r.id === id ? repo : r)),
-          revision: s.revision + 1,
-        }));
+        const { repository, immutabilityEffect } = await api.patchRepository(id, patch);
+        if (!stopped) {
+          handle.set((s) => ({
+            repositories: s.repositories.map((r) => (r.id === id ? repository : r)),
+            revision: s.revision + 1,
+          }));
+        }
+        return { ok: true, repository, immutabilityEffect };
       } catch (err) {
         if (!stopped) await refreshRepositories(); // revert to server truth
-        throw err;
+        return repositoryWriteFailure(err);
       }
     },
 
@@ -1069,18 +1093,39 @@ export function createLiveDriver(handle: WorldHandle): WorldDriver {
       }
     },
 
+    verifyBackups: async (chainIds) => {
+      try {
+        // One request per chain — the endpoint verifies a single chain, and a
+        // VM's points under one job span two only when the job's repository
+        // changed mid-history. Sequential rather than parallel: each one starts
+        // a real read of every artifact in the chain, and firing them all at
+        // once would have the appliance thrash the same storage.
+        const sessionIds: string[] = [];
+        for (const chainId of chainIds) {
+          const { sessionId } = await api.verifyBackupChain(chainId);
+          if (sessionId) sessionIds.push(sessionId);
+        }
+        // The runs are already in flight; pull them into the feed now rather
+        // than waiting for the next poll so the row can reflect them at once.
+        if (!stopped) await Promise.all(sessionIds.map((id) => refreshSession(id)));
+        return { ok: true, sessionIds };
+      } catch (err) {
+        return { ok: false, message: apiFailureMessage(err) };
+      }
+    },
+
     createRepository: async (input) => {
       try {
-        const repo = await api.createRepository(input);
+        const { repository, immutabilityEffect } = await api.createRepository(input);
         if (!stopped) {
           handle.set((s) => ({
-            repositories: [...s.repositories, repo],
+            repositories: [...s.repositories, repository],
             revision: s.revision + 1,
           }));
         }
-        return repo;
-      } catch {
-        return null;
+        return { ok: true, repository, immutabilityEffect };
+      } catch (err) {
+        return repositoryWriteFailure(err);
       }
     },
 
@@ -1158,6 +1203,44 @@ export function createLiveDriver(handle: WorldHandle): WorldDriver {
           ok: false,
           message: api.apiErrorMessage(err) ?? "Appliance unreachable",
           checks: [],
+        };
+      }
+    },
+
+    /* ------------------- repository validation / Object Lock ------------- */
+    verifyRepository: async (id) => {
+      try {
+        const result = await api.verifyRepository(id);
+        // Verification is also a scan: it re-reads the repository and the
+        // appliance updates the record's status from what it found, so pull the
+        // list back before the panel renders a verdict next to a stale badge.
+        if (!stopped) await refreshRepositories();
+        return result;
+      } catch (err) {
+        return repositoryValidationFailure(err);
+      }
+    },
+
+    verifyRepositoryImmutability: async (id) => {
+      try {
+        return await api.verifyRepositoryImmutability(id);
+      } catch (err) {
+        return repositoryValidationFailure(err);
+      }
+    },
+
+    applyRepositoryImmutability: async (id) => {
+      try {
+        return await api.applyRepositoryImmutability(id);
+      } catch (err) {
+        return {
+          ok: false,
+          message: apiFailureMessage(err),
+          immutability: { mode: "none" as const, retentionDays: 0 },
+          restorePointCount: 0,
+          updatedRestorePoints: 0,
+          failedRestorePoints: 0,
+          actualRetentionDays: [],
         };
       }
     },

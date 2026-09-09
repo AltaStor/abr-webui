@@ -71,6 +71,75 @@
     "mode": {
       "governance": "Governance",
       "compliance": "Compliance"
+    },
+    "currentLabel": "Aktuell",
+    "unsupported": "Dieses Speicher-Backend kennt kein Object Lock, daher lässt sich Unveränderlichkeit dafür nicht konfigurieren. Objektspeicher-Repositories (S3) können jedes eingehende Backup sperren.",
+    "validate": "Gegen den Bucket validieren",
+    "validating": "Wird validiert…",
+    "validateHint": "Schreibt ein gesperrtes Testobjekt, liest dessen Aufbewahrung zurück und versucht, es zu löschen — die einzige Möglichkeit festzustellen, ob der Bucket das hier Konfigurierte wirklich durchsetzt.",
+    "validateDirtyHint": "Validiert die GESPEICHERTE Einstellung, nicht die Änderung oben. Speichern Sie zuerst, um die neue zu prüfen.",
+    "change": {
+      "unchanged": "",
+      "enabled_zero": "Ab jetzt geschriebene Backups werden gesperrt. Hier ist noch nichts gespeichert, es bleibt also nichts zurück.",
+      "enabled_one": "Ab jetzt geschriebene Backups werden gesperrt. Der bereits gespeicherte {{count}} Wiederherstellungspunkt wurde ohne Sperre geschrieben und bleibt löschbar, bis Sie die Unveränderlichkeit unten darauf anwenden.",
+      "enabled_other": "Ab jetzt geschriebene Backups werden gesperrt. Die bereits gespeicherten {{count}} Wiederherstellungspunkte wurden ohne Sperre geschrieben und bleiben löschbar, bis Sie die Unveränderlichkeit unten darauf anwenden.",
+      "strengthened_zero": "Die strengere Einstellung — ein längerer Zeitraum, ein strikterer Modus oder beides — gilt für ab jetzt geschriebene Backups.",
+      "strengthened_one": "Die strengere Einstellung — ein längerer Zeitraum, ein strikterer Modus oder beides — gilt für ab jetzt geschriebene Backups. Der bereits gespeicherte {{count}} Wiederherstellungspunkt behält die Sperre, mit der er geschrieben wurde: Eine geschriebene Sperre wird durch eine Einstellungsänderung nie verlängert oder verschärft. Wenden Sie die Unveränderlichkeit unten an, um ihn der neuen zu unterstellen.",
+      "strengthened_other": "Die strengere Einstellung — ein längerer Zeitraum, ein strikterer Modus oder beides — gilt für ab jetzt geschriebene Backups. Die bereits gespeicherten {{count}} Wiederherstellungspunkte behalten die Sperren, mit denen sie geschrieben wurden: Eine geschriebene Sperre wird durch eine Einstellungsänderung nie verlängert oder verschärft. Wenden Sie die Unveränderlichkeit unten an, um sie der neuen zu unterstellen.",
+      "relaxed": "Dies betrifft nur ab jetzt geschriebene Backups. Bereits geschriebene Object-Lock-Aufbewahrung kann niemals verkürzt oder entfernt werden; alles bereits Gespeicherte bleibt für seinen vollen ursprünglichen Zeitraum gesperrt.",
+      "disabled": "Ab jetzt geschriebene Backups werden NICHT gesperrt und können gelöscht oder überschrieben werden. Was bereits unter einer Sperre geschrieben wurde, bleibt bis zu deren Ablauf gesperrt."
+    },
+    "effect": {
+      "title": "Was das bewirkt",
+      "limitationsTitle": "Was davon nicht erfasst wird",
+      "warningsTitle": "Konflikte mit den hier schreibenden Jobs",
+      "existingProtected_one": "{{count}} gespeicherter Wiederherstellungspunkt unterliegt der aktuellen Konfiguration.",
+      "existingProtected_other": "{{count}} gespeicherte Wiederherstellungspunkte unterliegen der aktuellen Konfiguration.",
+      "existingUnprotected_one": "{{count}} gespeicherter Wiederherstellungspunkt wird von der aktuellen Konfiguration nicht erfasst.",
+      "existingUnprotected_other": "{{count}} gespeicherte Wiederherstellungspunkte werden von der aktuellen Konfiguration nicht erfasst."
+    },
+    "apply": {
+      "title": "Gespeicherte Backups",
+      "description_one": "Hier ist bereits {{count}} Wiederherstellungspunkt gespeichert. Die Änderung oben berührt ihn nie; dies unterstellt ihn der aktuellen Sperre, gerechnet ab jetzt statt ab dem Schreibzeitpunkt.",
+      "description_other": "Hier sind bereits {{count}} Wiederherstellungspunkte gespeichert. Die Änderung oben berührt sie nie; dies unterstellt sie der aktuellen Sperre, gerechnet ab jetzt statt ab dem Schreibzeitpunkt.",
+      "action": "Auf gespeicherte Backups anwenden",
+      "needsEnabled": "Aktivieren und speichern Sie die Unveränderlichkeit, bevor sie auf gespeicherte Backups angewendet werden kann.",
+      "needsSaved": "Speichern Sie die Änderung oben zuerst — angewendet wird die gespeicherte Einstellung des Repositories, nicht der Entwurf.",
+      "confirm_one": "Sperrt {{count}} gespeicherten Wiederherstellungspunkt im Modus {{mode}} für {{days}} Tage, gerechnet ab jetzt. Im Compliance-Modus kann das niemand rückgängig machen, und der Speicher wird bis zum Ablauf bezahlt.",
+      "confirm_other": "Sperrt {{count}} gespeicherte Wiederherstellungspunkte im Modus {{mode}} für {{days}} Tage, gerechnet ab jetzt. Im Compliance-Modus kann das niemand rückgängig machen, und der Speicher wird bis zum Ablauf bezahlt.",
+      "confirmAction": "Gespeicherte Backups sperren",
+      "toast": {
+        "done": "Gespeicherte Backups gesperrt",
+        "failed": "Gespeicherte Backups konnten nicht gesperrt werden"
+      }
+    },
+    "toast": {
+      "existingNotCovered": {
+        "title": "{{name}} mit aktivierter Unveränderlichkeit erstellt",
+        "description_one": "{{count}} bereits in diesem Bucket vorhandenes Backup wurde ohne Sperre geschrieben und ist nicht erfasst. Wenden Sie die Unveränderlichkeit über die Repository-Einstellungen darauf an.",
+        "description_other": "{{count}} bereits in diesem Bucket vorhandene Backups wurden ohne Sperre geschrieben und sind nicht erfasst. Wenden Sie die Unveränderlichkeit über die Repository-Einstellungen darauf an."
+      }
+    }
+  },
+  "validation": {
+    "passedChecks_one": "{{count}} Prüfung bestanden",
+    "passedChecks_other": "{{count}} Prüfungen bestanden",
+    "check": {
+      "unknown": "{{name}}",
+      "bucket": "Bucket",
+      "region": "Region",
+      "endpoint_url": "Endpunkt-URL",
+      "endpoint_reachable": "Endpunkt erreichbar",
+      "connectivity": "Bucket-Zugriff",
+      "object_lock": "Object Lock am Bucket",
+      "versioning": "Bucket-Versionierung",
+      "immutability": "Unveränderlichkeit",
+      "immutability_mode": "Sperrmodus",
+      "retention_period": "Aufbewahrungsdauer",
+      "write_retention": "Gesperrter Schreibvorgang",
+      "retention_readback": "Aufbewahrung zurückgelesen",
+      "worm_enforcement": "Löschen verweigert",
+      "block_consistency": "Backup-Integrität"
     }
   },
   "compression": {
@@ -92,6 +161,8 @@
     "editSettings": "Einstellungen bearbeiten",
     "scanning": "Wird geprüft…",
     "rescan": "Integrität erneut prüfen / verifizieren",
+    "verify": "Repository überprüfen",
+    "verifying": "Wird überprüft…",
     "exitMaintenance": "Wartung beenden",
     "enterMaintenance": "Wartung starten",
     "delete": "Repository löschen"
@@ -104,6 +175,12 @@
     "rescanFailed": {
       "title": "Integritätsprüfung konnte nicht gestartet werden",
       "description": "{{name}} konnte nicht geprüft werden. Versuchen Sie es gleich erneut."
+    },
+    "verifyOk": {
+      "title": "{{name}} überprüft"
+    },
+    "verifyFailed": {
+      "title": "{{name}} hat die Validierung nicht bestanden"
     },
     "maintenanceOn": {
       "title": "Wartungsmodus aktiv",
@@ -125,6 +202,7 @@
     "threatLocked": "Bedrohungsgesperrt",
     "maintenance": "Wartung",
     "scanningIntegrity": "Integrität wird geprüft",
+    "verifying": "Wird überprüft",
     "capacityOfFree": "von {{capacity}} · {{free}} frei",
     "elasticNote": "Elastischer Speicher · keine feste Kapazität",
     "percentUsed": "{{pct}} % belegt",
@@ -142,6 +220,11 @@
     "storagePath": "Speicherpfad",
     "immutability": "Unveränderlichkeit",
     "immutabilityOff": "Aus — Backups bleiben löschbar",
+    "immutabilityConfiguredNote_zero": "Dies ist die konfigurierte Einstellung. Führen Sie „Repository überprüfen“ aus, um zu bestätigen, dass der Bucket sie wirklich durchsetzt.",
+    "immutabilityConfiguredNote_one": "Dies ist die konfigurierte Einstellung; sie gilt für ab jetzt geschriebene Backups. {{count}} bereits gespeicherter Wiederherstellungspunkt behält die Sperre, mit der er geschrieben wurde. Führen Sie „Repository überprüfen“ aus, um die Durchsetzung zu bestätigen.",
+    "immutabilityConfiguredNote_other": "Dies ist die konfigurierte Einstellung; sie gilt für ab jetzt geschriebene Backups. {{count}} bereits gespeicherte Wiederherstellungspunkte behalten die Sperre, mit der sie geschrieben wurden. Führen Sie „Repository überprüfen“ aus, um die Durchsetzung zu bestätigen.",
+    "immutabilityOffNote": "Hier geschriebene Backups können gelöscht oder überschrieben werden. Aktivieren Sie Object Lock unter „Einstellungen bearbeiten“.",
+    "validationTitle": "Validierung",
     "shareAccount": "Freigabekonto",
     "storageMode": "Speichermodus",
     "directNoDedup": "Direkt (kein Dedup)",
@@ -240,7 +323,8 @@
           "compliance": "Niemand kann eine Sperre vor Ablauf verkürzen oder aufheben — weder die Appliance noch der Konto-Root. Der Speicher wird bezahlt, bis die letzte Sperre abläuft."
         },
         "retentionLabel": "Sperren für (Tage)",
-        "retentionInvalid": "Geben Sie eine ganze Zahl von Tagen zwischen 1 und {{max}} ein."
+        "retentionInvalid": "Geben Sie eine ganze Zahl von Tagen zwischen 1 und {{max}} ein.",
+        "existingNote": "Gilt für ab jetzt geschriebene Backups. Bereits im Bucket vorhandene Backups werden dadurch nicht gesperrt — unterstellen Sie sie nach der Erstellung über die Repository-Einstellungen."
       },
       "test": "Verbindung testen",
       "testing": "Wird getestet…"

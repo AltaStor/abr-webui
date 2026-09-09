@@ -48,7 +48,8 @@
   "retention": {
     "days_one": "{{count}} day",
     "days_other": "{{count}} days",
-    "withGfs": "{{base}} · GFS {{tail}}"
+    "withGfs": "{{base}} · GFS {{tail}}",
+    "withGfsSuspended": "{{base}} · GFS {{tail}} (suspended)"
   },
   "type": {
     "replication": "Replication",
@@ -174,11 +175,12 @@
   },
   "filters": {
     "status": {
-      "all": "All statuses",
-      "running": "Running",
-      "healthy": "Healthy",
-      "warning": "Needs attention",
-      "disabled": "Disabled"
+      "all": "All statuses"
+    },
+    "schedule": {
+      "all": "All schedules",
+      "enabled": "Schedule enabled",
+      "disabled": "Schedule disabled"
     }
   },
   "table": {
@@ -200,7 +202,7 @@
     "lastRunRunningSince": "Running since {{value}}",
     "lastRunStarted": "Started: {{value}}",
     "lastRunStatus": "Last run status",
-    "lastRunStatusHint": "Outcome of the most recent run. “Disabled” means the job is disabled and will not run on its schedule.",
+    "lastRunStatusHint": "Outcome of the most recent run: Success, Warning, Failed, Running, Queued, or “Never run” for a job that has not run yet. Whether the job is enabled is shown in the Schedule column.",
     "nextRunHint": "Next scheduled start. Running the job manually does not change it.",
     "scheduleHint": "When the job starts on its own. Disabled jobs keep their schedule but skip it.",
     "repositoryHint": "Where this job’s backups are stored.",
@@ -223,7 +225,8 @@
   "toolbar": {
     "searchPlaceholder": "Search jobs by name or scope…",
     "searchLabel": "Search jobs",
-    "filterByStatus": "Filter by status"
+    "filterByStatus": "Filter by last run status",
+    "filterBySchedule": "Filter by schedule state"
   },
   "bulk": {
     "selected": "{{count}} selected",
@@ -456,6 +459,9 @@
     "fileHealth": "File health",
     "retentionTitle": "Retention",
     "keep": "Keep",
+    "gfsProtection": "GFS protection",
+    "gfsActive": "Active",
+    "gfsSuspended": "Suspended",
     "gfsWeekly": "Weekly (GFS)",
     "gfsMonthly": "Monthly (GFS)",
     "gfsYearly": "Yearly (GFS)",
@@ -611,6 +617,21 @@
     "restoreVmAria": "Restore {{vm}} from {{job}}",
     "deleteVmAria": "Delete {{vm}}'s backup from {{job}}",
     "deleteVmTip": "Delete this VM's backup from this job",
+    "verify": {
+      "tip": "Verify this VM's backup — re-reads every stored artifact and checks it against the catalog",
+      "aria": "Verify {{vm}}'s backup from {{job}}",
+      "running": "Verifying",
+      "runningTip": "An integrity check is running over this VM's stored backup. Follow it on the Activity page.",
+      "toast": {
+        "started": "Verifying {{vm}}",
+        "startedDesc_one": "Re-reading {{count}} restore point. Follow it on the Activity page.",
+        "startedDesc_other": "Re-reading {{count}} restore points. Follow it on the Activity page.",
+        "failedToStart": "Verification could not be started",
+        "valid": "{{vm}}'s backup verified",
+        "warnings": "{{vm}}'s backup verified with warnings",
+        "invalid": "{{vm}}'s backup failed verification"
+      }
+    },
     "kpi": {
       "points": "Restore points",
       "acrossObjects": "Across {{jobs}} jobs · {{vms}} VMs",
@@ -873,6 +894,12 @@
     "gfsTerm": "GFS retention",
     "gfsHelp": "Grandfather-father-son (GFS): keep extra weekly, monthly, and yearly copies for long-term archival, on top of your day-to-day restore points.",
     "gfsDescription": "Optional archival copies kept beyond the regular retention above. Leave at 0 to skip.",
+    "gfsEnabledLabel": "Protection active",
+    "gfsEnabledTerm": "GFS protection",
+    "gfsEnabledHelp": "Suspends or resumes GFS archiving without touching the counts below. While suspended, no new weekly/monthly/yearly copies are marked and existing archival points age out under the regular retention above.",
+    "gfsEnabledHint": "Weekly, monthly, and yearly copies are marked and kept.",
+    "gfsEnabledNoCounts": "Set at least one count below for archival copies to be kept.",
+    "gfsSuspendedHint": "Archiving is suspended. The counts below are kept for when you resume it.",
     "gfsWeekly": "Weekly",
     "gfsMonthly": "Monthly",
     "gfsYearly": "Yearly",

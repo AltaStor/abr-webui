@@ -111,6 +111,12 @@ export interface Retention {
     weekly: number;
     monthly: number;
     yearly: number;
+    /** Whether GFS archiving is actually applied. The appliance keeps this
+     *  separate from the counts (`gfs.enabled` on the wire) so archiving can be
+     *  suspended without losing the configured weekly/monthly/yearly figures —
+     *  a suspended policy marks nothing, and its previously-marked points fall
+     *  back under plain `keepDays` retention. Defaults to true. */
+    enabled: boolean;
   };
 }
 
@@ -129,8 +135,10 @@ export interface JobOptions {
 }
 
 export type JobType = "backup" | "replication" | "backup-copy";
-/** A session's run kind — everything a job can be, plus "restore" (restores have no job). */
-export type SessionType = JobType | "restore";
+/** A session's run kind — everything a job can be, plus the two the appliance
+ *  runs without a job behind them: "restore" and "verify" (an integrity check
+ *  over one stored backup chain). */
+export type SessionType = JobType | "restore" | "verify";
 export type JobRunState = "idle" | "running" | "disabled";
 
 export interface BackupJob {
@@ -517,6 +525,61 @@ export interface S3ConnectionTestResult {
   ok: boolean;
   message: string;
   checks: S3ConnectionCheck[];
+}
+
+/**
+ * What a repository's Object Lock configuration does to the data in it — the
+ * appliance's own `immutability_effect` block, returned by repository create,
+ * patch and `POST /repositories/{id}/verify-immutability`.
+ *
+ * The split matters: `effect` describes what happens to backups written FROM
+ * NOW ON, `limitations` what the configuration cannot reach — above all the
+ * restore points already stored, which keep whatever retention they were
+ * written with until `applyRepositoryImmutability` puts them under the current
+ * one. `warnings` are mismatches against the jobs that write here (a lock
+ * shorter than a job's retention leaves a window where its backups are still
+ * needed but deletable; a lock longer than it holds storage the job wanted
+ * freed).
+ */
+export interface ImmutabilityEffect {
+  previous: RepositoryImmutability;
+  current: RepositoryImmutability;
+  /** Whether this report describes a change, or just restates the setting. */
+  changed: boolean;
+  /** Restore points already in the repository when the change was made. */
+  existingRestorePoints: number;
+  /** Whether those points are covered by `current`. Always false until
+   *  `applyRepositoryImmutability` has been run against them. */
+  existingDataProtected: boolean;
+  effect: string[];
+  limitations: string[];
+  warnings: string[];
+}
+
+/** Result of validating a repository that already exists — `POST
+ *  /repositories/{id}/verify` (the whole repository) or `.../verify-immutability`
+ *  (its Object Lock configuration, with the effect report attached). */
+export interface RepositoryValidationResult {
+  ok: boolean;
+  message: string;
+  checks: S3ConnectionCheck[];
+  /** Only from the immutability endpoint. */
+  immutabilityEffect?: ImmutabilityEffect | null;
+}
+
+/** Result of `POST /repositories/{id}/apply-immutability`: putting the backups
+ *  ALREADY stored in a repository under its current Object Lock setting. */
+export interface ApplyImmutabilityResult {
+  ok: boolean;
+  message: string;
+  immutability: RepositoryImmutability;
+  restorePointCount: number;
+  updatedRestorePoints: number;
+  failedRestorePoints: number;
+  /** The lock periods actually written. A point's lock covers the repository's
+   *  configured period plus its job's full-backup cycle, so a repository with
+   *  several jobs writing to it yields several figures. */
+  actualRetentionDays: number[];
 }
 
 /* ------------------------------------------------------------------ */

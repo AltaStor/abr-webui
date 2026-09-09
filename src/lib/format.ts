@@ -31,6 +31,14 @@ export function restoreRunName(vmName: string | undefined | null): string {
   return name ? `Restore · ${name}` : "Restore";
 }
 
+/** Display name for a verification run — same problem and same shape as
+ *  `restoreRunName`: an integrity check runs against a stored chain, not a job,
+ *  so it has no job.name to fall back to. */
+export function verifyRunName(vmName: string | undefined | null): string {
+  const name = (vmName ?? "").trim();
+  return name ? `Verify · ${name}` : "Verify";
+}
+
 /** Throughput in MB/s with sensible scaling. */
 export function formatThroughput(mbps: number): string {
   if (mbps >= 1024) return `${(mbps / 1024).toFixed(1)} GB/s`;

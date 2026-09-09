@@ -272,6 +272,12 @@ function buildRepositories(): Repository[] {
       driveModel: "Wasabi hot cloud storage · eu-central-1",
       compression: "high",
       pendingGcGB: 118,
+      // Object storage is the only backend the appliance reports Object Lock
+      // for (`capabilities.supports_immutability` is `type == "s3"`), so this
+      // is the one seeded repository whose immutability panel has anything to
+      // show — without it the demo world could never exercise it.
+      supportsImmutability: true,
+      immutability: { mode: "governance", retentionDays: 30 },
     },
     {
       id: "repo-nas",
@@ -351,7 +357,7 @@ function buildJobs(vms: VM[]): BackupJob[] {
       description: "Image-level backup of every production-tagged VM to the hardened repository.",
       scopeSummary: "Tag: production", repositoryId: "repo-immutable",
       schedule: { frequency: "daily", atTime: "22:00" },
-      retention: { keepDays: 14, gfs: { weekly: 4, monthly: 6, yearly: 1 } },
+      retention: { keepDays: 14, gfs: { weekly: 4, monthly: 6, yearly: 1, enabled: true } },
       options: { appAware: true, encryption: true, compression: 3, dedup: true },
       state: "idle", lastStatus: "success", lastRunAt: hoursAgo(11), nextRunAt: hoursFromNow(13),
       createdAt: daysAgo(214), successRate: 98, accent: "emerald",
@@ -387,7 +393,7 @@ function buildJobs(vms: VM[]): BackupJob[] {
       description: "Large file-server protection with synthetic fulls; copied to S3 weekly.",
       scopeSummary: "Tag: files", repositoryId: "repo-nas",
       schedule: { frequency: "daily", atTime: "20:00" },
-      retention: { keepDays: 30, gfs: { weekly: 4, monthly: 12, yearly: 3 } },
+      retention: { keepDays: 30, gfs: { weekly: 4, monthly: 12, yearly: 3, enabled: true } },
       options: { appAware: false, encryption: true, compression: 3, dedup: true, throttleMBps: 400 },
       state: "idle", lastStatus: "warning", lastRunAt: hoursAgo(15), nextRunAt: hoursFromNow(9),
       createdAt: daysAgo(160), successRate: 91, accent: "amber",
@@ -399,7 +405,7 @@ function buildJobs(vms: VM[]): BackupJob[] {
       description: "Weekly active full of the entire estate, kept in S3 for long-term GFS retention.",
       scopeSummary: "All VMs", repositoryId: "repo-objlock",
       schedule: { frequency: "weekly", atTime: "01:00", daysOfWeek: [0] },
-      retention: { keepDays: 8, gfs: { weekly: 8, monthly: 12, yearly: 7 } },
+      retention: { keepDays: 8, gfs: { weekly: 8, monthly: 12, yearly: 7, enabled: true } },
       options: { appAware: true, encryption: true, compression: 9, dedup: true },
       state: "idle", lastStatus: "success", lastRunAt: daysAgo(3), nextRunAt: hoursFromNow(96),
       createdAt: daysAgo(300), successRate: 100, accent: "violet",

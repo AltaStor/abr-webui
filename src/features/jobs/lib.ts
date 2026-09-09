@@ -47,12 +47,17 @@ export function scheduleLabel(schedule: Schedule, disabled = false): string {
 export function retentionLabel(retention: Retention): string {
   const base = i18n.t("jobs:retention.days", { count: retention.keepDays });
   if (!retention.gfs) return base;
-  const { weekly, monthly, yearly } = retention.gfs;
+  const { weekly, monthly, yearly, enabled } = retention.gfs;
   const parts: string[] = [];
   if (weekly) parts.push(`${weekly}w`);
   if (monthly) parts.push(`${monthly}m`);
   if (yearly) parts.push(`${yearly}y`);
-  return parts.length ? i18n.t("jobs:retention.withGfs", { base, tail: parts.join(" / ") }) : base;
+  if (!parts.length) return base;
+  // A suspended policy keeps its counts but marks nothing, so quoting the tail
+  // unqualified would promise archival copies that aren't being made.
+  return enabled === false
+    ? i18n.t("jobs:retention.withGfsSuspended", { base, tail: parts.join(" / ") })
+    : i18n.t("jobs:retention.withGfs", { base, tail: parts.join(" / ") });
 }
 
 /**

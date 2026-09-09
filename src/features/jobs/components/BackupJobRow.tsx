@@ -20,8 +20,8 @@ import { BackupJobVmRow } from "./BackupJobVmRow";
  * One job in the Backups tree: header (job identity, orphan badge, aggregate
  * stats) and — expanded — the VMs that job produced restore points for. Each
  * VM is its own disclosure with its own restore points list; the job row
- * itself carries no actions, since restore and delete both need a specific
- * VM to act on.
+ * itself carries no actions, since verify, restore and delete all act on one
+ * VM's chain rather than on the job.
  */
 export function BackupJobRow({
   group,
@@ -32,6 +32,8 @@ export function BackupJobRow({
   onToggleVm,
   sortDir,
   offlineRepoIds,
+  verifyingVmIds,
+  onVerifyVm,
   onRestoreVm,
   onRestorePoint,
   onDeleteVm,
@@ -44,6 +46,9 @@ export function BackupJobRow({
   onToggleVm: (vmId: string) => void;
   sortDir: "asc" | "desc";
   offlineRepoIds: Set<string>;
+  /** VM ids under THIS job whose chains are being verified right now. */
+  verifyingVmIds: Set<string>;
+  onVerifyVm: (vm: RestorePointJobVmGroup) => void;
   onRestoreVm: (vm: RestorePointJobVmGroup) => void;
   onRestorePoint: (vm: RestorePointJobVmGroup, point: RestorePoint) => void;
   onDeleteVm: (vm: RestorePointJobVmGroup) => void;
@@ -138,6 +143,8 @@ export function BackupJobRow({
                 sortDir={sortDir}
                 offlineRepoIds={offlineRepoIds}
                 restoreBlockedReason={vm.removed ? removedRestoreTip : undefined}
+                verifying={verifyingVmIds.has(vm.vmId)}
+                onVerify={() => onVerifyVm(vm)}
                 onRestore={() => onRestoreVm(vm)}
                 onRestorePoint={(point) => onRestorePoint(vm, point)}
                 onDelete={() => onDeleteVm(vm)}

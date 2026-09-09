@@ -91,6 +91,9 @@ interface FormState {
   gfsWeekly: number;
   gfsMonthly: number;
   gfsYearly: number;
+  /** GFS archiving on/off, independent of the counts above — suspending it
+   *  keeps the weekly/monthly/yearly figures so they can be resumed unchanged. */
+  gfsEnabled: boolean;
   // Replication target
   targetEnvironmentId: string;
   targetHostId: string;
@@ -207,6 +210,7 @@ function JobWizard({
         gfsWeekly: existingJob.retention.gfs?.weekly ?? 0,
         gfsMonthly: existingJob.retention.gfs?.monthly ?? 0,
         gfsYearly: existingJob.retention.gfs?.yearly ?? 0,
+        gfsEnabled: existingJob.retention.gfs?.enabled ?? true,
         targetEnvironmentId: existingJob.replicaTarget?.environmentId ?? "",
         targetHostId: existingJob.replicaTarget?.hostId ?? AUTO_HOST,
         namePrefix: existingJob.replicaTarget?.namePrefix ?? DEFAULT_NAME_PREFIX,
@@ -225,6 +229,9 @@ function JobWizard({
       gfsWeekly: 0,
       gfsMonthly: 0,
       gfsYearly: 0,
+      // On, like the appliance's own default: a job that later gets GFS counts
+      // should start archiving, not sit silently suspended.
+      gfsEnabled: true,
       targetEnvironmentId: "",
       targetHostId: AUTO_HOST,
       namePrefix: DEFAULT_NAME_PREFIX,
@@ -339,6 +346,11 @@ function JobWizard({
   if (isReplication && !form.targetEnvironmentId) errors.push(t("create.errors.targetEnv"));
   if (!isReplication && !repository) errors.push(t("create.errors.repository"));
 
+  /** Whether any GFS count is set at all — an "active" policy with every count
+   *  at zero archives nothing, and the switch's hint says so rather than
+   *  implying long-term copies are being kept. */
+  const gfsConfigured = Boolean(form.gfsWeekly || form.gfsMonthly || form.gfsYearly);
+
   const buildInput = (runNow: boolean): CreateJobInput => {
     const ids = [...selected];
     const scopeSummary = t("create.scope.vmSummary", { count: ids.length });
@@ -346,7 +358,12 @@ function JobWizard({
     // GFS long-term retention is a backup-only concept — replicas keep N points, no archival tail.
     const gfs =
       !isReplication && (form.gfsWeekly || form.gfsMonthly || form.gfsYearly)
-        ? { weekly: form.gfsWeekly, monthly: form.gfsMonthly, yearly: form.gfsYearly }
+        ? {
+            weekly: form.gfsWeekly,
+            monthly: form.gfsMonthly,
+            yearly: form.gfsYearly,
+            enabled: form.gfsEnabled,
+          }
         : undefined;
 
     // The schema still requires a repositoryId for replication jobs; keep the current
@@ -437,7 +454,12 @@ function JobWizard({
           keepDays: form.keepDays,
           gfs:
             form.gfsWeekly || form.gfsMonthly || form.gfsYearly
-              ? { weekly: form.gfsWeekly, monthly: form.gfsMonthly, yearly: form.gfsYearly }
+              ? {
+                  weekly: form.gfsWeekly,
+                  monthly: form.gfsMonthly,
+                  yearly: form.gfsYearly,
+                  enabled: form.gfsEnabled,
+                }
               : undefined,
         }),
     firstRunLabel: firstRunLabel(form),
@@ -837,10 +859,43 @@ function JobWizard({
                         <p className="mb-2 text-[11px] text-muted-foreground">
                           {t("create.gfsDescription")}
                         </p>
-                        <div className="grid grid-cols-3 gap-3">
-                          <GfsInput label={t("create.gfsWeekly")} value={form.gfsWeekly} onChange={(v) => set("gfsWeekly", v)} />
-                          <GfsInput label={t("create.gfsMonthly")} value={form.gfsMonthly} onChange={(v) => set("gfsMonthly", v)} />
-                          <GfsInput label={t("create.gfsYearly")} value={form.gfsYearly} onChange={(v) => set("gfsYearly", v)} />
+                        {/* Protection on/off is the appliance's own `gfs.enabled`,
+                            deliberately separate from the counts: suspending
+                            archiving must not make the operator retype the
+                            weekly/monthly/yearly figures to resume it. */}
+                        <ToggleRow
+                          label={t("create.gfsEnabledLabel")}
+                          hint={
+                            form.gfsEnabled
+                              ? gfsConfigured
+                                ? t("create.gfsEnabledHint")
+                                : t("create.gfsEnabledNoCounts")
+                              : t("create.gfsSuspendedHint")
+                          }
+                          help={t("create.gfsEnabledHelp")}
+                          helpTerm={t("create.gfsEnabledTerm")}
+                          checked={form.gfsEnabled}
+                          onChange={(v) => set("gfsEnabled", v)}
+                        />
+                        <div className="mt-3 grid grid-cols-3 gap-3">
+                          <GfsInput
+                            label={t("create.gfsWeekly")}
+                            value={form.gfsWeekly}
+                            onChange={(v) => set("gfsWeekly", v)}
+                            dimmed={!form.gfsEnabled}
+                          />
+                          <GfsInput
+                            label={t("create.gfsMonthly")}
+                            value={form.gfsMonthly}
+                            onChange={(v) => set("gfsMonthly", v)}
+                            dimmed={!form.gfsEnabled}
+                          />
+                          <GfsInput
+                            label={t("create.gfsYearly")}
+                            value={form.gfsYearly}
+                            onChange={(v) => set("gfsYearly", v)}
+                            dimmed={!form.gfsEnabled}
+                          />
                         </div>
                       </div>
                     )}
@@ -967,9 +1022,22 @@ function ToggleRow({
   );
 }
 
-function GfsInput({ label, value, onChange }: { label: string; value: number; onChange: (v: number) => void }) {
+/** One GFS count. `dimmed` marks a count that is configured but not currently
+ *  in force (archiving suspended) — still editable, just visibly inert, rather
+ *  than disabled, which would hide what the policy will resume with. */
+function GfsInput({
+  label,
+  value,
+  onChange,
+  dimmed = false,
+}: {
+  label: string;
+  value: number;
+  onChange: (v: number) => void;
+  dimmed?: boolean;
+}) {
   return (
-    <div className="space-y-1.5">
+    <div className={cn("space-y-1.5", dimmed && "opacity-60")}>
       <Label className="text-xs text-muted-foreground">{label}</Label>
       <Input
         type="number"

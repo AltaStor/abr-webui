@@ -6,6 +6,7 @@
   },
   "runKind": {
     "restore": "Wiederherstellung",
+    "verify": "Überprüfung",
     "backupCopy": "Backup-Kopie",
     "diskBackup": "Datenträger-Backup",
     "fileBackup": "Datei-Backup",

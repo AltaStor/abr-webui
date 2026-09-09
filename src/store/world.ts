@@ -22,6 +22,7 @@ import { createLiveDriver } from "./world.live";
 import { createSimDriver } from "./world.sim";
 import {
   EMPTY_WORLD,
+  type RepositoryWriteResult,
   type WorldDriver,
   type WorldHandle,
   type WorldMode,
@@ -31,6 +32,14 @@ import {
 export type { CreateJobInput, RestoreInput, WorldMode } from "./world.types";
 
 const STORAGE_KEY = "basalt.world-mode";
+
+/** The harmless no-op every repository write resolves with before a driver is
+ *  running — same shape as a real rejection, so callers need no special case. */
+const NO_WORLD_WRITE: RepositoryWriteResult = {
+  ok: false,
+  message: "world not started",
+  checks: [],
+};
 
 function resolveInitialMode(): WorldMode {
   const fromUrl = new URLSearchParams(window.location.search).get("world");
@@ -97,8 +106,13 @@ export const useWorldStore = create<WorldState>(() => ({
   deleteRestorePoint: (id, segmentId) =>
     driver?.actions.deleteRestorePoint(id, segmentId) ??
     Promise.resolve({ ok: false, reason: "error", message: "world not started" } as const),
-  createRepository: (input) => driver?.actions.createRepository(input) ?? Promise.resolve(null),
-  editRepository: (id, patch) => driver?.actions.editRepository(id, patch) ?? Promise.resolve(),
+  verifyBackups: (chainIds) =>
+    driver?.actions.verifyBackups(chainIds) ??
+    Promise.resolve({ ok: false, message: "world not started" } as const),
+  createRepository: (input) =>
+    driver?.actions.createRepository(input) ?? Promise.resolve(NO_WORLD_WRITE),
+  editRepository: (id, patch) =>
+    driver?.actions.editRepository(id, patch) ?? Promise.resolve(NO_WORLD_WRITE),
   deleteRepository: (id) =>
     driver?.actions.deleteRepository(id) ??
     Promise.resolve({ ok: false, reason: "error", message: "world not started" } as const),
@@ -108,6 +122,23 @@ export const useWorldStore = create<WorldState>(() => ({
   testS3Connection: (config) =>
     driver?.actions.testS3Connection(config) ??
     Promise.resolve({ ok: false, message: "world not started", checks: [] }),
+  verifyRepository: (id) =>
+    driver?.actions.verifyRepository(id) ??
+    Promise.resolve({ ok: false, message: "world not started", checks: [] }),
+  verifyRepositoryImmutability: (id) =>
+    driver?.actions.verifyRepositoryImmutability(id) ??
+    Promise.resolve({ ok: false, message: "world not started", checks: [] }),
+  applyRepositoryImmutability: (id) =>
+    driver?.actions.applyRepositoryImmutability(id) ??
+    Promise.resolve({
+      ok: false,
+      message: "world not started",
+      immutability: { mode: "none" as const, retentionDays: 0 },
+      restorePointCount: 0,
+      updatedRestorePoints: 0,
+      failedRestorePoints: 0,
+      actualRetentionDays: [],
+    }),
   failoverReplica: (id, input) => driver?.actions.failoverReplica(id, input) ?? Promise.resolve(),
   failbackReplica: (id) => driver?.actions.failbackReplica(id) ?? Promise.resolve(),
   undoFailover: (id) => driver?.actions.undoFailover(id) ?? Promise.resolve(),

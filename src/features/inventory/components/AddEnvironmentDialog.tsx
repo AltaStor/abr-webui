@@ -11,7 +11,7 @@
  * for either yet), so they're kept out of the creation flow rather than
  * registering an environment the console can't actually protect.
  */
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import i18n from "@/i18n";
 import { Button } from "@/components/ui/button";
@@ -104,9 +104,17 @@ export function AddEnvironmentDialog({
 }) {
   const { t } = useTranslation("inventory");
   const createEnvironment = useWorldStore((s) => s.createEnvironment);
+  const rescanEnvironment = useWorldStore((s) => s.rescanEnvironment);
   const [form, setForm] = useState<FormState>(emptyForm);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  /* Cancel is live even mid-request, so a rejection can land after the dialog
+   * has closed and reset. Reporting it into the form then would leave a stale
+   * complaint waiting for whoever opens the dialog next; the toast in
+   * `discover` and the environment's own status are the honest channels once
+   * this is closed. */
+  const openRef = useRef(open);
+  openRef.current = open;
 
   const option = useMemo(() => TYPE_OPTIONS.find((o) => o.value === form.type)!, [form.type]);
 
@@ -140,47 +148,76 @@ export function AddEnvironmentDialog({
   const canSubmit =
     form.name.trim() !== "" && endpointTrimmed !== "" && endpointValid && authValid && portValid && !submitting;
 
+  /**
+   * Discovery, once the record exists. Deliberately NOT awaited by `submit`:
+   * the dialog is already closed by the time this runs, so a vCenter that never
+   * answers costs the operator nothing but a pending toast. Reads the outcome
+   * back off the store rather than off `rescanEnvironment`'s return value,
+   * because the appliance persists the specific failure reason on the record
+   * (`statusError`) while the action itself only reports null.
+   */
+  const discover = (environmentId: string, platform: string, endpoint: string) => {
+    const settled = toast.loading(t("addEnvironment.toast.discovering", { platform }), {
+      description: t("addEnvironment.toast.discoveringDesc", { endpoint }),
+    });
+    void rescanEnvironment(environmentId).then(() => {
+      const env = useWorldStore.getState().environments.find((e) => e.id === environmentId);
+      if (env?.statusError) {
+        // Created, but the scan failed (e.g. a self-signed cert rejected with
+        // "Skip TLS verification" off) — surface the appliance's own reason
+        // instead of a silent "Disconnected" to go dig for. It also stays on
+        // the environment in Inventory.
+        toast.warning(t("addEnvironment.toast.discoveryFailed", { platform }), {
+          id: settled,
+          description: env.statusError,
+        });
+        return;
+      }
+      toast.success(t("addEnvironment.toast.registered", { platform }), {
+        id: settled,
+        description: t("addEnvironment.toast.discoveredDesc", {
+          endpoint,
+          count: env?.vmCount ?? 0,
+        }),
+      });
+    });
+  };
+
   const submit = async () => {
     setSubmitting(true);
     setError(null);
+    const platform = option.label;
+    const endpoint = form.endpoint.trim();
     try {
       const env = await createEnvironment({
         name: form.name.trim(),
         type: form.type,
-        endpoint: form.endpoint.trim(),
+        endpoint,
         port: form.port.trim() ? Number(form.port) : undefined,
         username: form.username.trim(),
         password: form.password,
         insecure: form.insecure,
       });
       if (!env) {
-        setError(t("addEnvironment.error"));
+        if (openRef.current) setError(t("addEnvironment.error"));
         setSubmitting(false);
         return;
       }
-      if (env.statusError) {
-        // The environment was created, but the discovery scan that follows
-        // failed (e.g. a self-signed cert rejected with "Skip TLS
-        // verification" off) -- surface the appliance's specific reason now
-        // instead of a silent "Disconnected" the user has to go dig for in
-        // DevTools. It also stays visible on the environment in Inventory.
-        toast.warning(t("addEnvironment.toast.discoveryFailed", { platform: option.label }), {
-          description: env.statusError,
-        });
-      } else {
-        toast.success(t("addEnvironment.toast.registered", { platform: option.label }), {
-          description: t("addEnvironment.toast.registeredDesc", { endpoint: form.endpoint.trim() }),
-        });
-      }
+      // The record exists now, so this dialog's work is done — close it and let
+      // discovery report for itself. Nothing below touches component state.
+      setSubmitting(false);
       onOpenChange(false);
+      discover(env.id, platform, endpoint);
     } catch (err) {
-      setError(apiErrorMessage(err) ?? t("addEnvironment.error"));
+      const message = apiErrorMessage(err) ?? t("addEnvironment.error");
+      if (openRef.current) setError(message);
+      else toast.error(t("addEnvironment.error"), { description: message });
       setSubmitting(false);
     }
   };
 
   return (
-    <Dialog open={open} onOpenChange={(o) => (submitting ? undefined : onOpenChange(o))}>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
@@ -294,7 +331,10 @@ export function AddEnvironmentDialog({
         </div>
 
         <DialogFooter>
-          <Button variant="ghost" onClick={() => onOpenChange(false)} disabled={submitting}>
+          {/* Never disabled. Registration is one POST and discovery is another
+              call entirely, so there is no window in which dismissing this
+              dialog could leave the appliance mid-write. */}
+          <Button variant="ghost" onClick={() => onOpenChange(false)}>
             {t("common:actions.cancel")}
           </Button>
           <Button onClick={() => void submit()} disabled={!canSubmit}>

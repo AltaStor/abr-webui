@@ -21,6 +21,8 @@ interface RepositoryCardProps {
   onOpen: () => void;
   actions: RepositoryActions;
   scanning: boolean;
+  /** A full repository validation is in flight from this card's menu. */
+  verifying: boolean;
   /** Set when auto-lock-on-threat has sealed this repo (derived, presentational). */
   threatLock?: RepoThreatLock | null;
 }
@@ -32,6 +34,7 @@ export function RepositoryCard({
   onOpen,
   actions,
   scanning,
+  verifying,
   threatLock,
 }: RepositoryCardProps) {
   const { t } = useTranslation("repositories");
@@ -61,7 +64,13 @@ export function RepositoryCard({
       {/* Kebab overlay — a real button, sibling to the clickable body so it never
           nests interactive elements inside the card <button>. */}
       <div className="absolute right-3 top-3 z-20">
-        <RepositoryActionsMenu {...actions} scanning={scanning} triggerSize="sm" repoName={repo.name} />
+        <RepositoryActionsMenu
+          {...actions}
+          scanning={scanning}
+          verifying={verifying}
+          triggerSize="sm"
+          repoName={repo.name}
+        />
       </div>
 
       {/* Clickable body */}
@@ -88,7 +97,7 @@ export function RepositoryCard({
         </div>
 
         {/* Status chips row: immutability / threat-lock / scanning */}
-        {(lockLabel || threatLock || scanning) && (
+        {(lockLabel || threatLock || scanning || verifying) && (
           <div className="mt-3 flex flex-wrap items-center gap-1.5">
             {lockLabel && (
               <span className="inline-flex items-center gap-1 bg-immutable-subtle px-2 py-0.5 text-[11px] font-medium text-immutable-text">
@@ -109,6 +118,12 @@ export function RepositoryCard({
               <span className="inline-flex items-center gap-1 bg-info-subtle px-2 py-0.5 text-[11px] font-medium text-info-text">
                 <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-info" />
                 {t("card.scanningIntegrity")}
+              </span>
+            )}
+            {verifying && (
+              <span className="inline-flex items-center gap-1 bg-info-subtle px-2 py-0.5 text-[11px] font-medium text-info-text">
+                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-info" />
+                {t("card.verifying")}
               </span>
             )}
           </div>

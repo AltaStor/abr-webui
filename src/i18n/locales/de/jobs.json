@@ -48,7 +48,8 @@
   "retention": {
     "days_one": "{{count}} Tag",
     "days_other": "{{count}} Tage",
-    "withGfs": "{{base}} · GFS {{tail}}"
+    "withGfs": "{{base}} · GFS {{tail}}",
+    "withGfsSuspended": "{{base}} · GFS {{tail}} (ausgesetzt)"
   },
   "type": {
     "replication": "Replikation",
@@ -174,11 +175,12 @@
   },
   "filters": {
     "status": {
-      "all": "Alle Status",
-      "running": "Wird ausgeführt",
-      "healthy": "In Ordnung",
-      "warning": "Aufmerksamkeit erforderlich",
-      "disabled": "Deaktiviert"
+      "all": "Alle Status"
+    },
+    "schedule": {
+      "all": "Alle Zeitpläne",
+      "enabled": "Zeitplan aktiviert",
+      "disabled": "Zeitplan deaktiviert"
     }
   },
   "table": {
@@ -200,7 +202,7 @@
     "lastRunRunningSince": "Läuft seit {{value}}",
     "lastRunStarted": "Gestartet: {{value}}",
     "lastRunStatus": "Status der letzten Ausführung",
-    "lastRunStatusHint": "Ergebnis der jüngsten Ausführung. „Deaktiviert“ bedeutet, dass der Job deaktiviert ist und seinem Zeitplan nicht folgt.",
+    "lastRunStatusHint": "Ergebnis der jüngsten Ausführung: Erfolgreich, Warnung, Fehlgeschlagen, Läuft, In Warteschlange oder „Nie ausgeführt“ für einen Job, der noch nicht gelaufen ist. Ob der Job aktiviert ist, zeigt die Spalte Zeitplan.",
     "nextRunHint": "Nächster geplanter Start. Eine manuelle Ausführung ändert ihn nicht.",
     "scheduleHint": "Wann der Job von selbst startet. Deaktivierte Jobs behalten ihren Zeitplan, überspringen ihn aber.",
     "repositoryHint": "Wo die Backups dieses Jobs liegen. Ein Schild kennzeichnet ein unveränderliches Repository.",
@@ -223,7 +225,8 @@
   "toolbar": {
     "searchPlaceholder": "Jobs nach Name oder Umfang suchen…",
     "searchLabel": "Jobs suchen",
-    "filterByStatus": "Nach Status filtern"
+    "filterByStatus": "Nach Status der letzten Ausführung filtern",
+    "filterBySchedule": "Nach Zeitplanstatus filtern"
   },
   "bulk": {
     "selected": "{{count}} ausgewählt",
@@ -456,6 +459,9 @@
     "fileHealth": "Dateizustand",
     "retentionTitle": "Aufbewahrung",
     "keep": "Aufbewahren",
+    "gfsProtection": "GFS-Schutz",
+    "gfsActive": "Aktiv",
+    "gfsSuspended": "Ausgesetzt",
     "gfsWeekly": "Wöchentlich (GFS)",
     "gfsMonthly": "Monatlich (GFS)",
     "gfsYearly": "Jährlich (GFS)",
@@ -611,6 +617,21 @@
     "restoreVmAria": "{{vm}} aus {{job}} wiederherstellen",
     "deleteVmAria": "Backup von {{vm}} aus {{job}} löschen",
     "deleteVmTip": "Backup dieser VM aus diesem Job löschen",
+    "verify": {
+      "tip": "Backup dieser VM überprüfen — liest jedes gespeicherte Artefakt neu und gleicht es mit dem Katalog ab",
+      "aria": "Backup von {{vm}} aus {{job}} überprüfen",
+      "running": "Wird überprüft",
+      "runningTip": "Eine Integritätsprüfung läuft über das gespeicherte Backup dieser VM. Verfolgen Sie sie auf der Seite Aktivität.",
+      "toast": {
+        "started": "{{vm}} wird überprüft",
+        "startedDesc_one": "{{count}} Wiederherstellungspunkt wird neu gelesen. Verfolgen Sie es auf der Seite Aktivität.",
+        "startedDesc_other": "{{count}} Wiederherstellungspunkte werden neu gelesen. Verfolgen Sie es auf der Seite Aktivität.",
+        "failedToStart": "Überprüfung konnte nicht gestartet werden",
+        "valid": "Backup von {{vm}} überprüft",
+        "warnings": "Backup von {{vm}} mit Warnungen überprüft",
+        "invalid": "Überprüfung des Backups von {{vm}} fehlgeschlagen"
+      }
+    },
     "kpi": {
       "points": "Wiederherstellungspunkte",
       "acrossObjects": "Über {{jobs}} Jobs · {{vms}} VMs",
@@ -873,6 +894,12 @@
     "gfsTerm": "GFS-Aufbewahrung",
     "gfsHelp": "Grandfather-Father-Son (GFS): bewahren Sie zusätzliche wöchentliche, monatliche und jährliche Kopien für die Langzeitarchivierung auf, zusätzlich zu Ihren täglichen Wiederherstellungspunkten.",
     "gfsDescription": "Optionale Archivkopien, die über die reguläre Aufbewahrung oben hinaus aufbewahrt werden. Belassen Sie den Wert bei 0, um zu überspringen.",
+    "gfsEnabledLabel": "Schutz aktiv",
+    "gfsEnabledTerm": "GFS-Schutz",
+    "gfsEnabledHelp": "Setzt die GFS-Archivierung aus oder nimmt sie wieder auf, ohne die Werte unten zu ändern. Während der Aussetzung werden keine neuen wöchentlichen/monatlichen/jährlichen Kopien markiert, und vorhandene Archivpunkte laufen unter der regulären Aufbewahrung oben ab.",
+    "gfsEnabledHint": "Wöchentliche, monatliche und jährliche Kopien werden markiert und aufbewahrt.",
+    "gfsEnabledNoCounts": "Legen Sie unten mindestens einen Wert fest, damit Archivkopien aufbewahrt werden.",
+    "gfsSuspendedHint": "Die Archivierung ist ausgesetzt. Die Werte unten bleiben für die Wiederaufnahme erhalten.",
     "gfsWeekly": "Wöchentlich",
     "gfsMonthly": "Monatlich",
     "gfsYearly": "Jährlich",

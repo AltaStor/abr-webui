@@ -71,6 +71,75 @@
     "mode": {
       "governance": "Governance",
       "compliance": "Compliance"
+    },
+    "currentLabel": "Currently",
+    "unsupported": "This storage backend has no Object Lock, so immutability cannot be configured for it. Object storage (S3) repositories can lock every backup they receive.",
+    "validate": "Validate against the bucket",
+    "validating": "Validating…",
+    "validateHint": "Writes a locked test object, reads its retention back and tries to delete it — the only way to know the bucket really enforces what is configured here.",
+    "validateDirtyHint": "Validates the SAVED setting, not the change above. Save first to check the new one.",
+    "change": {
+      "unchanged": "",
+      "enabled_zero": "Backups written from now on will be locked. Nothing is stored here yet, so nothing is left behind.",
+      "enabled_one": "Backups written from now on will be locked. The {{count}} restore point already stored was written without a lock and stays deletable until you apply immutability to it below.",
+      "enabled_other": "Backups written from now on will be locked. The {{count}} restore points already stored were written without a lock and stay deletable until you apply immutability to them below.",
+      "strengthened_zero": "The stronger setting — a longer period, a stricter mode, or both — applies to backups written from now on.",
+      "strengthened_one": "The stronger setting — a longer period, a stricter mode, or both — applies to backups written from now on. The {{count}} restore point already stored keeps the lock it was written with: a written lock is never extended or strengthened by a settings change. Apply immutability to it below to bring it under the new one.",
+      "strengthened_other": "The stronger setting — a longer period, a stricter mode, or both — applies to backups written from now on. The {{count}} restore points already stored keep the locks they were written with: a written lock is never extended or strengthened by a settings change. Apply immutability to them below to bring them under the new one.",
+      "relaxed": "This only affects backups written from now on. Object Lock retention that is already written can never be shortened or removed, so everything already stored stays locked for its full original period.",
+      "disabled": "Backups written from now on will NOT be locked and can be deleted or overwritten. Anything already written under a lock stays locked until that lock expires."
+    },
+    "effect": {
+      "title": "What this does",
+      "limitationsTitle": "What it does not cover",
+      "warningsTitle": "Conflicts with the jobs writing here",
+      "existingProtected_one": "{{count}} stored restore point is under the current configuration.",
+      "existingProtected_other": "{{count}} stored restore points are under the current configuration.",
+      "existingUnprotected_one": "{{count}} stored restore point is not covered by the current configuration.",
+      "existingUnprotected_other": "{{count}} stored restore points are not covered by the current configuration."
+    },
+    "apply": {
+      "title": "Stored backups",
+      "description_one": "{{count}} restore point is already stored here. Changing the setting above never touches it; this puts it under the current lock, counted from now rather than from when it was written.",
+      "description_other": "{{count}} restore points are already stored here. Changing the setting above never touches them; this puts them under the current lock, counted from now rather than from when they were written.",
+      "action": "Apply to stored backups",
+      "needsEnabled": "Turn immutability on and save it before it can be applied to stored backups.",
+      "needsSaved": "Save the change above first — this applies the repository's saved setting, not the draft.",
+      "confirm_one": "Locks {{count}} stored restore point in {{mode}} mode for {{days}} days, counted from now. In compliance mode this cannot be undone by anyone, and the storage is paid for until it expires.",
+      "confirm_other": "Locks {{count}} stored restore points in {{mode}} mode for {{days}} days, counted from now. In compliance mode this cannot be undone by anyone, and the storage is paid for until it expires.",
+      "confirmAction": "Lock stored backups",
+      "toast": {
+        "done": "Stored backups locked",
+        "failed": "Could not lock the stored backups"
+      }
+    },
+    "toast": {
+      "existingNotCovered": {
+        "title": "{{name}} created with immutability on",
+        "description_one": "{{count}} backup already in this bucket was written without a lock and is not covered. Apply immutability to it from the repository's settings.",
+        "description_other": "{{count}} backups already in this bucket were written without a lock and are not covered. Apply immutability to them from the repository's settings."
+      }
+    }
+  },
+  "validation": {
+    "passedChecks_one": "{{count}} check passed",
+    "passedChecks_other": "{{count}} checks passed",
+    "check": {
+      "unknown": "{{name}}",
+      "bucket": "Bucket",
+      "region": "Region",
+      "endpoint_url": "Endpoint URL",
+      "endpoint_reachable": "Endpoint reachable",
+      "connectivity": "Bucket access",
+      "object_lock": "Object Lock on the bucket",
+      "versioning": "Bucket versioning",
+      "immutability": "Immutability",
+      "immutability_mode": "Lock mode",
+      "retention_period": "Retention period",
+      "write_retention": "Locked write",
+      "retention_readback": "Retention read back",
+      "worm_enforcement": "Delete refused",
+      "block_consistency": "Backup integrity"
     }
   },
   "compression": {
@@ -92,6 +161,8 @@
     "editSettings": "Edit settings",
     "scanning": "Scanning…",
     "rescan": "Rescan",
+    "verify": "Verify repository",
+    "verifying": "Verifying…",
     "exitMaintenance": "Exit maintenance",
     "enterMaintenance": "Enter maintenance",
     "delete": "Delete repository"
@@ -104,6 +175,12 @@
     "rescanFailed": {
       "title": "Couldn't start the integrity scan",
       "description": "{{name}} could not be scanned. Try again in a moment."
+    },
+    "verifyOk": {
+      "title": "{{name}} verified"
+    },
+    "verifyFailed": {
+      "title": "{{name}} failed validation"
     },
     "maintenanceOn": {
       "title": "Maintenance mode on",
@@ -125,6 +202,7 @@
     "threatLocked": "Threat-locked",
     "maintenance": "Maintenance",
     "scanningIntegrity": "Scanning integrity",
+    "verifying": "Verifying",
     "capacityOfFree": "of {{capacity}} · {{free}} free",
     "elasticNote": "Elastic storage · no fixed capacity",
     "percentUsed": "{{pct}}% used",
@@ -142,6 +220,11 @@
     "storagePath": "Storage path",
     "immutability": "Immutability",
     "immutabilityOff": "Off — backups stay deletable",
+    "immutabilityConfiguredNote_zero": "This is the configured setting. Run Verify repository to confirm the bucket really enforces it.",
+    "immutabilityConfiguredNote_one": "This is the configured setting and applies to backups written from now on. {{count}} restore point already stored keeps whatever lock it was written with. Run Verify repository to confirm the bucket really enforces it.",
+    "immutabilityConfiguredNote_other": "This is the configured setting and applies to backups written from now on. {{count}} restore points already stored keep whatever lock they were written with. Run Verify repository to confirm the bucket really enforces it.",
+    "immutabilityOffNote": "Backups written here can be deleted or overwritten. Edit settings to turn Object Lock on.",
+    "validationTitle": "Validation",
     "shareAccount": "Share account",
     "storageMode": "Storage mode",
     "directNoDedup": "Direct (no dedup)",
@@ -240,7 +323,8 @@
           "compliance": "Nobody can shorten or remove a lock before it expires — not the appliance, not the account root. Storage is paid for until the last lock lapses."
         },
         "retentionLabel": "Lock for (days)",
-        "retentionInvalid": "Enter a whole number of days between 1 and {{max}}."
+        "retentionInvalid": "Enter a whole number of days between 1 and {{max}}.",
+        "existingNote": "Applies to backups written from now on. Backups already in the bucket are not locked by this — put them under it from the repository's settings after it is created."
       },
       "test": "Test connection",
       "testing": "Testing…"
