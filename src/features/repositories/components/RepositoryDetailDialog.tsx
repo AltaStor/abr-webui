@@ -6,6 +6,7 @@ import { Link } from "react-router-dom";
 import {
   ArrowRight,
   Database,
+  Lock,
   RefreshCw,
   ServerCog,
   ShieldAlert,
@@ -31,7 +32,7 @@ import { useCapacityLevel } from "@/lib/capacity";
 import { formatDateTime, formatInt, formatRelative, formatStorage, usagePercent } from "@/lib/format";
 import type { RepoThreatLock } from "@/lib/threatLock";
 import type { BackupJob, Repository } from "@/types";
-import { REPO_STATUS_META, REPO_TYPE_META } from "./repoMeta";
+import { immutabilityLabel, REPO_STATUS_META, REPO_TYPE_META } from "./repoMeta";
 import { RepositoryActionsMenu, type RepositoryActions } from "./RepositoryActionsMenu";
 
 interface RepositoryDetailDialogProps {
@@ -100,6 +101,7 @@ function RepositoryDetailBody({
   // reports a real "used" figure for it, so the percent bar and free-space
   // caption (which need a ceiling to mean anything) are skipped for it.
   const elastic = repo.capacityGB <= 0;
+  const lockLabel = immutabilityLabel(repo);
   const pct = usagePercent(repo.usedGB, repo.capacityGB);
   const freeGB = Math.max(0, repo.capacityGB - repo.usedGB);
   const level = useCapacityLevel(pct);
@@ -151,6 +153,22 @@ function RepositoryDetailBody({
           <Field icon={ServerCog} label={t("detail.storagePath")}>
             <code className="nums bg-muted/60 px-2 py-1 text-xs">{repo.path}</code>
           </Field>
+
+          {/* Object Lock — shown only where the backend has the concept, so a
+              local repository isn't told it has immutability "off" when the
+              setting does not exist for it at all. */}
+          {repo.supportsImmutability && (
+            <Field icon={Lock} label={t("detail.immutability")}>
+              {lockLabel ? (
+                <span className="inline-flex items-center gap-1.5 bg-immutable-subtle px-2 py-1 text-xs font-medium text-immutable-text">
+                  <Lock className="h-3 w-3" />
+                  {lockLabel}
+                </span>
+              ) : (
+                <span className="text-xs text-muted-foreground">{t("detail.immutabilityOff")}</span>
+              )}
+            </Field>
+          )}
 
           {/* Capacity */}
           <div>

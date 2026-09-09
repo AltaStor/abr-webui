@@ -1136,7 +1136,23 @@ export function createLiveDriver(handle: WorldHandle): WorldDriver {
 
     testS3Connection: async (config) => {
       try {
-        return await api.testS3RepositoryConnection(config);
+        const connection = await api.testS3RepositoryConnection(config);
+        // Reachable-and-writable and locks-what-it-writes are different
+        // questions, and an operator who asked for Object Lock needs both
+        // answered before committing to the bucket. Only worth asking the
+        // second once the first says yes.
+        if (!connection.ok || !config.immutability || config.immutability.mode === "none") {
+          return connection;
+        }
+        const lock = await api.testS3RepositoryImmutability(config);
+        // Both endpoints re-run the same bucket/region/endpoint format checks;
+        // showing each twice would read as two different probes.
+        const seen = new Set(connection.checks.map((c) => c.name));
+        return {
+          ok: lock.ok,
+          message: lock.message,
+          checks: [...connection.checks, ...lock.checks.filter((c) => !seen.has(c.name))],
+        };
       } catch (err) {
         return {
           ok: false,

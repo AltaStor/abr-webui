@@ -41,6 +41,7 @@ import type {
   EnvironmentType,
   Host,
   Hypervisor,
+  ImmutabilityMode,
   JobOptions,
   JobType,
   LogLevel,
@@ -51,6 +52,7 @@ import type {
   Replica,
   ReplicaTarget,
   Repository,
+  RepositoryImmutability,
   RepositoryType,
   RestorePlacementOptions,
   RestorePoint,
@@ -581,6 +583,8 @@ function mapRepository(r: Dict): Repository {
       status === "available" ? "healthy" : status === "unavailable" || status === "error" ? "offline" : "warning",
     usageTrend: [usedGB, usedGB],
     lastScanAt: strOrNull(r.last_scan_at),
+    immutability: mapImmutability(r.immutability),
+    supportsImmutability: Boolean(asDict(r.capabilities).supports_immutability),
   };
 }
 
@@ -1396,6 +1400,27 @@ function s3ConfigWireBody(s3: S3RepositoryConfig): Dict {
     profile: s3.profile ?? "",
     path_style: s3.pathStyle ?? Boolean(s3.endpointUrl),
     verify_tls: s3.verifyTls ?? true,
+    // The appliance pairs these strictly (_validate_s3_configuration): mode
+    // "none" demands 0 days, and any other mode demands at least 1. Sending an
+    // explicitly-zeroed "none" is what lets the dialog turn the lock back off.
+    immutability: {
+      mode: s3.immutability?.mode ?? "none",
+      retention_days:
+        s3.immutability && s3.immutability.mode !== "none" ? s3.immutability.retentionDays : 0,
+    },
+  };
+}
+
+/** Wire `immutability` block → the console shape. Absent for a backend that has
+ *  no Object Lock at all, which is not the same as one that has it switched off. */
+function mapImmutability(raw: unknown): RepositoryImmutability | null {
+  if (!raw || typeof raw !== "object") return null;
+  const config = asDict(raw);
+  const mode = str(config.mode) as ImmutabilityMode;
+  const known: ImmutabilityMode[] = ["none", "governance", "compliance"];
+  return {
+    mode: known.includes(mode) ? mode : "none",
+    retentionDays: num(config.retention_days),
   };
 }
 
@@ -1426,6 +1451,37 @@ export async function testS3RepositoryConnection(s3: S3RepositoryConfig): Promis
       return {
         name: str(check.name),
         status: (str(check.status, "failed") as "ok" | "failed" | "skipped"),
+        message: strOrNull(check.message) ?? undefined,
+      };
+    }),
+  };
+}
+
+/**
+ * Pre-create Object Lock test (POST /repositories/test-immutability).
+ *
+ * A different question from `testS3RepositoryConnection`: that one asks whether
+ * the bucket is reachable and writable, this one asks whether it will actually
+ * hold a backup under the requested retention — it reads the bucket's default
+ * retention rule, writes a probe object, reads its lock back, and tries to
+ * delete it. Both are worth running, so the dialog runs both.
+ */
+export async function testS3RepositoryImmutability(
+  s3: S3RepositoryConfig,
+): Promise<S3ConnectionTestResult> {
+  const body: Dict = { type: "s3", s3: s3ConfigWireBody(s3) };
+  const res = asDict(
+    await request<Dict>("/repositories/test-immutability", { method: "POST", body: JSON.stringify(body) }),
+  );
+  const checks = Array.isArray(res.checks) ? res.checks : [];
+  return {
+    ok: str(res.status) === "success",
+    message: str(res.message) || (str(res.status) === "success" ? "Immutability verified" : "Immutability check failed"),
+    checks: checks.map((c) => {
+      const check = asDict(c);
+      return {
+        name: str(check.name),
+        status: str(check.status, "failed") as "ok" | "failed" | "skipped",
         message: strOrNull(check.message) ?? undefined,
       };
     }),
@@ -1549,7 +1605,10 @@ const EMPTY_SETTINGS: ApplianceSettings = {
  * restores the constant. Flip this to `false` in the same commit that wires
  * the real endpoints and every notice keyed off it disappears.
  */
-export const SETTINGS_ARE_LOCAL_ONLY = true;
+// Annotated `boolean` rather than left to infer the literal `true`: consumers
+// branch on it, and a literal type makes the not-yet-live half of every branch
+// look like dead code to the compiler.
+export const SETTINGS_ARE_LOCAL_ONLY: boolean = true;
 
 export const getSettings = async (): Promise<ApplianceSettings> => EMPTY_SETTINGS;
 export const putSettings = async (settings: ApplianceSettings): Promise<ApplianceSettings> => settings;

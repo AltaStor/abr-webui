@@ -66,6 +66,13 @@
       "blurb": "Für dieses Repository wurde noch keine Integritätsprüfung durchgeführt."
     }
   },
+  "immutability": {
+    "summary": "{{mode}}-Sperre · {{days}} Tage",
+    "mode": {
+      "governance": "Governance",
+      "compliance": "Compliance"
+    }
+  },
   "compression": {
     "none": {
       "label": "Keine",
@@ -133,6 +140,8 @@
     "threatLockedTitle": "Bedrohungsgesperrt · durch Bedrohungsreaktion versiegelt",
     "threatLockedBody": "Dieses Repository hält Wiederherstellungspunkte für {{names}}, die derzeit aktiv auf eine Bedrohung untersucht werden. Alle unveränderlichen Punkte hier bleiben geschützt. Die Versiegelung wird automatisch aufgehoben, sobald die Bedrohung eingedämmt oder verworfen ist.",
     "storagePath": "Speicherpfad",
+    "immutability": "Unveränderlichkeit",
+    "immutabilityOff": "Aus — Backups bleiben löschbar",
     "shareAccount": "Freigabekonto",
     "storageMode": "Speichermodus",
     "directNoDedup": "Direkt (kein Dedup)",
@@ -168,7 +177,8 @@
         "title": "Repository hinzugefügt",
         "smbDedup": "{{name}} — eingebunden, dedupliziert, bereit für Backups.",
         "smbDirect": "{{name}} — eingebunden, direkt (kein Dedup), bereit für Backups.",
-        "ready": "{{name}} — {{size}} bereit für Backups."
+        "ready": "{{name}} — {{size}} bereit für Backups.",
+        "readyElastic": "{{name}} — elastischer Speicher, bereit für Backups."
       }
     },
     "trigger": "Repository hinzufügen",
@@ -216,6 +226,22 @@
       "secretKeyRequired": "Geben Sie einen geheimen Zugriffsschlüssel ein.",
       "verifyTlsLabel": "TLS-Zertifikat prüfen",
       "verifyTlsAria": "TLS-Zertifikat des Endpunkts prüfen",
+      "immutability": {
+        "label": "Unveränderliche Backups (Object Lock)",
+        "hint": "Jedes hier geschriebene Backup wird für die Aufbewahrungsdauer im Bucket gesperrt und kann bis zum Ablauf weder gelöscht noch überschrieben werden — weder von dieser Appliance noch von jemandem, der ihre Zugangsdaten übernimmt.",
+        "aria": "Backups mit S3-Object-Lock-Aufbewahrung schreiben",
+        "modeLabel": "Sperrmodus",
+        "mode": {
+          "governance": "Governance",
+          "compliance": "Compliance"
+        },
+        "modeHint": {
+          "governance": "Ein Konto mit der Bypass-Berechtigung kann eine Sperre vorzeitig aufheben. Schützt vor einem kompromittierten Backup-Konto und lässt einer bewussten Administration einen Ausweg.",
+          "compliance": "Niemand kann eine Sperre vor Ablauf verkürzen oder aufheben — weder die Appliance noch der Konto-Root. Der Speicher wird bezahlt, bis die letzte Sperre abläuft."
+        },
+        "retentionLabel": "Sperren für (Tage)",
+        "retentionInvalid": "Geben Sie eine ganze Zahl von Tagen zwischen 1 und {{max}} ein."
+      },
       "test": "Verbindung testen",
       "testing": "Wird getestet…"
     }

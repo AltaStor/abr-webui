@@ -973,6 +973,13 @@ export function createSimDriver(handle: WorldHandle): WorldDriver {
         usageTrend: Array.from({ length: 14 }, () => 0),
         integrityStatus: "never",
         lastScanAt: null,
+        // Read back the way the appliance reports it, so the demo world's
+        // repository card carries the same lock badge a real one does.
+        supportsImmutability: input.type === "object-lock-s3",
+        immutability:
+          input.type === "object-lock-s3"
+            ? (input.s3?.immutability ?? { mode: "none", retentionDays: 0 })
+            : null,
       };
       handle.set((s) => ({
         repositories: [...s.repositories, repo],
@@ -1077,9 +1084,27 @@ export function createSimDriver(handle: WorldHandle): WorldDriver {
       }
 
       checks.push({ name: "connectivity", status: "ok", message: "Bucket/prefix access validated (simulated)" });
-      return new Promise((resolve) =>
-        setTimeout(() => resolve({ ok: true, message: "S3 connection succeeded", checks }), 600),
-      );
+
+      // The demo bucket always supports Object Lock; the point of running the
+      // check here is that the dialog's result panel looks the same in both
+      // worlds, not that anything is really probed.
+      const lock = config.immutability;
+      let message = "S3 connection succeeded";
+      if (lock && lock.mode !== "none") {
+        checks.push({
+          name: "immutability_mode",
+          status: "ok",
+          message: `${lock.mode} is available on this bucket (simulated)`,
+        });
+        checks.push({
+          name: "retention_period",
+          status: "ok",
+          message: `${lock.retentionDays} day(s) requested (simulated)`,
+        });
+        message = `S3 repository is validated for immutable backups: ${lock.mode} for ${lock.retentionDays} day(s)`;
+      }
+
+      return new Promise((resolve) => setTimeout(() => resolve({ ok: true, message, checks }), 600));
     },
 
     /* --------------------------- replication --------------------------- */

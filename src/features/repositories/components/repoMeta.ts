@@ -121,3 +121,15 @@ export const COMPRESSION_OPTIONS: CompressionMode[] = ["none", "optimal", "high"
  *  surfacing as a generic rejection on submit. */
 export const REPOSITORY_NAME_MAX_LENGTH = 125;
 export const REPOSITORY_NAME_PATTERN = /^[A-Za-z0-9][A-Za-z0-9 ._-]*$/;
+
+/** A repository's Object Lock state as one short line, or null when there is
+ *  nothing to say — a backend without Object Lock, or one that has it off.
+ *  Same words on the card badge and in the detail dialog. */
+export function immutabilityLabel(repo: Repository): string | null {
+  const lock = repo.immutability;
+  if (!lock || lock.mode === "none" || lock.retentionDays <= 0) return null;
+  return i18n.t("repositories:immutability.summary", {
+    mode: i18n.t(`repositories:immutability.mode.${lock.mode}`),
+    days: lock.retentionDays,
+  });
+}

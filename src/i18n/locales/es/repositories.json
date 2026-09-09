@@ -66,6 +66,13 @@
       "blurb": "Este repositorio aún no ha pasado una comprobación de integridad."
     }
   },
+  "immutability": {
+    "summary": "Bloqueo {{mode}} · {{days}} días",
+    "mode": {
+      "governance": "Governance",
+      "compliance": "Compliance"
+    }
+  },
   "compression": {
     "none": {
       "label": "Ninguna",
@@ -133,6 +140,8 @@
     "threatLockedTitle": "Bloqueado por amenaza · sellado por respuesta a amenazas",
     "threatLockedBody": "Este repositorio conserva puntos de restauración para {{names}}, actualmente bajo investigación activa de amenazas. Cualquier punto inmutable aquí permanece protegido. El sellado se levanta automáticamente cuando la amenaza se contiene o se descarta.",
     "storagePath": "Ruta de almacenamiento",
+    "immutability": "Inmutabilidad",
+    "immutabilityOff": "Desactivada: las copias siguen siendo eliminables",
     "shareAccount": "Cuenta del recurso compartido",
     "storageMode": "Modo de almacenamiento",
     "directNoDedup": "Directo (sin deduplicación)",
@@ -168,7 +177,8 @@
         "title": "Repositorio añadido",
         "smbDedup": "{{name}} — montado, deduplicado, listo para recibir copias de seguridad.",
         "smbDirect": "{{name}} — montado, directo (sin deduplicación), listo para recibir copias de seguridad.",
-        "ready": "{{name}} — {{size}} listos para recibir copias de seguridad."
+        "ready": "{{name}} — {{size}} listos para recibir copias de seguridad.",
+        "readyElastic": "{{name}} — almacenamiento elástico, listo para recibir copias de seguridad."
       }
     },
     "trigger": "Añadir repositorio",
@@ -216,6 +226,22 @@
       "secretKeyRequired": "Introduzca una clave de acceso secreta.",
       "verifyTlsLabel": "Verificar el certificado TLS",
       "verifyTlsAria": "Verificar el certificado TLS del endpoint",
+      "immutability": {
+        "label": "Copias de seguridad inmutables (Object Lock)",
+        "hint": "Cada copia escrita aquí queda bloqueada en el bucket durante el periodo de retención y no puede eliminarse ni sobrescribirse hasta que expire: ni por esta appliance ni por quien se haga con sus credenciales.",
+        "aria": "Escribir copias de seguridad con retención de S3 Object Lock",
+        "modeLabel": "Modo de bloqueo",
+        "mode": {
+          "governance": "Governance",
+          "compliance": "Compliance"
+        },
+        "modeHint": {
+          "governance": "Una cuenta con el permiso de omisión aún puede levantar un bloqueo antes de tiempo. Protege frente a una cuenta de copia comprometida y deja una salida a un administrador deliberado.",
+          "compliance": "Nadie puede acortar ni retirar un bloqueo antes de que expire: ni la appliance ni la cuenta raíz. El almacenamiento se paga hasta que caduque el último bloqueo."
+        },
+        "retentionLabel": "Bloquear durante (días)",
+        "retentionInvalid": "Introduzca un número entero de días entre 1 y {{max}}."
+      },
       "test": "Probar la conexión",
       "testing": "Probando…"
     }

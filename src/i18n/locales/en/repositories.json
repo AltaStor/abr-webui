@@ -66,6 +66,13 @@
       "blurb": "This repository hasn't been integrity-checked yet."
     }
   },
+  "immutability": {
+    "summary": "{{mode}} lock · {{days}} days",
+    "mode": {
+      "governance": "Governance",
+      "compliance": "Compliance"
+    }
+  },
   "compression": {
     "none": {
       "label": "None",
@@ -133,6 +140,8 @@
     "threatLockedTitle": "Threat-locked · sealed by threat response",
     "threatLockedBody": "This repository holds restore points for {{names}}, currently under active threat investigation. The seal lifts automatically when the threat is contained or dismissed.",
     "storagePath": "Storage path",
+    "immutability": "Immutability",
+    "immutabilityOff": "Off — backups stay deletable",
     "shareAccount": "Share account",
     "storageMode": "Storage mode",
     "directNoDedup": "Direct (no dedup)",
@@ -168,7 +177,8 @@
         "title": "Repository added",
         "smbDedup": "{{name}} — mounted, deduplicated, ready to receive backups.",
         "smbDirect": "{{name}} — mounted, direct (no dedup), ready to receive backups.",
-        "ready": "{{name}} — {{size}} ready to receive backups."
+        "ready": "{{name}} — {{size}} ready to receive backups.",
+        "readyElastic": "{{name}} — elastic storage, ready to receive backups."
       }
     },
     "trigger": "Add repository",
@@ -216,6 +226,22 @@
       "secretKeyRequired": "Enter a secret access key.",
       "verifyTlsLabel": "Verify TLS certificate",
       "verifyTlsAria": "Verify the endpoint’s TLS certificate",
+      "immutability": {
+        "label": "Immutable backups (Object Lock)",
+        "hint": "Every backup written here is locked in the bucket for the retention period and cannot be deleted or overwritten until it expires — not by this appliance, and not by anyone who takes over its credentials.",
+        "aria": "Write backups under S3 Object Lock retention",
+        "modeLabel": "Lock mode",
+        "mode": {
+          "governance": "Governance",
+          "compliance": "Compliance"
+        },
+        "modeHint": {
+          "governance": "An account holding the bypass permission can still lift a lock early. Protects against a compromised backup account while leaving a deliberate administrator a way out.",
+          "compliance": "Nobody can shorten or remove a lock before it expires — not the appliance, not the account root. Storage is paid for until the last lock lapses."
+        },
+        "retentionLabel": "Lock for (days)",
+        "retentionInvalid": "Enter a whole number of days between 1 and {{max}}."
+      },
       "test": "Test connection",
       "testing": "Testing…"
     }

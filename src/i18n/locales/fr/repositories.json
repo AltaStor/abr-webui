@@ -66,6 +66,13 @@
       "blurb": "Ce référentiel n'a pas encore fait l'objet d'un contrôle d'intégrité."
     }
   },
+  "immutability": {
+    "summary": "Verrou {{mode}} · {{days}} jours",
+    "mode": {
+      "governance": "Governance",
+      "compliance": "Compliance"
+    }
+  },
   "compression": {
     "none": {
       "label": "Aucune",
@@ -133,6 +140,8 @@
     "threatLockedTitle": "Verrouillé par menace · scellé par la réponse aux menaces",
     "threatLockedBody": "Ce référentiel conserve les points de restauration de {{names}}, actuellement sous investigation active pour menace. Tout point immuable ici reste protégé. Le scellement se lève automatiquement lorsque la menace est contenue ou écartée.",
     "storagePath": "Chemin de stockage",
+    "immutability": "Immuabilité",
+    "immutabilityOff": "Désactivée — les sauvegardes restent supprimables",
     "shareAccount": "Compte de partage",
     "storageMode": "Mode de stockage",
     "directNoDedup": "Direct (sans déduplication)",
@@ -168,7 +177,8 @@
         "title": "Référentiel ajouté",
         "smbDedup": "{{name}} — monté, dédupliqué, prêt à recevoir des sauvegardes.",
         "smbDirect": "{{name}} — monté, direct (sans déduplication), prêt à recevoir des sauvegardes.",
-        "ready": "{{name}} — {{size}} prêts à recevoir des sauvegardes."
+        "ready": "{{name}} — {{size}} prêts à recevoir des sauvegardes.",
+        "readyElastic": "{{name}} — stockage élastique, prêt à recevoir des sauvegardes."
       }
     },
     "trigger": "Ajouter un référentiel",
@@ -216,6 +226,22 @@
       "secretKeyRequired": "Saisissez une clé d’accès secrète.",
       "verifyTlsLabel": "Vérifier le certificat TLS",
       "verifyTlsAria": "Vérifier le certificat TLS du point de terminaison",
+      "immutability": {
+        "label": "Sauvegardes immuables (Object Lock)",
+        "hint": "Chaque sauvegarde écrite ici est verrouillée dans le bucket pendant la période de rétention et ne peut être ni supprimée ni écrasée avant son expiration — ni par cette appliance, ni par quiconque s’empare de ses identifiants.",
+        "aria": "Écrire les sauvegardes sous rétention S3 Object Lock",
+        "modeLabel": "Mode de verrouillage",
+        "mode": {
+          "governance": "Governance",
+          "compliance": "Compliance"
+        },
+        "modeHint": {
+          "governance": "Un compte disposant de l’autorisation de contournement peut encore lever un verrou en avance. Protège d’un compte de sauvegarde compromis tout en laissant une issue à un administrateur délibéré.",
+          "compliance": "Personne ne peut raccourcir ni retirer un verrou avant son expiration — ni l’appliance, ni le compte racine. Le stockage est payé jusqu’à l’expiration du dernier verrou."
+        },
+        "retentionLabel": "Verrouiller pendant (jours)",
+        "retentionInvalid": "Saisissez un nombre entier de jours compris entre 1 et {{max}}."
+      },
       "test": "Tester la connexion",
       "testing": "Test en cours…"
     }

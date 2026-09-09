@@ -29,7 +29,11 @@ import type {
   UserAccount,
   Webhook,
 } from "@/types";
-import { getSettings as getSettingsHttp, putSettings as putSettingsHttp } from "@/services/api.http";
+import {
+  SETTINGS_ARE_LOCAL_ONLY,
+  getSettings as getSettingsHttp,
+  putSettings as putSettingsHttp,
+} from "@/services/api.http";
 import { useWorldStore } from "@/store/world";
 
 /* Types now live in @/types (shared with the appliance). Re-export the ones
@@ -354,6 +358,21 @@ function persist(get: () => SettingsStore) {
  * Save bars, so an unrelated edit cannot PUT the stand-in back as truth.
  */
 export async function hydrateSettingsFromServer(): Promise<void> {
+  // There is no GET /settings yet: `getSettingsHttp` answers a module constant
+  // (see SETTINGS_ARE_LOCAL_ONLY). Merging that constant in is not a hydrate,
+  // it is an overwrite — every connect, and every SSE reconnect, replaced the
+  // operator's saved preferences with shipped defaults. The four notification
+  // switches reverted on the next load, and `jobSuccess`, whose default is off,
+  // could never be made to stay on at all: it was flipped back before the next
+  // backup finished, so job-success notifications never fired.
+  //
+  // Until the endpoint is real the browser-local copy IS the settings, so leave
+  // it alone and stay `local` — which is also what keeps `persist` from PUTting
+  // it back through the echo stub.
+  if (SETTINGS_ARE_LOCAL_ONLY) {
+    useSettingsStore.setState({ syncStatus: "local" } as Partial<SettingsStore>);
+    return;
+  }
   try {
     const remote = await getSettingsHttp();
     useSettingsStore.getState().applyRemote(remote);

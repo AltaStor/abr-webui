@@ -3,7 +3,7 @@
 
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { CheckCircle2, Loader2, Plus, Wifi, XCircle } from "@/lib/icons";
+import { CheckCircle2, Loader2, Lock, Plus, Wifi, XCircle } from "@/lib/icons";
 import {
   Dialog,
   DialogClose,
@@ -29,7 +29,12 @@ import { toast } from "@/components/ui/sonner";
 import { cn } from "@/lib/utils";
 import { formatStorage } from "@/lib/format";
 import { useWorldStore } from "@/store/world";
-import type { RepositoryType, S3ConnectionTestResult } from "@/types";
+import {
+  MAX_IMMUTABILITY_RETENTION_DAYS,
+  type ImmutabilityMode,
+  type RepositoryType,
+  type S3ConnectionTestResult,
+} from "@/types";
 import { REPO_TYPE_META, REPOSITORY_NAME_MAX_LENGTH, REPOSITORY_NAME_PATTERN } from "./repoMeta";
 
 /**
@@ -58,6 +63,25 @@ const LOCAL_DEFAULT_CAPACITY_GB = 500;
  *  deliberately absent: it is optional on the wire, so flagging it as missing
  *  would be the console inventing a requirement of its own. */
 type S3RequiredField = "bucket" | "region" | "accessKey" | "secretKey";
+
+/** The lock modes an operator can actually choose. "none" is the switch being
+ *  off, not a third option in the list. */
+const LOCK_MODES = ["governance", "compliance"] as const satisfies readonly ImmutabilityMode[];
+type LockMode = (typeof LOCK_MODES)[number];
+
+/** What turning the switch on proposes. Governance because it is the mode that
+ *  survives a compromised backup account while still leaving a deliberate admin
+ *  a way out; 30 days because it is a retention period, not a commitment the
+ *  operator can't walk back. */
+const DEFAULT_LOCK_MODE: LockMode = "governance";
+const DEFAULT_LOCK_DAYS = "30";
+
+/** Same pairing the orchestrator enforces: a lock is at least a day and at most
+ *  MAX_IMMUTABILITY_RETENTION_DAYS, and anything else is a 422. */
+function lockDaysValid(value: string): boolean {
+  const days = Number(value.trim());
+  return Number.isInteger(days) && days >= 1 && days <= MAX_IMMUTABILITY_RETENTION_DAYS;
+}
 
 /** Same test the orchestrator runs on `endpoint_url` — an http(s) scheme and a
  *  host — so a URL this accepts is one the appliance will take too. */
@@ -88,6 +112,11 @@ export function AddRepositoryDialog() {
   const [accessKey, setAccessKey] = useState("");
   const [secretKey, setSecretKey] = useState("");
   const [verifyTls, setVerifyTls] = useState(true);
+  // Object Lock. Off by default: it makes backups undeletable for the whole
+  // period, which is a bill and a commitment nobody should acquire by accident.
+  const [lockEnabled, setLockEnabled] = useState(false);
+  const [lockMode, setLockMode] = useState<LockMode>(DEFAULT_LOCK_MODE);
+  const [lockDays, setLockDays] = useState(DEFAULT_LOCK_DAYS);
   const [testing, setTesting] = useState(false);
   const [testResult, setTestResult] = useState<S3ConnectionTestResult | null>(null);
   // A required field is only *wrong* once the operator has been to it and left
@@ -113,6 +142,10 @@ export function AddRepositoryDialog() {
   const showEndpointError = endpointTouched && !endpointWellFormed;
   const showRequiredError = (field: S3RequiredField, valid: boolean) =>
     Boolean(touched[field]) && !valid;
+  const lockDaysOk = !lockEnabled || lockDaysValid(lockDays);
+  const immutability = lockEnabled
+    ? { mode: lockMode, retentionDays: Number(lockDays.trim()) }
+    : { mode: "none" as const, retentionDays: 0 };
   const nameTrimmed = name.trim();
   const nameValid =
     nameTrimmed === "" ||
@@ -124,12 +157,12 @@ export function AddRepositoryDialog() {
   // appliance is certain to refuse with a 422. Buckets are elastic so capacity
   // isn't asked for; local capacity is read from the filesystem after creation.
   const formValid = isS3
-    ? bucketValid && regionValid && accessKeyValid && secretKeyValid && endpointWellFormed
+    ? bucketValid && regionValid && accessKeyValid && secretKeyValid && endpointWellFormed && lockDaysOk
     : true;
   const canSubmit = formValid && nameValid && !submitting;
   // The pre-create test goes through the same server-side validation, so it
   // needs the same fields before it can say anything useful.
-  const canTest = bucketValid && regionValid && endpointWellFormed && !testing;
+  const canTest = bucketValid && regionValid && endpointWellFormed && lockDaysOk && !testing;
 
   function reset() {
     setName("");
@@ -143,6 +176,9 @@ export function AddRepositoryDialog() {
     setAccessKey("");
     setSecretKey("");
     setVerifyTls(true);
+    setLockEnabled(false);
+    setLockMode(DEFAULT_LOCK_MODE);
+    setLockDays(DEFAULT_LOCK_DAYS);
     setTesting(false);
     setTestResult(null);
     setTouched({});
@@ -171,6 +207,7 @@ export function AddRepositoryDialog() {
         accessKey: accessKey.trim(),
         secretKey,
         verifyTls,
+        immutability,
       });
       setTestResult(result);
     } finally {
@@ -197,6 +234,7 @@ export function AddRepositoryDialog() {
             accessKey: accessKey.trim(),
             secretKey,
             verifyTls,
+            immutability,
           }
         : undefined,
     });
@@ -210,10 +248,13 @@ export function AddRepositoryDialog() {
       return;
     }
     toast.success(t("add.toast.added.title"), {
-      description: t("add.toast.added.ready", {
-        name: repo.name,
-        size: formatStorage(repo.capacityGB, 0),
-      }),
+      // Object storage reports no capacity, so quoting one read "0 MB ready to
+      // receive backups" on every S3 repository — the same zero the job pages
+      // used to print. There is no ceiling to name here, so don't name one.
+      description:
+        repo.capacityGB > 0
+          ? t("add.toast.added.ready", { name: repo.name, size: formatStorage(repo.capacityGB, 0) })
+          : t("add.toast.added.readyElastic", { name: repo.name }),
     });
     setOpen(false);
     reset();
@@ -390,6 +431,80 @@ export function AddRepositoryDialog() {
                   onCheckedChange={(checked) => withResultCleared(setVerifyTls)(checked)}
                   aria-label={t("add.s3.verifyTlsAria")}
                 />
+              </div>
+
+              {/* Object Lock. Its own bordered block, not another line in the
+                  credential list: it is the one setting here that changes what
+                  happens to data after it is written, and it cannot be undone
+                  for backups already stored under it. */}
+              <div className="space-y-3 border-t border-border pt-3">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <Label
+                      htmlFor="repo-immutability"
+                      className="flex items-center gap-1.5 text-xs font-medium"
+                    >
+                      <Lock className="h-3.5 w-3.5 text-muted-foreground" />
+                      {t("add.s3.immutability.label")}
+                    </Label>
+                    <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">
+                      {t("add.s3.immutability.hint")}
+                    </p>
+                  </div>
+                  <Switch
+                    id="repo-immutability"
+                    checked={lockEnabled}
+                    onCheckedChange={(checked) => withResultCleared(setLockEnabled)(checked)}
+                    aria-label={t("add.s3.immutability.aria")}
+                  />
+                </div>
+
+                {lockEnabled && (
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1.5">
+                      <Label htmlFor="repo-lock-mode">{t("add.s3.immutability.modeLabel")}</Label>
+                      <Select
+                        value={lockMode}
+                        onValueChange={(v) => withResultCleared(setLockMode)(v as LockMode)}
+                      >
+                        <SelectTrigger id="repo-lock-mode">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {LOCK_MODES.map((mode) => (
+                            <SelectItem key={mode} value={mode}>
+                              {t(`add.s3.immutability.mode.${mode}`)}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label htmlFor="repo-lock-days">{t("add.s3.immutability.retentionLabel")}</Label>
+                      <Input
+                        id="repo-lock-days"
+                        type="number"
+                        inputMode="numeric"
+                        min={1}
+                        max={MAX_IMMUTABILITY_RETENTION_DAYS}
+                        value={lockDays}
+                        onChange={(e) => withResultCleared(setLockDays)(e.target.value)}
+                        aria-invalid={!lockDaysOk}
+                        className={cn("nums", !lockDaysOk && "border-danger")}
+                      />
+                    </div>
+                    <p className="col-span-2 text-[11px] leading-relaxed text-muted-foreground">
+                      {t(`add.s3.immutability.modeHint.${lockMode}`)}
+                    </p>
+                    {!lockDaysOk && (
+                      <p className="col-span-2 text-xs text-danger">
+                        {t("add.s3.immutability.retentionInvalid", {
+                          max: MAX_IMMUTABILITY_RETENTION_DAYS,
+                        })}
+                      </p>
+                    )}
+                  </div>
+                )}
               </div>
 
               <div className="space-y-2 border-t border-border pt-3">

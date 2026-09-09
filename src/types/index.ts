@@ -442,7 +442,36 @@ export interface Repository {
   compression?: "none" | "optimal" | "high";
   /** Physical bytes (GB) deleted but not yet reclaimed by GC. */
   pendingGcGB?: number;
+  /** Object Lock as the appliance reports it back. Null for a repository whose
+   *  backend has no such concept; mode "none" for one that could but doesn't. */
+  immutability?: RepositoryImmutability | null;
+  /** Whether this repository's backend can lock backups at all
+   *  (`capabilities.supports_immutability` — object storage only today). */
+  supportsImmutability?: boolean;
 }
+
+/**
+ * S3 Object Lock retention modes the appliance accepts (`IMMUTABILITY_MODES`
+ * on the orchestrator).
+ *
+ * - "governance" — a principal holding `s3:BypassGovernanceRetention` can lift
+ *   a lock early. The usual choice: ransomware-proof against a compromised
+ *   backup account, still recoverable by a deliberate admin.
+ * - "compliance" — nobody, including the account root, can shorten or remove a
+ *   lock before it expires. Storage is paid for until then, whatever happens.
+ */
+export type ImmutabilityMode = "none" | "governance" | "compliance";
+
+/** Object Lock settings on an S3 repository. */
+export interface RepositoryImmutability {
+  mode: ImmutabilityMode;
+  /** Days a written backup stays locked. Always 0 when mode is "none", and at
+   *  least 1 otherwise — the appliance rejects any other pairing. */
+  retentionDays: number;
+}
+
+/** The orchestrator's ceiling on a lock (MAX_IMMUTABILITY_RETENTION_DAYS). */
+export const MAX_IMMUTABILITY_RETENTION_DAYS = 36500;
 
 /** S3 connection settings for an object-storage repository. Required when a
  *  repository is created with type "object-lock-s3". */
@@ -459,6 +488,9 @@ export interface S3RepositoryConfig {
   pathStyle?: boolean;
   /** Verify the endpoint's TLS certificate. Defaults to true. */
   verifyTls?: boolean;
+  /** Object Lock retention applied to every backup written here. Omitted or
+   *  mode "none" leaves backups deletable. */
+  immutability?: RepositoryImmutability;
 }
 
 /** Payload for creating a repository (POST /repositories). */
