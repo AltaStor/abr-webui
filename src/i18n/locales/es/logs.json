@@ -4,17 +4,11 @@
     "description": "El registro del sistema de la propia appliance: eventos del programador, del almacenamiento, de TLS y de la API, directamente del servidor."
   },
   "actions": {
-    "export": "Exportar",
-    "refreshLog": "Actualizar el registro del sistema"
-  },
-  "export": {
-    "menuLabel": "Exportar registros",
-    "supportBundle": "Paquete de soporte",
-    "systemLog": "Registro del sistema completo (.log)"
+    "refreshLog": "Actualizar el registro del sistema",
+    "downloadSupportBundle": "Descargar paquete de soporte",
+    "bundling": "Generando paquete…"
   },
   "toast": {
-    "exportedSystem_one": "{{count}} línea de registro del sistema exportada",
-    "exportedSystem_other": "{{count}} líneas de registro del sistema exportadas",
     "exportedSystemFiltered_one": "{{count}} línea de registro filtrada exportada",
     "exportedSystemFiltered_other": "{{count}} líneas de registro filtradas exportadas",
     "exportedSupportBundle": "Paquete de soporte descargado",

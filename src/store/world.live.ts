@@ -694,14 +694,30 @@ export function createLiveDriver(handle: WorldHandle): WorldDriver {
 
   const start = async (): Promise<void> => {
     stopped = false;
+
+    /* Signed out there is nothing this driver is allowed to fetch: every
+     * endpoint but /auth/* is behind `require_session`, so a hydrate is twelve
+     * parallel requests that all come back 401. Running that on the poll's
+     * cadence is what filled the network log with GET /sessions while the
+     * operator sat on the sign-in form doing nothing.
+     *
+     * The poll keeps ticking — it is how the driver notices a session appearing
+     * — it just does not fetch until there is one. (Sign-in also forces an
+     * immediate re-activation, see store/auth.ts, so it is never the poll the
+     * operator waits on.) */
+    const hydrateIfAuthenticated = (): void => {
+      if (!api.hasAuthSession()) return;
+      runHydrate().catch(() => {
+        if (!stopped) handle.set({ connected: false });
+      });
+    };
+
     unsubscribe ??= api.subscribeEvents(
       onEvent,
       () => {
         // Every (re)connect rehydrates in full: the stream is stateless, so
         // this is how missed events are recovered and `connected` flips back.
-        runHydrate().catch(() => {
-          if (!stopped) handle.set({ connected: false });
-        });
+        hydrateIfAuthenticated();
       },
       () => {
         // Stream dropped (appliance down / network). EventSource retries on
@@ -711,6 +727,17 @@ export function createLiveDriver(handle: WorldHandle): WorldDriver {
       },
     );
     try {
+      if (!api.hasAuthSession()) {
+        // No session, so no world to load — but reachability still has to be
+        // settled, because an unreachable appliance is what makes the facade
+        // fall back to the demo simulation, and the demo world is the only one
+        // whose sign-in form can be answered without an appliance. One request,
+        // not a hydrate, and not repeated: the poll above stays quiet until a
+        // session exists.
+        await api.probeAppliance();
+        if (!stopped) handle.set({ ready: true, connected: true });
+        return;
+      }
       // Don't wait for onOpen — if the appliance is down, EventSource retries
       // silently forever; this direct hydrate is the reject-fast path.
       await runHydrate();

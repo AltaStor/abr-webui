@@ -4,17 +4,11 @@
     "description": "The appliance's own system log — scheduler, storage, TLS and API events, straight from the server."
   },
   "actions": {
-    "export": "Export",
-    "refreshLog": "Refresh the system log"
-  },
-  "export": {
-    "menuLabel": "Export logs",
-    "supportBundle": "Support bundle",
-    "systemLog": "Full system log (.log)"
+    "refreshLog": "Refresh the system log",
+    "downloadSupportBundle": "Download support bundle",
+    "bundling": "Building bundle…"
   },
   "toast": {
-    "exportedSystem_one": "Exported {{count}} system log line",
-    "exportedSystem_other": "Exported {{count}} system log lines",
     "exportedSystemFiltered_one": "Exported {{count}} filtered log line",
     "exportedSystemFiltered_other": "Exported {{count}} filtered log lines",
     "exportedSupportBundle": "Support bundle downloaded",

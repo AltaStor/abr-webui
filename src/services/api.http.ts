@@ -137,6 +137,20 @@ export function setAuthToken(token: string | null): void {
 }
 
 /**
+ * Whether a console session token is currently held.
+ *
+ * Every endpoint but `/auth/*` is behind `require_session` server-side, so
+ * without one there is nothing worth asking for: callers that would otherwise
+ * fetch on a timer check this first rather than issue requests the appliance is
+ * certain to answer 401. It is not a claim that the token is still VALID — only
+ * a request can settle that, and `setUnauthorizedHandler` clears it when one
+ * comes back 401.
+ */
+export function hasAuthSession(): boolean {
+  return authToken !== null;
+}
+
+/**
  * Registered once by the auth store. The request layer has no router access,
  * so a 401 on an authenticated call (session expired/revoked server-side)
  * reports through this single hook instead — the store decides what a
@@ -1964,6 +1978,31 @@ export async function refreshEnvironment(
   const res = asDict(await request<Dict>(`/inventories/${envId}/rescan`, { method: "POST", body: "{}" }));
   const discovery = asDict(res.discovery);
   return { status: "ok", added: 0, removed: 0, total: num(discovery.vm_count) };
+}
+
+/**
+ * One cheap request whose only job is to answer "is an appliance there, and is
+ * its API version compatible with this console".
+ *
+ * Used on the sign-in screen, where there is no session and so no data the
+ * console is allowed to fetch — but where reachability still has to be settled,
+ * because an unreachable appliance is what sends the console to the demo world
+ * (and a demo world is the only place the sign-in form can be answered at all).
+ *
+ * A 401 is a SUCCESSFUL probe: the appliance answered, it just doesn't know
+ * this caller. `checkApiVersion` reads the version header off that same 401
+ * response, so an incompatible build is still caught here and rethrown.
+ */
+export async function probeAppliance(): Promise<void> {
+  try {
+    await request<Dict>("/system/version");
+  } catch (err) {
+    // A version mismatch is raised as an ApiError too, and it is the one kind
+    // the caller must NOT read as a clean probe — the console and the appliance
+    // cannot work together, which is a standing condition, not a 401.
+    if (err instanceof ApiError && !isVersionMismatchError(err)) return;
+    throw err; // incompatible, or network/DNS/TLS — nothing usable is listening
+  }
 }
 
 /* ====================================================================== */

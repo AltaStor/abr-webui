@@ -11,22 +11,25 @@ import { Button } from "./ui/button";
 import { EmptyState } from "./EmptyState";
 import { Terminal } from "@/lib/icons";
 
-/* `--terminal` is near-black in BOTH themes, so nothing drawn on it may follow
- * the page theme. `debug` and `info` are not verdicts, so they are plain
- * terminal ink at two opacities (6.5:1 and 11:1 on the surface). `warn`,
- * `error` and `success` keep their semantic tokens — but the surrounding
- * elements are pinned to the palette drawn for a dark ground (see the `dark`
- * class below), so those tokens resolve to their dark rungs whichever theme the
- * console is in: warn 9.2:1, error 5.4:1, success 12.0:1 on `--terminal`.
- * Reading them from the light palette instead gave 5.2 / 3.5 / 3.5, and the
- * `-text` rungs would have been worse still (3.2 / 2.9 / 2.6) because on light
- * the `-text` rung is the *darker* one. */
+/* `--terminal` now FOLLOWS the theme — near-black on dark, white on light — so
+ * everything drawn on it follows the theme too. That is the whole point: the
+ * log view used to be a black slab in the middle of a white console because the
+ * surface was pinned to one palette and its contents pinned along with it.
+ *
+ * `debug` and `info` are not verdicts, so they are plain terminal ink at two
+ * opacities: /60 measures 6.5:1 on night and 4.8:1 on white, /80 measures 11:1
+ * and 9.9:1 — both clear AA on both grounds. `warn`, `error` and `success` take
+ * the `-text` rungs rather than the raw fills, because `-text` is the rung each
+ * theme defines to be READ at small sizes: the lighter one on dark (warn
+ * 11.5:1, error 8.2:1, success 12.0:1 on near-black) and the darker one on
+ * light (warn 5.6:1, error 6.6:1, success 7.6:1 on white). The raw fills clear
+ * only one of the two grounds. */
 const LEVEL_CLASS: Record<LogLevel, string> = {
   debug: "text-[hsl(var(--terminal-foreground))]/60",
   info: "text-[hsl(var(--terminal-foreground))]/80",
-  warn: "text-warning",
-  error: "text-danger",
-  success: "text-success",
+  warn: "text-warning-text",
+  error: "text-danger-text",
+  success: "text-success-text",
 };
 
 const LEVEL_LABEL: Record<LogLevel, string> = {
@@ -73,14 +76,11 @@ export function LogViewer({ lines, className, height = 320, live }: LogViewerPro
   return (
     <div className={cn("flex flex-col overflow-hidden border border-border bg-[hsl(var(--terminal))]", className)}>
       {/* The toolbar tint and its rule are drawn from the terminal's own ink, so
-          they stay a lift on the dark surface in both themes. `dark` pins the
-          subtree to the palette drawn for a dark ground — the terminal is one,
-          in either theme — so the "live" marker, the ghost buttons' hover and
-          every semantic token inside resolve to rungs that are legible here
-          rather than to the light theme's dark inks. The outer container is
-          deliberately left out of it: its border separates the terminal from the
-          page, so it stays on the page's theme. */}
-      <div className="dark flex items-center justify-between border-b border-[hsl(var(--terminal-foreground)/0.12)] bg-[hsl(var(--terminal-foreground)/0.05)] px-3 py-1.5 text-[hsl(var(--terminal-foreground))]">
+          they read as a lift on the surface whichever theme it is — a faint
+          light wash on night, a faint grey one on white. No `dark` pin any
+          more: the terminal is now on the page's theme, so pinning this subtree
+          to the dark palette would put light ink on a white toolbar. */}
+      <div className="flex items-center justify-between border-b border-[hsl(var(--terminal-foreground)/0.12)] bg-[hsl(var(--terminal-foreground)/0.05)] px-3 py-1.5 text-[hsl(var(--terminal-foreground))]">
         <div className="flex items-center gap-1">
           {FILTERS.map((f) => (
             <button
@@ -99,7 +99,7 @@ export function LogViewer({ lines, className, height = 320, live }: LogViewerPro
         </div>
         <div className="flex items-center gap-2">
           {live && (
-            <span className="flex items-center gap-1.5 text-xs text-info">
+            <span className="flex items-center gap-1.5 text-xs text-info-text">
               <span className="relative flex h-1.5 w-1.5">
                 <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-info opacity-75" />
                 <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-info" />
@@ -130,7 +130,7 @@ export function LogViewer({ lines, className, height = 320, live }: LogViewerPro
       </div>
       <div
         ref={scrollRef}
-        className="dark overflow-y-auto px-3 py-2 font-mono text-xs leading-relaxed"
+        className="overflow-y-auto px-3 py-2 font-mono text-xs leading-relaxed"
         style={{ height }}
       >
         {filtered.length === 0 ? (
@@ -138,18 +138,19 @@ export function LogViewer({ lines, className, height = 320, live }: LogViewerPro
         ) : (
           filtered.map((l) => (
             <div key={l.id} className="flex gap-2 whitespace-pre-wrap py-0.5 animate-fade-up">
-              {/* /55 rather than /45: the timestamp is small text and has to
-                  clear AA (5.6:1 here, where /45 gave 4.10:1), while staying
-                  well behind the message at /80. */}
-              <span className="shrink-0 select-none text-[hsl(var(--terminal-foreground))]/55">{formatClock(l.ts)}</span>
+              {/* The timestamp is small text and has to clear AA on BOTH grounds
+                  now that the terminal follows the theme: /55 measured 5.6:1 on
+                  night but only 4.09:1 on white, under the 4.5 floor. /65 gives
+                  7.5:1 and 5.7:1 while staying well behind the message at /80. */}
+              <span className="shrink-0 select-none text-[hsl(var(--terminal-foreground))]/65">{formatClock(l.ts)}</span>
               <span className={cn("shrink-0 select-none font-semibold", LEVEL_CLASS[l.level])}>{LEVEL_LABEL[l.level]}</span>
               <span className={cn("min-w-0", LEVEL_CLASS[l.level])}>
                 {/* The source prefix names which object emitted the line — it is
                     a label, not a verdict, so it takes plain terminal ink at full
-                    strength (17:1) and separates from the message by weight
-                    rather than by hue. It used to wear `--primary`, which the
-                    operator can repoint from Settings → Appearance and which on
-                    light resolved to a dark ice that measured 3.3:1 here. */}
+                    strength and separates from the message by weight rather than
+                    by hue. It used to wear `--primary`, which the operator can
+                    repoint from Settings → Appearance and which could land on a
+                    hue with no contrast left against this surface. */}
                 {l.vmName && (
                   <span className="font-medium text-[hsl(var(--terminal-foreground))]">[{l.vmName}] </span>
                 )}

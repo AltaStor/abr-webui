@@ -48,7 +48,10 @@ export const TableHead = React.forwardRef<
   <th
     ref={ref}
     className={cn(
-      "h-10 px-3 text-left align-middle font-display text-xs font-medium uppercase tracking-wide text-muted-foreground [&:has([role=checkbox])]:pr-0",
+      // A column header is a label, not prose: "VM size" broken into "VM" over
+      // "size" reads as two headers. The table scrolls horizontally (see the
+      // wrapper above), so keeping them on one line costs nothing.
+      "h-10 whitespace-nowrap px-3 text-left align-middle font-display text-xs font-medium uppercase tracking-wide text-muted-foreground [&:has([role=checkbox])]:pr-0",
       className,
     )}
     {...props}

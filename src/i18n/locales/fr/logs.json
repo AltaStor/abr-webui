@@ -4,17 +4,11 @@
     "description": "Le journal système de l’appliance elle-même — événements du planificateur, du stockage, de TLS et de l’API, directement depuis le serveur."
   },
   "actions": {
-    "export": "Exporter",
-    "refreshLog": "Actualiser le journal système"
-  },
-  "export": {
-    "menuLabel": "Exporter les journaux",
-    "supportBundle": "Pack de support",
-    "systemLog": "Journal système complet (.log)"
+    "refreshLog": "Actualiser le journal système",
+    "downloadSupportBundle": "Télécharger le dossier de support",
+    "bundling": "Création du dossier…"
   },
   "toast": {
-    "exportedSystem_one": "{{count}} ligne de journal système exportée",
-    "exportedSystem_other": "{{count}} lignes de journal système exportées",
     "exportedSystemFiltered_one": "{{count}} ligne de journal filtrée exportée",
     "exportedSystemFiltered_other": "{{count}} lignes de journal filtrées exportées",
     "exportedSupportBundle": "Pack de support téléchargé",

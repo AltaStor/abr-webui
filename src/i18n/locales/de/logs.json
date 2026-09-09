@@ -4,17 +4,11 @@
     "description": "Das Systemprotokoll der Appliance – Scheduler-, Speicher-, TLS- und API-Ereignisse, direkt vom Server."
   },
   "actions": {
-    "export": "Exportieren",
-    "refreshLog": "Systemprotokoll aktualisieren"
-  },
-  "export": {
-    "menuLabel": "Protokolle exportieren",
-    "supportBundle": "Support-Paket",
-    "systemLog": "Vollständiges Systemprotokoll (.log)"
+    "refreshLog": "Systemprotokoll aktualisieren",
+    "downloadSupportBundle": "Support-Paket herunterladen",
+    "bundling": "Paket wird erstellt…"
   },
   "toast": {
-    "exportedSystem_one": "{{count}} Systemprotokollzeile exportiert",
-    "exportedSystem_other": "{{count}} Systemprotokollzeilen exportiert",
     "exportedSystemFiltered_one": "{{count}} gefilterte Protokollzeile exportiert",
     "exportedSystemFiltered_other": "{{count}} gefilterte Protokollzeilen exportiert",
     "exportedSupportBundle": "Support-Paket heruntergeladen",
