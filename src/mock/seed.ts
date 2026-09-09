@@ -591,6 +591,7 @@ function buildRestorePoints(vms: VM[], jobs: BackupJob[]): RestorePoint[] {
         compressionRatio: ratio,
         compressionLevel: job.options.compression,
         encrypted: job.options.encryption,
+        gfsProtected: isFull && i >= 14,
       });
     }
   }

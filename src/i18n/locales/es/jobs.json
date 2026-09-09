@@ -661,7 +661,12 @@
     "successDesc_one": "{{count}} punto de restauración eliminado de {{name}}.",
     "successDesc_other": "{{count}} puntos de restauración eliminados de {{name}}.",
     "errorTitle": "No se pudo eliminar la copia de seguridad",
-    "errorUnreachable": "Appliance no accesible"
+    "errorUnreachable": "Appliance no accesible",
+    "gfsTitle": "Estas copias están retenidas por una política GFS",
+    "gfsWarn_one": "{{count}} punto de restauración aquí está marcado para retención a largo plazo (grandfather-father-son). Al eliminarlo se descarta una copia de archivo que la política conservaba.",
+    "gfsWarn_other": "{{count}} puntos de restauración aquí están marcados para retención a largo plazo (grandfather-father-son). Al eliminarlos se descartan copias de archivo que la política conservaba.",
+    "gfsWarnUnknown": "Algunos puntos de restauración aquí están marcados para retención a largo plazo (grandfather-father-son). Al eliminarlos se descartan copias de archivo que la política conservaba.",
+    "gfsConfirm": "Eliminar de todos modos"
   },
   "scope": {
     "searchVmsPlaceholder": "Buscar VMs por nombre…",

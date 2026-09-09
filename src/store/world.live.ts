@@ -1090,9 +1090,9 @@ export function createLiveDriver(handle: WorldHandle): WorldDriver {
       }
     },
 
-    deleteRestorePoint: async (chainId, segmentId) => {
+    deleteRestorePoint: async (chainId, segmentId, force) => {
       try {
-        await api.deleteRestorePoint(chainId, segmentId);
+        await api.deleteRestorePoint(chainId, segmentId, force);
         if (!stopped) {
           handle.set((s) => {
             if (segmentId === undefined) {
@@ -1114,6 +1114,7 @@ export function createLiveDriver(handle: WorldHandle): WorldDriver {
       } catch (err) {
         if (err instanceof api.ApiError) {
           if (err.status === 404) return { ok: false, reason: "not-found" };
+          if (api.apiErrorCode(err) === "gfs_protected_backup") return { ok: false, reason: "gfs-protected" };
           return { ok: false, reason: "error", message: api.apiErrorMessage(err) ?? `Request failed (${err.status})` };
         }
         return { ok: false, reason: "error", message: "Appliance unreachable" };

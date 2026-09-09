@@ -661,7 +661,12 @@
     "successDesc_one": "{{count}} point de restauration supprimé pour {{name}}.",
     "successDesc_other": "{{count}} points de restauration supprimés pour {{name}}.",
     "errorTitle": "Impossible de supprimer la sauvegarde",
-    "errorUnreachable": "Appliance injoignable"
+    "errorUnreachable": "Appliance injoignable",
+    "gfsTitle": "Ces sauvegardes sont conservées par une stratégie GFS",
+    "gfsWarn_one": "{{count}} point de restauration ici est marqué pour la rétention à long terme (grandfather-father-son). Le supprimer écarte une copie d’archivage que la stratégie conservait.",
+    "gfsWarn_other": "{{count}} points de restauration ici sont marqués pour la rétention à long terme (grandfather-father-son). Les supprimer écarte des copies d’archivage que la stratégie conservait.",
+    "gfsWarnUnknown": "Certains points de restauration ici sont marqués pour la rétention à long terme (grandfather-father-son). Les supprimer écarte des copies d’archivage que la stratégie conservait.",
+    "gfsConfirm": "Supprimer quand même"
   },
   "scope": {
     "searchVmsPlaceholder": "Rechercher des VM par nom…",

@@ -661,7 +661,12 @@
     "successDesc_one": "{{count}} Wiederherstellungspunkt für {{name}} entfernt.",
     "successDesc_other": "{{count}} Wiederherstellungspunkte für {{name}} entfernt.",
     "errorTitle": "Backup konnte nicht gelöscht werden",
-    "errorUnreachable": "Appliance nicht erreichbar"
+    "errorUnreachable": "Appliance nicht erreichbar",
+    "gfsTitle": "Diese Backups werden von einer GFS-Richtlinie aufbewahrt",
+    "gfsWarn_one": "{{count}} Wiederherstellungspunkt ist hier für die Langzeitaufbewahrung (Grandfather-Father-Son) markiert. Beim Löschen geht eine Archivkopie verloren, die die Richtlinie aufbewahrt hat.",
+    "gfsWarn_other": "{{count}} Wiederherstellungspunkte sind hier für die Langzeitaufbewahrung (Grandfather-Father-Son) markiert. Beim Löschen gehen Archivkopien verloren, die die Richtlinie aufbewahrt hat.",
+    "gfsWarnUnknown": "Einige Wiederherstellungspunkte hier sind für die Langzeitaufbewahrung (Grandfather-Father-Son) markiert. Beim Löschen gehen Archivkopien verloren, die die Richtlinie aufbewahrt hat.",
+    "gfsConfirm": "Trotzdem löschen"
   },
   "scope": {
     "searchVmsPlaceholder": "VMs nach Name suchen…",

@@ -320,7 +320,12 @@
     "range": "{{from}} – {{to}}",
     "recoverWarn": "Nach dem Entfernen können Sie <1>{{name}}</1> zu keinem Zeitpunkt in diesem Backup mehr wiederherstellen.",
     "confirm": "Backup löschen",
-    "deleting": "Wird gelöscht…"
+    "deleting": "Wird gelöscht…",
+    "gfsTitle": "Dieses Backup wird von einer GFS-Richtlinie aufbewahrt",
+    "gfsWarn_one": "{{count}} Wiederherstellungspunkt in diesem Backup ist für die Langzeitaufbewahrung (Grandfather-Father-Son) markiert. Beim Löschen geht eine Archivkopie verloren, die die Richtlinie aufbewahrt hat.",
+    "gfsWarn_other": "{{count}} Wiederherstellungspunkte in diesem Backup sind für die Langzeitaufbewahrung (Grandfather-Father-Son) markiert. Beim Löschen gehen Archivkopien verloren, die die Richtlinie aufbewahrt hat.",
+    "gfsWarnUnknown": "Dieses Backup enthält Wiederherstellungspunkte, die für die Langzeitaufbewahrung (Grandfather-Father-Son) markiert sind. Beim Löschen gehen Archivkopien verloren, die die Richtlinie aufbewahrt hat.",
+    "gfsConfirm": "Trotzdem löschen"
   },
   "addPhysical": {
     "registeredToast": "{{name}} registriert",

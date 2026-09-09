@@ -429,6 +429,7 @@ export function createSimDriver(handle: WorldHandle): WorldDriver {
                 compressionRatio: ratio,
                 compressionLevel: job.options.compression,
                 encrypted: job.options.encryption,
+                gfsProtected: false,
               });
             }
           }
@@ -1031,7 +1032,7 @@ export function createSimDriver(handle: WorldHandle): WorldDriver {
       });
     },
 
-    deleteRestorePoint: (chainId, segmentId) => {
+    deleteRestorePoint: (chainId, segmentId, force) => {
       const state = handle.get();
       // A chain is a (job, VM, repository) triple, so every point in it shares
       // one VM and one repository. A chain can hold several full-backup
@@ -1044,6 +1045,8 @@ export function createSimDriver(handle: WorldHandle): WorldDriver {
           ? chainPoints
           : (segmentChainPoints(chainPoints).find((seg) => seg.id === segmentId)?.points ?? []);
       if (targetPoints.length === 0) return Promise.resolve<RestorePointDeleteResult>({ ok: false, reason: "not-found" });
+      if (!force && targetPoints.some((p) => p.gfsProtected))
+        return Promise.resolve<RestorePointDeleteResult>({ ok: false, reason: "gfs-protected" });
       const removeIds = new Set(targetPoints.map((p) => p.id));
       const freedGB = targetPoints.reduce((a, p) => a + p.sizeGB, 0);
       handle.set((s) => {

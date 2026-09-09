@@ -320,7 +320,12 @@
     "range": "{{from}} – {{to}}",
     "recoverWarn": "Une fois retirée, vous ne pourrez plus restaurer <1>{{name}}</1> à aucun point de cette sauvegarde.",
     "confirm": "Supprimer la sauvegarde",
-    "deleting": "Suppression…"
+    "deleting": "Suppression…",
+    "gfsTitle": "Cette sauvegarde est conservée par une stratégie GFS",
+    "gfsWarn_one": "{{count}} point de restauration de cette sauvegarde est marqué pour la rétention à long terme (grandfather-father-son). Le supprimer écarte une copie d’archivage que la stratégie conservait.",
+    "gfsWarn_other": "{{count}} points de restauration de cette sauvegarde sont marqués pour la rétention à long terme (grandfather-father-son). Les supprimer écarte des copies d’archivage que la stratégie conservait.",
+    "gfsWarnUnknown": "Cette sauvegarde contient des points de restauration marqués pour la rétention à long terme (grandfather-father-son). La supprimer écarte des copies d’archivage que la stratégie conservait.",
+    "gfsConfirm": "Supprimer quand même"
   },
   "addPhysical": {
     "registeredToast": "{{name}} enregistré",

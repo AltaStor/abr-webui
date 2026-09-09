@@ -103,8 +103,8 @@ export const useWorldStore = create<WorldState>(() => ({
       defaultDatastoreId: null,
       defaultEnvironmentId: null,
     }),
-  deleteRestorePoint: (id, segmentId) =>
-    driver?.actions.deleteRestorePoint(id, segmentId) ??
+  deleteRestorePoint: (id, segmentId, force) =>
+    driver?.actions.deleteRestorePoint(id, segmentId, force) ??
     Promise.resolve({ ok: false, reason: "error", message: "world not started" } as const),
   verifyBackups: (chainIds) =>
     driver?.actions.verifyBackups(chainIds) ??

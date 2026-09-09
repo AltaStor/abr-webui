@@ -148,6 +148,7 @@ export type EnvDeleteResult =
 export type RestorePointDeleteResult =
   | { ok: true }
   | { ok: false; reason: "not-found" }
+  | { ok: false; reason: "gfs-protected" }
   | { ok: false; reason: "error"; message: string };
 
 export interface CreateJobInput {
@@ -241,7 +242,7 @@ export interface WorldState extends WorldData {
   /** Remove a backup chain, or — when `segmentId` is given — just one full
    *  backup and the incrementals chained onto it. There's no single-point
    *  delete; a point is never removed on its own, only as part of its segment. */
-  deleteRestorePoint(chainId: string, segmentId?: string): Promise<RestorePointDeleteResult>;
+  deleteRestorePoint(chainId: string, segmentId?: string, force?: boolean): Promise<RestorePointDeleteResult>;
   /** Re-read every artifact in these backup chains and check it against what
    *  the catalog recorded. Starts the runs and resolves — the verification
    *  itself reports through the session feed like any other run. */

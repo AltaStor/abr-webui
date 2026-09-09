@@ -3,7 +3,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { Trans, useTranslation } from "react-i18next";
-import { Trash2 } from "@/lib/icons";
+import { ShieldAlert, Trash2 } from "@/lib/icons";
 import {
   Dialog,
   DialogContent,
@@ -43,9 +43,13 @@ export function DeleteRestorePointDialog({
   const restorePoints = useWorldStore((s) => s.restorePoints);
   const deleteRestorePoint = useWorldStore((s) => s.deleteRestorePoint);
   const [deleting, setDeleting] = useState(false);
+  const [gfsRefused, setGfsRefused] = useState(false);
 
   useEffect(() => {
-    if (open) setDeleting(false);
+    if (open) {
+      setDeleting(false);
+      setGfsRefused(false);
+    }
   }, [open, point?.id]);
 
   const segment = useMemo(() => {
@@ -56,6 +60,9 @@ export function DeleteRestorePointDialog({
 
   if (!point) return null;
 
+  const protectedCount = segment.filter((p) => p.gfsProtected).length;
+  const overridingGfs = protectedCount > 0 || gfsRefused;
+
   const sizeGB = segment.reduce((a, p) => a + p.sizeGB, 0);
   const oldest = segment.reduce((a, p) => (p.createdAt < a.createdAt ? p : a), point);
   const newest = segment.reduce((a, p) => (p.createdAt > a.createdAt ? p : a), point);
@@ -64,7 +71,7 @@ export function DeleteRestorePointDialog({
     if (deleting) return;
     setDeleting(true);
     try {
-      const res = await deleteRestorePoint(point.chainId, point.id);
+      const res = await deleteRestorePoint(point.chainId, point.id, overridingGfs);
       if (res.ok) {
         toast.success(t("deleteOne.deletedTitle"), {
           description: t("deleteOne.deletedDesc", { count: segment.length, name: point.vmName }),
@@ -77,6 +84,8 @@ export function DeleteRestorePointDialog({
           description: t("deleteOne.alreadyDesc"),
         });
         onOpenChange(false);
+      } else if (res.reason === "gfs-protected") {
+        setGfsRefused(true);
       } else {
         toast.error(t("deleteOne.errorTitle"), { description: res.message });
       }
@@ -118,6 +127,20 @@ export function DeleteRestorePointDialog({
           </p>
         </div>
 
+        {overridingGfs && (
+          <div className="flex items-start gap-2.5 border border-warning/30 bg-warning/10 px-3 py-2.5">
+            <ShieldAlert className="mt-0.5 h-4 w-4 shrink-0 text-warning" />
+            <div className="space-y-1">
+              <p className="text-sm font-medium text-foreground">{t("deleteOne.gfsTitle")}</p>
+              <p className="text-xs leading-relaxed text-muted-foreground">
+                {protectedCount > 0
+                  ? t("deleteOne.gfsWarn", { count: protectedCount })
+                  : t("deleteOne.gfsWarnUnknown")}
+              </p>
+            </div>
+          </div>
+        )}
+
         <div className="text-xs leading-relaxed text-muted-foreground">
           <p>
             <Trans
@@ -135,7 +158,11 @@ export function DeleteRestorePointDialog({
           </Button>
           <Button variant="destructive" disabled={deleting} onClick={() => void handleConfirm()}>
             <Trash2 className="h-4 w-4" />
-            {deleting ? t("deleteOne.deleting") : t("deleteOne.confirm")}
+            {deleting
+              ? t("deleteOne.deleting")
+              : overridingGfs
+                ? t("deleteOne.gfsConfirm")
+                : t("deleteOne.confirm")}
           </Button>
         </DialogFooter>
       </DialogContent>

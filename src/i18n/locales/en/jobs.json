@@ -661,7 +661,12 @@
     "successDesc_one": "{{count}} restore point removed for {{name}}.",
     "successDesc_other": "{{count}} restore points removed for {{name}}.",
     "errorTitle": "Couldn't delete backup",
-    "errorUnreachable": "Appliance unreachable"
+    "errorUnreachable": "Appliance unreachable",
+    "gfsTitle": "These backups are kept by a GFS policy",
+    "gfsWarn_one": "{{count}} restore point here is marked for long-term retention (grandfather-father-son). Deleting it discards an archive copy the policy was holding.",
+    "gfsWarn_other": "{{count}} restore points here are marked for long-term retention (grandfather-father-son). Deleting them discards archive copies the policy was holding.",
+    "gfsWarnUnknown": "Some restore points here are marked for long-term retention (grandfather-father-son). Deleting them discards archive copies the policy was holding.",
+    "gfsConfirm": "Delete anyway"
   },
   "scope": {
     "searchVmsPlaceholder": "Search VMs by name…",

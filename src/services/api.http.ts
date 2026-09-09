@@ -639,6 +639,7 @@ function mapRestorePointFromChainPoint(chain: Dict, point: Dict): RestorePoint {
     compressionRatio: point.compression_ratio == null ? null : num(point.compression_ratio),
     compressionLevel: point.compression_level == null ? null : num(point.compression_level),
     encrypted: Boolean(point.encryption_enabled),
+    gfsProtected: Boolean(point.gfs_protected),
   };
 }
 
@@ -1410,11 +1411,13 @@ export async function startRestore(payload: {
  *  backup and the incrementals chained onto it (`RestorePointSegment.id`).
  *  `chainId` is `RestorePoint.chainId`, which the orchestrator's `/backups/{id}`
  *  DELETE resolves as a chain id; `segmentId` maps to its `?segment=` param. */
-export const deleteRestorePoint = (chainId: string, segmentId?: string) =>
-  request<void>(
-    `/backups/${chainId}${segmentId ? `?segment=${encodeURIComponent(segmentId)}` : ""}`,
-    { method: "DELETE" },
-  );
+export const deleteRestorePoint = (chainId: string, segmentId?: string, force = false) => {
+  const params = new URLSearchParams();
+  if (segmentId) params.set("segment", segmentId);
+  if (force) params.set("force", "true");
+  const query = params.toString();
+  return request<void>(`/backups/${chainId}${query ? `?${query}` : ""}`, { method: "DELETE" });
+};
 
 /**
  * Starts an integrity check over one stored backup chain

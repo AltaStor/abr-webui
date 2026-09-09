@@ -3,7 +3,7 @@
 
 import { useEffect, useState } from "react";
 import { Trans, useTranslation } from "react-i18next";
-import { Trash2 } from "@/lib/icons";
+import { ShieldAlert, Trash2 } from "@/lib/icons";
 import {
   Dialog,
   DialogContent,
@@ -43,13 +43,20 @@ export function DeleteJobVmBackupsDialog({
   const { t } = useTranslation("jobs");
   const deleteRestorePoint = useWorldStore((s) => s.deleteRestorePoint);
   const [deleting, setDeleting] = useState(false);
+  const [gfsRefused, setGfsRefused] = useState(false);
 
   useEffect(() => {
-    if (open) setDeleting(false);
+    if (open) {
+      setDeleting(false);
+      setGfsRefused(false);
+    }
   }, [open, target?.vm.vmId]);
 
   if (!target) return null;
   const { jobName, vm } = target;
+
+  const protectedCount = vm.points.filter((p) => p.gfsProtected).length;
+  const overridingGfs = protectedCount > 0 || gfsRefused;
 
   const oldest = vm.points.reduce((a, p) => (p.createdAt < a.createdAt ? p : a), vm.points[0]);
   const newest = vm.points.reduce((a, p) => (p.createdAt > a.createdAt ? p : a), vm.points[0]);
@@ -58,7 +65,13 @@ export function DeleteJobVmBackupsDialog({
     if (deleting) return;
     setDeleting(true);
     try {
-      const results = await Promise.all(vm.chainIds.map((chainId) => deleteRestorePoint(chainId)));
+      const results = await Promise.all(
+        vm.chainIds.map((chainId) => deleteRestorePoint(chainId, undefined, overridingGfs)),
+      );
+      if (results.some((r) => !r.ok && r.reason === "gfs-protected")) {
+        setGfsRefused(true);
+        return;
+      }
       const failure = results.find((r) => !r.ok && r.reason === "error");
       if (failure && !failure.ok && failure.reason === "error") {
         toast.error(t("deleteBackup.errorTitle"), { description: failure.message });
@@ -117,6 +130,20 @@ export function DeleteJobVmBackupsDialog({
           </p>
         </div>
 
+        {overridingGfs && (
+          <div className="flex items-start gap-2.5 border border-warning/30 bg-warning/10 px-3 py-2.5">
+            <ShieldAlert className="mt-0.5 h-4 w-4 shrink-0 text-warning" />
+            <div className="space-y-1">
+              <p className="text-sm font-medium text-foreground">{t("deleteBackup.gfsTitle")}</p>
+              <p className="text-xs leading-relaxed text-muted-foreground">
+                {protectedCount > 0
+                  ? t("deleteBackup.gfsWarn", { count: protectedCount })
+                  : t("deleteBackup.gfsWarnUnknown")}
+              </p>
+            </div>
+          </div>
+        )}
+
         <p className="text-xs leading-relaxed text-muted-foreground">
           <Trans
             i18nKey="deleteBackup.warning"
@@ -132,7 +159,11 @@ export function DeleteJobVmBackupsDialog({
           </Button>
           <Button variant="destructive" disabled={deleting} onClick={() => void handleConfirm()}>
             <Trash2 className="h-4 w-4" />
-            {deleting ? t("deleteBackup.deleting") : t("deleteBackup.confirm")}
+            {deleting
+              ? t("deleteBackup.deleting")
+              : overridingGfs
+                ? t("deleteBackup.gfsConfirm")
+                : t("deleteBackup.confirm")}
           </Button>
         </DialogFooter>
       </DialogContent>

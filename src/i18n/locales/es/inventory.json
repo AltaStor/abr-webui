@@ -320,7 +320,12 @@
     "range": "{{from}} – {{to}}",
     "recoverWarn": "Una vez eliminada, no podrás recuperar <1>{{name}}</1> a ningún punto de esta copia de seguridad.",
     "confirm": "Eliminar copia de seguridad",
-    "deleting": "Eliminando…"
+    "deleting": "Eliminando…",
+    "gfsTitle": "Esta copia está retenida por una política GFS",
+    "gfsWarn_one": "{{count}} punto de restauración de esta copia está marcado para retención a largo plazo (grandfather-father-son). Al eliminarlo se descarta una copia de archivo que la política conservaba.",
+    "gfsWarn_other": "{{count}} puntos de restauración de esta copia están marcados para retención a largo plazo (grandfather-father-son). Al eliminarlos se descartan copias de archivo que la política conservaba.",
+    "gfsWarnUnknown": "Esta copia contiene puntos de restauración marcados para retención a largo plazo (grandfather-father-son). Al eliminarla se descartan copias de archivo que la política conservaba.",
+    "gfsConfirm": "Eliminar de todos modos"
   },
   "addPhysical": {
     "registeredToast": "{{name}} registrado",

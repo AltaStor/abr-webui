@@ -335,6 +335,7 @@ export interface RestorePoint {
    *  catalog entries predate the field). */
   compressionLevel: number | null;
   encrypted: boolean;
+  gfsProtected: boolean;
 }
 
 /** A target-environment datastore, scoped to the hosts it's actually mounted on. */
