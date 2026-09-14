@@ -58,7 +58,8 @@
   },
   "runType": {
     "full": "Complète",
-    "incremental": "Incrémentielle"
+    "incremental": "Incrémentielle",
+    "syntheticFull": "Complète synthétique"
   },
   "state": {
     "on": "Activé",
@@ -639,6 +640,10 @@
       "fromLogical": "À partir de {{size}} de données · compressé à {{ratio}}",
       "fromLogicalNoRatio": "À partir de {{size}} de données",
       "sizeUnrecorded": "Le catalogue n’enregistre pas encore les tailles"
+    },
+    "syntheticFull": {
+      "aria": "Créer une complète synthétique de {{vm}} dans {{job}}",
+      "tip": "Fusionner cette chaîne en une nouvelle sauvegarde complète"
     }
   },
   "point": {

@@ -79,7 +79,12 @@
   "routeError": {
     "title": "Diese Ansicht ist auf ein Problem gestoßen",
     "fallback": "Beim Rendern dieser Ansicht ist etwas schiefgegangen.",
-    "back": "Zurück zum Dashboard"
+    "back": "Zurück zum Dashboard",
+    "staleBuild": {
+      "title": "Diese Ansicht muss neu geladen werden",
+      "description": "Die Appliance wurde aktualisiert, während diese Konsole geöffnet war. Die angeforderte Seite liegt nicht mehr auf dem Server. Ein Neuladen holt die aktuelle Version.",
+      "reload": "Konsole neu laden"
+    }
   },
   "featureUnavailable": {
     "replication": {

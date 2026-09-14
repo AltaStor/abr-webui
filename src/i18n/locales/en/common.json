@@ -79,7 +79,12 @@
   "routeError": {
     "title": "This view hit a snag",
     "fallback": "Something went wrong rendering this view.",
-    "back": "Back to Dashboard"
+    "back": "Back to Dashboard",
+    "staleBuild": {
+      "title": "This view needs a reload",
+      "description": "The appliance was updated while this console was open, so the page it tried to load is no longer on the server. Reloading picks up the current version.",
+      "reload": "Reload console"
+    }
   },
   "featureUnavailable": {
     "replication": {

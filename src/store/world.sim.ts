@@ -14,7 +14,12 @@ import { clamp, pick, seededRandom } from "@/lib/utils";
 import { createSeedWorld, type World } from "@/mock/seed";
 import { applyReadState, persistAllAlertsRead, persistAlertRead } from "@/store/notifications.persist";
 import { segmentChainPoints, simChainId, simCompressionRatio } from "@/lib/restore-points";
-import { verifyRunName } from "@/lib/format";
+import {
+  resolveSyntheticFullChain,
+  syntheticFullRefusalMessage,
+  validateSyntheticFull,
+} from "@/lib/synthetic-full";
+import { formatDateTime, verifyRunName } from "@/lib/format";
 import type {
   Alert,
   ApplyImmutabilityResult,
@@ -46,6 +51,7 @@ import type {
   RepoDeleteResult,
   RepositoryWriteResult,
   RestorePointDeleteResult,
+  SyntheticFullStartResult,
   VerifyBackupResult,
   WorldActions,
   WorldDriver,
@@ -410,7 +416,11 @@ export function createSimDriver(handle: WorldHandle): WorldDriver {
               // first point is a full (whole-disk read), not a 6%-sized delta.
               const isFirstForVm = !vm.lastBackupAt;
               vmPatches[r.vmId] = { lastBackupAt: nowIso() };
-              const storedGB = isFirstForVm
+              // A synthetic full merges the chain rather than reading the VM,
+              // so it lands as a FULL point the size of one — the run just
+              // moved no data off the source host to get there.
+              const isFullPoint = isFirstForVm || Boolean(s.synthetic);
+              const storedGB = isFullPoint
                 ? Math.max(1, Math.round(vm.usedGB))
                 : Math.max(1, Math.round(vm.usedGB * 0.06));
               const ratio = simCompressionRatio(job.options.compression);
@@ -422,7 +432,7 @@ export function createSimDriver(handle: WorldHandle): WorldDriver {
                 jobId: job.id,
                 jobName: job.name,
                 createdAt: nowIso(),
-                type: isFirstForVm ? "full" : "incremental",
+                type: isFullPoint ? "full" : "incremental",
                 sizeGB: storedGB,
                 repositoryId: job.repositoryId,
                 logicalGB: Math.round(storedGB / ratio),
@@ -430,6 +440,7 @@ export function createSimDriver(handle: WorldHandle): WorldDriver {
                 compressionLevel: job.options.compression,
                 encrypted: job.options.encryption,
                 gfsProtected: false,
+                synthetic: Boolean(s.synthetic),
               });
             }
           }
@@ -1077,6 +1088,91 @@ export function createSimDriver(handle: WorldHandle): WorldDriver {
         };
       });
       return Promise.resolve<RestorePointDeleteResult>({ ok: true });
+    },
+
+    /* ------------------------- runSyntheticFull ------------------------ */
+    /* The demo world has no repository to merge in, so this stages the run the
+     * appliance would produce and lets the ordinary tick loop finish it — the
+     * session settles like any other backup, and its completion writes a FULL
+     * restore point flagged `synthetic` (see the tick's point-creation above).
+     *
+     * It refuses through the SAME rules the live driver's appliance applies
+     * (@/lib/synthetic-full), so a chain that could not be merged against a
+     * real appliance cannot be merged here either — a demo that accepted what
+     * production refuses would be worse than no demo. */
+    runSyntheticFull: ({ jobId, vmId, targetRepositoryId }) => {
+      const state = handle.get();
+      const job = state.jobs.find((j) => j.id === jobId);
+      if (!job) {
+        return Promise.resolve<SyntheticFullStartResult>({
+          ok: false,
+          message: syntheticFullRefusalMessage({ code: "no-job" }),
+        });
+      }
+      const chain = resolveSyntheticFullChain(vmId, jobId, state);
+      const refusal = validateSyntheticFull(chain, state, targetRepositoryId);
+      if (refusal || !chain) {
+        return Promise.resolve<SyntheticFullStartResult>({
+          ok: false,
+          message: syntheticFullRefusalMessage(refusal ?? { code: "no-chain" }),
+        });
+      }
+
+      const id = uid("sess");
+      // Per-job, not per-VM: the appliance resolves EVERY VM the job covers to
+      // a synthetic full, and the demo has to show the same blast radius or
+      // the dialog's warning would read as a lie here.
+      const scope = job.vmIds.slice(0, Math.min(job.vmIds.length, 10));
+      const session: Session = {
+        id,
+        jobId: job.id,
+        jobName: job.name,
+        type: "backup",
+        status: "running",
+        backupType: "full",
+        synthetic: true,
+        startedAt: nowIso(),
+        finishedAt: null,
+        durationSec: 0,
+        progress: 0,
+        processedGB: 0,
+        transferredGB: 0,
+        // A merge is repository-to-repository: no guest read, no network hop,
+        // so it runs at storage speed rather than a backup's wire speed.
+        throughputMBps: 1100,
+        vmCount: scope.length,
+        vmResults: scope.map((scopedVmId, idx) => {
+          const vm = state.vms.find((v) => v.id === scopedVmId);
+          return {
+            vmId: scopedVmId,
+            vmName: vm?.name ?? scopedVmId,
+            status: idx === 0 ? ("running" as const) : ("pending" as const),
+            processedGB: 0,
+            transferredGB: 0,
+            durationSec: 0,
+          };
+        }),
+        triggeredBy: "manual",
+      };
+
+      handle.set({
+        sessions: [session, ...state.sessions],
+        jobs: state.jobs.map((j) => (j.id === jobId ? { ...j, state: "running", lastStatus: "running" } : j)),
+        liveLogs: {
+          ...state.liveLogs,
+          [id]: [
+            makeLog("info", `Synthetic full of ${chain.vmName} — merging ${chain.points.length} restore point(s)`, chain.vmName),
+            makeLog(
+              "info",
+              `Reading the full backup of ${formatDateTime(chain.full?.createdAt ?? chain.points[0].createdAt)} and ${chain.incrementals.length} incremental(s)`,
+              chain.vmName,
+            ),
+            makeLog("info", "No data is read from the source host", chain.vmName),
+          ],
+        },
+        revision: state.revision + 1,
+      });
+      return Promise.resolve<SyntheticFullStartResult>({ ok: true, sessionId: id, sessionIds: [id] });
     },
 
     /* The demo world has no artifacts to re-read, so this stages the run the

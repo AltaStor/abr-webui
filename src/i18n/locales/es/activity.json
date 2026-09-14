@@ -144,7 +144,8 @@
     },
     "backupType": {
       "full": "Completa",
-      "incremental": "Incremental"
+      "incremental": "Incremental",
+      "synthetic": "Completo sintético"
     }
   },
   "older": {

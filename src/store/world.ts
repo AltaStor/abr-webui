@@ -109,6 +109,9 @@ export const useWorldStore = create<WorldState>(() => ({
   verifyBackups: (chainIds) =>
     driver?.actions.verifyBackups(chainIds) ??
     Promise.resolve({ ok: false, message: "world not started" } as const),
+  runSyntheticFull: (input) =>
+    driver?.actions.runSyntheticFull(input) ??
+    Promise.resolve({ ok: false, message: "world not started" } as const),
   createRepository: (input) =>
     driver?.actions.createRepository(input) ?? Promise.resolve(NO_WORLD_WRITE),
   editRepository: (id, patch) =>

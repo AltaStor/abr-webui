@@ -1,10 +1,11 @@
 // SPDX-License-Identifier: Apache-2.0
 // Copyright © 2026 Norvitex OÜ
 
-import { lazy, Suspense } from "react";
+import { Suspense } from "react";
 import { createBrowserRouter, Navigate, useLocation } from "react-router-dom";
 import { AppShell } from "./AppShell";
 import { RouteError } from "./RouteError";
+import { lazyRoute } from "./lazyRoute";
 import { FeatureUnavailable } from "@/components/FeatureUnavailable";
 
 /** Redirect old standalone /backups bookmarks to the "Backups" tab now living
@@ -16,20 +17,20 @@ function LegacyBackupsRedirect() {
   return <Navigate to={`/jobs?${params.toString()}`} replace />;
 }
 
-const DashboardPage = lazy(() => import("@/features/dashboard/DashboardPage"));
-const JobsPage = lazy(() => import("@/features/jobs/JobsPage"));
-const JobDetailPage = lazy(() => import("@/features/jobs/JobDetailPage"));
-const CreateJobPage = lazy(() => import("@/features/jobs/CreateJobPage"));
-const ActivityPage = lazy(() => import("@/features/activity/ActivityPage"));
-const RestorePage = lazy(() => import("@/features/restore/RestorePage"));
-const InventoryPage = lazy(() => import("@/features/inventory/InventoryPage"));
-const VmDetailPage = lazy(() => import("@/features/inventory/VmDetailPage"));
-const RepositoriesPage = lazy(() => import("@/features/repositories/RepositoriesPage"));
-const SettingsPage = lazy(() => import("@/features/settings/SettingsPage"));
-const SetupPage = lazy(() => import("@/features/setup/SetupPage"));
-const LogsPage = lazy(() => import("@/features/logs/LogsPage"));
-const LoginPage = lazy(() => import("@/features/auth/LoginPage"));
-const ChangePasswordPage = lazy(() => import("@/features/auth/ChangePasswordPage"));
+const DashboardPage = lazyRoute(() => import("@/features/dashboard/DashboardPage"));
+const JobsPage = lazyRoute(() => import("@/features/jobs/JobsPage"));
+const JobDetailPage = lazyRoute(() => import("@/features/jobs/JobDetailPage"));
+const CreateJobPage = lazyRoute(() => import("@/features/jobs/CreateJobPage"));
+const ActivityPage = lazyRoute(() => import("@/features/activity/ActivityPage"));
+const RestorePage = lazyRoute(() => import("@/features/restore/RestorePage"));
+const InventoryPage = lazyRoute(() => import("@/features/inventory/InventoryPage"));
+const VmDetailPage = lazyRoute(() => import("@/features/inventory/VmDetailPage"));
+const RepositoriesPage = lazyRoute(() => import("@/features/repositories/RepositoriesPage"));
+const SettingsPage = lazyRoute(() => import("@/features/settings/SettingsPage"));
+const SetupPage = lazyRoute(() => import("@/features/setup/SetupPage"));
+const LogsPage = lazyRoute(() => import("@/features/logs/LogsPage"));
+const LoginPage = lazyRoute(() => import("@/features/auth/LoginPage"));
+const ChangePasswordPage = lazyRoute(() => import("@/features/auth/ChangePasswordPage"));
 
 export const router = createBrowserRouter([
   {

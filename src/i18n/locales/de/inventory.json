@@ -444,5 +444,81 @@
     "oneDoneDesc_other": "{{count}} VMs gefunden.",
     "oneFailedTitle": "{{name}} konnte nicht neu gescannt werden",
     "oneFailedDesc": "Die Appliance konnte die Umgebung nicht erreichen — ihr Bestand bleibt unverändert."
+  },
+  "syntheticFull": {
+    "action": "Synthetisches Vollbackup",
+    "actionTip": "Die Sicherungskette dieser VM zu einem neuen vollständigen Wiederherstellungspunkt zusammenführen, ohne die VM zu lesen",
+    "title": "Synthetisches Vollbackup erstellen",
+    "desc": "Die gespeicherte Sicherungskette von {{vm}} zu einem neuen vollständigen Wiederherstellungspunkt zusammenführen. Das geschieht innerhalb des Repositorys — von der VM wird nichts gelesen und nichts über das Netzwerk übertragen.",
+    "descRunning": "Die Sicherungskette von {{vm}} wird zu einem neuen vollständigen Wiederherstellungspunkt zusammengeführt.",
+    "cannotRun": "Diese Kette kann nicht zusammengeführt werden",
+    "jobLabel": "Sicherungsauftrag",
+    "chainCount_one": "{{count}} Wiederherstellungspunkt wird zusammengeführt",
+    "chainCount_other": "{{count}} Wiederherstellungspunkte werden zusammengeführt",
+    "resultNote": "Ergebnis: ein neuer vollständiger Wiederherstellungspunkt. Die Punkte oben bleiben erhalten und wiederherstellbar.",
+    "targetLabel": "Zusammengeführtes Vollbackup schreiben nach",
+    "targetCurrent": "aktuell",
+    "targetSameHint": "Das zusammengeführte Vollbackup wird neben der Kette abgelegt, aus der es stammt.",
+    "targetOtherHint": "Die Kette wird aus ihrem eigenen Repository gelesen, das zusammengeführte Vollbackup in dieses geschrieben.",
+    "inherited": {
+      "title": "Das zusammengeführte Vollbackup verwendet",
+      "compression": "Komprimierung",
+      "compressionLevel": "Stufe {{level}}",
+      "compressionOff": "Aus",
+      "encryption": "Verschlüsselung",
+      "encryptionOn": "AES-256 im Ruhezustand",
+      "encryptionOff": "Aus",
+      "immutability": "Unveränderlichkeit",
+      "immutabilityOn": "{{days}} Tage gesperrt",
+      "immutabilityOff": "Nicht gesperrt",
+      "retention": "Aufbewahrung",
+      "retentionDays_one": "{{count}} Tag",
+      "retentionDays_other": "{{count}} Tage",
+      "note": "Diese stammen aus dem Auftrag und dem Ziel-Repository, nicht aus diesem Lauf — ändern Sie sie in <1>{{job}}</1>, dann gelten sie für jeden Lauf, auch für diesen."
+    },
+    "jobScopeNote_one": "Die Appliance führt synthetische Vollbackups pro Auftrag aus: {{job}} führt daher auch die Kette von {{count}} weiteren geschützten VM zusammen.",
+    "jobScopeNote_other": "Die Appliance führt synthetische Vollbackups pro Auftrag aus: {{job}} führt daher auch die Ketten von {{count}} weiteren geschützten VMs zusammen.",
+    "sourceDegraded": "{{repository}} meldet Probleme. Die Zusammenführung liest jeden Punkt der Kette und kann daher länger dauern oder unterwegs fehlschlagen.",
+    "startFailed": "Die Appliance hat den Lauf abgelehnt",
+    "start": "Synthetisches Vollbackup starten",
+    "starting": "Wird gestartet…",
+    "runInBackground": "Im Hintergrund ausführen",
+    "viewRun": "Lauf und Protokoll anzeigen",
+    "progress": {
+      "running": "Kette wird zusammengeführt",
+      "done": "Synthetisches Vollbackup abgeschlossen",
+      "failed": "Synthetisches Vollbackup fehlgeschlagen",
+      "doneNote": "Der neue vollständige Wiederherstellungspunkt steht in der Liste; die folgenden Inkremente setzen darauf auf.",
+      "barLabel": "Fortschritt des synthetischen Vollbackups für {{vm}}"
+    },
+    "toast": {
+      "startedTitle": "Synthetisches Vollbackup gestartet",
+      "startedDesc": "Die Sicherungskette von {{vm}} wird zusammengeführt. Der Lauf erscheint wie jeder andere unter Aktivität."
+    },
+    "badge": "Synthetisch",
+    "badgeTip": "Ein vollständiger Wiederherstellungspunkt, der durch Zusammenführen der Kette im Repository entstanden ist statt durch Lesen der VM",
+    "refusal": {
+      "no-job": "Für diese VM hat noch kein Sicherungsauftrag Wiederherstellungspunkte erzeugt, es gibt also keine Kette zum Zusammenführen.",
+      "no-chain": "Dieser Auftrag hat für diese VM noch keine Wiederherstellungspunkte erzeugt, es gibt also keine Kette zum Zusammenführen.",
+      "chain-not-anchored": "Der älteste Wiederherstellungspunkt dieser Kette ist ein Inkrement ohne darunterliegendes Vollbackup. Ein synthetisches Vollbackup benötigt ein Vollbackup als Basis.",
+      "no-incrementals": "Diese Kette besteht aus einem Vollbackup ohne Inkremente. Ein Zusammenführen würde es unverändert kopieren — es gibt noch nichts zu tun.",
+      "source-repository-unsupported": "{{repository}} kann keine Sicherungskette zusammenführen. Synthetische Vollbackups benötigen ein lokales oder Objektspeicher-Repository.",
+      "source-repository-offline": "{{repository}} ist nicht erreichbar, die dort gespeicherte Kette kann nicht gelesen werden.",
+      "target-repository-unsupported": "{{repository}} kann kein zusammengeführtes Backup aufnehmen. Wählen Sie ein lokales oder Objektspeicher-Repository.",
+      "target-repository-offline": "{{repository}} ist nicht erreichbar, das zusammengeführte Vollbackup kann dort nicht geschrieben werden.",
+      "job-running": "{{job}} läuft gerade. Warten Sie das Ende ab — eine jetzt gestartete Zusammenführung würde eine Kette lesen, in die noch geschrieben wird."
+    },
+    "failure": {
+      "generic": "Die Zusammenführung ist fehlgeschlagen. Das Protokoll des Laufs enthält die Darstellung der Appliance.",
+      "mismatchedDisks": "Die Wiederherstellungspunkte dieser Kette beschreiben unterschiedliche Datenträger — mitten in der Kette wurde ein Datenträger hinzugefügt oder entfernt. Starten Sie mit einem Vollbackup eine neue Kette und führen Sie diese zusammen.",
+      "missingArtifacts": "Für einige Wiederherstellungspunkte dieser Kette fehlen die gespeicherten Sicherungsdateien, die Kette lässt sich daher nicht zusammenführen. Prüfen Sie das Repository und starten Sie mit einem Vollbackup eine neue Kette.",
+      "outOfSpace": "Im Ziel-Repository ist kein Speicherplatz mehr frei. Ein synthetisches Vollbackup braucht Platz für ein komplettes neues Vollbackup, bevor die alten Punkte auslaufen.",
+      "permissionDenied": "Die Appliance konnte nicht in das Ziel-Repository schreiben. Prüfen Sie die Zugangsdaten des Repositorys und die Berechtigungen seines Speichers.",
+      "repositoryGone": "Ein für diese Zusammenführung benötigtes Repository ist auf der Appliance nicht mehr registriert.",
+      "destinationCollision": "Das zusammengeführte Vollbackup würde genau dort geschrieben, wo die gelesene Kette liegt. Wählen Sie ein anderes Ziel-Repository.",
+      "repositoryUnsupported": "Das Repository kann keine Sicherungskette zusammenführen. Synthetische Vollbackups benötigen ein lokales oder Objektspeicher-Repository.",
+      "invalidChain": "Die Kette ist nicht in einem zusammenführbaren Zustand: Sie muss mit einem Vollbackup beginnen und danach nur Inkremente enthalten.",
+      "noIncrementals": "Zum Startzeitpunkt des Laufs waren keine Inkremente mehr zum Zusammenführen vorhanden."
+    }
   }
 }

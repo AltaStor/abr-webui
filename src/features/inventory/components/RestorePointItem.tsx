@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { formatDateTime, formatRelative, formatStorage } from "@/lib/format";
 import { compressionRatioLabel, pointTypeTooltip } from "@/lib/restore-points";
+import { SyntheticFullBadge } from "@/components/SyntheticFullBadge";
 import type { RestorePoint } from "@/types";
 
 /**
@@ -52,6 +53,10 @@ export function RestorePointItem({
           >
             {point.type}
           </Badge>
+          {/* Sits NEXT to the "full" badge, never instead of it: a synthetic
+              full is a full restore point in every way that matters to a
+              restore, and only differs in where its bytes came from. */}
+          {point.synthetic && <SyntheticFullBadge />}
           {unavailable && (
             <Badge
               variant="outline"

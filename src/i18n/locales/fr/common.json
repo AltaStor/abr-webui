@@ -79,7 +79,12 @@
   "routeError": {
     "title": "Cette vue a rencontré un problème",
     "fallback": "Une erreur s’est produite lors de l’affichage de cette vue.",
-    "back": "Retour au tableau de bord"
+    "back": "Retour au tableau de bord",
+    "staleBuild": {
+      "title": "Cette vue doit être rechargée",
+      "description": "L'appliance a été mise à jour pendant que cette console était ouverte : la page demandée n'est plus sur le serveur. Recharger permet de récupérer la version actuelle.",
+      "reload": "Recharger la console"
+    }
   },
   "featureUnavailable": {
     "replication": {

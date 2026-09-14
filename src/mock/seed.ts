@@ -592,6 +592,10 @@ function buildRestorePoints(vms: VM[], jobs: BackupJob[]): RestorePoint[] {
         compressionLevel: job.options.compression,
         encrypted: job.options.encryption,
         gfsProtected: isFull && i >= 14,
+        // Seeded history is all read-off-the-VM: the demo world only produces a
+        // synthetic full when the operator asks for one (see runSyntheticFull
+        // in world.sim.ts).
+        synthetic: false,
       });
     }
   }

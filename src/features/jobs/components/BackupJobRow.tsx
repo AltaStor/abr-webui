@@ -34,6 +34,7 @@ export function BackupJobRow({
   offlineRepoIds,
   verifyingVmIds,
   onVerifyVm,
+  onSyntheticFullVm,
   onRestoreVm,
   onRestorePoint,
   onDeleteVm,
@@ -49,6 +50,7 @@ export function BackupJobRow({
   /** VM ids under THIS job whose chains are being verified right now. */
   verifyingVmIds: Set<string>;
   onVerifyVm: (vm: RestorePointJobVmGroup) => void;
+  onSyntheticFullVm: (vm: RestorePointJobVmGroup) => void;
   onRestoreVm: (vm: RestorePointJobVmGroup) => void;
   onRestorePoint: (vm: RestorePointJobVmGroup, point: RestorePoint) => void;
   onDeleteVm: (vm: RestorePointJobVmGroup) => void;
@@ -145,6 +147,7 @@ export function BackupJobRow({
                 restoreBlockedReason={vm.removed ? removedRestoreTip : undefined}
                 verifying={verifyingVmIds.has(vm.vmId)}
                 onVerify={() => onVerifyVm(vm)}
+                onSyntheticFull={() => onSyntheticFullVm(vm)}
                 onRestore={() => onRestoreVm(vm)}
                 onRestorePoint={(point) => onRestorePoint(vm, point)}
                 onDelete={() => onDeleteVm(vm)}

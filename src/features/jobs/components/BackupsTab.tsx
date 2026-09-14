@@ -28,6 +28,7 @@ import {
 import { useWorldStore } from "@/store/world";
 import { restoreLink } from "@/features/restore/link";
 import { BackupJobRow } from "./BackupJobRow";
+import { SyntheticFullDialog } from "@/features/inventory/components/SyntheticFullDialog";
 import {
   DeleteJobVmBackupsDialog,
   type DeleteJobVmBackupsTarget,
@@ -83,6 +84,11 @@ export function BackupsTab() {
   const [scopeFilter, setScopeFilter] = useState<ScopeFilter>("all");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
   const [deleteTarget, setDeleteTarget] = useState<DeleteJobVmBackupsTarget | null>(null);
+  /* Which (job, VM) chain the synthetic-full dialog is open on. Both halves are
+   * needed: the tree groups by job, and the same VM can appear under several. */
+  const [syntheticFullTarget, setSyntheticFullTarget] = useState<
+    { jobId: string; vmId: string; vmName: string } | null
+  >(null);
   const [verifyRuns, setVerifyRuns] = useState<Record<string, VerifyRun>>({});
 
   const verifyBackups = useWorldStore((s) => s.verifyBackups);
@@ -398,6 +404,9 @@ export function BackupsTab() {
               offlineRepoIds={offlineRepoIds}
               verifyingVmIds={verifyingVmIdsFor(group.jobId)}
               onVerifyVm={(vm) => void handleVerifyVm(group.jobId, vm)}
+              onSyntheticFullVm={(vm) =>
+                setSyntheticFullTarget({ jobId: group.jobId, vmId: vm.vmId, vmName: vm.name })
+              }
               onRestoreVm={handleRestoreVm}
               onRestorePoint={handleRestorePoint}
               onDeleteVm={(vm) => setDeleteTarget({ jobName: group.jobName, vm })}
@@ -411,6 +420,18 @@ export function BackupsTab() {
         open={deleteTarget !== null}
         onOpenChange={(o) => !o && setDeleteTarget(null)}
       />
+
+      {/* Keyed on the chain so reopening on a different row remounts with fresh
+          state, rather than showing the previous row's run. */}
+      {syntheticFullTarget && (
+        <SyntheticFullDialog
+          key={`${syntheticFullTarget.jobId}:${syntheticFullTarget.vmId}`}
+          vm={{ id: syntheticFullTarget.vmId, name: syntheticFullTarget.vmName }}
+          jobId={syntheticFullTarget.jobId}
+          open
+          onOpenChange={(o) => !o && setSyntheticFullTarget(null)}
+        />
+      )}
     </div>
   );
 }

@@ -3,6 +3,7 @@
 
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useSearchParams } from "react-router-dom";
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { useWorldStore } from "@/store/world";
@@ -25,7 +26,26 @@ export default function ActivityPage() {
   const [status, setStatus] = useState<StatusFilter>("all");
   const [job, setJob] = useState("all");
   const [search, setSearch] = useState("");
-  const [openRunId, setOpenRunId] = useState<string | null>(null);
+  /* Which run's detail drawer is open, mirrored in the URL as `?session=`.
+   * That makes a run addressable: the synthetic-full dialog links straight to
+   * the run it started, and an operator can paste a run at a colleague. The
+   * param is the source of truth so a pasted link opens the drawer on load,
+   * not just on click. */
+  const [searchParams, setSearchParams] = useSearchParams();
+  const openRunId = searchParams.get("session");
+  const setOpenRunId = (sessionId: string | null) => {
+    setSearchParams(
+      (current) => {
+        const next = new URLSearchParams(current);
+        if (sessionId) next.set("session", sessionId);
+        else next.delete("session");
+        return next;
+      },
+      // Opening and closing a drawer shouldn't build up history the back
+      // button has to walk through.
+      { replace: true },
+    );
+  };
 
   const runningCount = useMemo(() => sessions.filter((s) => s.status === "running").length, [sessions]);
 

@@ -191,6 +191,15 @@ export interface Session {
   status: SessionStatus;
   /** "full" | "incremental" — drives restore-point typing. */
   backupType: "full" | "incremental";
+  /**
+   * A `backupType: "full"` run that merged the existing chain in the repository
+   * instead of re-reading the VM — the orchestrator's "SyntheticFull". Absent/
+   * false for an active full. Kept as a separate flag rather than a third
+   * `backupType` so everything that only cares "full or incremental" (run
+   * history pills, chain segmentation, the sim's throughput model) keeps
+   * working untouched.
+   */
+  synthetic?: boolean;
   startedAt: string;
   finishedAt: string | null;
   durationSec: number;
@@ -336,6 +345,15 @@ export interface RestorePoint {
   compressionLevel: number | null;
   encrypted: boolean;
   gfsProtected: boolean;
+  /**
+   * This full point was produced by merging an existing chain (a synthetic
+   * full), not by reading the VM again (an active full). Both are `type:
+   * "full"` and both restore identically and anchor the incrementals that
+   * follow — the distinction is where the bytes came from, which is what makes
+   * it worth showing: a synthetic full moved no data off the source host.
+   * From the orchestrator's `execution_type` ("SyntheticFull").
+   */
+  synthetic: boolean;
 }
 
 /** A target-environment datastore, scoped to the hosts it's actually mounted on. */
@@ -457,6 +475,14 @@ export interface Repository {
   /** Whether this repository's backend can lock backups at all
    *  (`capabilities.supports_immutability` — object storage only today). */
   supportsImmutability?: boolean;
+  /** Whether this repository's backend can merge a backup chain into a
+   *  synthetic full (`capabilities.supports_synthetic_full`). The appliance
+   *  decides it — a repository's `metadata.supports_synthetic_full` when set,
+   *  otherwise whether it is an AltaStor-native local/S3 repository — and
+   *  refuses a synthetic full against anything else with a 422, so this is the
+   *  authority for which repositories the dialog may offer. Undefined for a
+   *  world that doesn't report it (the demo simulation). */
+  supportsSyntheticFull?: boolean;
 }
 
 /**

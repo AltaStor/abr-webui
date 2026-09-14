@@ -210,7 +210,7 @@ function RunDetail({ session: s, jobExists, onClose }: { session: Session; jobEx
             label={t("drawer.stat.type")}
             value={
               <Badge variant={s.backupType === "full" ? "info" : "outline"}>
-                {t(`drawer.backupType.${s.backupType}`)}
+                {s.synthetic ? t("drawer.backupType.synthetic") : t(`drawer.backupType.${s.backupType}`)}
               </Badge>
             }
           />

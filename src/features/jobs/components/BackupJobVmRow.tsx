@@ -4,6 +4,7 @@
 import { useTranslation } from "react-i18next";
 import {
   ChevronRight,
+  Layers,
   Loader2,
   Lock,
   LockOpen,
@@ -23,6 +24,7 @@ import {
   type RestorePointJobVmGroup,
 } from "@/lib/restore-points";
 import type { RestorePoint } from "@/types";
+import { SyntheticFullBadge } from "@/components/SyntheticFullBadge";
 
 /**
  * One VM within a job's expanded tree: a header row (name, stats, verify,
@@ -43,6 +45,7 @@ export function BackupJobVmRow({
   restoreBlockedReason,
   verifying,
   onVerify,
+  onSyntheticFull,
   onRestore,
   onRestorePoint,
   onDelete,
@@ -61,6 +64,11 @@ export function BackupJobVmRow({
    *  catalog. Unlike restore, this needs no source VM — it reads what is
    *  stored, so it stays available for a VM that has since been removed. */
   onVerify: () => void;
+  /** Merge this VM's chain under this job into a new full backup. Scoped the
+   *  same way verify is — a chain is what the appliance merges — and offered
+   *  here because this tree is already grouped by exactly the (job, VM) pair a
+   *  synthetic full operates on. */
+  onSyntheticFull: () => void;
   /** The VM-level action: recover this machine, wizard picks the newest point. */
   onRestore: () => void;
   /** The point-level action. Distinct on purpose — an operator who opens the
@@ -219,6 +227,17 @@ export function BackupJobVmRow({
           <Button
             variant="ghost"
             size="icon-sm"
+            aria-label={t("backupsTab.syntheticFull.aria", { vm: vm.name, job: jobName })}
+            title={allUnreachable ? offlineTip : t("backupsTab.syntheticFull.tip")}
+            className="text-muted-foreground"
+            onClick={onSyntheticFull}
+            disabled={allUnreachable}
+          >
+            <Layers className="h-3.5 w-3.5" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon-sm"
             aria-label={t("backupsTab.restoreVmAria", { vm: vm.name, job: jobName })}
             title={restoreBlockedReason ?? (allUnreachable ? offlineTip : t("rp.restore"))}
             className="text-muted-foreground"
@@ -290,6 +309,9 @@ function BackupPointRow({
           >
             {point.type}
           </Badge>
+          {/* Same marker as the VM detail list — a merged full has to look the
+              same wherever a restore point is shown. */}
+          {point.synthetic && <SyntheticFullBadge />}
           {unavailable && (
             <Badge
               variant="outline"

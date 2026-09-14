@@ -118,6 +118,32 @@ export type VerifyBackupResult =
   | { ok: true; sessionIds: string[] }
   | { ok: false; message: string };
 
+/** What a synthetic full should merge, and where the result should land. */
+export interface SyntheticFullInput {
+  /** The job owning the chain. The appliance starts the run per JOB, not per
+   *  chain, so every VM the job covers gets a synthetic full of its own. */
+  jobId: string;
+  /** The VM whose chain the operator was looking at. The appliance does not
+   *  take it (there is no per-VM start), so it is carried only to identify
+   *  this VM's session among the ones the run creates. */
+  vmId: string;
+  /** Where to write the merged full. Omitted, it lands in the job's own
+   *  repository, alongside the chain it was merged from. */
+  targetRepositoryId?: string;
+}
+
+/**
+ * Outcome of starting a synthetic full.
+ *
+ * `sessionIds` is every session the run created — one per VM in the job — and
+ * `sessionId` is this VM's, the one the dialog follows. `message` on failure is
+ * the appliance's own refusal (an unmergeable repository, a job that is already
+ * running), which the dialog shows rather than a generic "couldn't start".
+ */
+export type SyntheticFullStartResult =
+  | { ok: true; sessionId: string | null; sessionIds: string[] }
+  | { ok: false; message: string };
+
 /**
  * Outcome of creating or editing a repository.
  *
@@ -247,6 +273,10 @@ export interface WorldState extends WorldData {
    *  the catalog recorded. Starts the runs and resolves — the verification
    *  itself reports through the session feed like any other run. */
   verifyBackups(chainIds: string[]): Promise<VerifyBackupResult>;
+  /** Merge a stored chain into a new full backup, without reading the source
+   *  VM. Starts the run and resolves; the merge itself reports through the
+   *  session feed like any other run, and lands as a new full restore point. */
+  runSyntheticFull(input: SyntheticFullInput): Promise<SyntheticFullStartResult>;
   /* -------- repository lifecycle (advanced storage management) -------- */
   createRepository(input: CreateRepositoryInput): Promise<RepositoryWriteResult>;
   editRepository(id: string, patch: RepositoryEdit): Promise<RepositoryWriteResult>;
@@ -294,6 +324,7 @@ export type WorldActions = Pick<
   | "getRestorePlacementOptions"
   | "deleteRestorePoint"
   | "verifyBackups"
+  | "runSyntheticFull"
   | "createRepository"
   | "editRepository"
   | "deleteRepository"

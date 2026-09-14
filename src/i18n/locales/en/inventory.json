@@ -444,5 +444,81 @@
     "oneDoneDesc_other": "{{count}} VMs found.",
     "oneFailedTitle": "Couldn’t rescan {{name}}",
     "oneFailedDesc": "The appliance couldn’t reach it, so its inventory is unchanged."
+  },
+  "syntheticFull": {
+    "action": "Synthetic full",
+    "actionTip": "Merge this VM's backup chain into a new full restore point, without reading the VM",
+    "title": "Create a synthetic full",
+    "desc": "Merge {{vm}}'s stored backup chain into a new full restore point. The merge happens inside the repository — nothing is read from the VM or sent over the network.",
+    "descRunning": "Merging {{vm}}'s backup chain into a new full restore point.",
+    "cannotRun": "This chain can't be merged",
+    "jobLabel": "Backup job",
+    "chainCount_one": "Merging {{count}} restore point",
+    "chainCount_other": "Merging {{count}} restore points",
+    "resultNote": "Result: one new full restore point. The points above are kept and stay restorable.",
+    "targetLabel": "Write the merged full to",
+    "targetCurrent": "current",
+    "targetSameHint": "The merged full is written alongside the chain it came from.",
+    "targetOtherHint": "The chain is read from its own repository and the merged full is written to this one.",
+    "inherited": {
+      "title": "The merged full will use",
+      "compression": "Compression",
+      "compressionLevel": "Level {{level}}",
+      "compressionOff": "Off",
+      "encryption": "Encryption",
+      "encryptionOn": "AES-256 at rest",
+      "encryptionOff": "Off",
+      "immutability": "Immutability",
+      "immutabilityOn": "Locked for {{days}} days",
+      "immutabilityOff": "Not locked",
+      "retention": "Retention",
+      "retentionDays_one": "{{count}} day",
+      "retentionDays_other": "{{count}} days",
+      "note": "These come from the job and the target repository, not from this run — change them in <1>{{job}}</1> and they apply to every run, including this one."
+    },
+    "jobScopeNote_one": "The appliance runs a synthetic full per job, so {{job}} will also merge the chain of {{count}} other VM it protects.",
+    "jobScopeNote_other": "The appliance runs a synthetic full per job, so {{job}} will also merge the chains of {{count}} other VMs it protects.",
+    "sourceDegraded": "{{repository}} is reporting problems. The merge reads every point in the chain, so it may take longer than usual or fail partway.",
+    "startFailed": "The appliance refused the run",
+    "start": "Start synthetic full",
+    "starting": "Starting…",
+    "runInBackground": "Run in background",
+    "viewRun": "View run and log",
+    "progress": {
+      "running": "Merging the chain",
+      "done": "Synthetic full complete",
+      "failed": "Synthetic full failed",
+      "doneNote": "The new full restore point is in the list, and the incrementals that follow will chain onto it.",
+      "barLabel": "Synthetic full progress for {{vm}}"
+    },
+    "toast": {
+      "startedTitle": "Synthetic full started",
+      "startedDesc": "Merging {{vm}}'s backup chain. It appears in Activity like any other run."
+    },
+    "badge": "Synthetic",
+    "badgeTip": "A full restore point built by merging the chain in the repository, rather than by reading the VM",
+    "refusal": {
+      "no-job": "No backup job has produced restore points for this VM yet, so there is no chain to merge.",
+      "no-chain": "This job hasn't produced any restore points for this VM yet, so there is no chain to merge.",
+      "chain-not-anchored": "This chain's oldest restore point is an incremental, with no full backup beneath it. A synthetic full needs a full backup to merge onto.",
+      "no-incrementals": "This chain is a full backup with no incrementals on top of it. Merging would copy it unchanged, so there is nothing to do yet.",
+      "source-repository-unsupported": "{{repository}} can't merge a backup chain. Synthetic fulls need a local or object-storage repository.",
+      "source-repository-offline": "{{repository}} is unreachable, so the chain stored in it can't be read.",
+      "target-repository-unsupported": "{{repository}} can't hold a merged backup. Pick a local or object-storage repository.",
+      "target-repository-offline": "{{repository}} is unreachable, so the merged full can't be written to it.",
+      "job-running": "{{job}} is running. Wait for it to finish — a merge started now would read a chain that is still being written to."
+    },
+    "failure": {
+      "generic": "The merge failed. The run's log has the appliance's account of it.",
+      "mismatchedDisks": "The restore points in this chain describe different disks — a disk was added to or removed from the VM partway through it. Run a full backup to start a new chain, then merge that.",
+      "missingArtifacts": "Some restore points in this chain no longer have their stored backup files, so the chain can't be merged. Verify the repository, then run a full backup to start a fresh chain.",
+      "outOfSpace": "The target repository ran out of space. A synthetic full needs room for a whole new full backup before the old points age out.",
+      "permissionDenied": "The appliance couldn't write to the target repository. Check the repository's credentials and the permissions on its storage.",
+      "repositoryGone": "A repository this merge needed is no longer registered on the appliance.",
+      "destinationCollision": "The merged full would be written exactly where the chain it reads from is stored. Pick a different target repository.",
+      "repositoryUnsupported": "The repository can't merge a backup chain. Synthetic fulls need a local or object-storage repository.",
+      "invalidChain": "The chain isn't in a state that can be merged: it has to start with a full backup and hold only incrementals after it.",
+      "noIncrementals": "There were no incrementals left to merge by the time the run started."
+    }
   }
 }

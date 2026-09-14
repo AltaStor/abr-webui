@@ -444,5 +444,81 @@
     "oneDoneDesc_other": "{{count}} VMs trouvées.",
     "oneFailedTitle": "Impossible de réanalyser {{name}}",
     "oneFailedDesc": "L’appliance n’a pas pu le joindre — son inventaire reste inchangé."
+  },
+  "syntheticFull": {
+    "action": "Complète synthétique",
+    "actionTip": "Fusionner la chaîne de sauvegarde de cette VM en un nouveau point de restauration complet, sans lire la VM",
+    "title": "Créer une complète synthétique",
+    "desc": "Fusionne la chaîne de sauvegarde stockée de {{vm}} en un nouveau point de restauration complet. La fusion a lieu dans le référentiel : rien n'est lu sur la VM ni envoyé sur le réseau.",
+    "descRunning": "Fusion de la chaîne de sauvegarde de {{vm}} en un nouveau point de restauration complet.",
+    "cannotRun": "Cette chaîne ne peut pas être fusionnée",
+    "jobLabel": "Tâche de sauvegarde",
+    "chainCount_one": "Fusion de {{count}} point de restauration",
+    "chainCount_other": "Fusion de {{count}} points de restauration",
+    "resultNote": "Résultat : un nouveau point de restauration complet. Les points ci-dessus sont conservés et restent restaurables.",
+    "targetLabel": "Écrire la complète fusionnée dans",
+    "targetCurrent": "actuel",
+    "targetSameHint": "La complète fusionnée est écrite à côté de la chaîne dont elle provient.",
+    "targetOtherHint": "La chaîne est lue depuis son propre référentiel et la complète fusionnée est écrite dans celui-ci.",
+    "inherited": {
+      "title": "La complète fusionnée utilisera",
+      "compression": "Compression",
+      "compressionLevel": "Niveau {{level}}",
+      "compressionOff": "Désactivée",
+      "encryption": "Chiffrement",
+      "encryptionOn": "AES-256 au repos",
+      "encryptionOff": "Désactivé",
+      "immutability": "Immuabilité",
+      "immutabilityOn": "Verrouillé {{days}} jours",
+      "immutabilityOff": "Non verrouillé",
+      "retention": "Rétention",
+      "retentionDays_one": "{{count}} jour",
+      "retentionDays_other": "{{count}} jours",
+      "note": "Ces valeurs viennent de la tâche et du référentiel cible, pas de cette exécution — modifiez-les dans <1>{{job}}</1> et elles s'appliqueront à toutes les exécutions, celle-ci comprise."
+    },
+    "jobScopeNote_one": "L'appliance exécute une complète synthétique par tâche : {{job}} fusionnera donc aussi la chaîne de {{count}} autre VM qu'elle protège.",
+    "jobScopeNote_other": "L'appliance exécute une complète synthétique par tâche : {{job}} fusionnera donc aussi les chaînes de {{count}} autres VM qu'elle protège.",
+    "sourceDegraded": "{{repository}} signale des problèmes. La fusion lit chaque point de la chaîne : elle peut donc durer plus longtemps que d'habitude ou échouer en cours de route.",
+    "startFailed": "L'appliance a refusé l'exécution",
+    "start": "Lancer la complète synthétique",
+    "starting": "Démarrage…",
+    "runInBackground": "Exécuter en arrière-plan",
+    "viewRun": "Voir l'exécution et le journal",
+    "progress": {
+      "running": "Fusion de la chaîne",
+      "done": "Complète synthétique terminée",
+      "failed": "Échec de la complète synthétique",
+      "doneNote": "Le nouveau point de restauration complet figure dans la liste, et les incrémentielles suivantes s'y enchaîneront.",
+      "barLabel": "Progression de la complète synthétique pour {{vm}}"
+    },
+    "toast": {
+      "startedTitle": "Complète synthétique lancée",
+      "startedDesc": "Fusion de la chaîne de sauvegarde de {{vm}}. Elle apparaît dans Activité comme toute autre exécution."
+    },
+    "badge": "Synthétique",
+    "badgeTip": "Un point de restauration complet construit en fusionnant la chaîne dans le référentiel, et non en lisant la VM",
+    "refusal": {
+      "no-job": "Aucune tâche de sauvegarde n'a encore produit de points de restauration pour cette VM : il n'y a donc pas de chaîne à fusionner.",
+      "no-chain": "Cette tâche n'a pas encore produit de points de restauration pour cette VM : il n'y a donc pas de chaîne à fusionner.",
+      "chain-not-anchored": "Le point de restauration le plus ancien de cette chaîne est une incrémentielle, sans sauvegarde complète en dessous. Une complète synthétique a besoin d'une sauvegarde complète comme base.",
+      "no-incrementals": "Cette chaîne est une sauvegarde complète sans incrémentielle au-dessus. La fusionner la copierait à l'identique : il n'y a encore rien à faire.",
+      "source-repository-unsupported": "{{repository}} ne peut pas fusionner une chaîne de sauvegarde. Les complètes synthétiques exigent un référentiel local ou de stockage objet.",
+      "source-repository-offline": "{{repository}} est injoignable : la chaîne qui y est stockée ne peut pas être lue.",
+      "target-repository-unsupported": "{{repository}} ne peut pas héberger une sauvegarde fusionnée. Choisissez un référentiel local ou de stockage objet.",
+      "target-repository-offline": "{{repository}} est injoignable : la complète fusionnée ne peut pas y être écrite.",
+      "job-running": "{{job}} est en cours d'exécution. Attendez la fin — une fusion lancée maintenant lirait une chaîne encore en cours d'écriture."
+    },
+    "failure": {
+      "generic": "La fusion a échoué. Le journal de l'exécution contient l'explication de l'appliance.",
+      "mismatchedDisks": "Les points de restauration de cette chaîne décrivent des disques différents — un disque a été ajouté à la VM ou retiré en cours de chaîne. Lancez une sauvegarde complète pour démarrer une nouvelle chaîne, puis fusionnez celle-ci.",
+      "missingArtifacts": "Certains points de restauration de cette chaîne n'ont plus leurs fichiers de sauvegarde stockés : la chaîne ne peut pas être fusionnée. Vérifiez le référentiel, puis lancez une sauvegarde complète pour repartir sur une nouvelle chaîne.",
+      "outOfSpace": "Le référentiel cible n'a plus d'espace. Une complète synthétique a besoin de la place d'une sauvegarde complète entière avant que les anciens points n'expirent.",
+      "permissionDenied": "L'appliance n'a pas pu écrire dans le référentiel cible. Vérifiez les identifiants du référentiel et les permissions de son stockage.",
+      "repositoryGone": "Un référentiel nécessaire à cette fusion n'est plus enregistré sur l'appliance.",
+      "destinationCollision": "La complète fusionnée serait écrite exactement là où est stockée la chaîne qu'elle lit. Choisissez un autre référentiel cible.",
+      "repositoryUnsupported": "Le référentiel ne peut pas fusionner une chaîne de sauvegarde. Les complètes synthétiques exigent un référentiel local ou de stockage objet.",
+      "invalidChain": "La chaîne n'est pas dans un état fusionnable : elle doit commencer par une sauvegarde complète et ne contenir que des incrémentielles ensuite.",
+      "noIncrementals": "Il ne restait plus d'incrémentielle à fusionner au démarrage de l'exécution."
+    }
   }
 }

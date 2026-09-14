@@ -1142,6 +1142,45 @@ export function createLiveDriver(handle: WorldHandle): WorldDriver {
       }
     },
 
+    runSyntheticFull: async ({ jobId, vmId, targetRepositoryId }) => {
+      try {
+        // The appliance has no per-VM start: `force_synthetic` on the JOB
+        // resolves every VM the job covers to a SyntheticFull execution and
+        // creates a session for each (start_job_record in abr_v41.py). The
+        // dialog says so; here we keep every id, and single out this VM's so
+        // the caller can follow the run it actually opened.
+        const { sessionIds } = await api.runJobSessions(jobId, {
+          forceSynthetic: true,
+          targetRepositoryId,
+        });
+        if (stopped) return { ok: true, sessionId: sessionIds[0] ?? null, sessionIds };
+        // Pull the new runs into the feed now: the merge is already underway,
+        // and waiting for the next poll would leave the dialog watching for a
+        // session the store hasn't heard of yet.
+        await Promise.all(sessionIds.map((id) => refreshSession(id)));
+        const sessionId =
+          handle.get().sessions.find((x) => sessionIds.includes(x.id) && x.vmResults.some((r) => r.vmId === vmId))
+            ?.id ??
+          sessionIds[0] ??
+          null;
+        // A synthetic full ends in a new restore point, and the point catalog
+        // is not part of the session feed — mark the job running the same way
+        // runJob does so the Jobs list agrees with the dialog immediately.
+        handle.set((s) => ({
+          jobs: s.jobs.map((j) =>
+            j.id === jobId ? { ...j, state: "running" as const, lastStatus: "running" as const } : j,
+          ),
+          revision: s.revision + 1,
+        }));
+        return { ok: true, sessionId, sessionIds };
+      } catch (err) {
+        // 422s carry the real reason ("Repository 'X' cannot merge a backup
+        // chain", "a run is either an active full or a synthetic full") — the
+        // dialog shows them verbatim rather than inventing its own.
+        return { ok: false, message: apiFailureMessage(err) };
+      }
+    },
+
     createRepository: async (input) => {
       try {
         const { repository, immutabilityEffect } = await api.createRepository(input);

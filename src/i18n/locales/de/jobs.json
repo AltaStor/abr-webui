@@ -58,7 +58,8 @@
   },
   "runType": {
     "full": "Vollständig",
-    "incremental": "Inkrementell"
+    "incremental": "Inkrementell",
+    "syntheticFull": "Synthetisches Vollbackup"
   },
   "state": {
     "on": "Ein",
@@ -639,6 +640,10 @@
       "fromLogical": "Aus {{size}} Daten · komprimiert auf {{ratio}}",
       "fromLogicalNoRatio": "Aus {{size}} Daten",
       "sizeUnrecorded": "Der Katalog erfasst noch keine Größen"
+    },
+    "syntheticFull": {
+      "aria": "Synthetisches Vollbackup von {{vm}} in {{job}} erstellen",
+      "tip": "Diese Kette zu einem neuen Vollbackup zusammenführen"
     }
   },
   "point": {

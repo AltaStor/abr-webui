@@ -16,6 +16,7 @@ import {
   History,
   MapPin,
   MemoryStick,
+  Layers,
   Menu,
   Network,
   Play,
@@ -41,6 +42,7 @@ import { cn } from "@/lib/utils";
 import { formatStorage, formatDuration } from "@/lib/format";
 import { TimeStamp } from "@/components/TimeStamp";
 import { selfContainedNote } from "@/lib/restore-points";
+import { syntheticFullJobsForVm } from "@/lib/synthetic-full";
 import { SESSION_META, toneFg } from "@/lib/status";
 import { useWorldStore } from "@/store/world";
 import { accentColor, jobTypeMeta, scheduleLabel } from "@/features/jobs/lib";
@@ -51,6 +53,7 @@ import { PowerDot } from "./components/PowerDot";
 import { SpecRow } from "./components/SpecRow";
 import { ProtectionSummaryCard } from "./components/ProtectionSummaryCard";
 import { DeleteRestorePointDialog } from "./components/DeleteRestorePointDialog";
+import { SyntheticFullDialog } from "./components/SyntheticFullDialog";
 import { RestorePointItem } from "./components/RestorePointItem";
 import { RestorePointCalendar } from "./components/RestorePointCalendar";
 import { POWER_META, osFamilyLabel } from "./components/vm-presentation";
@@ -72,6 +75,7 @@ export default function VmDetailPage() {
   const origin = useLocation().state as VmDetailOrigin | null;
   const [pointToDelete, setPointToDelete] = useState<RestorePoint | null>(null);
   const [rpView, setRpView] = useState<"list" | "calendar">("list");
+  const [syntheticFullOpen, setSyntheticFullOpen] = useState(false);
 
   const vm = useWorldStore((s) => s.vms.find((v) => v.id === vmId));
   const environments = useWorldStore((s) => s.environments);
@@ -111,6 +115,17 @@ export default function VmDetailPage() {
       .slice(0, 6);
   }, [sessions, vm]);
 
+  /* A synthetic full needs a stored chain to merge, so the action only appears
+   * once this VM actually has one — offering it on a VM with nothing to merge
+   * would be a button whose only outcome is a refusal. Whether that chain can
+   * be merged *today* is the dialog's job to say, with the reason.
+   * Above the `!vm` bail-out with the other memos: hooks have to run in the
+   * same order on every render, including the one where the VM is gone. */
+  const canOfferSyntheticFull = useMemo(
+    () => (vm ? syntheticFullJobsForVm(vm.id, { jobs, restorePoints, repositories, sessions }).length > 0 : false),
+    [vm, jobs, restorePoints, repositories, sessions],
+  );
+
   if (!vm) {
     return (
       <div className="space-y-4">
@@ -140,6 +155,7 @@ export default function VmDetailPage() {
   // reloaded deep link all fall back to the Inventory breadcrumb.
   const originJob = origin?.fromJobId ? jobs.find((j) => j.id === origin.fromJobId) : undefined;
   const unreachableCount = points.filter((p) => offlineRepoIds.has(p.repositoryId)).length;
+
 
   const onBackUpNow = async () => {
     if (!primaryJob) {
@@ -375,6 +391,21 @@ export default function VmDetailPage() {
                   {points.length}
                 </Badge>
                 {points.length > 0 && <RpViewToggle view={rpView} onChange={setRpView} />}
+                {/* Merging a chain belongs beside the chain it merges, not on
+                    the Jobs page: this is where an operator is looking at the
+                    incrementals that have piled up on a full. */}
+                {canOfferSyntheticFull && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-muted-foreground"
+                    onClick={() => setSyntheticFullOpen(true)}
+                    title={t("syntheticFull.actionTip")}
+                  >
+                    <Layers className="h-3.5 w-3.5" />
+                    {t("syntheticFull.action")}
+                  </Button>
+                )}
                 {vm.protection !== "unprotected" && (
                   <Button variant="ghost" size="sm" asChild>
                     <Link to={restoreLink(vm.id)}>
@@ -443,6 +474,8 @@ export default function VmDetailPage() {
             open={pointToDelete !== null}
             onOpenChange={(o) => !o && setPointToDelete(null)}
           />
+
+          <SyntheticFullDialog vm={vm} open={syntheticFullOpen} onOpenChange={setSyntheticFullOpen} />
 
           {/* Recent activity */}
           {recentSessions.length > 0 && (

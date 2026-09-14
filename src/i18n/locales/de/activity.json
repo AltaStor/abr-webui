@@ -144,7 +144,8 @@
     },
     "backupType": {
       "full": "Vollständig",
-      "incremental": "Inkrementell"
+      "incremental": "Inkrementell",
+      "synthetic": "Synthetisches Vollbackup"
     }
   },
   "older": {

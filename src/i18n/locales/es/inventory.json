@@ -444,5 +444,81 @@
     "oneDoneDesc_other": "{{count}} VMs encontradas.",
     "oneFailedTitle": "No se pudo reescanear {{name}}",
     "oneFailedDesc": "La appliance no pudo contactar con él, así que su inventario no ha cambiado."
+  },
+  "syntheticFull": {
+    "action": "Completo sintético",
+    "actionTip": "Fusionar la cadena de copias de esta VM en un nuevo punto de restauración completo, sin leer la VM",
+    "title": "Crear un completo sintético",
+    "desc": "Fusiona la cadena de copias almacenada de {{vm}} en un nuevo punto de restauración completo. La fusión ocurre dentro del repositorio: no se lee nada de la VM ni se envía nada por la red.",
+    "descRunning": "Fusionando la cadena de copias de {{vm}} en un nuevo punto de restauración completo.",
+    "cannotRun": "Esta cadena no se puede fusionar",
+    "jobLabel": "Trabajo de copia",
+    "chainCount_one": "Fusionando {{count}} punto de restauración",
+    "chainCount_other": "Fusionando {{count}} puntos de restauración",
+    "resultNote": "Resultado: un nuevo punto de restauración completo. Los puntos de arriba se conservan y siguen siendo restaurables.",
+    "targetLabel": "Escribir el completo fusionado en",
+    "targetCurrent": "actual",
+    "targetSameHint": "El completo fusionado se escribe junto a la cadena de la que procede.",
+    "targetOtherHint": "La cadena se lee de su propio repositorio y el completo fusionado se escribe en este.",
+    "inherited": {
+      "title": "El completo fusionado usará",
+      "compression": "Compresión",
+      "compressionLevel": "Nivel {{level}}",
+      "compressionOff": "Desactivada",
+      "encryption": "Cifrado",
+      "encryptionOn": "AES-256 en reposo",
+      "encryptionOff": "Desactivado",
+      "immutability": "Inmutabilidad",
+      "immutabilityOn": "Bloqueado {{days}} días",
+      "immutabilityOff": "Sin bloquear",
+      "retention": "Retención",
+      "retentionDays_one": "{{count}} día",
+      "retentionDays_other": "{{count}} días",
+      "note": "Provienen del trabajo y del repositorio de destino, no de esta ejecución: cámbialos en <1>{{job}}</1> y se aplicarán a todas las ejecuciones, incluida esta."
+    },
+    "jobScopeNote_one": "El dispositivo ejecuta un completo sintético por trabajo, así que {{job}} también fusionará la cadena de {{count}} VM más que protege.",
+    "jobScopeNote_other": "El dispositivo ejecuta un completo sintético por trabajo, así que {{job}} también fusionará las cadenas de otras {{count}} VM que protege.",
+    "sourceDegraded": "{{repository}} está informando de problemas. La fusión lee todos los puntos de la cadena, así que puede tardar más de lo habitual o fallar a medio camino.",
+    "startFailed": "El dispositivo rechazó la ejecución",
+    "start": "Iniciar completo sintético",
+    "starting": "Iniciando…",
+    "runInBackground": "Ejecutar en segundo plano",
+    "viewRun": "Ver ejecución y registro",
+    "progress": {
+      "running": "Fusionando la cadena",
+      "done": "Completo sintético terminado",
+      "failed": "El completo sintético falló",
+      "doneNote": "El nuevo punto de restauración completo ya está en la lista, y los incrementales siguientes se encadenarán a él.",
+      "barLabel": "Progreso del completo sintético de {{vm}}"
+    },
+    "toast": {
+      "startedTitle": "Completo sintético iniciado",
+      "startedDesc": "Fusionando la cadena de copias de {{vm}}. Aparece en Actividad como cualquier otra ejecución."
+    },
+    "badge": "Sintético",
+    "badgeTip": "Un punto de restauración completo creado fusionando la cadena en el repositorio, en lugar de leyendo la VM",
+    "refusal": {
+      "no-job": "Ningún trabajo de copia ha producido todavía puntos de restauración para esta VM, así que no hay cadena que fusionar.",
+      "no-chain": "Este trabajo aún no ha producido puntos de restauración para esta VM, así que no hay cadena que fusionar.",
+      "chain-not-anchored": "El punto de restauración más antiguo de esta cadena es un incremental, sin una copia completa debajo. Un completo sintético necesita una copia completa sobre la que fusionar.",
+      "no-incrementals": "Esta cadena es una copia completa sin incrementales encima. Fusionarla la copiaría sin cambios, así que todavía no hay nada que hacer.",
+      "source-repository-unsupported": "{{repository}} no puede fusionar una cadena de copias. Los completos sintéticos necesitan un repositorio local o de almacenamiento de objetos.",
+      "source-repository-offline": "{{repository}} no está accesible, así que no se puede leer la cadena almacenada en él.",
+      "target-repository-unsupported": "{{repository}} no puede albergar una copia fusionada. Elige un repositorio local o de almacenamiento de objetos.",
+      "target-repository-offline": "{{repository}} no está accesible, así que no se puede escribir en él el completo fusionado.",
+      "job-running": "{{job}} se está ejecutando. Espera a que termine: una fusión iniciada ahora leería una cadena en la que todavía se está escribiendo."
+    },
+    "failure": {
+      "generic": "La fusión falló. El registro de la ejecución tiene la explicación del dispositivo.",
+      "mismatchedDisks": "Los puntos de restauración de esta cadena describen discos distintos: se añadió o se quitó un disco de la VM a mitad de la cadena. Ejecuta una copia completa para iniciar una cadena nueva y fusiona esa.",
+      "missingArtifacts": "Algunos puntos de restauración de esta cadena ya no tienen sus archivos de copia almacenados, así que la cadena no se puede fusionar. Verifica el repositorio y ejecuta una copia completa para empezar una cadena nueva.",
+      "outOfSpace": "El repositorio de destino se quedó sin espacio. Un completo sintético necesita sitio para una copia completa entera antes de que caduquen los puntos antiguos.",
+      "permissionDenied": "El dispositivo no pudo escribir en el repositorio de destino. Revisa las credenciales del repositorio y los permisos de su almacenamiento.",
+      "repositoryGone": "Un repositorio que esta fusión necesitaba ya no está registrado en el dispositivo.",
+      "destinationCollision": "El completo fusionado se escribiría justo donde está almacenada la cadena que lee. Elige otro repositorio de destino.",
+      "repositoryUnsupported": "El repositorio no puede fusionar una cadena de copias. Los completos sintéticos necesitan un repositorio local o de almacenamiento de objetos.",
+      "invalidChain": "La cadena no está en un estado que se pueda fusionar: tiene que empezar con una copia completa y contener solo incrementales después.",
+      "noIncrementals": "Cuando arrancó la ejecución ya no quedaban incrementales que fusionar."
+    }
   }
 }

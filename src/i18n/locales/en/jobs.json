@@ -58,7 +58,8 @@
   },
   "runType": {
     "full": "Full",
-    "incremental": "Incremental"
+    "incremental": "Incremental",
+    "syntheticFull": "Synthetic full"
   },
   "state": {
     "on": "On",
@@ -639,6 +640,10 @@
       "fromLogical": "From {{size}} of data · compressed to {{ratio}}",
       "fromLogicalNoRatio": "From {{size}} of data",
       "sizeUnrecorded": "The catalog does not record sizes yet"
+    },
+    "syntheticFull": {
+      "aria": "Create a synthetic full of {{vm}} in {{job}}",
+      "tip": "Merge this chain into a new full backup"
     }
   },
   "point": {

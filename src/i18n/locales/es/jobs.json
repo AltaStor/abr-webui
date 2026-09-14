@@ -58,7 +58,8 @@
   },
   "runType": {
     "full": "Completa",
-    "incremental": "Incremental"
+    "incremental": "Incremental",
+    "syntheticFull": "Completo sintético"
   },
   "state": {
     "on": "Activado",
@@ -639,6 +640,10 @@
       "fromLogical": "De {{size}} de datos · comprimido al {{ratio}}",
       "fromLogicalNoRatio": "De {{size}} de datos",
       "sizeUnrecorded": "El catálogo aún no registra los tamaños"
+    },
+    "syntheticFull": {
+      "aria": "Crear un completo sintético de {{vm}} en {{job}}",
+      "tip": "Fusionar esta cadena en una nueva copia completa"
     }
   },
   "point": {

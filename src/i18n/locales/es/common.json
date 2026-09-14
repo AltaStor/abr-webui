@@ -79,7 +79,12 @@
   "routeError": {
     "title": "Esta vista ha tenido un problema",
     "fallback": "Se produjo un error al mostrar esta vista.",
-    "back": "Volver al panel"
+    "back": "Volver al panel",
+    "staleBuild": {
+      "title": "Esta vista necesita recargarse",
+      "description": "El dispositivo se actualizó mientras esta consola estaba abierta, por lo que la página solicitada ya no está en el servidor. Al recargar se obtiene la versión actual.",
+      "reload": "Recargar consola"
+    }
   },
   "featureUnavailable": {
     "replication": {

@@ -363,7 +363,12 @@ function mapSession(s: Dict): Session {
   const finishedAt = strOrNull(s.finished_at);
   const state = str(s.state);
   const status = sessionStatusOf(state, errors.length > 0);
-  const backupType = /inc/i.test(str(s.resolved_backup_type)) ? "incremental" : "full";
+  const resolvedBackupType = str(s.resolved_backup_type);
+  const backupType = /inc/i.test(resolvedBackupType) ? "incremental" : "full";
+  // A full that merged the stored chain instead of re-reading the VM. Only
+  // meaningful on a full, and only the orchestrator knows which kind it
+  // resolved to (see resolve_job_execution in abr_v41.py).
+  const synthetic = /synthetic/i.test(resolvedBackupType);
   const vmId = str(s.vm_id);
   const isRestore = str(s.type) === "restore";
   // An integrity check over one stored chain. Like a restore it has no job
@@ -408,6 +413,7 @@ function mapSession(s: Dict): Session {
     type: isRestore ? "restore" : isVerify ? "verify" : "backup",
     status,
     backupType,
+    synthetic,
     startedAt,
     finishedAt,
     durationSec: durationSecOf(startedAt, finishedAt),
@@ -616,6 +622,7 @@ function mapRepository(r: Dict): Repository {
     lastScanAt: strOrNull(r.last_scan_at),
     immutability: mapImmutability(r.immutability),
     supportsImmutability: Boolean(asDict(r.capabilities).supports_immutability),
+    supportsSyntheticFull: Boolean(asDict(r.capabilities).supports_synthetic_full),
   };
 }
 
@@ -640,6 +647,9 @@ function mapRestorePointFromChainPoint(chain: Dict, point: Dict): RestorePoint {
     compressionLevel: point.compression_level == null ? null : num(point.compression_level),
     encrypted: Boolean(point.encryption_enabled),
     gfsProtected: Boolean(point.gfs_protected),
+    // "SyntheticFull" is a full point (the /inc/ test above already types it
+    // as one) that was merged from the chain rather than read off the VM.
+    synthetic: /synthetic/i.test(execType),
   };
 }
 
@@ -1225,11 +1235,60 @@ export async function updateJob(id: string, patch: Partial<CreateJobPayload>): P
 
 export const deleteJob = (id: string) => request<void>(`/jobs/${id}`, { method: "DELETE" });
 
-export async function runJob(id: string, opts?: { forceFull?: boolean }): Promise<{ sessionId: string }> {
-  const body = opts?.forceFull ? JSON.stringify({ force_full: true }) : "{}";
-  const res = asDict(await request<Dict>(`/jobs/${id}/start`, { method: "POST", body }));
+export interface RunJobOptions {
+  /** Re-read the whole VM: the orchestrator's "ActiveFull". */
+  forceFull?: boolean;
+  /**
+   * Merge the stored chain into a new full instead of reading the VM at all —
+   * the orchestrator's "SyntheticFull". Mutually exclusive with `forceFull`
+   * (the appliance 422s on both: "A run is either an active full or a
+   * synthetic full, not both"), which is why the two are separate flags rather
+   * than one that callers could set twice.
+   */
+  forceSynthetic?: boolean;
+  /**
+   * Where the merged full should land. Synthetic-full runs only — the
+   * appliance rejects it otherwise ("A target repository is only used by a
+   * synthetic full"). Omitted, the merge is written to the job's own
+   * repository, which is also where the chain is read from.
+   */
+  targetRepositoryId?: string;
+}
+
+/**
+ * Start one run of a job (POST /jobs/{id}/start).
+ *
+ * The appliance fans this out to one session PER VM in the job (see
+ * `start_job_record` in abr_v41.py) and answers with all of them. The single
+ * `sessionId` returned here is the first, kept for the existing "run now"
+ * call sites that only have one VM in view; `runJobSessions` below hands back
+ * the whole set for callers that need to follow every VM the run touched.
+ */
+export async function runJob(id: string, opts?: RunJobOptions): Promise<{ sessionId: string }> {
+  const { sessionIds, lastSessionId } = await runJobSessions(id, opts);
+  return { sessionId: sessionIds[0] || lastSessionId };
+}
+
+/** Every session `POST /jobs/{id}/start` created — one per VM the job covers. */
+export async function runJobSessions(
+  id: string,
+  opts?: RunJobOptions,
+): Promise<{ sessionIds: string[]; lastSessionId: string }> {
+  const body: Dict = {};
+  if (opts?.forceFull) body.force_full = true;
+  if (opts?.forceSynthetic) body.force_synthetic = true;
+  // Only ever sent alongside force_synthetic — on its own the appliance
+  // refuses it, and silently dropping it would write the merge somewhere the
+  // operator didn't pick.
+  if (opts?.forceSynthetic && opts.targetRepositoryId) {
+    body.target_repository_id = opts.targetRepositoryId;
+  }
+  const res = asDict(await request<Dict>(`/jobs/${id}/start`, { method: "POST", body: JSON.stringify(body) }));
   const items = Array.isArray(res.items) ? (res.items as Dict[]) : [];
-  return { sessionId: str(items[0]?.id) || str(res.last_session_id) };
+  return {
+    sessionIds: items.map((item) => str(item.id)).filter(Boolean),
+    lastSessionId: str(res.last_session_id),
+  };
 }
 
 /**
