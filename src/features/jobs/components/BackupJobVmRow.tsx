@@ -6,8 +6,6 @@ import {
   ChevronRight,
   Layers,
   Loader2,
-  Lock,
-  LockOpen,
   RotateCcw,
   Server,
   ServerOff,
@@ -25,6 +23,7 @@ import {
 } from "@/lib/restore-points";
 import type { RestorePoint } from "@/types";
 import { SyntheticFullBadge } from "@/components/SyntheticFullBadge";
+import { PointEncryptionBadge, VmEncryptionBadge } from "./EncryptionBadge";
 
 /**
  * One VM within a job's expanded tree: a header row (name, stats, verify,
@@ -37,6 +36,7 @@ import { SyntheticFullBadge } from "@/components/SyntheticFullBadge";
  */
 export function BackupJobVmRow({
   jobName,
+  jobEncrypts,
   vm,
   isOpen,
   onToggle,
@@ -51,6 +51,8 @@ export function BackupJobVmRow({
   onDelete,
 }: {
   jobName: string;
+  /** The job's current encryption setting; undefined when the job is gone. */
+  jobEncrypts: boolean | undefined;
   vm: RestorePointJobVmGroup;
   isOpen: boolean;
   onToggle: () => void;
@@ -85,12 +87,11 @@ export function BackupJobVmRow({
   const allUnreachable = unreachable === vm.points.length;
   const restoreDisabled = allUnreachable || restoreBlockedReason !== undefined;
   const orderedPoints = sortDir === "asc" ? [...vm.points].reverse() : vm.points;
-  /* Encryption at rest, summarised for the collapsed row so the operator sees
-   * it without expanding every VM. "Partly" is a real and important state — a
-   * job whose encryption setting changed mid-history leaves the older points
-   * in the clear, which a plain on/off badge would hide. */
-  const encryption: "none" | "partial" | "all" =
-    vm.encryptedCount === 0 ? "none" : vm.encryptedCount === vm.points.length ? "all" : "partial";
+  /* The points don't all share one encryption state (some encrypted, or some
+   * the appliance never reported), so each point row says which it is. */
+  const mixedEncryption =
+    vm.encryption.state === "partial" ||
+    (vm.encryption.unreported > 0 && vm.encryption.unreported < vm.points.length);
 
   return (
     <li>
@@ -133,42 +134,7 @@ export function BackupJobVmRow({
                   {t("backupsTab.verify.running")}
                 </Badge>
               )}
-              {encryption === "none" ? (
-                <Badge
-                  variant="outline"
-                  className="shrink-0 gap-1 font-normal text-muted-foreground/70"
-                  title={t("backupsTab.encryption.noneTip")}
-                >
-                  <LockOpen className="h-3 w-3" />
-                  {t("backupsTab.encryption.none")}
-                </Badge>
-              ) : (
-                <Badge
-                  variant="outline"
-                  className={cn(
-                    "shrink-0 gap-1 font-normal",
-                    encryption === "all"
-                      ? "text-muted-foreground"
-                      : "border-warning/40 text-warning-text",
-                  )}
-                  title={
-                    encryption === "all"
-                      ? t("backupsTab.encryption.allTip", { count: vm.points.length })
-                      : t("backupsTab.encryption.partialTip", {
-                          encrypted: vm.encryptedCount,
-                          total: vm.points.length,
-                        })
-                  }
-                >
-                  <Lock className="h-3 w-3" />
-                  {encryption === "all"
-                    ? t("backupsTab.encryption.all")
-                    : t("backupsTab.encryption.partial", {
-                        encrypted: vm.encryptedCount,
-                        total: vm.points.length,
-                      })}
-                </Badge>
-              )}
+              <VmEncryptionBadge summary={vm.encryption} jobEncrypts={jobEncrypts} />
             </span>
             <span className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-muted-foreground">
               <span className="nums">{t("rp.pointsShort", { count: vm.points.length })}</span>
@@ -264,6 +230,7 @@ export function BackupJobVmRow({
             <BackupPointRow
               key={point.id}
               point={point}
+              mixedEncryption={mixedEncryption}
               unavailable={offlineRepoIds.has(point.repositoryId)}
               restoreBlockedReason={restoreBlockedReason}
               onRestore={() => onRestorePoint(point)}
@@ -277,11 +244,14 @@ export function BackupJobVmRow({
 
 function BackupPointRow({
   point,
+  mixedEncryption,
   unavailable,
   restoreBlockedReason,
   onRestore,
 }: {
   point: RestorePoint;
+  /** The VM's chain mixes encryption states, so each point says which it is. */
+  mixedEncryption: boolean;
   unavailable: boolean;
   restoreBlockedReason?: string;
   onRestore: () => void;
@@ -322,16 +292,7 @@ function BackupPointRow({
               {t("point.unavailable")}
             </Badge>
           )}
-          {point.encrypted && (
-            <Badge
-              variant="outline"
-              className="gap-1 font-normal text-muted-foreground"
-              title={t("point.encryptedTip")}
-            >
-              <Lock className="h-3 w-3" />
-              {t("point.encrypted")}
-            </Badge>
-          )}
+          <PointEncryptionBadge encrypted={point.encrypted} mixedChain={mixedEncryption} />
         </div>
         <p className="text-xs text-muted-foreground">
           {formatRelative(point.createdAt)}

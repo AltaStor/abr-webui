@@ -343,7 +343,10 @@ export interface RestorePoint {
   /** Zstd level 0–9 this point was written with, or null when unknown (older
    *  catalog entries predate the field). */
   compressionLevel: number | null;
-  encrypted: boolean;
+  /** Whether the point's data is encrypted at rest, as the appliance recorded
+   *  it when the point was written. null when it didn't say: that is "unknown",
+   *  and reading it as "not encrypted" would be a claim nobody made. */
+  encrypted: boolean | null;
   gfsProtected: boolean;
   /**
    * This full point was produced by merging an existing chain (a synthetic

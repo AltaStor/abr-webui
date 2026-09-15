@@ -597,7 +597,14 @@
       "partial": "Verschlüsselt {{encrypted}}/{{total}}",
       "partialTip": "{{encrypted}} von {{total}} Wiederherstellungspunkten sind im Ruhezustand verschlüsselt — die übrigen werden unverschlüsselt gespeichert",
       "none": "Nicht verschlüsselt",
-      "noneTip": "Die Wiederherstellungspunkte dieses Objekts werden unverschlüsselt gespeichert"
+      "noneTip": "Die Wiederherstellungspunkte dieses Objekts werden unverschlüsselt gespeichert",
+      "unknown": "Verschlüsselung unbekannt",
+      "unknownTip": "Das Gerät hat nicht erfasst, ob diese Wiederherstellungspunkte verschlüsselt sind",
+      "unreportedTip_one": "Für {{count}} Wiederherstellungspunkt wurde nicht erfasst, ob er verschlüsselt ist",
+      "unreportedTip_other": "Für {{count}} Wiederherstellungspunkte wurde nicht erfasst, ob sie verschlüsselt sind",
+      "jobOnTip": "Dieser Job verschlüsselt neue Wiederherstellungspunkte; bereits gespeicherte bleiben, wie sie geschrieben wurden",
+      "jobOffTip": "Die Verschlüsselung ist für diesen Job jetzt aus, neue Wiederherstellungspunkte werden unverschlüsselt gespeichert",
+      "jobOffNoneTip": "In den Einstellungen dieses Jobs ist die Verschlüsselung ausgeschaltet"
     },
     "storedShort": "{{size}} gespeichert",
     "fromLogical": "aus {{size}}",
@@ -651,6 +658,10 @@
     "unavailable": "Nicht verfügbar",
     "encrypted": "Verschlüsselt",
     "encryptedTip": "Die Daten dieser Sicherung sind im Ruhezustand verschlüsselt",
+    "unencrypted": "Nicht verschlüsselt",
+    "unencryptedTip": "Die Daten dieser Sicherung werden unverschlüsselt gespeichert",
+    "unreported": "Nicht erfasst",
+    "unreportedTip": "Das Gerät hat nicht erfasst, ob die Daten dieser Sicherung verschlüsselt sind",
     "compression": "Komprimierungsstufe {{level}}",
     "restoreAria": "Diesen Punkt wiederherstellen"
   },

@@ -120,12 +120,32 @@ export interface RestorePointJobVmGroup {
   latest: string;
   /** Distinct repositories these points physically live in. */
   repositoryIds: string[];
-  /** How many of these points are encrypted at rest. Surfaced on the collapsed
-   *  row so encryption status is visible without expanding every VM — and so a
-   *  chain that is only PARTLY encrypted (the job's setting was changed
-   *  mid-history) is distinguishable from a fully encrypted one, which a plain
-   *  boolean would hide. */
-  encryptedCount: number;
+  /** Encryption at rest across these points. Surfaced on the collapsed row so
+   *  it is visible without expanding every VM — and so a chain that is only
+   *  PARTLY encrypted (the job's setting was changed mid-history) is
+   *  distinguishable from a fully encrypted one, which a plain boolean would
+   *  hide. */
+  encryption: EncryptionSummary;
+}
+
+/** Encryption at rest over a set of restore points, from each point's own record. */
+export interface EncryptionSummary {
+  /** Judged over the points that report it: "all", "none" or "partial".
+   *  "unknown" only when not one of them does. */
+  state: "all" | "partial" | "none" | "unknown";
+  encrypted: number;
+  /** Points the appliance recorded nothing about either way. */
+  unreported: number;
+  total: number;
+}
+
+export function summarizeEncryption(points: RestorePoint[]): EncryptionSummary {
+  const encrypted = points.filter((p) => p.encrypted === true).length;
+  const unreported = points.filter((p) => p.encrypted == null).length;
+  const reported = points.length - unreported;
+  const state =
+    reported === 0 ? "unknown" : encrypted === reported ? "all" : encrypted === 0 ? "none" : "partial";
+  return { state, encrypted, unreported, total: points.length };
 }
 
 /** One job's stored restore points, grouped by the VMs it protects. */
@@ -217,7 +237,7 @@ export function groupRestorePointsByJob(
             ...aggregateLogical(sorted),
             latest: sorted[0].createdAt,
             repositoryIds: [...new Set(sorted.map((p) => p.repositoryId))],
-            encryptedCount: sorted.filter((p) => p.encrypted).length,
+            encryption: summarizeEncryption(sorted),
           };
         })
         .sort((a, b) => a.name.localeCompare(b.name));

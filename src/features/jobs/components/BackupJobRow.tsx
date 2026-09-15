@@ -139,6 +139,7 @@ export function BackupJobRow({
               <BackupJobVmRow
                 key={vm.vmId}
                 jobName={group.jobName}
+                jobEncrypts={job?.options.encryption}
                 vm={vm}
                 isOpen={openVmIds.has(vm.vmId)}
                 onToggle={() => onToggleVm(vm.vmId)}

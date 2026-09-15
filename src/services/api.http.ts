@@ -645,7 +645,7 @@ function mapRestorePointFromChainPoint(chain: Dict, point: Dict): RestorePoint {
     logicalGB: point.logical_size_bytes == null ? null : num(point.logical_size_bytes) / GB,
     compressionRatio: point.compression_ratio == null ? null : num(point.compression_ratio),
     compressionLevel: point.compression_level == null ? null : num(point.compression_level),
-    encrypted: Boolean(point.encryption_enabled),
+    encrypted: typeof point.encryption_enabled === "boolean" ? point.encryption_enabled : null,
     gfsProtected: Boolean(point.gfs_protected),
     // "SyntheticFull" is a full point (the /inc/ test above already types it
     // as one) that was merged from the chain rather than read off the VM.

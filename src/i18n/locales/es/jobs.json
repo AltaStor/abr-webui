@@ -597,7 +597,14 @@
       "partial": "Cifrados {{encrypted}}/{{total}}",
       "partialTip": "{{encrypted}} de {{total}} puntos de restauración están cifrados en reposo — el resto se almacena sin cifrar",
       "none": "Sin cifrar",
-      "noneTip": "Los puntos de restauración de este objeto se almacenan sin cifrar"
+      "noneTip": "Los puntos de restauración de este objeto se almacenan sin cifrar",
+      "unknown": "Cifrado desconocido",
+      "unknownTip": "El equipo no registró si estos puntos de restauración están cifrados",
+      "unreportedTip_one": "{{count}} punto de restauración se escribió sin registrar si está cifrado",
+      "unreportedTip_other": "{{count}} puntos de restauración se escribieron sin registrar si están cifrados",
+      "jobOnTip": "Este trabajo cifra los puntos de restauración nuevos; los ya almacenados siguen como se escribieron",
+      "jobOffTip": "El cifrado está desactivado ahora en este trabajo, así que sus nuevos puntos de restauración se almacenarán sin cifrar",
+      "jobOffNoneTip": "El cifrado está desactivado en la configuración de este trabajo"
     },
     "storedShort": "{{size}} almacenados",
     "fromLogical": "de {{size}}",
@@ -651,6 +658,10 @@
     "unavailable": "No disponible",
     "encrypted": "Cifrado",
     "encryptedTip": "Los datos de esta copia de seguridad están cifrados en reposo",
+    "unencrypted": "Sin cifrar",
+    "unencryptedTip": "Los datos de esta copia de seguridad se almacenan sin cifrar",
+    "unreported": "Sin registrar",
+    "unreportedTip": "El equipo no registró si los datos de esta copia de seguridad están cifrados",
     "compression": "Nivel de compresión {{level}}",
     "restoreAria": "Restaurar este punto"
   },

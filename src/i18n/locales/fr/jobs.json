@@ -597,7 +597,14 @@
       "partial": "Chiffrés {{encrypted}}/{{total}}",
       "partialTip": "{{encrypted}} des {{total}} points de restauration sont chiffrés au repos — les autres sont stockés en clair",
       "none": "Non chiffré",
-      "noneTip": "Les points de restauration de cet objet sont stockés sans chiffrement"
+      "noneTip": "Les points de restauration de cet objet sont stockés sans chiffrement",
+      "unknown": "Chiffrement inconnu",
+      "unknownTip": "L'appliance n'a pas enregistré si ces points de restauration sont chiffrés",
+      "unreportedTip_one": "{{count}} point de restauration a été écrit sans que son chiffrement soit enregistré",
+      "unreportedTip_other": "{{count}} points de restauration ont été écrits sans que leur chiffrement soit enregistré",
+      "jobOnTip": "Ce job chiffre les nouveaux points de restauration ; ceux déjà stockés restent tels qu'ils ont été écrits",
+      "jobOffTip": "Le chiffrement est désormais désactivé pour ce job : ses nouveaux points de restauration seront stockés en clair",
+      "jobOffNoneTip": "Le chiffrement est désactivé dans les paramètres de ce job"
     },
     "storedShort": "{{size}} stockés",
     "fromLogical": "à partir de {{size}}",
@@ -651,6 +658,10 @@
     "unavailable": "Indisponible",
     "encrypted": "Chiffré",
     "encryptedTip": "Les données de cette sauvegarde sont chiffrées au repos",
+    "unencrypted": "Non chiffré",
+    "unencryptedTip": "Les données de cette sauvegarde sont stockées en clair",
+    "unreported": "Non enregistré",
+    "unreportedTip": "L'appliance n'a pas enregistré si les données de cette sauvegarde sont chiffrées",
     "compression": "Niveau de compression {{level}}",
     "restoreAria": "Restaurer ce point"
   },

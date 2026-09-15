@@ -597,7 +597,14 @@
       "partial": "Encrypted {{encrypted}}/{{total}}",
       "partialTip": "{{encrypted}} of {{total}} restore points are encrypted at rest — the rest are stored unencrypted",
       "none": "Not encrypted",
-      "noneTip": "This object's restore points are stored unencrypted"
+      "noneTip": "This object's restore points are stored unencrypted",
+      "unknown": "Encryption unknown",
+      "unknownTip": "The appliance didn't record whether these restore points are encrypted",
+      "unreportedTip_one": "{{count}} restore point was written without a record of whether it is encrypted",
+      "unreportedTip_other": "{{count}} restore points were written without a record of whether they are encrypted",
+      "jobOnTip": "This job encrypts new restore points; the ones already stored stay as they were written",
+      "jobOffTip": "Encryption is now off for this job, so its new restore points will be stored unencrypted",
+      "jobOffNoneTip": "Encryption is off in this job's settings"
     },
     "storedShort": "{{size}} stored",
     "fromLogical": "from {{size}}",
@@ -651,6 +658,10 @@
     "unavailable": "Unavailable",
     "encrypted": "Encrypted",
     "encryptedTip": "This backup's data is encrypted at rest",
+    "unencrypted": "Not encrypted",
+    "unencryptedTip": "This backup's data is stored unencrypted",
+    "unreported": "Not reported",
+    "unreportedTip": "The appliance didn't record whether this backup's data is encrypted",
     "compression": "Compression level {{level}}",
     "restoreAria": "Restore this point"
   },
