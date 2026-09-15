@@ -14,12 +14,14 @@ import { useAuthStore } from "@/store/auth";
 import { useSettingsStore } from "@/store/settings";
 import { useWorldStore } from "@/store/world";
 import { SettingsSection } from "../SettingsSection";
+import { TlsCertificateCard } from "./TlsCertificateCard";
 
 export function SecuritySection() {
   return (
     <div className="space-y-4">
       <AccessPolicyCard />
       <SessionCard />
+      <TlsCertificateCard />
     </div>
   );
 }

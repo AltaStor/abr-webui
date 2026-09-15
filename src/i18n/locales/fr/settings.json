@@ -26,7 +26,7 @@
     },
     "security": {
       "label": "Sécurité",
-      "blurb": "Accès, immuabilité et utilisateurs"
+      "blurb": "Accès, sessions et HTTPS"
     },
     "about": {
       "label": "À propos",
@@ -129,6 +129,77 @@
       "hours_other": "{{count}} heures",
       "minutes_one": "{{count}} minute",
       "minutes_other": "{{count}} minutes"
+    },
+    "certificate": {
+      "title": "Certificat HTTPS",
+      "description": "Le certificat avec lequel cette console et l'API REST sont servies. Elles ne sont accessibles qu'en HTTPS ; les requêtes HTTP sont redirigées.",
+      "loading": "Lecture du certificat…",
+      "loadFailed": "Impossible de lire le certificat de l'appliance.",
+      "badge": {
+        "generated": "Généré",
+        "administrator": "Personnalisé",
+        "expired": "Expiré"
+      },
+      "issuedTo": "Délivré à",
+      "issuedBy": "Délivré par",
+      "selfSigned": "Autosigné",
+      "names": "Valide pour",
+      "validUntil": "Expire le",
+      "daysLeft_one": "({{count}} jour restant)",
+      "daysLeft_other": "({{count}} jours restants)",
+      "expiredAgo": "(expiré : {{rel}})",
+      "key": "Clé",
+      "intermediates_one": "{{count}} intermédiaire",
+      "intermediates_other": "{{count}} intermédiaires",
+      "fingerprint": "Empreinte SHA-256",
+      "copyFingerprint": "Copier l'empreinte",
+      "sourceGenerated": "Généré par cette appliance et renouvelé automatiquement avant son expiration. Les navigateurs affichent un avertissement de certificat non approuvé tant que vous n'en installez pas un d'une autorité de certification de confiance.",
+      "sourceInstalled": "Installé par {{user}} le {{when}}. Il n'est pas renouvelé automatiquement — installez-en un nouveau avant son expiration.",
+      "sourceManual": "Déposé manuellement sur l'appliance. Il n'est pas renouvelé automatiquement — installez-en un nouveau avant son expiration.",
+      "anAdministrator": "un administrateur",
+      "replace": "Remplacer le certificat",
+      "revert": "Revenir à l'autosigné",
+      "revertFailed": "Impossible de rétablir le certificat",
+      "warning": {
+        "expired": "Ce certificat a expiré. Les navigateurs le refusent sans exception explicite — installez-en un nouveau.",
+        "expiresSoon_one": "Ce certificat expire dans {{count}} jour et n'est pas renouvelé automatiquement.",
+        "expiresSoon_other": "Ce certificat expire dans {{count}} jours et n'est pas renouvelé automatiquement.",
+        "expiresSoonAutoRenew_one": "Ce certificat expire dans {{count}} jour ; l'appliance le renouvelle automatiquement.",
+        "expiresSoonAutoRenew_other": "Ce certificat expire dans {{count}} jours ; l'appliance le renouvelle automatiquement.",
+        "noNames": "Le certificat ne contient aucun nom d'hôte ni adresse IP (noms alternatifs du sujet). Les navigateurs ignorent le nom commun et le refusent donc pour toute adresse.",
+        "namesNotCovered": "Aucun des noms ou adresses de cette appliance ({{names}}) ne figure dans le certificat. Les navigateurs afficheront un avertissement sauf si la console est ouverte via un nom présent dans le certificat."
+      },
+      "toast": {
+        "installed": "Certificat installé",
+        "reverted": "Certificat autosigné rétabli",
+        "reloaded": "Les nouvelles connexions l'utilisent déjà. Rechargez cette page pour que ce navigateur bascule aussi.",
+        "nextStart": "Enregistré. L'appliance l'utilisera à partir de son prochain redémarrage.",
+        "reload": "Recharger"
+      },
+      "revertDialog": {
+        "title": "Revenir à un certificat autosigné ?",
+        "description": "Le certificat installé et sa clé sont supprimés ; l'appliance génère un nouveau certificat autosigné et l'utilise immédiatement. Les navigateurs afficheront de nouveau un avertissement, et les clients CLI qui faisaient confiance à la clé actuelle devront faire confiance à la nouvelle.",
+        "confirm": "Rétablir"
+      },
+      "form": {
+        "title": "Installer un certificat",
+        "intro": "Utilisez un certificat délivré par votre autorité de certification, ou votre propre certificat autosigné. L'appliance vérifie la paire avant de remplacer quoi que ce soit ; en cas d'erreur, le certificat actuel reste en place.",
+        "certificateLabel": "Certificat (PEM)",
+        "certificateHint": "D'abord le certificat du serveur, puis les certificats intermédiaires. Un fichier .pem combiné contenant aussi la clé remplit les deux champs.",
+        "privateKeyLabel": "Clé privée (PEM)",
+        "privateKeyHint": "RSA (2048 bits ou plus) ou EC (P-256, P-384, P-521). Stockée sur l'appliance, lisible uniquement par son service.",
+        "passphraseLabel": "Phrase secrète de la clé (facultatif)",
+        "passphraseHint": "Uniquement pour une clé chiffrée. Utilisée une fois pour la lire, jamais stockée.",
+        "loadFile": "Charger un fichier",
+        "fileTooLarge": "{{name}} est trop volumineux pour être un certificat ou une clé PEM.",
+        "fileNotPem": "{{name}} ne contient ni certificat ni clé privée PEM. Convertissez d'abord les fichiers DER ou PKCS#12 (.pfx) en PEM.",
+        "certificateRequired": "Collez ou chargez le certificat.",
+        "privateKeyRequired": "Collez ou chargez la clé privée.",
+        "installFailed": "L'appliance n'a pas pu installer ce certificat.",
+        "afterInstall": "Les nouvelles connexions reçoivent le certificat immédiatement. Les clients CLI qui faisaient confiance à la clé précédente refuseront de se connecter tant qu'ils ne feront pas confiance à la nouvelle.",
+        "install": "Installer le certificat",
+        "installing": "Installation…"
+      }
     },
     "changePassword": {
       "currentLabel": "Mot de passe actuel",

@@ -26,7 +26,7 @@
     },
     "security": {
       "label": "Seguridad",
-      "blurb": "Acceso, inmutabilidad y usuarios"
+      "blurb": "Acceso, sesiones y HTTPS"
     },
     "about": {
       "label": "Acerca de",
@@ -129,6 +129,77 @@
       "hours_other": "{{count}} horas",
       "minutes_one": "{{count}} minuto",
       "minutes_other": "{{count}} minutos"
+    },
+    "certificate": {
+      "title": "Certificado HTTPS",
+      "description": "El certificado con el que se sirven esta consola y la API REST. Ambas solo son accesibles por HTTPS; las solicitudes HTTP se redirigen.",
+      "loading": "Leyendo el certificado…",
+      "loadFailed": "No se pudo leer el certificado del equipo.",
+      "badge": {
+        "generated": "Generado",
+        "administrator": "Propio",
+        "expired": "Caducado"
+      },
+      "issuedTo": "Emitido para",
+      "issuedBy": "Emitido por",
+      "selfSigned": "Autofirmado",
+      "names": "Válido para",
+      "validUntil": "Caduca",
+      "daysLeft_one": "(queda {{count}} día)",
+      "daysLeft_other": "(quedan {{count}} días)",
+      "expiredAgo": "(caducó: {{rel}})",
+      "key": "Clave",
+      "intermediates_one": "{{count}} intermedio",
+      "intermediates_other": "{{count}} intermedios",
+      "fingerprint": "Huella SHA-256",
+      "copyFingerprint": "Copiar huella",
+      "sourceGenerated": "Generado por este equipo y renovado automáticamente antes de caducar. Los navegadores muestran una advertencia de certificado no fiable hasta que instales uno de una autoridad de certificación de confianza.",
+      "sourceInstalled": "Instalado por {{user}} el {{when}}. No se renueva automáticamente: instala uno nuevo antes de que caduque.",
+      "sourceManual": "Colocado manualmente en el equipo. No se renueva automáticamente: instala uno nuevo antes de que caduque.",
+      "anAdministrator": "un administrador",
+      "replace": "Reemplazar certificado",
+      "revert": "Volver a autofirmado",
+      "revertFailed": "No se pudo revertir el certificado",
+      "warning": {
+        "expired": "Este certificado ha caducado. Los navegadores lo rechazan sin una excepción explícita: instala uno nuevo.",
+        "expiresSoon_one": "Este certificado caduca en {{count}} día y no se renueva automáticamente.",
+        "expiresSoon_other": "Este certificado caduca en {{count}} días y no se renueva automáticamente.",
+        "expiresSoonAutoRenew_one": "Este certificado caduca en {{count}} día; el equipo lo renueva automáticamente.",
+        "expiresSoonAutoRenew_other": "Este certificado caduca en {{count}} días; el equipo lo renueva automáticamente.",
+        "noNames": "El certificado no incluye nombres de host ni direcciones IP (nombres alternativos del sujeto). Los navegadores ignoran el nombre común, así que lo rechazan para cualquier dirección.",
+        "namesNotCovered": "Ninguno de los nombres o direcciones de este equipo ({{names}}) figura en el certificado. Los navegadores mostrarán una advertencia salvo que la consola se abra con un nombre incluido en el certificado."
+      },
+      "toast": {
+        "installed": "Certificado instalado",
+        "reverted": "Certificado autofirmado restaurado",
+        "reloaded": "Las conexiones nuevas ya lo usan. Recarga esta página para que este navegador también cambie.",
+        "nextStart": "Guardado. El equipo lo usará a partir del próximo reinicio.",
+        "reload": "Recargar"
+      },
+      "revertDialog": {
+        "title": "¿Volver a un certificado autofirmado?",
+        "description": "Se eliminan el certificado instalado y su clave; el equipo genera un nuevo certificado autofirmado y lo usa de inmediato. Los navegadores volverán a mostrar una advertencia de certificado no fiable, y los clientes de la CLI que confiaban en la clave actual deberán confiar en la nueva.",
+        "confirm": "Revertir"
+      },
+      "form": {
+        "title": "Instalar un certificado",
+        "intro": "Usa un certificado emitido por tu autoridad de certificación o uno autofirmado propio. El equipo comprueba el par antes de reemplazar nada, así que un error deja el certificado actual en su sitio.",
+        "certificateLabel": "Certificado (PEM)",
+        "certificateHint": "Primero el certificado del servidor y después los certificados intermedios. Un archivo .pem combinado que también contenga la clave rellena ambos campos.",
+        "privateKeyLabel": "Clave privada (PEM)",
+        "privateKeyHint": "RSA (2048 bits o más) o EC (P-256, P-384, P-521). Se guarda en el equipo y solo su servicio puede leerla.",
+        "passphraseLabel": "Frase de paso de la clave (opcional)",
+        "passphraseHint": "Solo para una clave cifrada. Se usa una vez para leerla y no se guarda.",
+        "loadFile": "Cargar archivo",
+        "fileTooLarge": "{{name}} es demasiado grande para ser un certificado o una clave PEM.",
+        "fileNotPem": "{{name}} no contiene ningún certificado ni clave privada PEM. Convierte primero los archivos DER o PKCS#12 (.pfx) a PEM.",
+        "certificateRequired": "Pega o carga el certificado.",
+        "privateKeyRequired": "Pega o carga la clave privada.",
+        "installFailed": "El equipo no pudo instalar este certificado.",
+        "afterInstall": "Las conexiones nuevas reciben el certificado de inmediato. Los clientes de la CLI que confiaban en la clave anterior rechazarán la conexión hasta que confíen en la nueva.",
+        "install": "Instalar certificado",
+        "installing": "Instalando…"
+      }
     },
     "changePassword": {
       "currentLabel": "Contraseña actual",

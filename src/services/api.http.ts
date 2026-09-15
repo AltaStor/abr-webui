@@ -2016,6 +2016,132 @@ export async function getSystemInfo(): Promise<ApplianceInfo> {
     ntpSynced: true,
   };
 }
+
+/* ---------------------------- HTTPS certificate --------------------------- */
+
+/** Something about the served certificate a browser would object to. `code`
+ *  is what the console translates; `message` is the appliance's own English
+ *  wording, the fallback for a code this build doesn't know. */
+export interface TlsCertificateWarning {
+  code: string;
+  message: string;
+  daysRemaining?: number;
+  applianceNames?: string[];
+}
+
+/** The certificate the console and REST API are served over HTTPS with
+ *  (`GET /system/tls-certificate`). */
+export interface TlsCertificate {
+  /** "generated": the appliance's own self-signed certificate, renewed
+   *  automatically. "administrator": installed by an administrator (or placed
+   *  over the certificate files by hand) and never renewed or replaced. */
+  source: "generated" | "administrator";
+  autoRenew: boolean;
+  subject: string;
+  commonName: string | null;
+  issuer: string;
+  issuerCommonName: string | null;
+  selfSigned: boolean;
+  dnsNames: string[];
+  ipAddresses: string[];
+  serialNumber: string;
+  fingerprintSha256: string;
+  keyType: string;
+  notBefore: string;
+  notAfter: string;
+  daysRemaining: number;
+  expired: boolean;
+  /** Certificates in the served file: the server certificate plus intermediates. */
+  chainLength: number;
+  installedAt: string | null;
+  installedBy: string | null;
+  /** The server can swap certificates without a restart. False only when the
+   *  API runs without its HTTPS entry point (dev setups). */
+  liveReload: boolean;
+  /** Set on install/revert: the new certificate is already being served. */
+  reloaded?: boolean;
+  warnings: TlsCertificateWarning[];
+}
+
+export interface TlsCertificateInput {
+  certificate: string;
+  privateKey: string;
+  passphrase?: string;
+}
+
+const strList = (v: unknown): string[] => (Array.isArray(v) ? v.filter((x): x is string => typeof x === "string") : []);
+
+function mapTlsCertificate(raw: unknown): TlsCertificate {
+  const r = asDict(raw);
+  return {
+    source: r.source === "administrator" ? "administrator" : "generated",
+    autoRenew: Boolean(r.auto_renew),
+    subject: str(r.subject),
+    commonName: strOrNull(r.common_name),
+    issuer: str(r.issuer),
+    issuerCommonName: strOrNull(r.issuer_common_name),
+    selfSigned: Boolean(r.self_signed),
+    dnsNames: strList(r.dns_names),
+    ipAddresses: strList(r.ip_addresses),
+    serialNumber: str(r.serial_number),
+    fingerprintSha256: str(r.fingerprint_sha256),
+    keyType: str(r.key_type),
+    notBefore: str(r.not_before),
+    notAfter: str(r.not_after),
+    daysRemaining: num(r.days_remaining),
+    expired: Boolean(r.expired),
+    chainLength: num(r.chain_length, 1),
+    installedAt: strOrNull(r.installed_at),
+    installedBy: strOrNull(r.installed_by),
+    liveReload: Boolean(r.live_reload),
+    reloaded: typeof r.reloaded === "boolean" ? r.reloaded : undefined,
+    warnings: (Array.isArray(r.warnings) ? r.warnings : []).map((w) => {
+      const d = asDict(w);
+      return {
+        code: str(d.code),
+        message: str(d.message),
+        daysRemaining: typeof d.days_remaining === "number" ? d.days_remaining : undefined,
+        applianceNames: Array.isArray(d.appliance_names) ? strList(d.appliance_names) : undefined,
+      };
+    }),
+  };
+}
+
+export async function getTlsCertificate(): Promise<TlsCertificate> {
+  return mapTlsCertificate(await request<Dict>("/system/tls-certificate"));
+}
+
+/** Replace the served certificate. A 422 names the offending input in
+ *  `error.details.field` ("certificate" | "private_key" | "passphrase"). */
+export async function installTlsCertificate(input: TlsCertificateInput): Promise<TlsCertificate> {
+  const body: Dict = { certificate: input.certificate, private_key: input.privateKey };
+  if (input.passphrase) body.passphrase = input.passphrase;
+  return mapTlsCertificate(
+    await request<Dict>("/system/tls-certificate", { method: "PUT", body: JSON.stringify(body) }),
+  );
+}
+
+/** Drop the administrator's certificate; the appliance generates a self-signed one. */
+export async function revertTlsCertificate(): Promise<TlsCertificate> {
+  return mapTlsCertificate(await request<Dict>("/system/tls-certificate", { method: "DELETE" }));
+}
+
+/** The input field a certificate install was refused over, when the appliance said. */
+export function tlsCertificateErrorField(err: unknown): "certificate" | "privateKey" | "passphrase" | null {
+  if (!(err instanceof ApiError)) return null;
+  const details = asDict(asDict(asDict(err.body).error).details);
+  switch (details.field) {
+    case "certificate":
+      return "certificate";
+    case "private_key":
+      return "privateKey";
+    case "passphrase":
+      return "passphrase";
+    default:
+      return null;
+  }
+}
+
 // The console is already provisioned against a running orchestrator, so the
 // setup wizard never engages (stage is always "complete").
 export const getProvisioning = async (): Promise<ProvisioningStatus> => ({

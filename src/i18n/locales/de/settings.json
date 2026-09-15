@@ -26,7 +26,7 @@
     },
     "security": {
       "label": "Sicherheit",
-      "blurb": "Zugriff, Unveränderlichkeit & Benutzer"
+      "blurb": "Zugriff, Sitzungen & HTTPS"
     },
     "about": {
       "label": "Über",
@@ -129,6 +129,77 @@
       "hours_other": "{{count}} Stunden",
       "minutes_one": "{{count}} Minute",
       "minutes_other": "{{count}} Minuten"
+    },
+    "certificate": {
+      "title": "HTTPS-Zertifikat",
+      "description": "Das Zertifikat, mit dem diese Konsole und die REST-API ausgeliefert werden. Beide sind nur über HTTPS erreichbar; einfache HTTP-Anfragen werden umgeleitet.",
+      "loading": "Zertifikat wird gelesen…",
+      "loadFailed": "Das Zertifikat konnte nicht vom Gerät gelesen werden.",
+      "badge": {
+        "generated": "Generiert",
+        "administrator": "Eigenes",
+        "expired": "Abgelaufen"
+      },
+      "issuedTo": "Ausgestellt für",
+      "issuedBy": "Ausgestellt von",
+      "selfSigned": "Selbstsigniert",
+      "names": "Gültig für",
+      "validUntil": "Läuft ab",
+      "daysLeft_one": "(noch {{count}} Tag)",
+      "daysLeft_other": "(noch {{count}} Tage)",
+      "expiredAgo": "(abgelaufen: {{rel}})",
+      "key": "Schlüssel",
+      "intermediates_one": "{{count}} Zwischenzertifikat",
+      "intermediates_other": "{{count}} Zwischenzertifikate",
+      "fingerprint": "SHA-256-Fingerabdruck",
+      "copyFingerprint": "Fingerabdruck kopieren",
+      "sourceGenerated": "Von diesem Gerät erzeugt und vor Ablauf automatisch erneuert. Browser zeigen dafür eine Warnung zu einem nicht vertrauenswürdigen Zertifikat, bis Sie eines einer vertrauenswürdigen Zertifizierungsstelle installieren.",
+      "sourceInstalled": "Installiert von {{user}} am {{when}}. Es wird nicht automatisch erneuert — installieren Sie vor Ablauf ein neues.",
+      "sourceManual": "Manuell auf dem Gerät abgelegt. Es wird nicht automatisch erneuert — installieren Sie vor Ablauf ein neues.",
+      "anAdministrator": "einem Administrator",
+      "replace": "Zertifikat ersetzen",
+      "revert": "Zurück zu selbstsigniert",
+      "revertFailed": "Zertifikat konnte nicht zurückgesetzt werden",
+      "warning": {
+        "expired": "Dieses Zertifikat ist abgelaufen. Browser lehnen es ohne ausdrückliche Ausnahme ab — installieren Sie ein neues.",
+        "expiresSoon_one": "Dieses Zertifikat läuft in {{count}} Tag ab und wird nicht automatisch erneuert.",
+        "expiresSoon_other": "Dieses Zertifikat läuft in {{count}} Tagen ab und wird nicht automatisch erneuert.",
+        "expiresSoonAutoRenew_one": "Dieses Zertifikat läuft in {{count}} Tag ab; das Gerät erneuert es automatisch.",
+        "expiresSoonAutoRenew_other": "Dieses Zertifikat läuft in {{count}} Tagen ab; das Gerät erneuert es automatisch.",
+        "noNames": "Das Zertifikat enthält keine Hostnamen oder IP-Adressen (Subject Alternative Names). Browser ignorieren den Common Name und lehnen es daher für jede Adresse ab.",
+        "namesNotCovered": "Keiner der Namen oder Adressen dieses Geräts ({{names}}) steht im Zertifikat. Browser warnen, sofern die Konsole nicht über einen im Zertifikat aufgeführten Namen geöffnet wird."
+      },
+      "toast": {
+        "installed": "Zertifikat installiert",
+        "reverted": "Selbstsigniertes Zertifikat wiederhergestellt",
+        "reloaded": "Neue Verbindungen verwenden es bereits. Laden Sie diese Seite neu, damit auch dieser Browser wechselt.",
+        "nextStart": "Gespeichert. Das Gerät verwendet es ab dem nächsten Neustart.",
+        "reload": "Neu laden"
+      },
+      "revertDialog": {
+        "title": "Zu einem selbstsignierten Zertifikat zurückkehren?",
+        "description": "Das installierte Zertifikat und sein Schlüssel werden entfernt; das Gerät erzeugt ein neues selbstsigniertes Zertifikat und verwendet es sofort. Browser zeigen wieder eine Zertifikatswarnung, und CLI-Clients, die dem aktuellen Schlüssel vertraut haben, müssen dem neuen vertrauen.",
+        "confirm": "Zurücksetzen"
+      },
+      "form": {
+        "title": "Zertifikat installieren",
+        "intro": "Verwenden Sie ein Zertifikat Ihrer Zertifizierungsstelle oder ein eigenes selbstsigniertes. Das Gerät prüft das Paar, bevor etwas ersetzt wird — bei einem Fehler bleibt das aktuelle Zertifikat bestehen.",
+        "certificateLabel": "Zertifikat (PEM)",
+        "certificateHint": "Zuerst das Serverzertifikat, danach eventuelle Zwischenzertifikate. Eine kombinierte .pem-Datei, die auch den Schlüssel enthält, füllt beide Felder.",
+        "privateKeyLabel": "Privater Schlüssel (PEM)",
+        "privateKeyHint": "RSA (mindestens 2048 Bit) oder EC (P-256, P-384, P-521). Wird auf dem Gerät gespeichert und ist nur für dessen Dienst lesbar.",
+        "passphraseLabel": "Passphrase des Schlüssels (optional)",
+        "passphraseHint": "Nur für einen verschlüsselten Schlüssel. Wird einmal zum Lesen verwendet und nicht gespeichert.",
+        "loadFile": "Datei laden",
+        "fileTooLarge": "{{name}} ist zu groß für ein PEM-Zertifikat oder einen Schlüssel.",
+        "fileNotPem": "{{name}} enthält kein PEM-Zertifikat und keinen privaten Schlüssel. Konvertieren Sie DER- oder PKCS#12-Dateien (.pfx) zuerst in PEM.",
+        "certificateRequired": "Fügen Sie das Zertifikat ein oder laden Sie es.",
+        "privateKeyRequired": "Fügen Sie den privaten Schlüssel ein oder laden Sie ihn.",
+        "installFailed": "Das Gerät konnte dieses Zertifikat nicht installieren.",
+        "afterInstall": "Neue Verbindungen erhalten das Zertifikat sofort. CLI-Clients, die dem vorherigen Schlüssel vertraut haben, verweigern die Verbindung, bis sie dem neuen vertrauen.",
+        "install": "Zertifikat installieren",
+        "installing": "Wird installiert…"
+      }
     },
     "changePassword": {
       "currentLabel": "Aktuelles Passwort",
