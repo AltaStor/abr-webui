@@ -27,6 +27,9 @@
     "customCron": "Custom · {{cron}}",
     "custom": "Custom schedule",
     "daily": "Daily · {{time}}",
+    "monthly": "Monthly · day {{day}} {{time}}",
+    "everyMinutes_one": "Every {{count}} min",
+    "everyMinutes_other": "Every {{count}} min",
     "legend": {
       "scheduled": "Scheduled"
     },
@@ -50,6 +53,14 @@
     "days_other": "{{count}} days",
     "withGfs": "{{base}} · GFS {{tail}}",
     "withGfsSuspended": "{{base}} · GFS {{tail}} (suspended)"
+  },
+  "fullSchedule": {
+    "active": "Active full",
+    "synthetic": "Synthetic full",
+    "off": "Off",
+    "suspended": "{{schedule}} (suspended)",
+    "nextActive": "Next active full: {{when}}",
+    "nextSynthetic": "Next synthetic full: {{when}}"
   },
   "type": {
     "replication": "Replication",
@@ -893,6 +904,28 @@
     "keepReplicaNote_other": "Keep {{count}} recovery points on the replica — snapshots you can roll back to before failing over.",
     "keepBackupNote_one": "Keep backups for {{count}} day before they are automatically deleted.",
     "keepBackupNote_other": "Keep backups for {{count}} days before they are automatically deleted.",
+    "full": {
+      "title": "Full backups",
+      "term": "full backups",
+      "help": "If more than one schedule falls due at the same time, the job runs once: an active full takes priority over a synthetic full, and a synthetic full over the regular backup. While the job is disabled, these schedules don't run either.",
+      "description": "Each full backup starts a new backup chain. Retention can delete an old chain only after a newer full exists, so a job with retention needs at least one of these schedules.",
+      "active": "Active full backup",
+      "activeHint": "Reads the VMs in full again. Takes the longest, and the new chain doesn't depend on earlier backups.",
+      "synthetic": "Synthetic full backup",
+      "syntheticHint": "Takes an incremental backup, then merges the chain into a new full inside the repository without reading the whole VM again.",
+      "monthly": "Monthly",
+      "onDays": "On days",
+      "dayOfMonth": "Day of month",
+      "lastDayNote": "In months without day {{day}}, it runs on the last day of the month.",
+      "customNote": "This schedule was set outside the console. Saving keeps it as it is unless you pick another one.",
+      "keptWhenOff": "Off. The job keeps its settings ({{schedule}}) for when you turn it back on.",
+      "syntheticUnsupported": "{{repository}} can't merge backup chains, so each synthetic full runs as an active full instead.",
+      "errors": {
+        "required": "Retention is set, so turn on at least one full backup schedule (active or synthetic).",
+        "activeDays": "Pick at least one day for the active full backup.",
+        "syntheticDays": "Pick at least one day for the synthetic full backup."
+      }
+    },
     "advanced": "Advanced settings",
     "advancedHint": "(Defaults are applied)",
     "opt": {

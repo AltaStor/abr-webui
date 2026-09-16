@@ -40,6 +40,7 @@ import type {
   DashboardSummary,
   Environment,
   EnvironmentType,
+  FullBackupSchedule,
   Host,
   Hypervisor,
   ImmutabilityEffect,
@@ -490,6 +491,38 @@ function mapSchedule(sched: Dict): Schedule {
   }
 }
 
+/**
+ * An active/synthetic full schedule DTO (`_schedule_dto`), or null when the job
+ * has none. Unlike the base schedule, every kind is kept as it is, so that a
+ * periodic or cron schedule set from the CLI can be shown and sent back
+ * unchanged.
+ */
+function mapFullSchedule(raw: unknown): FullBackupSchedule | null {
+  if (!raw || typeof raw !== "object") return null;
+  const sched = raw as Dict;
+  const kind = str(sched.type) || str(sched.kind);
+  const common = {
+    // The appliance defaults a missing flag to on (`schedule.get("enabled", True)`).
+    enabled: sched.enabled !== false,
+    timezone: str(sched.timezone) || undefined,
+  };
+  const atTime = str(sched.time) || str(sched.start_time) || "00:00";
+  switch (kind) {
+    case "daily":
+      return { ...common, frequency: "daily", atTime };
+    case "weekly":
+      return { ...common, frequency: "weekly", atTime, daysOfWeek: daysOfWeekOf(sched) };
+    case "monthly":
+      return { ...common, frequency: "monthly", atTime, dayOfMonth: num(sched.day_of_month, 1) };
+    case "periodic":
+      return { ...common, frequency: "periodic", everyMinutes: num(sched.interval_minutes, 60) };
+    case "cron":
+      return { ...common, frequency: "cron", cron: str(sched.expression) };
+    default:
+      return null;
+  }
+}
+
 function mapJobOptions(params: Dict, compressionLevel?: unknown, encryption?: Dict): JobOptions {
   const level = Math.round(num(compressionLevel, DEFAULT_COMPRESSION_LEVEL));
   return {
@@ -590,6 +623,12 @@ function mapJob(job: Dict, sessions: Session[]): BackupJob {
     scopeSummary,
     repositoryId: str(repo.id),
     schedule: mapSchedule(asDict(job.schedule)),
+    activeFullSchedule: mapFullSchedule(job.active_full_schedule),
+    syntheticFullSchedule: mapFullSchedule(job.synthetic_full_schedule),
+    // The appliance keeps these stamps while the job is disabled, but nothing
+    // fires then, so they are hidden like `nextRunAt`.
+    activeFullNextRunAt: enabled ? strOrNull(job.active_full_next_run_at) : null,
+    syntheticFullNextRunAt: enabled ? strOrNull(job.synthetic_full_next_run_at) : null,
     retention: mapRetention(job),
     options: mapJobOptions(asDict(job.task_parameters ?? job.backup_options), job.compression_level, asDict(job.encryption)),
     state: activeCount > 0 ? "running" : enabled ? "idle" : "disabled",
@@ -1124,6 +1163,9 @@ export interface CreateJobPayload {
   scopeSummary: string;
   repositoryId: string;
   schedule: Schedule;
+  /** Omitted: leave the job's schedule as it is. null: remove it. */
+  activeFullSchedule?: FullBackupSchedule | null;
+  syntheticFullSchedule?: FullBackupSchedule | null;
   retention: Retention;
   options: JobOptions;
   accent?: BackupJob["accent"];
@@ -1154,6 +1196,43 @@ function scheduleToWire(s: Schedule): Dict {
     default:
       return { schedule_type: "daily", start_time: s.atTime ?? "00:00", timezone };
   }
+}
+
+/** Domain full schedule → the dict `normalize_schedule_payload` reads. */
+function fullScheduleToWire(s: FullBackupSchedule): Dict {
+  const common = { enabled: s.enabled, timezone: s.timezone || "UTC" };
+  const time = s.atTime ?? "00:00";
+  switch (s.frequency) {
+    case "weekly":
+      return {
+        ...common,
+        type: "weekly",
+        time,
+        // Sorted so the same days picked in a different order compare equal
+        // in `fullScheduleKey`.
+        days: [...new Set(s.daysOfWeek ?? [])]
+          .sort((a, b) => a - b)
+          .map((d) => DAY_NAMES[d])
+          .filter(Boolean),
+      };
+    case "monthly":
+      return { ...common, type: "monthly", time, day_of_month: s.dayOfMonth ?? 1 };
+    case "periodic":
+      return { ...common, type: "periodic", interval_minutes: s.everyMinutes ?? 60 };
+    case "cron":
+      return { ...common, type: "cron", expression: s.cron ?? "" };
+    case "daily":
+    default:
+      return { ...common, type: "daily", time };
+  }
+}
+
+/** A stable key for a full schedule as the appliance would store it, so the
+ *  edit form can tell whether one actually changed. Re-sending an unchanged
+ *  schedule is not harmless: the appliance recalculates its next run from
+ *  the moment of the edit, which pushes a periodic full further out. */
+export function fullScheduleKey(s: FullBackupSchedule | null | undefined): string {
+  return s ? JSON.stringify(fullScheduleToWire(s)) : "none";
 }
 
 function optionsToTaskParams(o: JobOptions): Dict {
@@ -1198,6 +1277,15 @@ function createJobBody(payload: Partial<CreateJobPayload>): Dict {
   if (inventoryId) body.inventory_id = inventoryId;
   if (payload.repositoryId) body.repo_id = payload.repositoryId;
   if (payload.schedule) body.schedule = scheduleToWire(payload.schedule);
+  // null is meaningful here: it removes the schedule (and any legacy
+  // `*_full_days` behind it). Only an omitted key leaves the job's schedule alone.
+  if (payload.activeFullSchedule !== undefined) {
+    body.active_full_schedule = payload.activeFullSchedule && fullScheduleToWire(payload.activeFullSchedule);
+  }
+  if (payload.syntheticFullSchedule !== undefined) {
+    body.synthetic_full_schedule =
+      payload.syntheticFullSchedule && fullScheduleToWire(payload.syntheticFullSchedule);
+  }
   if (payload.retention) {
     body.retention_days = payload.retention.keepDays;
     // Create (CreateJobRequest) reads a nested `gfs` object; update

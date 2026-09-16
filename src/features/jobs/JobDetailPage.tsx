@@ -37,7 +37,7 @@ import { JOB_DISABLED_META, rateTone, SESSION_META } from "@/lib/status";
 import { apiErrorMessage } from "@/services/api.http";
 import { useWorldStore } from "@/store/world";
 import { REPO_TYPE_META } from "@/features/repositories/components/repoMeta";
-import { jobTypeMeta, retentionLabel, scheduleLabel } from "./lib";
+import { fullScheduleLabel, jobTypeMeta, retentionLabel, scheduleLabel } from "./lib";
 import { ActiveRunPanel } from "./components/ActiveRunPanel";
 import { LastRunSummary } from "./components/LastRunSummary";
 import { ThroughputChart } from "./components/ThroughputChart";
@@ -348,6 +348,12 @@ export default function JobDetailPage() {
                 </p>
                 <div className="mt-4 space-y-2 border-t border-border pt-3 text-sm">
                   <Detail label={t("about.schedule")} value={scheduleLabel(job.schedule, disabled)} />
+                  {job.type !== "replication" && (
+                    <>
+                      <Detail label={t("fullSchedule.active")} value={fullScheduleLabel(job.activeFullSchedule)} />
+                      <Detail label={t("fullSchedule.synthetic")} value={fullScheduleLabel(job.syntheticFullSchedule)} />
+                    </>
+                  )}
                   <Detail label={t("about.retention")} value={retentionLabel(job.retention)} />
                   <Detail label={t("about.scope")} value={job.scopeSummary} />
                   <Detail label={t("about.encryption")} value={job.options.encryption ? t("about.aes256") : t("state.off")} />

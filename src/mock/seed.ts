@@ -3,10 +3,12 @@
 
 import { seededRandom } from "@/lib/utils";
 import { simChainId, simCompressionRatio } from "@/lib/restore-points";
+import { nextFullBackupRun } from "@/lib/schedule";
 import type {
   Alert,
   BackupJob,
   Environment,
+  FullBackupSchedule,
   Host,
   Replica,
   ReplicaPoint,
@@ -348,7 +350,17 @@ function buildJobs(vms: VM[]): BackupJob[] {
     },
   ): BackupJob => {
     const { rule, runs, ...rest } = partial;
-    return { ...rest, vmIds: resolveScope(vms, rule), recentRuns: runs };
+    const nextFull = (schedule: FullBackupSchedule | null | undefined) =>
+      schedule && rest.state !== "disabled"
+        ? (nextFullBackupRun(schedule, new Date(NOW))?.toISOString() ?? null)
+        : null;
+    return {
+      ...rest,
+      activeFullNextRunAt: nextFull(rest.activeFullSchedule),
+      syntheticFullNextRunAt: nextFull(rest.syntheticFullSchedule),
+      vmIds: resolveScope(vms, rule),
+      recentRuns: runs,
+    };
   };
 
   return [
@@ -357,6 +369,8 @@ function buildJobs(vms: VM[]): BackupJob[] {
       description: "Image-level backup of every production-tagged VM to the hardened repository.",
       scopeSummary: "Tag: production", repositoryId: "repo-immutable",
       schedule: { frequency: "daily", atTime: "22:00" },
+      activeFullSchedule: { frequency: "monthly", dayOfMonth: 1, atTime: "22:00", enabled: true },
+      syntheticFullSchedule: { frequency: "weekly", daysOfWeek: [0], atTime: "22:00", enabled: true },
       retention: { keepDays: 14, gfs: { weekly: 4, monthly: 6, yearly: 1, enabled: true } },
       options: { appAware: true, encryption: true, compression: 3, dedup: true },
       state: "idle", lastStatus: "success", lastRunAt: hoursAgo(11), nextRunAt: hoursFromNow(13),
@@ -369,6 +383,7 @@ function buildJobs(vms: VM[]): BackupJob[] {
       description: "Application-aware hourly backups of all SQL & database VMs with transaction-log processing.",
       scopeSummary: "Tag: sql", repositoryId: "repo-immutable",
       schedule: { frequency: "hourly", everyHours: 1 },
+      syntheticFullSchedule: { frequency: "daily", atTime: "02:00", enabled: true },
       retention: { keepDays: 48 },
       options: { appAware: true, encryption: true, compression: 3, dedup: true },
       state: "running", lastStatus: "running", lastRunAt: minsAgo(3), nextRunAt: hoursFromNow(1),
@@ -381,6 +396,7 @@ function buildJobs(vms: VM[]): BackupJob[] {
       description: "Frequent backups of the public web & API tier living in the DMZ.",
       scopeSummary: "Tag: web", repositoryId: "repo-immutable",
       schedule: { frequency: "hourly", everyHours: 4 },
+      syntheticFullSchedule: { frequency: "weekly", daysOfWeek: [0], atTime: "00:00", enabled: true },
       retention: { keepDays: 24 },
       options: { appAware: false, encryption: true, compression: 9, dedup: true },
       state: "idle", lastStatus: "success", lastRunAt: hoursAgo(2), nextRunAt: hoursFromNow(2),
@@ -393,6 +409,9 @@ function buildJobs(vms: VM[]): BackupJob[] {
       description: "Large file-server protection with synthetic fulls; copied to S3 weekly.",
       scopeSummary: "Tag: files", repositoryId: "repo-nas",
       schedule: { frequency: "daily", atTime: "20:00" },
+      // A suspended active full: its settings are kept, only the synthetic full runs.
+      activeFullSchedule: { frequency: "monthly", dayOfMonth: 15, atTime: "20:00", enabled: false },
+      syntheticFullSchedule: { frequency: "weekly", daysOfWeek: [5], atTime: "20:00", enabled: true },
       retention: { keepDays: 30, gfs: { weekly: 4, monthly: 12, yearly: 3, enabled: true } },
       options: { appAware: false, encryption: true, compression: 3, dedup: true, throttleMBps: 400 },
       state: "idle", lastStatus: "warning", lastRunAt: hoursAgo(15), nextRunAt: hoursFromNow(9),
@@ -405,6 +424,7 @@ function buildJobs(vms: VM[]): BackupJob[] {
       description: "Weekly active full of the entire estate, kept in S3 for long-term GFS retention.",
       scopeSummary: "All VMs", repositoryId: "repo-objlock",
       schedule: { frequency: "weekly", atTime: "01:00", daysOfWeek: [0] },
+      activeFullSchedule: { frequency: "weekly", daysOfWeek: [0], atTime: "01:00", enabled: true },
       retention: { keepDays: 8, gfs: { weekly: 8, monthly: 12, yearly: 7, enabled: true } },
       options: { appAware: true, encryption: true, compression: 9, dedup: true },
       state: "idle", lastStatus: "success", lastRunAt: daysAgo(3), nextRunAt: hoursFromNow(96),
@@ -430,6 +450,7 @@ function buildJobs(vms: VM[]): BackupJob[] {
       description: "Nightly protection of the branch-office standalone ESXi host.",
       scopeSummary: "Environment: Branch Office", repositoryId: "repo-nas",
       schedule: { frequency: "daily", atTime: "21:00" },
+      activeFullSchedule: { frequency: "weekly", daysOfWeek: [6], atTime: "21:00", enabled: true },
       retention: { keepDays: 14 },
       options: { appAware: false, encryption: true, compression: 3, dedup: true },
       state: "idle", lastStatus: "success", lastRunAt: hoursAgo(13), nextRunAt: hoursFromNow(11),
@@ -442,6 +463,7 @@ function buildJobs(vms: VM[]): BackupJob[] {
       description: "Low-priority backups of dev & staging workloads to local SSD. Currently disabled.",
       scopeSummary: "Tags: staging, dev", repositoryId: "repo-ssd",
       schedule: { frequency: "daily", atTime: "23:30" },
+      syntheticFullSchedule: { frequency: "weekly", daysOfWeek: [0], atTime: "23:30", enabled: true },
       retention: { keepDays: 7 },
       options: { appAware: false, encryption: false, compression: 3, dedup: true },
       state: "disabled", lastStatus: "success", lastRunAt: daysAgo(6), nextRunAt: null,

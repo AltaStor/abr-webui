@@ -7,6 +7,7 @@ import {
   Check,
   Clock,
   Database,
+  DatabaseBackup,
   Layers,
   Lock,
   Minus,
@@ -15,9 +16,9 @@ import {
 } from "@/lib/icons";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-import { formatStorage, usagePercent } from "@/lib/format";
+import { formatDateTime, formatStorage, usagePercent } from "@/lib/format";
 import type { BackupJob, Repository } from "@/types";
-import { retentionLabel, scheduleLabel } from "../lib";
+import { fullScheduleLabel, retentionLabel, scheduleLabel } from "../lib";
 
 interface Props {
   job: BackupJob;
@@ -42,6 +43,33 @@ export function JobSettingsTab({ job, repository }: Props) {
           </CardHeader>
           <CardContent className="space-y-2.5 pt-0 text-sm">
             <Row icon={Clock} label={t("settings.runs")} value={scheduleLabel(schedule, job.state === "disabled")} />
+            {job.type !== "replication" && (
+              <>
+                <Row
+                  icon={DatabaseBackup}
+                  label={t("fullSchedule.active")}
+                  value={fullScheduleLabel(job.activeFullSchedule)}
+                />
+                <Row
+                  icon={Layers}
+                  label={t("fullSchedule.synthetic")}
+                  value={fullScheduleLabel(job.syntheticFullSchedule)}
+                />
+                {/* Only schedules that will fire have a next run: the
+                    appliance clears it for a suspended schedule and while the
+                    job itself is disabled. */}
+                {job.activeFullNextRunAt && (
+                  <p className="text-xs text-muted-foreground">
+                    {t("fullSchedule.nextActive", { when: formatDateTime(job.activeFullNextRunAt) })}
+                  </p>
+                )}
+                {job.syntheticFullNextRunAt && (
+                  <p className="text-xs text-muted-foreground">
+                    {t("fullSchedule.nextSynthetic", { when: formatDateTime(job.syntheticFullNextRunAt) })}
+                  </p>
+                )}
+              </>
+            )}
           </CardContent>
         </Card>
 

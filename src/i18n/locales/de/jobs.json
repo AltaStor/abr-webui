@@ -27,6 +27,9 @@
     "customCron": "Benutzerdefiniert · {{cron}}",
     "custom": "Benutzerdefinierter Zeitplan",
     "daily": "Täglich · {{time}}",
+    "monthly": "Monatlich · Tag {{day}} {{time}}",
+    "everyMinutes_one": "Alle {{count}} min",
+    "everyMinutes_other": "Alle {{count}} min",
     "legend": {
       "scheduled": "Geplant"
     },
@@ -50,6 +53,14 @@
     "days_other": "{{count}} Tage",
     "withGfs": "{{base}} · GFS {{tail}}",
     "withGfsSuspended": "{{base}} · GFS {{tail}} (ausgesetzt)"
+  },
+  "fullSchedule": {
+    "active": "Aktives Vollbackup",
+    "synthetic": "Synthetisches Vollbackup",
+    "off": "Aus",
+    "suspended": "{{schedule}} (ausgesetzt)",
+    "nextActive": "Nächstes aktives Vollbackup: {{when}}",
+    "nextSynthetic": "Nächstes synthetisches Vollbackup: {{when}}"
   },
   "type": {
     "replication": "Replikation",
@@ -893,6 +904,28 @@
     "keepReplicaNote_other": "{{count}} Wiederherstellungspunkte auf dem Replikat aufbewahren – Snapshots, zu denen Sie vor einem Failover zurückkehren können.",
     "keepBackupNote_one": "Backups {{count}} Tag lang aufbewahren, bevor sie automatisch gelöscht werden.",
     "keepBackupNote_other": "Backups {{count}} Tage lang aufbewahren, bevor sie automatisch gelöscht werden.",
+    "full": {
+      "title": "Vollbackups",
+      "term": "Vollbackups",
+      "help": "Wenn mehrere Zeitpläne gleichzeitig fällig sind, läuft der Job nur einmal: Ein aktives Vollbackup hat Vorrang vor einem synthetischen, ein synthetisches vor dem regulären Backup. Solange der Job deaktiviert ist, laufen auch diese Zeitpläne nicht.",
+      "description": "Jedes Vollbackup beginnt eine neue Sicherungskette. Die Aufbewahrung kann eine alte Kette erst löschen, wenn ein neueres Vollbackup existiert. Ein Job mit Aufbewahrung braucht daher mindestens einen dieser Zeitpläne.",
+      "active": "Aktives Vollbackup",
+      "activeHint": "Liest die VMs erneut vollständig. Dauert am längsten, und die neue Kette hängt nicht von früheren Backups ab.",
+      "synthetic": "Synthetisches Vollbackup",
+      "syntheticHint": "Erstellt ein inkrementelles Backup und führt die Kette dann im Repository zu einem neuen Vollbackup zusammen, ohne die ganze VM erneut zu lesen.",
+      "monthly": "Monatlich",
+      "onDays": "An Tagen",
+      "dayOfMonth": "Tag des Monats",
+      "lastDayNote": "In Monaten ohne Tag {{day}} läuft es am letzten Tag des Monats.",
+      "customNote": "Dieser Zeitplan wurde außerhalb der Konsole festgelegt. Beim Speichern bleibt er unverändert, sofern Sie keinen anderen wählen.",
+      "keptWhenOff": "Aus. Der Job behält die Einstellungen ({{schedule}}) für das erneute Einschalten.",
+      "syntheticUnsupported": "{{repository}} kann keine Sicherungsketten zusammenführen, daher läuft jedes synthetische Vollbackup stattdessen als aktives Vollbackup.",
+      "errors": {
+        "required": "Die Aufbewahrung ist festgelegt. Schalten Sie daher mindestens einen Vollbackup-Zeitplan ein (aktiv oder synthetisch).",
+        "activeDays": "Wählen Sie mindestens einen Tag für das aktive Vollbackup.",
+        "syntheticDays": "Wählen Sie mindestens einen Tag für das synthetische Vollbackup."
+      }
+    },
     "advanced": "Erweiterte Einstellungen",
     "advancedHint": "(Standardwerte werden angewendet)",
     "opt": {

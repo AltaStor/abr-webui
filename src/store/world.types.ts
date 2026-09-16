@@ -19,6 +19,7 @@ import type {
   CreateEnvironmentInput,
   CreateRepositoryInput,
   Environment,
+  FullBackupSchedule,
   Host,
   ImmutabilityEffect,
   JobOptions,
@@ -185,6 +186,9 @@ export interface CreateJobInput {
   scopeSummary: string;
   repositoryId: string;
   schedule: Schedule;
+  /** Backup jobs only. Omitted or null: the job has no such schedule. */
+  activeFullSchedule?: FullBackupSchedule | null;
+  syntheticFullSchedule?: FullBackupSchedule | null;
   retention: Retention;
   options: JobOptions;
   accent: AccentKey;

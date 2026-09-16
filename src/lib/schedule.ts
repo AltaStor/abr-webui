@@ -2,7 +2,7 @@
 // Copyright © 2026 Norvitex OÜ
 
 import { addDays, format, isBefore, startOfDay } from "date-fns";
-import type { Schedule } from "@/types";
+import type { FullBackupSchedule, Schedule } from "@/types";
 
 /**
  * Schedule projection — turns a job's {@link Schedule} into concrete run
@@ -85,6 +85,49 @@ export function upcomingRuns(schedule: Schedule, from: Date, count = 5, maxDays 
     cursor = addDays(cursor, 1);
   }
   return out;
+}
+
+/** Whether a daily/weekly/monthly full schedule fires on the calendar day `day`. */
+function fullRunsOnDay(schedule: FullBackupSchedule, day: Date): boolean {
+  switch (schedule.frequency) {
+    case "weekly":
+      return (schedule.daysOfWeek ?? []).includes(day.getDay());
+    case "monthly": {
+      // The appliance runs a day the month doesn't have (31 in April) on the
+      // month's last day instead of skipping the month.
+      const lastDay = new Date(day.getFullYear(), day.getMonth() + 1, 0).getDate();
+      return day.getDate() === Math.min(schedule.dayOfMonth ?? 1, lastDay);
+    }
+    default:
+      return true;
+  }
+}
+
+/**
+ * The next time a full backup schedule fires after `from`, or null when it is
+ * suspended or can't be projected (cron). Like `runsOnDay`, this only
+ * illustrates the schedule. The appliance's own `*_full_next_run_at` is the
+ * real value.
+ */
+export function nextFullBackupRun(schedule: FullBackupSchedule, from: Date): Date | null {
+  if (!schedule.enabled) return null;
+  switch (schedule.frequency) {
+    case "cron":
+      return null;
+    case "periodic":
+      return new Date(from.getTime() + Math.max(1, schedule.everyMinutes ?? 60) * 60_000);
+    default: {
+      const [h, m] = parseTime(schedule.atTime, "00:00");
+      // Two months covers the widest gap a monthly schedule can have.
+      for (let i = 0, day = startOfDay(from); i <= 62; i++, day = addDays(day, 1)) {
+        if (!fullRunsOnDay(schedule, day)) continue;
+        const run = new Date(day);
+        run.setHours(h, m, 0, 0);
+        if (isBefore(from, run)) return run;
+      }
+      return null;
+    }
+  }
 }
 
 /** Stable local-day key ("yyyy-MM-dd") for bucketing events into calendar cells. */

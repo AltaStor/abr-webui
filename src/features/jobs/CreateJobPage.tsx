@@ -6,10 +6,12 @@ import { useTranslation, Trans } from "react-i18next";
 import { Navigate, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import {
+  AlertTriangle,
   CalendarDays,
   ChevronDown,
   Clock,
   Database,
+  DatabaseBackup,
   Globe,
   HelpCircle,
   Repeat,
@@ -17,7 +19,7 @@ import {
   Sliders,
 } from "@/lib/icons";
 import { PageHeader } from "@/components/PageHeader";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -35,12 +37,13 @@ import { Hint } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { formatStorage } from "@/lib/format";
 import { PLATFORM_META } from "@/lib/platform";
-import { apiErrorMessage } from "@/services/api.http";
+import { repositorySupportsSyntheticFull } from "@/lib/synthetic-full";
+import { apiErrorMessage, fullScheduleKey } from "@/services/api.http";
 import { useWorldStore, type CreateJobInput } from "@/store/world";
 import { REPO_TYPE_META } from "@/features/repositories/components/repoMeta";
-import type { BackupJob, JobOptions, Schedule } from "@/types";
+import type { BackupJob, FullBackupSchedule, JobOptions, Schedule } from "@/types";
 import i18n from "@/i18n";
-import { pickAccent, retentionLabel, scheduleLabel } from "./lib";
+import { fullScheduleLabel, pickAccent, retentionLabel, scheduleLabel } from "./lib";
 import { ScopePicker } from "./components/ScopePicker";
 import { JobSummaryPanel, type SummaryData } from "./components/JobSummaryPanel";
 
@@ -80,12 +83,72 @@ function uniqueJobName(base: string, taken: Set<string>): string {
   return base;
 }
 
+/**
+ * The wizard's copy of one full backup schedule. `on` is the toggle. The other
+ * fields are kept while it is off, so switching it back on restores them.
+ */
+interface FullScheduleForm {
+  on: boolean;
+  frequency: FullBackupSchedule["frequency"];
+  atTime: string;
+  daysOfWeek: number[];
+  dayOfMonth: number;
+  /** Periodic/cron settings the job came with (CLI only), carried through. */
+  everyMinutes?: number;
+  cron?: string;
+  timezone?: string;
+}
+
+type FullScheduleDefaults = Pick<FullScheduleForm, "on" | "frequency" | "atTime" | "daysOfWeek" | "dayOfMonth">;
+
+const DAYS_OF_MONTH = Array.from({ length: 31 }, (_, i) => i + 1);
+
+/** Seed the form from the job's stored schedule, or from `defaults` when it has none. */
+function fullScheduleForm(
+  stored: FullBackupSchedule | null | undefined,
+  defaults: FullScheduleDefaults,
+): FullScheduleForm {
+  if (!stored) return { ...defaults };
+  return {
+    on: stored.enabled,
+    frequency: stored.frequency,
+    atTime: stored.atTime ?? defaults.atTime,
+    daysOfWeek: stored.daysOfWeek?.length ? stored.daysOfWeek : defaults.daysOfWeek,
+    dayOfMonth: stored.dayOfMonth ?? defaults.dayOfMonth,
+    everyMinutes: stored.everyMinutes,
+    cron: stored.cron,
+    timezone: stored.timezone,
+  };
+}
+
+/** The schedule a form describes. Only the fields its frequency uses are kept,
+ *  since the appliance refuses, for example, weekdays on a monthly schedule. */
+function toFullSchedule(f: FullScheduleForm, enabled: boolean): FullBackupSchedule {
+  const base = { frequency: f.frequency, enabled, timezone: f.timezone };
+  switch (f.frequency) {
+    case "weekly":
+      return { ...base, atTime: f.atTime, daysOfWeek: [...f.daysOfWeek].sort((a, b) => a - b) };
+    case "monthly":
+      return { ...base, atTime: f.atTime, dayOfMonth: f.dayOfMonth };
+    case "periodic":
+      return { ...base, everyMinutes: f.everyMinutes };
+    case "cron":
+      return { ...base, cron: f.cron };
+    case "daily":
+    default:
+      return { ...base, atTime: f.atTime };
+  }
+}
+
 interface FormState {
   name: string;
   preset: Preset;
   atTime: string;
   dayOfWeek: number;
   keepDays: number;
+  /** Backup jobs only: full backups on their own schedules, next to `preset`. */
+  activeFull: FullScheduleForm;
+  syntheticFull: FullScheduleForm;
   repositoryId: string;
   options: JobOptions;
   gfsWeekly: number;
@@ -198,13 +261,35 @@ function JobWizard({
 
   // ----- initial state (prefill in edit mode, smart defaults for create) -----
   const [form, setForm] = useState<FormState>(() => {
+    // Full backups default to the job's own run time. A full that falls due
+    // together with the regular backup replaces that run instead of adding one.
+    const atTime = existingJob?.schedule.atTime ?? "22:00";
+    // A new job starts with a weekly synthetic full. It is the cheaper kind,
+    // and a job with retention needs at least one full schedule. A job being
+    // edited starts from what it has, so no schedule is switched on for it.
+    const activeDefaults: FullScheduleDefaults = {
+      on: false,
+      frequency: "monthly",
+      atTime,
+      daysOfWeek: [0],
+      dayOfMonth: 1,
+    };
+    const syntheticDefaults: FullScheduleDefaults = {
+      on: !existingJob,
+      frequency: "weekly",
+      atTime,
+      daysOfWeek: [0],
+      dayOfMonth: 1,
+    };
     if (existingJob) {
       return {
         name: existingJob.name,
         preset: scheduleToPreset(existingJob.schedule),
-        atTime: existingJob.schedule.atTime ?? "22:00",
+        atTime,
         dayOfWeek: existingJob.schedule.daysOfWeek?.[0] ?? 0,
         keepDays: existingJob.retention.keepDays,
+        activeFull: fullScheduleForm(existingJob.activeFullSchedule, activeDefaults),
+        syntheticFull: fullScheduleForm(existingJob.syntheticFullSchedule, syntheticDefaults),
         repositoryId: existingJob.repositoryId,
         options: { ...existingJob.options },
         gfsWeekly: existingJob.retention.gfs?.weekly ?? 0,
@@ -221,9 +306,11 @@ function JobWizard({
       // until the user types one of their own.
       name: "",
       preset: "daily",
-      atTime: "22:00",
+      atTime,
       dayOfWeek: 0,
       keepDays: 14,
+      activeFull: activeDefaults,
+      syntheticFull: syntheticDefaults,
       repositoryId: "repo-immutable",
       options: { appAware: true, encryption: false, compression: 3, dedup: true },
       gfsWeekly: 0,
@@ -346,10 +433,47 @@ function JobWizard({
   if (isReplication && !form.targetEnvironmentId) errors.push(t("create.errors.targetEnv"));
   if (!isReplication && !repository) errors.push(t("create.errors.repository"));
 
+  // Full backup schedules belong to backup jobs. A backup-copy job copies its
+  // source's schedules, and the appliance doesn't check them on copy jobs.
+  const hasFullSchedules = !isReplication && existingJob?.type !== "backup-copy";
+  // Retention can only delete a chain once a newer full has started the next
+  // one. With retention set, a job that only takes incrementals would keep a
+  // chain that is never deleted, so the appliance refuses it
+  // (`_ensure_full_backup_schedule`).
+  const retentionSet = form.keepDays > 0;
+  const fullScheduleMissing =
+    hasFullSchedules && retentionSet && !form.activeFull.on && !form.syntheticFull.on;
+  if (hasFullSchedules) {
+    if (form.activeFull.on && form.activeFull.frequency === "weekly" && !form.activeFull.daysOfWeek.length)
+      errors.push(t("create.full.errors.activeDays"));
+    if (form.syntheticFull.on && form.syntheticFull.frequency === "weekly" && !form.syntheticFull.daysOfWeek.length)
+      errors.push(t("create.full.errors.syntheticDays"));
+    if (fullScheduleMissing) errors.push(t("create.full.errors.required"));
+  }
+
   /** Whether any GFS count is set at all — an "active" policy with every count
    *  at zero archives nothing, and the switch's hint says so rather than
    *  implying long-term copies are being kept. */
   const gfsConfigured = Boolean(form.gfsWeekly || form.gfsMonthly || form.gfsYearly);
+
+  /**
+   * What to send for one full schedule. undefined leaves the job's schedule
+   * as it is.
+   *
+   * Switching a schedule off suspends a schedule the job already has, which
+   * keeps its settings (as the GFS switch does). A schedule the job never had
+   * stays absent. On edit, only a schedule that changed is sent: the appliance
+   * recalculates the next run of every schedule it receives.
+   */
+  const fullScheduleInput = (
+    f: FullScheduleForm,
+    stored: FullBackupSchedule | null | undefined,
+  ): FullBackupSchedule | null | undefined => {
+    if (!hasFullSchedules) return undefined;
+    const desired = f.on ? toFullSchedule(f, true) : stored ? toFullSchedule(f, false) : null;
+    if (!editMode) return desired;
+    return fullScheduleKey(desired) === fullScheduleKey(stored) ? undefined : desired;
+  };
 
   const buildInput = (runNow: boolean): CreateJobInput => {
     const ids = [...selected];
@@ -385,6 +509,8 @@ function JobWizard({
       scopeSummary,
       repositoryId,
       schedule,
+      activeFullSchedule: fullScheduleInput(form.activeFull, existingJob?.activeFullSchedule),
+      syntheticFullSchedule: fullScheduleInput(form.syntheticFull, existingJob?.syntheticFullSchedule),
       retention: { keepDays: form.keepDays, gfs },
       options: form.options,
       accent: existingJob?.accent ?? pickAccent(jobCount),
@@ -410,6 +536,12 @@ function JobWizard({
           scopeSummary: input.scopeSummary,
           repositoryId: input.repositoryId,
           schedule: input.schedule,
+          // Left out when unchanged: the sim driver spreads the patch over the
+          // job, so an explicit undefined would wipe the stored schedule.
+          ...(input.activeFullSchedule !== undefined ? { activeFullSchedule: input.activeFullSchedule } : {}),
+          ...(input.syntheticFullSchedule !== undefined
+            ? { syntheticFullSchedule: input.syntheticFullSchedule }
+            : {}),
           retention: input.retention,
           options: input.options,
           ...(isReplication ? { replicaTarget: input.replicaTarget } : {}),
@@ -463,6 +595,12 @@ function JobWizard({
               : undefined,
         }),
     firstRunLabel: firstRunLabel(form),
+    fullBackups: hasFullSchedules
+      ? {
+          active: fullScheduleLabel(form.activeFull.on ? toFullSchedule(form.activeFull, true) : null),
+          synthetic: fullScheduleLabel(form.syntheticFull.on ? toFullSchedule(form.syntheticFull, true) : null),
+        }
+      : undefined,
     errors,
     replication: isReplication
       ? {
@@ -740,6 +878,54 @@ function JobWizard({
               )}
             </CardContent>
           </Card>
+
+          {/* Full backups — optional schedules of their own, next to the one above */}
+          {hasFullSchedules && (
+            <Card>
+              <CardHeader className="pb-3">
+                <div className="flex items-center gap-2">
+                  <CardTitle className="flex items-center gap-2 text-base">
+                    <DatabaseBackup className="h-4 w-4 text-muted-foreground" />
+                    {t("create.full.title")}
+                  </CardTitle>
+                  <HelpHint term={t("create.full.term")} label={t("create.full.help")} />
+                </div>
+                <CardDescription className="text-xs">{t("create.full.description")}</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3 pt-0">
+                <FullScheduleEditor
+                  id="active-full"
+                  title={t("create.full.active")}
+                  hint={t("create.full.activeHint")}
+                  value={form.activeFull}
+                  stored={existingJob?.activeFullSchedule}
+                  onChange={(v) => set("activeFull", v)}
+                />
+                <FullScheduleEditor
+                  id="synthetic-full"
+                  title={t("create.full.synthetic")}
+                  hint={t("create.full.syntheticHint")}
+                  value={form.syntheticFull}
+                  stored={existingJob?.syntheticFullSchedule}
+                  onChange={(v) => set("syntheticFull", v)}
+                  // The appliance runs an active full instead when the
+                  // repository can't merge a chain. Say so here, before the
+                  // operator counts on the cheaper kind.
+                  note={
+                    repository && !repositorySupportsSyntheticFull(repository)
+                      ? t("create.full.syntheticUnsupported", { repository: repository.name })
+                      : undefined
+                  }
+                />
+                {fullScheduleMissing && (
+                  <p className="flex items-center gap-1.5 text-xs text-danger" role="alert">
+                    <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
+                    {t("create.full.errors.required")}
+                  </p>
+                )}
+              </CardContent>
+            </Card>
+          )}
 
           {/* Retention — days of backups to keep, OR recovery points on the replica */}
           <Card>
@@ -1019,6 +1205,168 @@ function ToggleRow({
       </span>
       <Switch checked={checked} onCheckedChange={onChange} aria-label={label} />
     </label>
+  );
+}
+
+/**
+ * One full backup schedule: a switch, and while it is on, the pattern it runs
+ * on. Daily, weekly and monthly can be edited. A periodic or cron schedule the
+ * job already has (set from the CLI) is offered as its own choice, so saving
+ * the job keeps it.
+ */
+function FullScheduleEditor({
+  id,
+  title,
+  hint,
+  value,
+  stored,
+  onChange,
+  note,
+}: {
+  id: string;
+  title: string;
+  hint: string;
+  value: FullScheduleForm;
+  /** The job's saved schedule, in edit mode. */
+  stored?: FullBackupSchedule | null;
+  onChange: (next: FullScheduleForm) => void;
+  /** A warning shown under the editor while the schedule is on. */
+  note?: string;
+}) {
+  const { t } = useTranslation("jobs");
+  const update = (patch: Partial<FullScheduleForm>) => onChange({ ...value, ...patch });
+
+  const custom =
+    stored && (stored.frequency === "periodic" || stored.frequency === "cron") ? stored : undefined;
+  const frequencies: { key: FullScheduleForm["frequency"]; label: string }[] = [
+    { key: "daily", label: t("create.preset.daily") },
+    { key: "weekly", label: t("create.preset.weekly") },
+    { key: "monthly", label: t("create.full.monthly") },
+    ...(custom ? [{ key: custom.frequency, label: fullScheduleLabel({ ...custom, enabled: true }) }] : []),
+  ];
+  const isCustom = value.frequency === "periodic" || value.frequency === "cron";
+
+  const toggleDay = (day: number) =>
+    update({
+      daysOfWeek: value.daysOfWeek.includes(day)
+        ? value.daysOfWeek.filter((d) => d !== day)
+        : [...value.daysOfWeek, day].sort((a, b) => a - b),
+    });
+
+  // Off, with settings the job keeps: say that they are kept, and what they are.
+  const offHint =
+    !value.on && stored ? t("create.full.keptWhenOff", { schedule: fullScheduleLabel(toFullSchedule(value, true)) }) : hint;
+
+  return (
+    <div className="border border-border bg-muted/20">
+      <label className="flex cursor-pointer items-start justify-between gap-3 p-3">
+        <span className="min-w-0">
+          <span className="block text-sm font-medium">{title}</span>
+          <span className="mt-0.5 block text-[11px] text-muted-foreground">{value.on ? hint : offHint}</span>
+        </span>
+        <Switch checked={value.on} onCheckedChange={(on) => update({ on })} aria-label={title} />
+      </label>
+      {value.on && (
+        <div className="space-y-3 border-t border-border p-3">
+          <div className="flex flex-wrap gap-2" role="group" aria-label={title}>
+            {frequencies.map((f) => (
+              <button
+                key={f.key}
+                type="button"
+                onClick={() =>
+                  // Picking the custom choice again restores what the job came with.
+                  update(
+                    f.key === "periodic" || f.key === "cron"
+                      ? { frequency: f.key, everyMinutes: custom?.everyMinutes, cron: custom?.cron }
+                      : { frequency: f.key },
+                  )
+                }
+                className={cn(
+                  "border px-3 py-1 text-sm font-medium transition-colors",
+                  value.frequency === f.key
+                    ? "border-primary/40 bg-primary/15 text-primary"
+                    : "border-border text-muted-foreground hover:text-foreground",
+                )}
+                aria-pressed={value.frequency === f.key}
+              >
+                {f.label}
+              </button>
+            ))}
+          </div>
+
+          {isCustom ? (
+            <p className="text-[11px] text-muted-foreground">{t("create.full.customNote")}</p>
+          ) : (
+            <div className="flex flex-wrap items-end gap-3">
+              <div className="space-y-1.5">
+                <Label htmlFor={`${id}-time`}>{t("create.atTime")}</Label>
+                <TimeField
+                  id={`${id}-time`}
+                  value={value.atTime}
+                  onChange={(v) => update({ atTime: v })}
+                  className="w-36"
+                />
+              </div>
+              {value.frequency === "weekly" && (
+                <div className="space-y-1.5">
+                  <Label>{t("create.full.onDays")}</Label>
+                  <div className="flex flex-wrap gap-1">
+                    {DAY_KEYS.map((d, i) => (
+                      <button
+                        key={d}
+                        type="button"
+                        onClick={() => toggleDay(i)}
+                        className={cn(
+                          "h-9 w-10 border font-display text-xs font-medium transition-colors",
+                          value.daysOfWeek.includes(i)
+                            ? "border-primary/40 bg-primary/15 text-primary"
+                            : "border-border text-muted-foreground hover:text-foreground",
+                        )}
+                        aria-pressed={value.daysOfWeek.includes(i)}
+                      >
+                        {t(`days.short.${d}`)}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {value.frequency === "monthly" && (
+                <div className="space-y-1.5">
+                  <Label htmlFor={`${id}-day`}>{t("create.full.dayOfMonth")}</Label>
+                  <Select
+                    value={String(value.dayOfMonth)}
+                    onValueChange={(v) => update({ dayOfMonth: Number(v) })}
+                  >
+                    <SelectTrigger id={`${id}-day`} className="w-24">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {DAYS_OF_MONTH.map((d) => (
+                        <SelectItem key={d} value={String(d)}>
+                          {d}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+            </div>
+          )}
+
+          {!isCustom && value.frequency === "monthly" && value.dayOfMonth > 28 && (
+            <p className="text-[11px] text-muted-foreground">
+              {t("create.full.lastDayNote", { day: value.dayOfMonth })}
+            </p>
+          )}
+          {note && (
+            <p className="flex items-start gap-1.5 text-[11px] text-warning-text">
+              <AlertTriangle className="mt-px h-3.5 w-3.5 shrink-0" />
+              {note}
+            </p>
+          )}
+        </div>
+      )}
+    </div>
   );
 }
 

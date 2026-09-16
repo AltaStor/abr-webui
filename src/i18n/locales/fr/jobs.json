@@ -27,6 +27,9 @@
     "customCron": "Personnalisé · {{cron}}",
     "custom": "Planification personnalisée",
     "daily": "Quotidien · {{time}}",
+    "monthly": "Mensuel · jour {{day}} {{time}}",
+    "everyMinutes_one": "Toutes les {{count}} min",
+    "everyMinutes_other": "Toutes les {{count}} min",
     "legend": {
       "scheduled": "Planifié"
     },
@@ -50,6 +53,14 @@
     "days_other": "{{count}} jours",
     "withGfs": "{{base}} · GFS {{tail}}",
     "withGfsSuspended": "{{base}} · GFS {{tail}} (suspendu)"
+  },
+  "fullSchedule": {
+    "active": "Complète active",
+    "synthetic": "Complète synthétique",
+    "off": "Désactivée",
+    "suspended": "{{schedule}} (suspendue)",
+    "nextActive": "Prochaine complète active : {{when}}",
+    "nextSynthetic": "Prochaine complète synthétique : {{when}}"
   },
   "type": {
     "replication": "Réplication",
@@ -893,6 +904,28 @@
     "keepReplicaNote_other": "Conserver {{count}} points de récupération sur la réplique — des snapshots vers lesquels revenir avant un basculement.",
     "keepBackupNote_one": "Conserver les sauvegardes pendant {{count}} jour avant leur suppression automatique.",
     "keepBackupNote_other": "Conserver les sauvegardes pendant {{count}} jours avant leur suppression automatique.",
+    "full": {
+      "title": "Sauvegardes complètes",
+      "term": "sauvegardes complètes",
+      "help": "Si plusieurs planifications arrivent à échéance en même temps, la tâche ne s’exécute qu’une fois : une complète active l’emporte sur une complète synthétique, et une complète synthétique sur la sauvegarde habituelle. Tant que la tâche est désactivée, ces planifications ne s’exécutent pas non plus.",
+      "description": "Chaque sauvegarde complète démarre une nouvelle chaîne de sauvegarde. La rétention ne peut supprimer une ancienne chaîne qu’une fois qu’une complète plus récente existe : une tâche avec rétention a donc besoin d’au moins une de ces planifications.",
+      "active": "Sauvegarde complète active",
+      "activeHint": "Relit entièrement les VM. C’est la plus longue, et la nouvelle chaîne ne dépend pas des sauvegardes précédentes.",
+      "synthetic": "Sauvegarde complète synthétique",
+      "syntheticHint": "Effectue une sauvegarde incrémentielle, puis fusionne la chaîne en une nouvelle complète dans le référentiel, sans relire toute la VM.",
+      "monthly": "Mensuel",
+      "onDays": "Les jours",
+      "dayOfMonth": "Jour du mois",
+      "lastDayNote": "Les mois sans jour {{day}}, elle s’exécute le dernier jour du mois.",
+      "customNote": "Cette planification a été définie hors de la console. L’enregistrement la conserve telle quelle, sauf si vous en choisissez une autre.",
+      "keptWhenOff": "Désactivée. La tâche conserve ses paramètres ({{schedule}}) pour quand vous la réactiverez.",
+      "syntheticUnsupported": "{{repository}} ne peut pas fusionner les chaînes de sauvegarde : chaque complète synthétique s’exécute donc comme une complète active.",
+      "errors": {
+        "required": "La rétention est définie : activez au moins une planification de sauvegarde complète (active ou synthétique).",
+        "activeDays": "Choisissez au moins un jour pour la sauvegarde complète active.",
+        "syntheticDays": "Choisissez au moins un jour pour la sauvegarde complète synthétique."
+      }
+    },
     "advanced": "Paramètres avancés",
     "advancedHint": "(Valeurs par défaut appliquées)",
     "opt": {

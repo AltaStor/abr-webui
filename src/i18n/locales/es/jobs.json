@@ -27,6 +27,9 @@
     "customCron": "Personalizado · {{cron}}",
     "custom": "Programación personalizada",
     "daily": "Diario · {{time}}",
+    "monthly": "Mensual · día {{day}} {{time}}",
+    "everyMinutes_one": "Cada {{count}} min",
+    "everyMinutes_other": "Cada {{count}} min",
     "legend": {
       "scheduled": "Programado"
     },
@@ -50,6 +53,14 @@
     "days_other": "{{count}} días",
     "withGfs": "{{base}} · GFS {{tail}}",
     "withGfsSuspended": "{{base}} · GFS {{tail}} (suspendido)"
+  },
+  "fullSchedule": {
+    "active": "Completo activo",
+    "synthetic": "Completo sintético",
+    "off": "Desactivado",
+    "suspended": "{{schedule}} (suspendido)",
+    "nextActive": "Próximo completo activo: {{when}}",
+    "nextSynthetic": "Próximo completo sintético: {{when}}"
   },
   "type": {
     "replication": "Replicación",
@@ -893,6 +904,28 @@
     "keepReplicaNote_other": "Conservar {{count}} puntos de recuperación en la réplica: snapshots a los que puedes revertir antes de la conmutación por error.",
     "keepBackupNote_one": "Conservar las copias de seguridad durante {{count}} día antes de que se eliminen automáticamente.",
     "keepBackupNote_other": "Conservar las copias de seguridad durante {{count}} días antes de que se eliminen automáticamente.",
+    "full": {
+      "title": "Copias completas",
+      "term": "copias completas",
+      "help": "Si varias programaciones coinciden a la misma hora, el trabajo se ejecuta una sola vez: un completo activo tiene prioridad sobre uno sintético, y uno sintético sobre la copia habitual. Mientras el trabajo está deshabilitado, estas programaciones tampoco se ejecutan.",
+      "description": "Cada copia completa inicia una nueva cadena de copias. La retención solo puede eliminar una cadena antigua cuando ya existe una copia completa más reciente, así que un trabajo con retención necesita al menos una de estas programaciones.",
+      "active": "Copia completa activa",
+      "activeHint": "Vuelve a leer las VM por completo. Es la que más tarda, y la nueva cadena no depende de copias anteriores.",
+      "synthetic": "Copia completa sintética",
+      "syntheticHint": "Hace una copia incremental y después fusiona la cadena en una nueva copia completa dentro del repositorio, sin volver a leer la VM entera.",
+      "monthly": "Mensual",
+      "onDays": "Los días",
+      "dayOfMonth": "Día del mes",
+      "lastDayNote": "En los meses sin día {{day}}, se ejecuta el último día del mes.",
+      "customNote": "Esta programación se configuró fuera de la consola. Al guardar se mantiene tal cual, salvo que elijas otra.",
+      "keptWhenOff": "Desactivada. El trabajo conserva su configuración ({{schedule}}) para cuando la vuelvas a activar.",
+      "syntheticUnsupported": "{{repository}} no puede fusionar cadenas de copias, así que cada completo sintético se ejecuta como completo activo.",
+      "errors": {
+        "required": "La retención está definida, así que activa al menos una programación de copia completa (activa o sintética).",
+        "activeDays": "Elige al menos un día para la copia completa activa.",
+        "syntheticDays": "Elige al menos un día para la copia completa sintética."
+      }
+    },
     "advanced": "Configuración avanzada",
     "advancedHint": "(Se aplican valores predeterminados)",
     "opt": {

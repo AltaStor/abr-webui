@@ -7,6 +7,7 @@ import {
   Clock,
   CopyPlus,
   Database,
+  DatabaseBackup,
   Globe,
   Layers,
   Play,
@@ -43,6 +44,8 @@ export interface SummaryData {
   scheduleLabel: string;
   retentionLabel: string;
   firstRunLabel: string;
+  /** Labels of the active/synthetic full schedules. Backup jobs only. */
+  fullBackups?: { active: string; synthetic: string };
   errors: string[];
   /** When set, the panel recaps a replication target instead of a repository. */
   replication?: SummaryReplication;
@@ -95,6 +98,17 @@ export function JobSummaryPanel({ data, editMode, submitting, onCreate, onCreate
         <Row icon={Clock} label={t("summary.schedule")}>
           <span className="font-medium">{data.scheduleLabel}</span>
         </Row>
+
+        {data.fullBackups && (
+          <>
+            <Row icon={DatabaseBackup} label={t("fullSchedule.active")}>
+              <span className="font-medium">{data.fullBackups.active}</span>
+            </Row>
+            <Row icon={Layers} label={t("fullSchedule.synthetic")}>
+              <span className="font-medium">{data.fullBackups.synthetic}</span>
+            </Row>
+          </>
+        )}
 
         <Row icon={Play} label={t("summary.firstRun")}>
           <span className="font-medium">{data.firstRunLabel}</span>

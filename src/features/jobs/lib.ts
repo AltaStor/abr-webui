@@ -7,7 +7,7 @@ import {
   HardDriveDownload,
   type LucideIcon,
 } from "@/lib/icons";
-import type { AccentKey, JobType, Retention, Schedule } from "@/types";
+import type { AccentKey, FullBackupSchedule, JobType, Retention, Schedule } from "@/types";
 import i18n from "@/i18n";
 
 const DAY_KEYS = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
@@ -40,6 +40,42 @@ export function scheduleLabel(schedule: Schedule, disabled = false): string {
     case "daily":
     default:
       return i18n.t("jobs:schedule.daily", { time: schedule.atTime ?? "22:00" });
+  }
+}
+
+/**
+ * Label for an active/synthetic full schedule: "Weekly · Sun, Wed 22:00",
+ * "Monthly · day 1 02:00", or "Off" when the job has none. A suspended
+ * schedule keeps its pattern, marked as suspended.
+ */
+export function fullScheduleLabel(schedule: FullBackupSchedule | null | undefined): string {
+  if (!schedule) return i18n.t("jobs:fullSchedule.off");
+  const pattern = fullSchedulePattern(schedule);
+  return schedule.enabled ? pattern : i18n.t("jobs:fullSchedule.suspended", { schedule: pattern });
+}
+
+function fullSchedulePattern(schedule: FullBackupSchedule): string {
+  const time = schedule.atTime ?? "00:00";
+  switch (schedule.frequency) {
+    case "weekly": {
+      const days = [...(schedule.daysOfWeek ?? [])].sort((a, b) => a - b);
+      return i18n.t("jobs:schedule.weekly", { day: days.map(dayShortLabel).join(", "), time });
+    }
+    case "monthly":
+      return i18n.t("jobs:schedule.monthly", { day: schedule.dayOfMonth ?? 1, time });
+    case "periodic": {
+      const minutes = schedule.everyMinutes ?? 60;
+      return minutes % 60 === 0
+        ? i18n.t("jobs:schedule.hourly", { count: minutes / 60 })
+        : i18n.t("jobs:schedule.everyMinutes", { count: minutes });
+    }
+    case "cron":
+      return schedule.cron
+        ? i18n.t("jobs:schedule.customCron", { cron: schedule.cron })
+        : i18n.t("jobs:schedule.custom");
+    case "daily":
+    default:
+      return i18n.t("jobs:schedule.daily", { time });
   }
 }
 

@@ -172,6 +172,8 @@ function toJobPatchPayload(patch: Partial<BackupJob>): Partial<api.CreateJobPayl
   if (patch.scopeSummary !== undefined) out.scopeSummary = patch.scopeSummary;
   if (patch.repositoryId !== undefined) out.repositoryId = patch.repositoryId;
   if (patch.schedule !== undefined) out.schedule = patch.schedule;
+  if (patch.activeFullSchedule !== undefined) out.activeFullSchedule = patch.activeFullSchedule;
+  if (patch.syntheticFullSchedule !== undefined) out.syntheticFullSchedule = patch.syntheticFullSchedule;
   if (patch.retention !== undefined) out.retention = patch.retention;
   if (patch.options !== undefined) out.options = patch.options;
   if (patch.accent !== undefined) out.accent = patch.accent;

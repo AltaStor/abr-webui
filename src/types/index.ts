@@ -104,6 +104,34 @@ export interface Schedule {
   cron?: string;
 }
 
+/**
+ * When a job takes a full backup instead of its usual incremental: the
+ * appliance's `active_full_schedule` / `synthetic_full_schedule`, which run
+ * alongside the job's base {@link Schedule}.
+ *
+ * A separate type from `Schedule` because the appliance gives these a monthly
+ * form and an `enabled` flag of their own. `enabled: false` suspends the
+ * schedule and keeps its settings for later. The console edits daily, weekly
+ * and monthly schedules. "periodic" and "cron" can only be set from the CLI,
+ * so the console shows them and sends them back unchanged.
+ */
+export interface FullBackupSchedule {
+  frequency: "daily" | "weekly" | "monthly" | "periodic" | "cron";
+  /** "HH:mm" 24h, for daily/weekly/monthly. */
+  atTime?: string;
+  /** 0 (Sun) – 6 (Sat), for weekly. May hold several days. */
+  daysOfWeek?: number[];
+  /** 1–31, for monthly. A month without that day runs on its last day. */
+  dayOfMonth?: number;
+  /** For periodic. */
+  everyMinutes?: number;
+  /** For cron. */
+  cron?: string;
+  enabled: boolean;
+  /** The timezone the appliance evaluates `atTime` in; absent means UTC. */
+  timezone?: string;
+}
+
 export interface Retention {
   /** Days of short-term backups to keep before they age out (sent to the API as `retention_days`). */
   keepDays: number;
@@ -152,6 +180,14 @@ export interface BackupJob {
   scopeSummary: string;
   repositoryId: string;
   schedule: Schedule;
+  /** Full backups that run on their own schedules alongside `schedule`
+   *  (backup jobs only). When several fall due at once, the appliance runs one
+   *  session and picks active full over synthetic full over incremental. */
+  activeFullSchedule?: FullBackupSchedule | null;
+  syntheticFullSchedule?: FullBackupSchedule | null;
+  /** Next firing of each full schedule. Null while the schedule or the job is off. */
+  activeFullNextRunAt?: string | null;
+  syntheticFullNextRunAt?: string | null;
   retention: Retention;
   options: JobOptions;
   state: JobRunState;

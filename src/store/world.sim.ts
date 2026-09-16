@@ -20,12 +20,14 @@ import {
   validateSyntheticFull,
 } from "@/lib/synthetic-full";
 import { formatDateTime, verifyRunName } from "@/lib/format";
+import { nextFullBackupRun } from "@/lib/schedule";
 import type {
   Alert,
   ApplyImmutabilityResult,
   BackupJob,
   Environment,
   EnvironmentType,
+  FullBackupSchedule,
   Host,
   Hypervisor,
   ImmutabilityEffect,
@@ -165,6 +167,11 @@ function computeNextRun(schedule: Schedule): string {
   next.setHours(h, m, 0, 0);
   if (next.getTime() <= now.getTime()) next.setDate(next.getDate() + 1);
   return next.toISOString();
+}
+
+/** A full schedule's next firing, as the appliance stamps `*_full_next_run_at`. */
+function fullNextRun(schedule: FullBackupSchedule | null | undefined): string | null {
+  return schedule ? (nextFullBackupRun(schedule, new Date())?.toISOString() ?? null) : null;
 }
 
 /* ------------------ restore placement (networks/datastores) ------------------
@@ -712,6 +719,10 @@ export function createSimDriver(handle: WorldHandle): WorldDriver {
         scopeSummary: input.scopeSummary,
         repositoryId: input.repositoryId,
         schedule: input.schedule,
+        activeFullSchedule: input.activeFullSchedule ?? null,
+        syntheticFullSchedule: input.syntheticFullSchedule ?? null,
+        activeFullNextRunAt: fullNextRun(input.activeFullSchedule),
+        syntheticFullNextRunAt: fullNextRun(input.syntheticFullSchedule),
         retention: input.retention,
         options: input.options,
         state: "idle",
@@ -750,6 +761,15 @@ export function createSimDriver(handle: WorldHandle): WorldDriver {
           if (j.id !== jobId) return j;
           const next = { ...j, ...patch };
           if (flippedOff) delete next.replicaTarget;
+          // Like the appliance, only a schedule that was sent gets a new next
+          // run, and a disabled job keeps none.
+          const live = next.state !== "disabled";
+          if (patch.activeFullSchedule !== undefined) {
+            next.activeFullNextRunAt = live ? fullNextRun(patch.activeFullSchedule) : null;
+          }
+          if (patch.syntheticFullSchedule !== undefined) {
+            next.syntheticFullNextRunAt = live ? fullNextRun(patch.syntheticFullSchedule) : null;
+          }
           return next;
         });
         return {
@@ -766,7 +786,16 @@ export function createSimDriver(handle: WorldHandle): WorldDriver {
     setJobEnabled: (jobId, enabled) => {
       handle.set((state) => ({
         jobs: state.jobs.map((j) =>
-          j.id === jobId ? { ...j, state: enabled ? "idle" : "disabled", nextRunAt: enabled ? computeNextRun(j.schedule) : null } : j,
+          j.id === jobId
+            ? {
+                ...j,
+                state: enabled ? "idle" : "disabled",
+                nextRunAt: enabled ? computeNextRun(j.schedule) : null,
+                // The full schedules ride along with the job's own switch.
+                activeFullNextRunAt: enabled ? fullNextRun(j.activeFullSchedule) : null,
+                syntheticFullNextRunAt: enabled ? fullNextRun(j.syntheticFullSchedule) : null,
+              }
+            : j,
         ),
         revision: state.revision + 1,
       }));
