@@ -689,7 +689,7 @@ export default function JobsPage() {
       <DeleteJobDialog
         open={bulkDeleteOpen}
         onOpenChange={setBulkDeleteOpen}
-        label=""
+        label={selectedJobs.length === 1 ? selectedJobs[0].name : ""}
         count={selectedIds.length}
         onConfirm={bulkDelete}
       />

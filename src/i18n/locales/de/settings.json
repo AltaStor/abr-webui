@@ -294,6 +294,24 @@
       "userRemoved": "Benutzer entfernt",
       "tokenPrefixCopied": "Token-Präfix kopiert",
       "tokenRevoked": "Token widerrufen"
+    },
+    "keyEscrow": {
+      "title": "Hinterlegung der Verschlüsselungsschlüssel",
+      "description": "Eine Kopie Ihrer Backup-Verschlüsselungsschlüssel, die diese Appliance überdauert.",
+      "warning": "Schlüssel für verschlüsselte Backups liegen nur im Katalog dieser Appliance. Geht der Katalog verloren, lassen sich diese Wiederherstellungspunkte nicht mehr entschlüsseln — obwohl die Daten im Repository unversehrt sind. Exportieren Sie regelmäßig und bewahren Sie das Archiv an einem anderen Ort auf.",
+      "passwordLabel": "Archivkennwort",
+      "passwordHint": "Mindestens {{count}} Zeichen. Es schützt als Einziges die Schlüssel und Anmeldedaten im Archiv.",
+      "confirmLabel": "Archivkennwort bestätigen",
+      "tooShort": "Verwenden Sie mindestens {{count}} Zeichen.",
+      "mismatch": "Die Kennwörter stimmen nicht überein.",
+      "submit": "Katalog exportieren",
+      "exporting": "Wird exportiert…",
+      "toast": {
+        "done": "Katalog exportiert",
+        "doneDescription": "{{jobs}} Jobs und {{backups}} Backups samt ihren Verschlüsselungsschlüsseln. Bewahren Sie das Archiv außerhalb dieser Appliance auf.",
+        "failed": "Katalog konnte nicht exportiert werden",
+        "failedDescription": "Die Appliance hat kein Archiv erzeugt. Versuchen Sie es gleich noch einmal."
+      }
     }
   },
   "about": {

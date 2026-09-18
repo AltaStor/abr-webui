@@ -292,7 +292,6 @@
     },
     "storageModeNote": "Deaktivieren Sie Dedup, wenn die Freigabe auf einer Dedup-Appliance/NAS liegt oder wenn schnellere Wiederherstellungen und geringere CPU-Last wichtiger sind als Platz.",
     "adding": "Wird hinzugefügt…",
-    "nameInvalid": "Bis zu 125 lateinische Buchstaben, Ziffern, Leerzeichen, Punkte, Unterstriche und Bindestriche; beginnen Sie mit einem Buchstaben oder einer Ziffer.",
     "s3": {
       "bucketLabel": "Bucket",
       "bucketRequired": "Geben Sie einen Bucket-Namen ein.",

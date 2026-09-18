@@ -12,6 +12,7 @@ import { EmptyState } from "@/components/EmptyState";
 import { HeaderHint } from "@/components/ui/tooltip";
 import { History } from "@/lib/icons";
 import { cn } from "@/lib/utils";
+import { syntheticFullFailureMessage } from "@/lib/synthetic-full";
 import { formatDateTime, formatDuration, formatStorage } from "@/lib/format";
 import { SESSION_META } from "@/lib/status";
 import type { Session, VmRunResult } from "@/types";
@@ -79,6 +80,13 @@ export function RunHistoryTable({ sessions }: { sessions: Session[] }) {
           <tbody>
             {sessions.map((s) => {
               const isOpen = expanded === s.id;
+              // A failed merge is explained in the console's own words — the
+              // same sentence the manual-run dialog and the Activity drawer
+              // show. Anything else keeps the appliance's own line.
+              const failedSynthetic = Boolean(s.synthetic) && s.status === "failed";
+              const resultMessage = failedSynthetic
+                ? syntheticFullFailureMessage(s.message ?? "")
+                : s.message;
               return (
                 <Fragment key={s.id}>
                   <tr
@@ -136,8 +144,15 @@ export function RunHistoryTable({ sessions }: { sessions: Session[] }) {
                             className="overflow-hidden bg-muted/20"
                           >
                             <div className="px-4 py-3">
-                              {s.message && (
-                                <p className="mb-2 text-xs text-muted-foreground">{s.message}</p>
+                              {resultMessage && (
+                                <p
+                                  className={cn(
+                                    "mb-2 text-xs",
+                                    failedSynthetic ? "text-danger-text" : "text-muted-foreground",
+                                  )}
+                                >
+                                  {resultMessage}
+                                </p>
                               )}
                               <div className="overflow-hidden border border-border">
                                 <table className="w-full text-xs">

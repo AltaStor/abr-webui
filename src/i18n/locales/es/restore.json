@@ -448,6 +448,21 @@
     "noSession": {
       "title": "La restauración no se inició",
       "desc": "La appliance aceptó la solicitud pero no indicó ninguna sesión de restauración, así que no hay nada en ejecución. Compruebe Actividad y vuelva a intentarlo."
+    },
+    "encryptionKeyUnavailable": {
+      "title": "AltaStor no tiene clave para esta copia",
+      "desc": "El punto de restauración está cifrado y no se pudo resolver ninguna clave para él: el trabajo que la guardaba se eliminó o su clave fue sustituida. Introduzca la clave con la que se escribió esta copia y vuelva a iniciar la restauración."
     }
+  },
+  "encryptionKey": {
+    "title": "Clave de cifrado",
+    "desc": "Este punto de restauración está cifrado. AltaStor lo descifrará con la clave que conserva para esta copia.",
+    "requiredDesc": "AltaStor no tiene clave para este punto de restauración: el trabajo que la guardaba ha desaparecido o su clave fue sustituida. Introduzca la clave con la que se escribió esta copia.",
+    "useAnother": "Usar otra clave",
+    "label": "Clave",
+    "placeholder": "La clave con la que se escribió esta copia",
+    "hint": "Déjelo vacío para usar la clave que AltaStor ya tiene. Una clave introducida aquí se usa solo para esta restauración: no se almacena.",
+    "show": "Mostrar clave",
+    "hide": "Ocultar clave"
   }
 }

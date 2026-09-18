@@ -220,6 +220,12 @@ export interface RestoreInput {
    *  destroys the live original once the replacement is fully written. Set
    *  once the wizard's typed-confirmation step is satisfied. */
   force?: boolean;
+  /** Decrypts this restore point with a key the operator supplies instead of
+   *  the one the catalog holds. Empty ⇒ the appliance resolves its own (the
+   *  point's key, then the source job's — `_resolve_restore_encryption_key`).
+   *  This is the path that survives a lost catalog: the data carries no key,
+   *  so a restore with the escrowed key is what recovers it. */
+  encryptionKey?: string;
 }
 
 export interface WorldState extends WorldData {

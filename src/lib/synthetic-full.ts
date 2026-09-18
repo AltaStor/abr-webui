@@ -31,7 +31,7 @@
 
 import i18n from "@/i18n";
 import { segmentChainPoints } from "@/lib/restore-points";
-import type { BackupJob, Repository, RestorePoint, Session } from "@/types";
+import type { BackupJob, FullBackupSchedule, Repository, RestorePoint, Session } from "@/types";
 
 /**
  * The chain a synthetic full would merge: one full backup and the incrementals
@@ -291,6 +291,65 @@ export function syntheticFullFailureKey(message: string): string | null {
   }
   if (/only a full backup with no incrementals/i.test(message)) return "noIncrementals";
   return null;
+}
+
+/**
+ * True when an active full is scheduled so that it always falls due alongside
+ * the synthetic full — which means the synthetic full never actually happens.
+ *
+ * The appliance resolves a tie between due schedules in favour of the more
+ * thorough kind (`active_overrides_synthetic`, in `job_effective_policy`), so
+ * "Active full: daily 02:00" + "Synthetic full: daily 02:00" is a legal job
+ * that quietly runs an active full every night and never merges anything. The
+ * operator gets an expensive full backup where they configured a cheap one, and
+ * nothing anywhere says so.
+ *
+ * Deliberately conservative: it answers true only where the overlap is total
+ * and certain. Two schedules that merely overlap sometimes (weekly Sunday
+ * against daily) are a real configuration, and periodic/cron schedules are not
+ * compared at all — a wrong warning on a working job is worse than none.
+ */
+export function syntheticFullAlwaysOverridden(
+  active: FullBackupSchedule | null | undefined,
+  synthetic: FullBackupSchedule | null | undefined,
+): boolean {
+  if (!active?.enabled || !synthetic?.enabled) return false;
+  if (active.frequency !== synthetic.frequency) return false;
+  if (active.atTime !== synthetic.atTime) return false;
+
+  switch (active.frequency) {
+    case "daily":
+      return true;
+    case "weekly": {
+      const activeDays = new Set(active.daysOfWeek ?? []);
+      const syntheticDays = synthetic.daysOfWeek ?? [];
+      // Every day the merge would run on is a day the active full takes.
+      return syntheticDays.length > 0 && syntheticDays.every((day) => activeDays.has(day));
+    }
+    case "monthly":
+      return active.dayOfMonth === synthetic.dayOfMonth;
+    default:
+      // periodic / cron — not comparable without evaluating the expressions.
+      return false;
+  }
+}
+
+/**
+ * A failed synthetic full's result, in the console's own words.
+ *
+ * `syntheticFullFailureKey` is the recognizer; this is the sentence, and it is
+ * here rather than in the dialog because a synthetic full fails in two places:
+ * the manual run an operator is watching, and a scheduled one they find
+ * afterwards in Activity or a job's run history. Both were reading the same
+ * appliance message; only one of them translated it.
+ *
+ * Falls back to the appliance's own sentence — always truer than a wrong guess
+ * — and to a generic line only when it said nothing at all.
+ */
+export function syntheticFullFailureMessage(message: string): string {
+  const key = syntheticFullFailureKey(message);
+  if (key) return i18n.t(`inventory:syntheticFull.failure.${key}`);
+  return message || i18n.t("inventory:syntheticFull.failure.generic");
 }
 
 /**

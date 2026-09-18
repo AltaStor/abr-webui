@@ -294,6 +294,24 @@
       "userRemoved": "User removed",
       "tokenPrefixCopied": "Token prefix copied",
       "tokenRevoked": "Token revoked"
+    },
+    "keyEscrow": {
+      "title": "Encryption key escrow",
+      "description": "A copy of your backup encryption keys that survives this appliance.",
+      "warning": "Keys for encrypted backups live only in this appliance's catalog. Lose the catalog and those restore points can't be decrypted — even though the data is safe in the repository. Export regularly and keep the archive somewhere else.",
+      "passwordLabel": "Archive password",
+      "passwordHint": "At least {{count}} characters. It's the only thing protecting the keys and credentials inside the archive.",
+      "confirmLabel": "Confirm archive password",
+      "tooShort": "Use at least {{count}} characters.",
+      "mismatch": "The passwords don't match.",
+      "submit": "Export catalog",
+      "exporting": "Exporting…",
+      "toast": {
+        "done": "Catalog exported",
+        "doneDescription": "{{jobs}} jobs and {{backups}} backups, with their encryption keys. Store it off this appliance.",
+        "failed": "Couldn't export the catalog",
+        "failedDescription": "The appliance didn't produce an archive. Try again in a moment."
+      }
     }
   },
   "about": {

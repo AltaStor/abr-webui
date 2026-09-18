@@ -150,10 +150,15 @@ export interface Retention {
 
 export interface JobOptions {
   appAware: boolean;
-  /** AES-256 at rest. The key is the appliance's to manage — it generates and
-   *  stores one when a job turns this on, so nothing here carries a
-   *  passphrase. */
+  /** AES-256 at rest. On its own this is all the appliance needs: a job that
+   *  turns encryption on without a key of its own gets a 256-bit one minted
+   *  server-side. */
   encryption: boolean;
+  /** An operator-supplied key, when they chose one over the generated default.
+   *  Write-only — the appliance never returns a stored key, so this is only
+   *  ever what the console is about to send, never what a job reports. Left
+   *  undefined to keep the appliance-managed key (see `optionsToTaskParams`). */
+  encryptionKey?: string;
   /** Zstd level 0 (fastest, no compression) – 9 (smallest, most CPU). Default 3. */
   compression: number;
   dedup: boolean;

@@ -116,12 +116,6 @@ export const REPO_COMPRESSION_META: Record<
 
 export const COMPRESSION_OPTIONS: CompressionMode[] = ["none", "optimal", "high"];
 
-/** Mirrors the API's repository-name validation (`_ensure_ascii_name` in
- *  abr_v41.py) so a bad name is caught before the round trip instead of
- *  surfacing as a generic rejection on submit. */
-export const REPOSITORY_NAME_MAX_LENGTH = 125;
-export const REPOSITORY_NAME_PATTERN = /^[A-Za-z0-9][A-Za-z0-9 ._-]*$/;
-
 /** A repository's Object Lock state as one short line, or null when there is
  *  nothing to say — a backend without Object Lock, or one that has it off.
  *  Same words on the card badge and in the detail dialog. */

@@ -46,6 +46,10 @@ export type RestoreRefusal =
   | "notEnoughSpace"
   /** The appliance does not implement the mode or option that was requested. */
   | "unsupported"
+  /** The point is encrypted and the appliance has no key for it — the job that
+   *  held it is gone, or its key was replaced. Only an escrowed key gets this
+   *  data back, which is why the wizard offers a field for one. */
+  | "encryptionKeyUnavailable"
   /** The appliance refused, for a reason the console has no bespoke sentence for. */
   | "rejected"
   /** The session is no longer accepted — the restore was never attempted. */
@@ -86,6 +90,7 @@ export const REFUSAL_BY_CODE: Record<string, RestoreRefusal> = {
   insufficient_datastore_space: "notEnoughSpace",
   restore_mode_unsupported: "unsupported",
   restore_option_unsupported: "unsupported",
+  encryption_key_unavailable: "encryptionKeyUnavailable",
   // Everything below is the appliance saying the request itself was wrong.
   // Its own message is the useful part, so they share the generic sentence
   // and carry the detail underneath rather than each inventing a diagnosis.

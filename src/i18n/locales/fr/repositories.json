@@ -292,7 +292,6 @@
     },
     "storageModeNote": "Désactivez la déduplication lorsque le partage est sur une appliance/un NAS de déduplication, ou lorsque des restaurations plus rapides et une charge CPU réduite comptent plus que l'espace.",
     "adding": "Ajout en cours…",
-    "nameInvalid": "Jusqu’à 125 lettres latines, chiffres, espaces, points, traits de soulignement et tirets ; commencez par une lettre ou un chiffre.",
     "s3": {
       "bucketLabel": "Bucket",
       "bucketRequired": "Saisissez un nom de bucket.",

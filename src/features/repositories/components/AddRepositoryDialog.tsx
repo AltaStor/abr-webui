@@ -30,7 +30,12 @@ import { cn } from "@/lib/utils";
 import { formatStorage } from "@/lib/format";
 import { useWorldStore } from "@/store/world";
 import type { ImmutabilityEffect, RepositoryType, S3ConnectionCheck, S3ConnectionTestResult } from "@/types";
-import { REPO_TYPE_META, REPOSITORY_NAME_MAX_LENGTH, REPOSITORY_NAME_PATTERN } from "./repoMeta";
+import {
+  RESOURCE_NAME_MAX_LENGTH,
+  resourceNameErrorKey,
+  resourceNameProblem,
+} from "@/lib/resource-name";
+import { REPO_TYPE_META } from "./repoMeta";
 import { ImmutabilityFields } from "./ImmutabilityFields";
 import { ValidationResultPanel } from "./ValidationResultPanel";
 import {
@@ -81,6 +86,7 @@ function isHttpUrl(value: string): boolean {
 
 export function AddRepositoryDialog() {
   const { t } = useTranslation("repositories");
+  const { t: tCommon } = useTranslation("common");
   const createRepository = useWorldStore((s) => s.createRepository);
   const testS3Connection = useWorldStore((s) => s.testS3Connection);
   const [open, setOpen] = useState(false);
@@ -137,10 +143,14 @@ export function AddRepositoryDialog() {
     Boolean(touched[field]) && !valid;
   const lockDaysOk = draftValid(lock);
   const immutability = draftToImmutability(lock);
-  const nameTrimmed = name.trim();
-  const nameValid =
-    nameTrimmed === "" ||
-    (nameTrimmed.length <= REPOSITORY_NAME_MAX_LENGTH && REPOSITORY_NAME_PATTERN.test(nameTrimmed));
+  // The name is optional here — blank falls back to `add.defaultName` — so an
+  // empty field is not an error. Everything else is checked as typed, never on
+  // a trimmed copy: the API refuses a name with surrounding whitespace, so
+  // trimming it here would create a repository under a name the operator never
+  // entered. See src/lib/resource-name.ts.
+  const nameProblem = name === "" ? null : resourceNameProblem(name);
+  const nameErrorKey = resourceNameErrorKey(nameProblem);
+  const nameValid = nameProblem === null;
   // Mirrors the orchestrator's own S3 validation (_validate_s3_configuration):
   // bucket and region are demanded outright, the access key and secret must
   // arrive as a pair, and the endpoint is optional but must parse as an http(s)
@@ -209,7 +219,7 @@ export function AddRepositoryDialog() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!canSubmit) return;
-    const label = name.trim() || t("add.defaultName");
+    const label = name || t("add.defaultName");
     setSubmitting(true);
     setCreateError(null);
     const result = await createRepository({
@@ -301,12 +311,12 @@ export function AddRepositoryDialog() {
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder={t("add.namePlaceholder")}
-              maxLength={REPOSITORY_NAME_MAX_LENGTH}
+              maxLength={RESOURCE_NAME_MAX_LENGTH}
               aria-invalid={!nameValid}
               className={cn(!nameValid && "border-danger")}
               autoFocus
             />
-            {!nameValid && <p className="text-xs text-danger">{t("add.nameInvalid")}</p>}
+            {nameErrorKey && <p className="text-xs text-danger">{tCommon(nameErrorKey)}</p>}
           </div>
 
           <div className="space-y-1.5">

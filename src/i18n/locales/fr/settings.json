@@ -294,6 +294,24 @@
       "userRemoved": "Utilisateur supprimé",
       "tokenPrefixCopied": "Préfixe du jeton copié",
       "tokenRevoked": "Jeton révoqué"
+    },
+    "keyEscrow": {
+      "title": "Séquestre des clés de chiffrement",
+      "description": "Une copie de vos clés de chiffrement de sauvegarde qui survit à cette appliance.",
+      "warning": "Les clés des sauvegardes chiffrées n’existent que dans le catalogue de cette appliance. Si le catalogue est perdu, ces points de restauration ne peuvent plus être déchiffrés — alors même que les données sont intactes dans le référentiel. Exportez régulièrement et conservez l’archive ailleurs.",
+      "passwordLabel": "Mot de passe de l’archive",
+      "passwordHint": "Au moins {{count}} caractères. C’est la seule chose qui protège les clés et les identifiants contenus dans l’archive.",
+      "confirmLabel": "Confirmer le mot de passe de l’archive",
+      "tooShort": "Utilisez au moins {{count}} caractères.",
+      "mismatch": "Les mots de passe ne correspondent pas.",
+      "submit": "Exporter le catalogue",
+      "exporting": "Exportation…",
+      "toast": {
+        "done": "Catalogue exporté",
+        "doneDescription": "{{jobs}} tâches et {{backups}} sauvegardes, avec leurs clés de chiffrement. Conservez l’archive hors de cette appliance.",
+        "failed": "Impossible d’exporter le catalogue",
+        "failedDescription": "L’appliance n’a produit aucune archive. Réessayez dans un instant."
+      }
     }
   },
   "about": {

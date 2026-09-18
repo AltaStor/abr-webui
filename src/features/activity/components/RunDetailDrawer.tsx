@@ -25,7 +25,9 @@ import { LogViewer } from "@/components/LogViewer";
 import { CancelRunButton } from "@/components/CancelRunButton";
 import { EmptyState } from "@/components/EmptyState";
 import { Inbox } from "@/lib/icons";
+import { cn } from "@/lib/utils";
 import { SESSION_META } from "@/lib/status";
+import { syntheticFullFailureMessage } from "@/lib/synthetic-full";
 import { formatDateTime, formatDuration, formatStorage, formatThroughput } from "@/lib/format";
 import { useWorldStore } from "@/store/world";
 import { getSessionLog } from "@/services/api.http";
@@ -121,6 +123,10 @@ function RunDetail({ session: s, jobExists, onClose }: { session: Session; jobEx
   // hidden rather than printed as a zero the operator has to interpret.
   const verify = isVerify(s);
   const KindIcon = runKindIcon(s);
+  // A merge that failed has a cause the console can usually name outright; a
+  // run that succeeded, or failed any other way, keeps the appliance's line.
+  const failedSynthetic = Boolean(s.synthetic) && s.status === "failed";
+  const resultMessage = failedSynthetic ? syntheticFullFailureMessage(s.message ?? "") : s.message;
   const trigger = TRIGGER[s.triggeredBy];
   const TriggerIcon = trigger.icon;
 
@@ -235,9 +241,19 @@ function RunDetail({ session: s, jobExists, onClose }: { session: Session; jobEx
           )}
         </div>
 
-        {s.message && (
-          <p className="border border-border bg-muted/20 px-3 py-2 text-xs text-muted-foreground">
-            {s.message}
+        {/* A failed synthetic full gets the console's own explanation of the
+            merge failure — the same sentence the manual-run dialog shows, so
+            a scheduled merge and a hand-started one read alike. */}
+        {resultMessage && (
+          <p
+            className={cn(
+              "border px-3 py-2 text-xs",
+              failedSynthetic
+                ? "border-danger/30 bg-danger-subtle text-danger-text"
+                : "border-border bg-muted/20 text-muted-foreground",
+            )}
+          >
+            {resultMessage}
           </p>
         )}
 

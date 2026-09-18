@@ -7,6 +7,7 @@
  * `buildManifest` folds it into the day-0 ApplianceManifest that the control
  * plane's zod schema (applianceManifestSchema) accepts verbatim.
  */
+import { isValidResourceName } from "@/lib/resource-name";
 import type { ApplianceManifest } from "@/services/api.http";
 import type { EnvironmentType } from "@/types";
 import i18n from "@/i18n";
@@ -89,7 +90,7 @@ export function stepValid(step: StepKey, form: SetupForm): boolean {
     case "appliance":
       return HOSTNAME_RE.test(form.hostname.trim());
     case "repository":
-      return form.repoName.trim().length > 0;
+      return isValidResourceName(form.repoName);
     case "hypervisors":
       return form.hypervisors.every((r) => isBlankRow(r) || isCompleteRow(r));
     default:
@@ -104,7 +105,9 @@ export function buildManifest(form: SetupForm): ApplianceManifest {
     network: { mode: "dhcp" },
     storage: { layout: "auto" },
     repository: {
-      name: form.repoName.trim(),
+      // Sent as typed — `stepValid` has already rejected surrounding whitespace,
+      // so there is nothing here to trim away (see src/lib/resource-name.ts).
+      name: form.repoName,
       encryption: form.encryption,
     },
     hypervisors: form.hypervisors.filter(isCompleteRow).map((r) => ({

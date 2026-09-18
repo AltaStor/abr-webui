@@ -294,6 +294,24 @@
       "userRemoved": "Usuario eliminado",
       "tokenPrefixCopied": "Prefijo del token copiado",
       "tokenRevoked": "Token revocado"
+    },
+    "keyEscrow": {
+      "title": "Custodia de claves de cifrado",
+      "description": "Una copia de sus claves de cifrado de copias de seguridad que sobrevive a este dispositivo.",
+      "warning": "Las claves de las copias cifradas solo existen en el catálogo de este dispositivo. Si pierde el catálogo, esos puntos de restauración no se podrán descifrar, aunque los datos sigan a salvo en el repositorio. Exporte con regularidad y guarde el archivo en otro sitio.",
+      "passwordLabel": "Contraseña del archivo",
+      "passwordHint": "Al menos {{count}} caracteres. Es lo único que protege las claves y credenciales del archivo.",
+      "confirmLabel": "Confirmar contraseña del archivo",
+      "tooShort": "Use al menos {{count}} caracteres.",
+      "mismatch": "Las contraseñas no coinciden.",
+      "submit": "Exportar catálogo",
+      "exporting": "Exportando…",
+      "toast": {
+        "done": "Catálogo exportado",
+        "doneDescription": "{{jobs}} trabajos y {{backups}} copias, con sus claves de cifrado. Guárdelo fuera de este dispositivo.",
+        "failed": "No se pudo exportar el catálogo",
+        "failedDescription": "El dispositivo no generó ningún archivo. Inténtelo de nuevo en un momento."
+      }
     }
   },
   "about": {

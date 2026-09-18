@@ -94,5 +94,10 @@
   },
   "resize": {
     "hint": "Glisser pour redimensionner · double-cliquer pour réinitialiser"
+  },
+  "resourceName": {
+    "whitespace": "Un nom ne peut pas commencer ni se terminer par une espace — supprimez-la ou utilisez un autre caractère.",
+    "tooLong": "Utilisez au maximum 125 caractères.",
+    "charset": "Commencez par une lettre ou un chiffre, puis n’utilisez que des lettres latines, des chiffres, des espaces, des points, des tirets bas ou des traits d’union."
   }
 }

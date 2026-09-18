@@ -15,6 +15,7 @@ import { useSettingsStore } from "@/store/settings";
 import { useWorldStore } from "@/store/world";
 import { SettingsSection } from "../SettingsSection";
 import { TlsCertificateCard } from "./TlsCertificateCard";
+import { KeyEscrowCard } from "./KeyEscrowCard";
 
 export function SecuritySection() {
   return (
@@ -22,6 +23,7 @@ export function SecuritySection() {
       <AccessPolicyCard />
       <SessionCard />
       <TlsCertificateCard />
+      <KeyEscrowCard />
     </div>
   );
 }

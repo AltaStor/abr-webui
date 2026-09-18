@@ -7,6 +7,11 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { ShieldCheck } from "@/lib/icons";
 import { cn } from "@/lib/utils";
+import {
+  RESOURCE_NAME_MAX_LENGTH,
+  resourceNameErrorKey,
+  resourceNameProblem,
+} from "@/lib/resource-name";
 import type { SetupForm } from "../types";
 import { StepHeader } from "./StepHeader";
 
@@ -17,7 +22,12 @@ interface RepositoryStepProps {
 
 export function RepositoryStep({ form, onChange }: RepositoryStepProps) {
   const { t } = useTranslation("setup");
-  const nameInvalid = form.repoName.trim().length === 0;
+  const { t: tCommon } = useTranslation("common");
+  // Checked as typed, not trimmed — the appliance refuses a repository name
+  // with surrounding whitespace (see src/lib/resource-name.ts).
+  const nameProblem = resourceNameProblem(form.repoName);
+  const nameErrorKey = resourceNameErrorKey(nameProblem);
+  const nameInvalid = nameProblem !== null;
 
   return (
     <div className="space-y-5">
@@ -30,10 +40,15 @@ export function RepositoryStep({ form, onChange }: RepositoryStepProps) {
           value={form.repoName}
           onChange={(e) => onChange({ repoName: e.target.value })}
           placeholder={t("repository.namePlaceholder")}
+          maxLength={RESOURCE_NAME_MAX_LENGTH}
           className={cn("max-w-sm", nameInvalid && "border-danger")}
           aria-invalid={nameInvalid}
         />
-        {nameInvalid && <p className="text-xs text-danger">{t("repository.nameError")}</p>}
+        {nameInvalid && (
+          <p className="text-xs text-danger">
+            {nameErrorKey ? tCommon(nameErrorKey) : t("repository.nameError")}
+          </p>
+        )}
       </div>
 
       {/* -------- encryption -------- */}

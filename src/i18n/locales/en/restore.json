@@ -448,6 +448,21 @@
     "noSession": {
       "title": "The restore didn’t start",
       "desc": "The appliance accepted the request but named no restore session, so nothing is running. Check Activity, then try again."
+    },
+    "encryptionKeyUnavailable": {
+      "title": "AltaStor has no key for this backup",
+      "desc": "The restore point is encrypted and no key could be resolved for it — the job that held it was deleted, or its key was replaced. Enter the key this backup was written with and start the restore again."
     }
+  },
+  "encryptionKey": {
+    "title": "Encryption key",
+    "desc": "This restore point is encrypted. AltaStor will decrypt it with the key it holds for this backup.",
+    "requiredDesc": "AltaStor has no key for this restore point — the job that held it is gone, or its key was replaced. Enter the key this backup was written with.",
+    "useAnother": "Use a different key",
+    "label": "Key",
+    "placeholder": "The key this backup was written with",
+    "hint": "Leave this empty to use the key AltaStor already holds. A key entered here is used for this restore only — it isn't stored.",
+    "show": "Show key",
+    "hide": "Hide key"
   }
 }

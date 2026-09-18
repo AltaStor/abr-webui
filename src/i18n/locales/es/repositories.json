@@ -292,7 +292,6 @@
     },
     "storageModeNote": "Desactive la deduplicación cuando el recurso compartido esté en una appliance/NAS de deduplicación, o cuando unas restauraciones más rápidas y una menor CPU importen más que el espacio.",
     "adding": "Añadiendo…",
-    "nameInvalid": "Hasta 125 letras latinas, números, espacios, puntos, guiones bajos y guiones; empiece por una letra o un número.",
     "s3": {
       "bucketLabel": "Bucket",
       "bucketRequired": "Introduzca un nombre de bucket.",

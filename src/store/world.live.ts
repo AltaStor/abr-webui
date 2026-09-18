@@ -1019,6 +1019,7 @@ export function createLiveDriver(handle: WorldHandle): WorldDriver {
         networkMappings: input.destination === "new-location" ? input.networkMappings : undefined,
         powerOn: input.destination === "new-location" ? input.powerOn : undefined,
         force: input.destination === "original" ? input.force : undefined,
+        encryptionKey: input.encryptionKey,
       });
       // Pull the session + its opening log lines right away so Activity
       // shows the restore immediately; SSE keeps it moving from there.

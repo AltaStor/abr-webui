@@ -30,6 +30,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { AlertTriangle, Loader2, Network, Server } from "@/lib/icons";
 import { toast } from "@/components/ui/sonner";
 import { cn } from "@/lib/utils";
+import {
+  RESOURCE_NAME_MAX_LENGTH,
+  resourceNameErrorKey,
+  resourceNameProblem,
+} from "@/lib/resource-name";
 import { apiErrorMessage } from "@/services/api.http";
 import { useWorldStore } from "@/store/world";
 import type { EnvironmentType } from "@/types";
@@ -103,6 +108,7 @@ export function AddEnvironmentDialog({
   onOpenChange: (open: boolean) => void;
 }) {
   const { t } = useTranslation("inventory");
+  const { t: tCommon } = useTranslation("common");
   const createEnvironment = useWorldStore((s) => s.createEnvironment);
   const rescanEnvironment = useWorldStore((s) => s.rescanEnvironment);
   const [form, setForm] = useState<FormState>(emptyForm);
@@ -145,8 +151,15 @@ export function AddEnvironmentDialog({
   const endpointTrimmed = form.endpoint.trim();
   const endpointValid = endpointTrimmed === "" || isValidEnvironmentAddress(endpointTrimmed);
   const authValid = form.username.trim() !== "" && form.password !== "";
+  // Checked as typed rather than on a trimmed copy: the API refuses a name with
+  // surrounding whitespace, so trimming it here would register the environment
+  // under a name the operator never entered. See src/lib/resource-name.ts. The
+  // field starts empty, so only a name that has been typed and is wrong gets an
+  // error under it — an untouched field just holds Add disabled.
+  const nameProblem = resourceNameProblem(form.name);
+  const nameErrorKey = resourceNameErrorKey(nameProblem);
   const canSubmit =
-    form.name.trim() !== "" && endpointTrimmed !== "" && endpointValid && authValid && portValid && !submitting;
+    nameProblem === null && endpointTrimmed !== "" && endpointValid && authValid && portValid && !submitting;
 
   /**
    * Discovery, once the record exists. Deliberately NOT awaited by `submit`:
@@ -190,7 +203,7 @@ export function AddEnvironmentDialog({
     const endpoint = form.endpoint.trim();
     try {
       const env = await createEnvironment({
-        name: form.name.trim(),
+        name: form.name,
         type: form.type,
         endpoint,
         port: form.port.trim() ? Number(form.port) : undefined,
@@ -259,10 +272,14 @@ export function AddEnvironmentDialog({
               value={form.name}
               onChange={(e) => set("name", e.target.value)}
               placeholder="lab-vcenter"
+              maxLength={RESOURCE_NAME_MAX_LENGTH}
               autoComplete="off"
               spellCheck={false}
+              aria-invalid={nameErrorKey !== null}
+              className={cn(nameErrorKey && "border-danger")}
               autoFocus
             />
+            {nameErrorKey && <p className="text-xs text-danger">{tCommon(nameErrorKey)}</p>}
           </div>
 
           <div className="grid gap-3 sm:grid-cols-[1fr_7rem]">

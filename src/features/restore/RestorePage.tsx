@@ -15,6 +15,7 @@ import type { RestorePoint, VM } from "@/types";
 import { RestoreStepper, type StepDef } from "./components/RestoreStepper";
 import { ChooseVmStep } from "./components/ChooseVmStep";
 import { ChoosePointStep } from "./components/ChoosePointStep";
+import { RestoreEncryptionKey } from "./components/RestoreEncryptionKey";
 import {
   ChooseModeStep,
   validateRestoredVmName,
@@ -83,6 +84,12 @@ export default function RestorePage() {
   const [networkMappings, setNetworkMappings] = useState<NetworkMapping[]>([]);
   const [powerOn, setPowerOn] = useState(false);
   const [overwriteConfirmed, setOverwriteConfirmed] = useState(false);
+  /* Never persisted and never sent unless typed: an empty key means "let the
+   * appliance resolve its own", which is the normal path. */
+  const [encryptionKey, setEncryptionKey] = useState("");
+  /* Set once the appliance has refused the restore for want of a key, which is
+   * what turns the field from an option into the only way forward. */
+  const [keyRequired, setKeyRequired] = useState(false);
 
   // Changing the target environment invalidates any host chosen in the old one.
   const onTargetEnvChange = (id: string) => {
@@ -172,6 +179,8 @@ export default function RestorePage() {
     setNetworkMappings([]);
     setPowerOn(false);
     setOverwriteConfirmed(false);
+    setEncryptionKey("");
+    setKeyRequired(false);
   };
 
   /* ----------------------------- step gating ----------------------------- */
@@ -265,6 +274,7 @@ export default function RestorePage() {
           destination === "new-location" ? networkMappings.filter((m) => m.target.trim()) : undefined,
         powerOn: destination === "new-location" ? powerOn : undefined,
         force: destination === "original" ? overwriteConfirmed : undefined,
+        encryptionKey: encryptionKey.trim() || undefined,
       });
       if (!sessionId) {
         // The appliance answered 2xx but named no restore session, so nothing
@@ -286,6 +296,9 @@ export default function RestorePage() {
         return;
       }
       const { refusal, detail } = classifyRestoreFailure(err);
+      // Open the key field and keep the wizard where it is: the operator has
+      // an escrowed key to fetch, not a different restore to configure.
+      if (refusal === "encryptionKeyUnavailable") setKeyRequired(true);
       showRefusal(refusal, detail);
     }
   };
@@ -351,6 +364,23 @@ export default function RestorePage() {
                 originalLocationOverwrite={originalLocationOverwrite}
                 onOverwriteConfirmedChange={setOverwriteConfirmed}
               />
+            )}
+            {/* Only for a point that is, or might be, encrypted: `encrypted` is
+                null on catalog entries written before the appliance recorded
+                it, and offering the field is better than assuming it is in the
+                clear (see RestorePoint.encrypted). */}
+            {step === 3 && point && point.encrypted !== false && (
+              <div className="mt-4">
+                <RestoreEncryptionKey
+                  value={encryptionKey}
+                  onChange={(v) => {
+                    setEncryptionKey(v);
+                    // A typed key makes the previous refusal stale.
+                    setKeyRequired(false);
+                  }}
+                  required={keyRequired}
+                />
+              </div>
             )}
           </motion.div>
         </AnimatePresence>

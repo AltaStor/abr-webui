@@ -37,7 +37,12 @@ import { Hint } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { formatStorage } from "@/lib/format";
 import { PLATFORM_META } from "@/lib/platform";
-import { repositorySupportsSyntheticFull } from "@/lib/synthetic-full";
+import {
+  repositorySupportsSyntheticFull,
+  syntheticFullAlwaysOverridden,
+} from "@/lib/synthetic-full";
+import { resourceNameErrorKey, resourceNameProblem } from "@/lib/resource-name";
+import { encryptionKeyProblem } from "@/lib/encryption-key";
 import { apiErrorMessage, fullScheduleKey } from "@/services/api.http";
 import { useWorldStore, type CreateJobInput } from "@/store/world";
 import { REPO_TYPE_META } from "@/features/repositories/components/repoMeta";
@@ -46,11 +51,16 @@ import i18n from "@/i18n";
 import { fullScheduleLabel, pickAccent, retentionLabel, scheduleLabel } from "./lib";
 import { ScopePicker } from "./components/ScopePicker";
 import { JobSummaryPanel, type SummaryData } from "./components/JobSummaryPanel";
+import { EncryptionKeyField, type EncryptionKeySource } from "./components/EncryptionKeyField";
 
 type Preset = "hourly" | "every4h" | "daily" | "weekly";
 type JobTypeChoice = "backup" | "replication";
 const RETENTION_PRESETS = [7, 14, 30, 90];
 const DAY_KEYS = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
+
+/** Saturday, as an index into DAY_KEYS — the default day for both full backup
+ *  schedules on a new job. */
+const FULL_BACKUP_DEFAULT_DAY = 6;
 const DEFAULT_NAME_PREFIX = "replica-";
 /** "" = auto — let AltaStor place the replica on any host in the target environment. */
 const AUTO_HOST = "";
@@ -64,10 +74,6 @@ const AUTO_HOST = "";
 // plain ASCII and is NOT run through i18n: a translated "Täglich" / "Réplique"
 // would be rejected on the accent alone. Please keep it that way.
 const DEFAULT_JOB_NAME = "New job";
-
-/** Mirrors the API's `ASCII_NAME_PATTERN` (abr_v41.py) so bad names are caught
- *  before the round trip instead of surfacing as a generic rejection on submit. */
-const JOB_NAME_PATTERN = /^[A-Za-z0-9][A-Za-z0-9 ._-]*$/;
 
 /**
  * First free name in the "New job", "New job 2", "New job 3", … series. The
@@ -230,6 +236,7 @@ function JobWizard({
 }) {
   const { t } = useTranslation("jobs");
   const { t: tNav } = useTranslation("nav");
+  const { t: tCommon } = useTranslation("common");
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   // "Protect" from Inventory/VM detail deep-links here with the target VM so
@@ -267,18 +274,24 @@ function JobWizard({
     // A new job starts with a weekly synthetic full. It is the cheaper kind,
     // and a job with retention needs at least one full schedule. A job being
     // edited starts from what it has, so no schedule is switched on for it.
+    //
+    // Both weekly defaults land on Saturday (DAY_KEYS index 6): a full backup
+    // is the heaviest run a job does, and the weekend is when it has the estate
+    // to itself. The active full is monthly out of the box, so its day only
+    // takes effect once the operator switches it to weekly — it is kept in step
+    // with the synthetic one so neither picker opens on a different day.
     const activeDefaults: FullScheduleDefaults = {
       on: false,
       frequency: "monthly",
       atTime,
-      daysOfWeek: [0],
+      daysOfWeek: [FULL_BACKUP_DEFAULT_DAY],
       dayOfMonth: 1,
     };
     const syntheticDefaults: FullScheduleDefaults = {
       on: !existingJob,
       frequency: "weekly",
       atTime,
-      daysOfWeek: [0],
+      daysOfWeek: [FULL_BACKUP_DEFAULT_DAY],
       dayOfMonth: 1,
     };
     if (existingJob) {
@@ -334,6 +347,12 @@ function JobWizard({
   const [advancedOpen, setAdvancedOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [nameTouched, setNameTouched] = useState(false);
+  /* The key lives outside `form.options` until submit: `options` is the shape
+   * that goes on the wire, and an operator who types a key and then switches
+   * back to the appliance-managed one must not have it sent anyway. */
+  const [keySource, setKeySource] = useState<EncryptionKeySource>("managed");
+  const [encryptionKey, setEncryptionKey] = useState("");
+  const [keyTouched, setKeyTouched] = useState(false);
   // Distinct from `nameTouched` (a blur/submit flag that only gates the error
   // message): this tracks whether the user has actually typed a name, which is
   // what freezes the derived default. Edit mode starts frozen so a saved name is
@@ -426,8 +445,19 @@ function JobWizard({
 
   // ----- validation -----
   const errors: string[] = [];
-  if (!jobName.trim()) errors.push(t("create.errors.name"));
-  else if (!JOB_NAME_PATTERN.test(jobName.trim())) errors.push(t("create.jobNameInvalid"));
+  // Against the name as typed, never a trimmed copy: the API refuses a name
+  // with surrounding whitespace, so trimming it here would submit something
+  // the operator never entered. See src/lib/resource-name.ts.
+  const nameProblem = resourceNameProblem(jobName);
+  const nameErrorKey = resourceNameErrorKey(nameProblem);
+  const nameErrorMessage = nameErrorKey ? tCommon(nameErrorKey) : t("create.nameHelp");
+  if (nameProblem === "empty") errors.push(t("create.errors.name"));
+  else if (nameProblem) errors.push(nameErrorMessage);
+  // Only a custom key is checked: the appliance-managed one is minted with 256
+  // bits of entropy and never passes through here (see lib/encryption-key.ts).
+  const customKeyInUse = form.options.encryption && keySource === "custom";
+  const keyProblem = customKeyInUse ? encryptionKeyProblem(encryptionKey) : null;
+  if (keyProblem) errors.push(t(`create.opt.encryptionKeyError.${keyProblem}`));
   if (selected.size === 0)
     errors.push(isReplication ? t("create.errors.scopeReplication") : t("create.vm.scopeError"));
   if (isReplication && !form.targetEnvironmentId) errors.push(t("create.errors.targetEnv"));
@@ -450,6 +480,14 @@ function JobWizard({
       errors.push(t("create.full.errors.syntheticDays"));
     if (fullScheduleMissing) errors.push(t("create.full.errors.required"));
   }
+  /* Not an error — the appliance accepts it and runs an active full instead —
+   * so it is a note under the synthetic editor rather than a blocked submit. */
+  const syntheticAlwaysOverridden =
+    hasFullSchedules &&
+    syntheticFullAlwaysOverridden(
+      form.activeFull.on ? toFullSchedule(form.activeFull, true) : null,
+      form.syntheticFull.on ? toFullSchedule(form.syntheticFull, true) : null,
+    );
 
   /** Whether any GFS count is set at all — an "active" policy with every count
    *  at zero archives nothing, and the switch's hint says so rather than
@@ -503,7 +541,7 @@ function JobWizard({
       : undefined;
 
     return {
-      name: jobName.trim(),
+      name: jobName,
       type: kind,
       vmIds: ids,
       scopeSummary,
@@ -512,7 +550,10 @@ function JobWizard({
       activeFullSchedule: fullScheduleInput(form.activeFull, existingJob?.activeFullSchedule),
       syntheticFullSchedule: fullScheduleInput(form.syntheticFull, existingJob?.syntheticFullSchedule),
       retention: { keepDays: form.keepDays, gfs },
-      options: form.options,
+      // The key rides with the options only while "Use my own key" is the
+      // selection — see EncryptionKeyField and `optionsToTaskParams`, where
+      // omitting it is what leaves the appliance's own key alone.
+      options: customKeyInUse ? { ...form.options, encryptionKey } : form.options,
       accent: existingJob?.accent ?? pickAccent(jobCount),
       runNow,
       replicaTarget,
@@ -521,6 +562,7 @@ function JobWizard({
 
   const handleSubmit = async (runNow: boolean) => {
     setNameTouched(true);
+    setKeyTouched(true);
     if (errors.length) {
       toast.error(t("create.toast.almostThere"), { description: errors[0] });
       return;
@@ -612,9 +654,7 @@ function JobWizard({
       : undefined,
   };
 
-  const nameInvalid = !jobName.trim() || !JOB_NAME_PATTERN.test(jobName.trim());
-  const showNameError = nameTouched && nameInvalid;
-  const nameErrorMessage = !jobName.trim() ? t("create.nameHelp") : t("create.jobNameInvalid");
+  const showNameError = nameTouched && nameProblem !== null;
   const needsTime = form.preset === "daily" || form.preset === "weekly";
 
   return (
@@ -914,7 +954,12 @@ function JobWizard({
                   note={
                     repository && !repositorySupportsSyntheticFull(repository)
                       ? t("create.full.syntheticUnsupported", { repository: repository.name })
-                      : undefined
+                      // Legal, but a no-op: the active full wins every time
+                      // they both fall due, so the merge never runs. Say so
+                      // rather than let the job quietly do the expensive thing.
+                      : syntheticAlwaysOverridden
+                        ? t("create.full.syntheticOverridden")
+                        : undefined
                   }
                 />
                 {fullScheduleMissing && (
@@ -1031,6 +1076,20 @@ function JobWizard({
                         <p className="text-[11px] text-muted-foreground">{t("create.opt.compressionHint")}</p>
                       </div>
                     </div>
+
+                    {/* Where the key comes from is only a question once
+                        encryption is on, and it is a disaster-recovery question
+                        rather than a preference — see EncryptionKeyField. */}
+                    {form.options.encryption && (
+                      <EncryptionKeyField
+                        source={keySource}
+                        onSourceChange={setKeySource}
+                        value={encryptionKey}
+                        onChange={setEncryptionKey}
+                        touched={keyTouched || encryptionKey !== ""}
+                        replacesExistingKey={Boolean(editMode && existingJob?.options.encryption)}
+                      />
+                    )}
 
                     {/* GFS archival is backup-only — replicas keep N recovery points, no long-term tail. */}
                     {!isReplication && (

@@ -18,6 +18,11 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "@/components/ui/sonner";
 import { cn } from "@/lib/utils";
+import {
+  RESOURCE_NAME_MAX_LENGTH,
+  resourceNameErrorKey,
+  resourceNameProblem,
+} from "@/lib/resource-name";
 import { apiErrorMessage } from "@/services/api.http";
 import { useWorldStore } from "@/store/world";
 import type { EnvironmentEdit } from "@/store/world.types";
@@ -50,6 +55,7 @@ export function EditEnvironmentDialog({ environment, open, onOpenChange }: EditE
 
 function EditEnvironmentForm({ environment, onClose }: { environment: Environment; onClose: () => void }) {
   const { t } = useTranslation("inventory");
+  const { t: tCommon } = useTranslation("common");
   const editEnvironment = useWorldStore((s) => s.editEnvironment);
   const [name, setName] = useState(environment.name);
   const [endpoint, setEndpoint] = useState(environment.endpoint);
@@ -70,18 +76,22 @@ function EditEnvironmentForm({ environment, onClose }: { environment: Environmen
     setError(null);
   }, [environment]);
 
-  const nameTrimmed = name.trim();
+  // Checked as typed rather than on a trimmed copy: the API refuses a name with
+  // surrounding whitespace, so trimming it here would rename the environment to
+  // something the operator never entered. See src/lib/resource-name.ts.
+  const nameProblem = resourceNameProblem(name);
+  const nameErrorKey = resourceNameErrorKey(nameProblem);
   const endpointTrimmed = endpoint.trim();
   const endpointValid = endpointTrimmed === "" || isValidEnvironmentAddress(endpointTrimmed);
   const portNum = Number(port);
   const portValid = port.trim() !== "" && Number.isInteger(portNum) && portNum >= 1 && portNum <= 65535;
-  const canSubmit = nameTrimmed !== "" && endpointTrimmed !== "" && endpointValid && portValid && !saving;
+  const canSubmit = nameProblem === null && endpointTrimmed !== "" && endpointValid && portValid && !saving;
 
   const handleSubmit = async () => {
     if (!canSubmit) return;
 
     const patch: EnvironmentEdit = {};
-    if (nameTrimmed !== environment.name) patch.name = nameTrimmed;
+    if (name !== environment.name) patch.name = name;
     if (endpointTrimmed !== environment.endpoint) patch.endpoint = endpointTrimmed;
     if (portNum !== (environment.port ?? 443)) patch.port = portNum;
     if (insecure !== Boolean(environment.insecure)) patch.insecure = insecure;
@@ -98,7 +108,7 @@ function EditEnvironmentForm({ environment, onClose }: { environment: Environmen
     try {
       await editEnvironment(environment.id, patch);
       toast.success(t("editEnvironment.toast.saved.title"), {
-        description: t("editEnvironment.toast.saved.description", { name: nameTrimmed }),
+        description: t("editEnvironment.toast.saved.description", { name }),
       });
       onClose();
     } catch (err) {
@@ -127,7 +137,16 @@ function EditEnvironmentForm({ environment, onClose }: { environment: Environmen
 
         <div className="space-y-1.5">
           <Label htmlFor="edit-env-name">{t("editEnvironment.nameLabel")}</Label>
-          <Input id="edit-env-name" value={name} onChange={(e) => setName(e.target.value)} autoFocus />
+          <Input
+            id="edit-env-name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            maxLength={RESOURCE_NAME_MAX_LENGTH}
+            aria-invalid={nameProblem !== null}
+            className={cn(nameProblem !== null && "border-danger")}
+            autoFocus
+          />
+          {nameErrorKey && <p className="text-xs text-danger">{tCommon(nameErrorKey)}</p>}
         </div>
 
         <div className="grid gap-3 sm:grid-cols-[1fr_7rem]">

@@ -94,5 +94,10 @@
   },
   "resize": {
     "hint": "Zum Ändern der Breite ziehen · Doppelklick setzt zurück"
+  },
+  "resourceName": {
+    "whitespace": "Ein Name darf nicht mit einem Leerzeichen beginnen oder enden — entfernen Sie es oder verwenden Sie ein anderes Zeichen.",
+    "tooLong": "Verwenden Sie höchstens 125 Zeichen.",
+    "charset": "Beginnen Sie mit einem Buchstaben oder einer Ziffer und verwenden Sie dann nur lateinische Buchstaben, Ziffern, Leerzeichen, Punkte, Unterstriche oder Bindestriche."
   }
 }

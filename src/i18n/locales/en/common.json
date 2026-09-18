@@ -94,5 +94,10 @@
   },
   "resize": {
     "hint": "Drag to resize · double-click to reset"
+  },
+  "resourceName": {
+    "whitespace": "A name can't start or end with a space — remove it or use a different character.",
+    "tooLong": "Use at most 125 characters.",
+    "charset": "Start with a letter or number, then use only Latin letters, numbers, spaces, dots, underscores, or hyphens."
   }
 }

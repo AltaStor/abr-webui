@@ -448,6 +448,21 @@
     "noSession": {
       "title": "La restauration n’a pas démarré",
       "desc": "L’appliance a accepté la demande mais n’a nommé aucune session de restauration : rien n’est en cours. Vérifiez Activité, puis réessayez."
+    },
+    "encryptionKeyUnavailable": {
+      "title": "AltaStor n’a aucune clé pour cette sauvegarde",
+      "desc": "Le point de restauration est chiffré et aucune clé n’a pu être résolue — la tâche qui la détenait a été supprimée, ou sa clé a été remplacée. Saisissez la clé avec laquelle cette sauvegarde a été écrite, puis relancez la restauration."
     }
+  },
+  "encryptionKey": {
+    "title": "Clé de chiffrement",
+    "desc": "Ce point de restauration est chiffré. AltaStor le déchiffrera avec la clé qu’il détient pour cette sauvegarde.",
+    "requiredDesc": "AltaStor n’a aucune clé pour ce point de restauration — la tâche qui la détenait a disparu, ou sa clé a été remplacée. Saisissez la clé avec laquelle cette sauvegarde a été écrite.",
+    "useAnother": "Utiliser une autre clé",
+    "label": "Clé",
+    "placeholder": "La clé avec laquelle cette sauvegarde a été écrite",
+    "hint": "Laissez vide pour utiliser la clé qu’AltaStor détient déjà. Une clé saisie ici ne sert qu’à cette restauration : elle n’est pas conservée.",
+    "show": "Afficher la clé",
+    "hide": "Masquer la clé"
   }
 }

@@ -448,6 +448,21 @@
     "noSession": {
       "title": "Die Wiederherstellung wurde nicht gestartet",
       "desc": "Die Appliance hat die Anfrage angenommen, aber keine Wiederherstellungssitzung benannt — es läuft nichts. Prüfen Sie „Aktivität“ und versuchen Sie es erneut."
+    },
+    "encryptionKeyUnavailable": {
+      "title": "AltaStor hat keinen Schlüssel für dieses Backup",
+      "desc": "Der Wiederherstellungspunkt ist verschlüsselt und es konnte kein Schlüssel dafür ermittelt werden — der zugehörige Job wurde gelöscht oder sein Schlüssel ersetzt. Geben Sie den Schlüssel ein, mit dem dieses Backup geschrieben wurde, und starten Sie die Wiederherstellung erneut."
     }
+  },
+  "encryptionKey": {
+    "title": "Verschlüsselungsschlüssel",
+    "desc": "Dieser Wiederherstellungspunkt ist verschlüsselt. AltaStor entschlüsselt ihn mit dem Schlüssel, den es für dieses Backup hat.",
+    "requiredDesc": "AltaStor hat keinen Schlüssel für diesen Wiederherstellungspunkt — der zugehörige Job ist gelöscht oder sein Schlüssel wurde ersetzt. Geben Sie den Schlüssel ein, mit dem dieses Backup geschrieben wurde.",
+    "useAnother": "Anderen Schlüssel verwenden",
+    "label": "Schlüssel",
+    "placeholder": "Der Schlüssel, mit dem dieses Backup geschrieben wurde",
+    "hint": "Leer lassen, um den vorhandenen Schlüssel von AltaStor zu verwenden. Ein hier eingegebener Schlüssel gilt nur für diese Wiederherstellung und wird nicht gespeichert.",
+    "show": "Schlüssel anzeigen",
+    "hide": "Schlüssel verbergen"
   }
 }

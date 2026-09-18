@@ -1245,10 +1245,14 @@ function optionsToTaskParams(o: JobOptions): Dict {
     compression_level: o.compression,
     dedup: o.dedup,
   };
-  // The key itself is never sent: the appliance generates and keeps one for a
-  // job that switches encryption on. null clears it again on the way back off
-  // (see _merge_task_parameters), so no stale key outlives the setting.
+  // null clears any stored key on the way back off (see
+  // _merge_task_parameters), so no stale key outlives the setting.
   if (!o.encryption) params.encryption_key = null;
+  // A key is only ever sent when the operator typed or generated one. Omitting
+  // it is what lets the appliance mint its own on create, and what carries the
+  // stored key through untouched on an edit — sending a key here REPLACES the
+  // job's, so it must never be sent speculatively.
+  else if (o.encryptionKey) params.encryption_key = o.encryptionKey;
   return params;
 }
 
@@ -1527,6 +1531,8 @@ export async function startRestore(payload: {
   /** Authorizes an in-place restore — required by the backend whenever
    *  `target.mode` is "original"; ignored otherwise. */
   force?: boolean;
+  /** Overrides the key the appliance would resolve from its own catalog. */
+  encryptionKey?: string;
 }): Promise<{ restoreId: string; sessionId: string }> {
   const isInPlace = payload.target.mode === "original";
   const body: Dict = {
@@ -1549,6 +1555,10 @@ export async function startRestore(payload: {
       target_network_id: m.target,
     }));
   }
+  // Only when the operator typed one: `restore_start` prefers an explicit key
+  // over everything the catalog knows, so an empty string here would be sent
+  // as a key and fail a restore the appliance could have resolved by itself.
+  if (payload.encryptionKey) body.encryption_key = payload.encryptionKey;
   const res = asDict(await request<Dict>("/restore/start", { method: "POST", body: JSON.stringify(body) }));
   const sessionId = str(res.restore_session_id) || str(res.id);
   return { restoreId: sessionId, sessionId };
@@ -2002,6 +2012,47 @@ export async function getSupportBundle(): Promise<{ blob: Blob; filename: string
   return {
     blob: new Blob([bytes], { type: "application/zip" }),
     filename: `support-bundle-${fileStamp()}.zip`,
+  };
+}
+
+/**
+ * A password-encrypted copy of the appliance's catalog and configuration
+ * (`POST /system/catalog-snapshot`).
+ *
+ * This is the console's key-escrow path. Job records and restore points carry
+ * their encryption keys, and the snapshot carries the records — so an archive
+ * taken today can hand the keys back after the appliance and its database are
+ * gone, which is exactly the recovery the keys' normal home cannot survive.
+ * The appliance never returns a bare key, and this does not either: the keys
+ * are inside an archive only `password` opens.
+ *
+ * The password minimum matches the appliance's own (`MIN_PASSWORD_LENGTH`) —
+ * it is all that protects the credentials in the archive.
+ */
+export async function exportCatalogSnapshot(
+  password: string,
+): Promise<{ blob: Blob; filename: string; counts: Record<string, number> }> {
+  const res = asDict(
+    await request<Dict>("/system/catalog-snapshot", {
+      method: "POST",
+      body: JSON.stringify({ password }),
+    }),
+  );
+  const archiveBase64 = str(res.archive_base64);
+  if (!archiveBase64) {
+    throw new ApiError(502, { error: "The appliance returned an empty catalog export" });
+  }
+  const binary = atob(archiveBase64);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i += 1) bytes[i] = binary.charCodeAt(i);
+  const manifest = asDict(res.manifest);
+  const rawCounts = asDict(manifest.counts);
+  const counts: Record<string, number> = {};
+  for (const [table, value] of Object.entries(rawCounts)) counts[table] = num(value, 0);
+  return {
+    blob: new Blob([bytes], { type: "application/octet-stream" }),
+    filename: `altastor-catalog-${fileStamp()}.abrsnap`,
+    counts,
   };
 }
 

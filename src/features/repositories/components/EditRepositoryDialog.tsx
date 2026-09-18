@@ -17,6 +17,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { cn } from "@/lib/utils";
 import { toast } from "@/components/ui/sonner";
 import { useWorldStore } from "@/store/world";
 import type { RepositoryEdit } from "@/store/world.types";
@@ -29,6 +30,11 @@ import type {
 import { ImmutabilityFields } from "./ImmutabilityFields";
 import { ImmutabilityEffectPanel } from "./ImmutabilityEffectPanel";
 import { ValidationResultPanel } from "./ValidationResultPanel";
+import {
+  RESOURCE_NAME_MAX_LENGTH,
+  resourceNameErrorKey,
+  resourceNameProblem,
+} from "@/lib/resource-name";
 import { immutabilityLabel } from "./repoMeta";
 import {
   draftToImmutability,
@@ -94,6 +100,7 @@ function EditRepositoryForm({
   onClose: () => void;
 }) {
   const { t } = useTranslation("repositories");
+  const { t: tCommon } = useTranslation("common");
   const editRepository = useWorldStore((s) => s.editRepository);
   const verifyRepositoryImmutability = useWorldStore((s) => s.verifyRepositoryImmutability);
   const applyRepositoryImmutability = useWorldStore((s) => s.applyRepositoryImmutability);
@@ -116,10 +123,14 @@ function EditRepositoryForm({
   const supportsLock = Boolean(repo.supportsImmutability);
   const lockDirty = supportsLock && !sameImmutability(saved, next);
   const change = immutabilityChange(saved, next);
-  const nameDirty = name.trim() !== "" && name.trim() !== repo.name;
+  // Blank means "leave the name alone", so it is not an error. Anything else is
+  // checked as typed rather than trimmed — see src/lib/resource-name.ts.
+  const nameProblem = name === "" ? null : resourceNameProblem(name);
+  const nameErrorKey = resourceNameErrorKey(nameProblem);
+  const nameDirty = name !== "" && name !== repo.name;
   const lockValid = draftValid(lock);
   const dirty = nameDirty || lockDirty;
-  const canSave = dirty && lockValid && !saving;
+  const canSave = dirty && lockValid && nameProblem === null && !saving;
   /* Placing stored backups under the lock only makes sense once the lock is
    * saved: the appliance reads the repository's persisted setting, not the
    * draft in this form, and refuses outright when it is off. */
@@ -179,7 +190,7 @@ function EditRepositoryForm({
     // Only the fields that actually changed — a PATCH with nothing in it is a
     // 422 ("repo edit requires at least one editable option") server-side.
     const patch: RepositoryEdit = {};
-    if (nameDirty) patch.name = name.trim();
+    if (nameDirty) patch.name = name;
     if (lockDirty) patch.immutability = next;
 
     setSaving(true);
@@ -232,7 +243,11 @@ function EditRepositoryForm({
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder={repo.name}
+              maxLength={RESOURCE_NAME_MAX_LENGTH}
+              aria-invalid={nameProblem !== null}
+              className={cn(nameProblem !== null && "border-danger")}
             />
+            {nameErrorKey && <p className="text-xs text-danger">{tCommon(nameErrorKey)}</p>}
           </div>
 
           {/* Object Lock — only where the backend has the concept, so a local

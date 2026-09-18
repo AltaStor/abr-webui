@@ -38,7 +38,7 @@ import { cn } from "@/lib/utils";
 import { formatDateTime, formatStorage } from "@/lib/format";
 import {
   resolveSyntheticFullChain,
-  syntheticFullFailureKey,
+  syntheticFullFailureMessage,
   syntheticFullJobsForVm,
   syntheticFullRefusalMessage,
   syntheticFullTargetRepositories,
@@ -168,12 +168,10 @@ export function SyntheticFullDialog({
 
   /** The appliance's own words for a failed merge, run through the console's
    *  translations where we recognise the case. */
-  const failureMessage = useMemo(() => {
-    if (!failed) return null;
-    const raw = session?.message ?? "";
-    const key = syntheticFullFailureKey(raw);
-    return key ? t(`syntheticFull.failure.${key}`) : raw || t("syntheticFull.failure.generic");
-  }, [failed, session?.message, t]);
+  const failureMessage = useMemo(
+    () => (failed ? syntheticFullFailureMessage(session?.message ?? "") : null),
+    [failed, session?.message],
+  );
 
   /* The dialog stops being a form the moment the run starts; from then on it is
    * a view of that run. */

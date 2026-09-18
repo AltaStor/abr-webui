@@ -269,7 +269,6 @@
     "description": "Specify the backup repository settings.",
     "nameLabel": "Name",
     "namePlaceholder": "e.g. AltaStor Repository",
-    "nameInvalid": "Use up to 125 Latin letters, numbers, spaces, dots, underscores, or hyphens — starting with a letter or number.",
     "typeLabel": "Type",
     "capacityLabel": "Capacity",
     "capacityUnit": "Capacity unit",

@@ -924,7 +924,8 @@
         "required": "Die Aufbewahrung ist festgelegt. Schalten Sie daher mindestens einen Vollbackup-Zeitplan ein (aktiv oder synthetisch).",
         "activeDays": "Wählen Sie mindestens einen Tag für das aktive Vollbackup.",
         "syntheticDays": "Wählen Sie mindestens einen Tag für das synthetische Vollbackup."
-      }
+      },
+      "syntheticOverridden": "Dies läuft zur selben Zeit wie das aktive Vollbackup, das Vorrang hat — die Zusammenführung würde also nie ausgeführt. Verschieben Sie eines von beiden auf einen anderen Tag oder eine andere Uhrzeit."
     },
     "advanced": "Erweiterte Einstellungen",
     "advancedHint": "(Standardwerte werden angewendet)",
@@ -940,7 +941,26 @@
       "dedupHint": "Blockbasierte Deduplizierung zum Sparen von Speicherplatz",
       "compressionTerm": "Komprimierung",
       "compressionHelp": "Ermöglicht es Ihnen, die Komprimierungsstufe anzupassen, um Backup-Größe, Verarbeitungsgeschwindigkeit und CPU-Auslastung auszubalancieren.\n0 = keine Komprimierung, schnellste Verarbeitung\n9 = mehr Datenersparnis, höhere CPU-Auslastung",
-      "compressionHint": "Niedrigere Komprimierungsstufen sind schneller, höhere sparen mehr Speicherplatz und Bandbreite. Standard ist 3."
+      "compressionHint": "Niedrigere Komprimierungsstufen sind schneller, höhere sparen mehr Speicherplatz und Bandbreite. Standard ist 3.",
+      "encryptionKeyLabel": "Verschlüsselungsschlüssel",
+      "encryptionKeyManaged": "Von der Appliance verwaltet",
+      "encryptionKeyCustom": "Eigenen Schlüssel verwenden",
+      "encryptionKeyManagedHint": "AltaStor erzeugt einen 256-Bit-Schlüssel und bewahrt ihn auf. Er wird nie angezeigt, die einzige Kopie liegt also auf dieser Appliance — exportieren Sie den Katalog, um eine Kopie außerhalb zu haben.",
+      "encryptionKeyCustomHint": "Sie besitzen den Schlüssel. Damit geschriebene Wiederherstellungspunkte lassen sich auf jeder AltaStor-Appliance wiederherstellen, auch wenn diese und ihr Katalog verloren sind.",
+      "encryptionKeyPlaceholder": "Mindestens 12 Zeichen",
+      "encryptionKeyGenerate": "Erzeugen",
+      "encryptionKeyCopy": "Schlüssel kopieren",
+      "encryptionKeyCopyFailed": "Schlüssel konnte nicht kopiert werden",
+      "encryptionKeyShow": "Schlüssel anzeigen",
+      "encryptionKeyHide": "Schlüssel verbergen",
+      "encryptionKeyEscrow": "Bewahren Sie diesen Schlüssel jetzt außerhalb der Appliance auf. Damit geschriebene Backups sind ohne ihn nicht wiederherstellbar, und AltaStor zeigt ihn nicht erneut an.",
+      "encryptionKeyReplaces": "Dies ersetzt den aktuellen Schlüssel des Jobs: Bereits geschriebene Wiederherstellungspunkte behalten den Schlüssel, mit dem sie geschrieben wurden.",
+      "encryptionKeyError": {
+        "empty": "Geben Sie einen Schlüssel ein oder lassen Sie die Appliance einen verwalten.",
+        "whitespace": "Ein Schlüssel darf nicht mit einem Leerzeichen beginnen oder enden — die Appliance speichert ihn ohne, es wäre also nicht der Schlüssel, den Sie gesichert haben.",
+        "tooShort": "Verwenden Sie mindestens 12 Zeichen.",
+        "tooSimple": "Mischen Sie mindestens drei aus: Kleinbuchstaben, Großbuchstaben, Ziffern, Sonderzeichen — oder erzeugen Sie einen Schlüssel."
+      }
     },
     "syncWindow": "Synchronisierungsfenster",
     "throttleLabel": "Drosselung (MB/s)",
@@ -958,7 +978,6 @@
     "gfsMonthly": "Monatlich",
     "gfsYearly": "Jährlich",
     "loadingJob": "Job wird geladen",
-    "whatIs": "Was ist {{term}}?",
-    "jobNameInvalid": "Der Auftragsname muss mit einem Buchstaben oder einer Zahl beginnen und darf nur lateinische Buchstaben, Zahlen, Leerzeichen, Punkte, Unterstriche oder Bindestriche enthalten."
+    "whatIs": "Was ist {{term}}?"
   }
 }
