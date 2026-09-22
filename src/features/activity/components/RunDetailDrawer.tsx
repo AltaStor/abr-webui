@@ -28,12 +28,13 @@ import { Inbox } from "@/lib/icons";
 import { cn } from "@/lib/utils";
 import { SESSION_META } from "@/lib/status";
 import { syntheticFullFailureMessage } from "@/lib/synthetic-full";
+import { backupTypeLabel } from "@/lib/run-type";
 import { formatDateTime, formatDuration, formatStorage, formatThroughput } from "@/lib/format";
 import { useWorldStore } from "@/store/world";
 import { getSessionLog } from "@/services/api.http";
 import i18n from "@/i18n";
 import type { LogLevel, LogLine, Session, VmRunResult } from "@/types";
-import { isRestore, isVerify, runKind, runKindIcon } from "../lib";
+import { isDelete, isRestore, isVerify, runKind, runKindIcon } from "../lib";
 
 const VM_TONE: Record<VmRunResult["status"], string> = {
   success: "success",
@@ -122,11 +123,24 @@ function RunDetail({ session: s, jobExists, onClose }: { session: Session; jobEx
   // percent + a stage message for it, so every byte and rate figure below is
   // hidden rather than printed as a zero the operator has to interpret.
   const verify = isVerify(s);
+  // A deletion moves no bytes either — it removes them. Same treatment as a
+  // verify for every byte and rate figure below.
+  const noByteTelemetry = verify || isDelete(s);
   const KindIcon = runKindIcon(s);
+  // Null for a run that writes no restore point (restore / verify / delete):
+  // those carry the appliance's default "full" and printing it labelled a
+  // deletion as a full backup.
+  const typeLabel = backupTypeLabel(s);
   // A merge that failed has a cause the console can usually name outright; a
   // run that succeeded, or failed any other way, keeps the appliance's line.
   const failedSynthetic = Boolean(s.synthetic) && s.status === "failed";
   const resultMessage = failedSynthetic ? syntheticFullFailureMessage(s.message ?? "") : s.message;
+  /* The same sentence for the per-VM row. It used to print the appliance's own
+   * text while the banner above it printed the console's, so one failed merge
+   * explained itself twice, in two different wordings. The log below keeps the
+   * appliance's lines verbatim — it is a log. */
+  const vmMessage = (message: string | undefined) =>
+    failedSynthetic && message ? syntheticFullFailureMessage(message) : message;
   const trigger = TRIGGER[s.triggeredBy];
   const TriggerIcon = trigger.icon;
 
@@ -166,6 +180,12 @@ function RunDetail({ session: s, jobExists, onClose }: { session: Session; jobEx
             <SheetTitle className="truncate">{s.jobName}</SheetTitle>
             <SheetDescription className="flex items-center gap-1.5">
               <span>{runKind(s)}</span>
+              {typeLabel && (
+                <>
+                  <span className="text-muted-foreground/40">·</span>
+                  <span>{typeLabel}</span>
+                </>
+              )}
               <span className="text-muted-foreground/40">·</span>
               <span className="inline-flex items-center gap-1">
                 <TriggerIcon className="h-3 w-3" />
@@ -212,17 +232,17 @@ function RunDetail({ session: s, jobExists, onClose }: { session: Session; jobEx
 
         {/* Summary */}
         <div className="grid grid-cols-2 gap-x-4 gap-y-3 sm:grid-cols-3">
-          <Metric
-            label={t("drawer.stat.type")}
-            value={
-              <Badge variant={s.backupType === "full" ? "info" : "outline"}>
-                {s.synthetic ? t("drawer.backupType.synthetic") : t(`drawer.backupType.${s.backupType}`)}
-              </Badge>
-            }
-          />
+          {typeLabel && (
+            <Metric
+              label={t("drawer.stat.type")}
+              value={
+                <Badge variant={s.backupType === "full" ? "info" : "outline"}>{typeLabel}</Badge>
+              }
+            />
+          )}
           <Metric label={t("drawer.stat.duration")} value={running ? "—" : formatDuration(s.durationSec)} />
           <Metric label={t("objectNouns.vm.compact")} value={s.vmCount} />
-          {!verify && (
+          {!noByteTelemetry && (
             <>
               <Metric label={t("drawer.stat.read")} value={s.processedGB > 0 ? formatStorage(s.processedGB) : "—"} />
               <Metric
@@ -268,7 +288,7 @@ function RunDetail({ session: s, jobExists, onClose }: { session: Session; jobEx
                 <tr className="border-b border-border/50 text-left text-[11px] text-muted-foreground">
                   <th className="py-1.5 pl-3 font-medium">{t("objectNouns.vm.singular")}</th>
                   <th className="py-1.5 pr-3 font-medium">{t("drawer.table.result")}</th>
-                  {!verify && (
+                  {!noByteTelemetry && (
                     <>
                       <th className="hidden py-1.5 pr-3 font-medium sm:table-cell">{t("drawer.table.read")}</th>
                       <th className="hidden py-1.5 pr-3 font-medium sm:table-cell">{t("drawer.table.sent")}</th>
@@ -291,8 +311,8 @@ function RunDetail({ session: s, jobExists, onClose }: { session: Session; jobEx
                     {/* The appliance's own per-VM message wins; the status is
                         the fallback, and it needs translating rather than
                         printing the raw enum with a capital letter on it. */}
-                    <td className="py-1.5 pr-3 text-muted-foreground">{r.message ?? resultLabel(r.status)}</td>
-                    {!verify && (
+                    <td className="py-1.5 pr-3 text-muted-foreground">{vmMessage(r.message) ?? resultLabel(r.status)}</td>
+                    {!noByteTelemetry && (
                       <>
                         <td className="nums hidden py-1.5 pr-3 text-muted-foreground sm:table-cell">
                           {r.processedGB > 0 ? formatStorage(r.processedGB) : "—"}
@@ -322,11 +342,16 @@ function RunDetail({ session: s, jobExists, onClose }: { session: Session; jobEx
           <span className="text-xs text-muted-foreground">{t("drawer.footer.restore")}</span>
         ) : jobExists ? (
           <span className="text-xs text-muted-foreground">{t("drawer.footer.jobLabel", { kind: runKind(s) })}</span>
-        ) : (
+        ) : s.jobId ? (
           <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
             <Trash2 className="h-3.5 w-3.5" />
             {t("drawer.footer.deleted")}
           </span>
+        ) : (
+          /* A verification and a deletion run against the repository with no job
+             behind them, so "Job deleted — history preserved" was mourning a job
+             that never existed. No job id, nothing to say about a job. */
+          <span className="text-xs text-muted-foreground">{t("drawer.footer.noJob", { kind: runKind(s) })}</span>
         )}
         <div className="flex items-center gap-2">
           {/* Inspecting a live run is exactly when you decide to stop it, so the

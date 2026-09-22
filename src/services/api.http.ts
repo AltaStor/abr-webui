@@ -27,7 +27,7 @@
  * is a polling loop (see the bottom of the file).
  */
 import { fileStamp } from "@/lib/download";
-import { restoreRunName, verifyRunName } from "@/lib/format";
+import { deleteRunName, restoreRunName, verifyRunName } from "@/lib/format";
 import { useWorldStore } from "@/store/world";
 import type {
   Alert,
@@ -376,6 +376,11 @@ function mapSession(s: Dict): Session {
   // behind it, so it too has to name itself after the VM it acts on rather
   // than fall through to the "—" a missing job.name leaves.
   const isVerify = str(s.type) === "verify";
+  // Removing a chain (or one segment of it) is a session too, and like a verify
+  // it has no job behind it. Until the console knew the type it fell through to
+  // "backup" and inherited the default "full" below, so a deletion was listed
+  // as a full backup of a job named "—".
+  const isDelete = str(s.type) === "delete";
   // The VM this run acts on, by name, straight from the orchestrator (see
   // _session_vm_names in abr_v41.py). For a restore that's the VM being
   // created; source_vm_name is where the point came from.
@@ -390,7 +395,9 @@ function mapSession(s: Dict): Session {
     ? restoreRunName(vmName || sourceVmName)
     : isVerify
       ? verifyRunName(vmName)
-      : str(job.name) || "—";
+      : isDelete
+        ? deleteRunName(vmName)
+        : str(job.name) || "—";
   const message = errors.length ? friendlyError(str(errors[0].message)) : undefined;
   // The orchestrator's `message` field carries the live per-disk stage caption
   // while a session is running (see _emit_progress in vcenter_backup.py /
@@ -411,7 +418,7 @@ function mapSession(s: Dict): Session {
     id: str(s.id),
     jobId: str(job.id),
     jobName,
-    type: isRestore ? "restore" : isVerify ? "verify" : "backup",
+    type: isRestore ? "restore" : isVerify ? "verify" : isDelete ? "delete" : "backup",
     status,
     backupType,
     synthetic,

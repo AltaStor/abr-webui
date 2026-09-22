@@ -50,6 +50,14 @@ export function verifyRunName(vmName: string | undefined | null): string {
   return name ? `Verify · ${name}` : "Verify";
 }
 
+/** Display name for a deletion run — same problem and same shape again: the
+ *  appliance removes a chain against no job at all, so the feed had nothing but
+ *  "—" to put in the RUN column. */
+export function deleteRunName(vmName: string | undefined | null): string {
+  const name = (vmName ?? "").trim();
+  return name ? `Delete · ${name}` : "Delete";
+}
+
 /** Throughput in MB/s with sensible scaling. */
 export function formatThroughput(mbps: number): string {
   if (mbps >= 1024) return `${(mbps / 1024).toFixed(1)}${NBSP}GB/s`;

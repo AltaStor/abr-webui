@@ -39,7 +39,7 @@ import { REPO_TYPE_META } from "./repoMeta";
 import { ImmutabilityFields } from "./ImmutabilityFields";
 import { ValidationResultPanel } from "./ValidationResultPanel";
 import {
-  DEFAULT_LOCK_DAYS,
+  CREATE_LOCK_DAYS,
   DEFAULT_LOCK_MODE,
   draftToImmutability,
   draftValid,
@@ -108,7 +108,7 @@ export function AddRepositoryDialog() {
   const [lock, setLock] = useState<ImmutabilityDraft>({
     enabled: false,
     mode: DEFAULT_LOCK_MODE,
-    days: DEFAULT_LOCK_DAYS,
+    days: CREATE_LOCK_DAYS,
   });
   const [testing, setTesting] = useState(false);
   const [testResult, setTestResult] = useState<S3ConnectionTestResult | null>(null);
@@ -177,7 +177,7 @@ export function AddRepositoryDialog() {
     setAccessKey("");
     setSecretKey("");
     setVerifyTls(true);
-    setLock({ enabled: false, mode: DEFAULT_LOCK_MODE, days: DEFAULT_LOCK_DAYS });
+    setLock({ enabled: false, mode: DEFAULT_LOCK_MODE, days: CREATE_LOCK_DAYS });
     setTesting(false);
     setTestResult(null);
     setCreateError(null);

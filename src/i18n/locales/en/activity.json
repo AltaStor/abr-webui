@@ -7,6 +7,7 @@
   "runKind": {
     "restore": "Restore",
     "verify": "Verification",
+    "delete": "Deletion",
     "backupCopy": "Backup copy",
     "diskBackup": "Disk backup",
     "fileBackup": "File backup",
@@ -139,13 +140,9 @@
       "restore": "Restore operation",
       "jobLabel": "{{kind}} job",
       "deleted": "Job deleted — history preserved",
+      "noJob": "{{kind}} — run without a job",
       "openRestore": "Open Restore",
       "openJob": "Open job"
-    },
-    "backupType": {
-      "full": "Full",
-      "incremental": "Incremental",
-      "synthetic": "Synthetic full"
     }
   },
   "older": {

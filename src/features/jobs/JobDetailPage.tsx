@@ -33,7 +33,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/components/ui/sonner";
 import { formatDateTime, formatRelative } from "@/lib/format";
-import { JOB_DISABLED_META, rateTone, SESSION_META } from "@/lib/status";
+import { JOB_DISABLED_META, lastRunMeta, rateTone } from "@/lib/status";
 import { apiErrorMessage } from "@/services/api.http";
 import { useWorldStore } from "@/store/world";
 import { REPO_TYPE_META } from "@/features/repositories/components/repoMeta";
@@ -261,20 +261,24 @@ export default function JobDetailPage() {
       <KpiBand className="grid-cols-2 sm:grid-cols-3 xl:grid-cols-6">
         <KpiCard
           density="compact"
-          icon={SESSION_META[job.lastStatus ?? "queued"].icon}
-          tone={disabled ? "muted" : SESSION_META[job.lastStatus ?? "queued"].tone}
+          icon={lastRunMeta(job.lastStatus).icon}
+          tone={disabled ? "muted" : lastRunMeta(job.lastStatus).tone}
           label={t("detailStats.lastRun")}
+          // A job that has never run has no last run — the queued pill claimed
+          // a first one was pending, on a job with nothing queued and an empty
+          // run history, while the jobs list said "Never run" for the same job.
+          // `lastRunMeta` is what that list uses.
           value={
             disabled ? (
               <StatusPill meta={JOB_DISABLED_META} size="sm" />
             ) : (
-              <StatusPill meta={SESSION_META[job.lastStatus ?? "queued"]} size="sm" />
+              <StatusPill meta={lastRunMeta(job.lastStatus)} size="sm" />
             )
           }
           // Six tiles across cannot carry both halves without clipping, and the
           // Last run card directly below already says how long ago. So the tile
           // takes the half the page was missing: which run this was.
-          hint={job.lastRunAt ? formatDateTime(job.lastRunAt) : formatRelative(null)}
+          hint={job.lastRunAt ? formatDateTime(job.lastRunAt) : undefined}
         />
         <KpiCard
           density="compact"

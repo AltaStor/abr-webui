@@ -8,6 +8,8 @@ import { Metric } from "@/components/Metric";
 import { StatusPill } from "@/components/StatusPill";
 import { SESSION_META } from "@/lib/status";
 import { formatDateTime, formatDuration, formatRelative, formatStorage, formatThroughput } from "@/lib/format";
+import { syntheticFullFailureMessage } from "@/lib/synthetic-full";
+import { backupTypeLabel } from "@/lib/run-type";
 import type { Session } from "@/types";
 
 /**
@@ -32,6 +34,13 @@ export function LastRunSummary({ session }: { session: Session }) {
       : session.status === "warning"
         ? "text-warning"
         : "text-success";
+  // The same sentence the run's detail panel and the manual-run dialog show for
+  // a failed merge, instead of the appliance's log line — one failure, one
+  // reason, whichever screen it is read on.
+  const message =
+    session.synthetic && session.status === "failed" && session.message
+      ? syntheticFullFailureMessage(session.message)
+      : session.message;
 
   return (
     <Card className="p-5">
@@ -53,9 +62,7 @@ export function LastRunSummary({ session }: { session: Session }) {
         <StatusPill meta={meta} size="sm" />
       </div>
 
-      {session.message && (
-        <p className="mt-3 text-sm text-muted-foreground">{session.message}</p>
-      )}
+      {message && <p className="mt-3 text-sm text-muted-foreground">{message}</p>}
 
       <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
         <Metric surface="inset" label={t("objects.vms")} value={`${session.vmCount}`} />
@@ -65,7 +72,7 @@ export function LastRunSummary({ session }: { session: Session }) {
       </div>
       <p className="mt-3 text-[11px] text-muted-foreground">
         {t("lastRun.avgPrefix")} {formatThroughput(session.throughputMBps)} ·{" "}
-        {session.backupType === "incremental" ? t("runType.incremental") : t("runType.full")} {t("lastRun.kindBackup")}
+        {backupTypeLabel(session) ?? t("runType.full")} {t("lastRun.kindBackup")}
       </p>
     </Card>
   );

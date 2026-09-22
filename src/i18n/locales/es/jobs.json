@@ -24,6 +24,7 @@
     "hourly_one": "Cada hora",
     "hourly_other": "Cada {{count}} h",
     "weekly": "Semanal · {{day}} {{time}}",
+    "weeklyNoDay": "Semanal · ningún día elegido",
     "customCron": "Personalizado · {{cron}}",
     "custom": "Programación personalizada",
     "daily": "Diario · {{time}}",
@@ -824,14 +825,16 @@
       "hourly": "dentro de la hora",
       "every4h": "dentro de 4 horas",
       "weekly": "el próximo {{day}} a las {{time}}",
-      "daily": "esta noche a las {{time}}"
+      "daily": "esta noche a las {{time}}",
+      "weeklyNoDay": "en cuanto elija un día"
     },
     "errors": {
       "name": "Ponle un nombre al trabajo.",
       "scopeReplication": "Selecciona al menos una VM que replicar.",
       "filesPaths": "Añade al menos una ruta en cada servidor seleccionado.",
       "targetEnv": "Elige un entorno de destino para la réplica.",
-      "repository": "Elige un repositorio donde guardar las copias de seguridad."
+      "repository": "Elige un repositorio donde guardar las copias de seguridad.",
+      "scheduleDays": "Elija al menos un día para la planificación de copias."
     },
     "scope": {
       "filesSummary_one": "{{count}} ruta en {{servers}}",
@@ -894,7 +897,7 @@
       "weeklySub": "Una vez por semana"
     },
     "atTime": "A la hora",
-    "onDay": "El día",
+    "onDays": "En los días",
     "recoveryPointsToKeep": "Puntos de recuperación que conservar",
     "howLongToKeep": "Define la retención",
     "retentionAriaReplication": "Puntos de recuperación que conservar en la réplica",
@@ -925,7 +928,9 @@
         "activeDays": "Elige al menos un día para la copia completa activa.",
         "syntheticDays": "Elige al menos un día para la copia completa sintética."
       },
-      "syntheticOverridden": "Se ejecuta a la misma hora que la copia completa activa, que tiene prioridad, así que la fusión nunca se ejecutaría. Mueva una de las dos a otro día u hora."
+      "syntheticOverridden": "Se ejecuta a la misma hora que la copia completa activa, que tiene prioridad, así que la fusión nunca se ejecutaría. Mueva una de las dos a otro día u hora.",
+      "syntheticOverriddenDays": "Los {{days}} la copia completa activa se ejecuta a la misma hora y tiene prioridad, así que esos días no hay fusión. Mueva una de las dos a otro día u otra hora.",
+      "syntheticOverriddenDayOfMonth": "El día {{day}} del mes la copia completa activa se ejecuta a la misma hora y tiene prioridad, así que ese día no hay fusión. Mueva una de las dos a otro día u otra hora."
     },
     "advanced": "Configuración avanzada",
     "advancedHint": "(Se aplican valores predeterminados)",
@@ -943,10 +948,8 @@
       "compressionHelp": "Permite ajustar el nivel de compresión para equilibrar el tamaño de la copia de seguridad, la velocidad de procesamiento y el uso de CPU.\n0 = sin compresión, procesamiento más rápido\n9 = mayor ahorro de datos, mayor uso de CPU",
       "compressionHint": "Los niveles de compresión bajos son más rápidos; los altos ahorran más espacio y ancho de banda. El valor predeterminado es 3.",
       "encryptionKeyLabel": "Clave de cifrado",
-      "encryptionKeyManaged": "Gestionada por el dispositivo",
-      "encryptionKeyCustom": "Usar mi propia clave",
-      "encryptionKeyManagedHint": "AltaStor genera una clave de 256 bits y la conserva. Nunca se muestra, así que la única copia está en este dispositivo: exporte el catálogo para guardar una fuera.",
       "encryptionKeyCustomHint": "Usted custodia la clave. Los puntos de restauración escritos con ella se pueden recuperar en cualquier dispositivo AltaStor, aunque este y su catálogo hayan desaparecido.",
+      "encryptionKeyKeep": "Déjela vacía para conservar la clave que este trabajo ya usa.",
       "encryptionKeyPlaceholder": "Al menos 12 caracteres",
       "encryptionKeyGenerate": "Generar",
       "encryptionKeyCopy": "Copiar clave",
@@ -956,7 +959,7 @@
       "encryptionKeyEscrow": "Guarde esta clave fuera del dispositivo ahora. Las copias escritas con ella no se pueden restaurar sin ella, y AltaStor no volverá a mostrarla.",
       "encryptionKeyReplaces": "Esto sustituye la clave actual del trabajo: los puntos de restauración ya escritos conservan la clave con la que se escribieron.",
       "encryptionKeyError": {
-        "empty": "Introduzca una clave o deje que el dispositivo la gestione.",
+        "empty": "Introduzca una clave o genere una.",
         "whitespace": "Una clave no puede empezar ni terminar con un espacio: el dispositivo la guarda sin él, así que no sería la clave que usted guardó.",
         "tooShort": "Use al menos 12 caracteres.",
         "tooSimple": "Combine al menos tres de: minúsculas, mayúsculas, dígitos, símbolos — o genere una clave."

@@ -13,6 +13,7 @@ import { HeaderHint } from "@/components/ui/tooltip";
 import { History } from "@/lib/icons";
 import { cn } from "@/lib/utils";
 import { syntheticFullFailureMessage } from "@/lib/synthetic-full";
+import { backupTypeLabel } from "@/lib/run-type";
 import { formatDateTime, formatDuration, formatStorage } from "@/lib/format";
 import { SESSION_META } from "@/lib/status";
 import type { Session, VmRunResult } from "@/types";
@@ -116,13 +117,11 @@ export function RunHistoryTable({ sessions }: { sessions: Session[] }) {
                     <td className="py-2.5 pr-3">
                       {/* A synthetic full IS a full — it just merged the stored
                           chain instead of re-reading the VM, which is the part
-                          worth naming when reading back a job's history. */}
+                          worth naming when reading back a job's history. The
+                          label comes from the shared helper so this row and the
+                          Overview's last-run footer cannot disagree. */}
                       <Badge variant={s.backupType === "full" ? "info" : "outline"}>
-                        {s.synthetic
-                          ? t("runType.syntheticFull")
-                          : s.backupType === "full"
-                            ? t("runType.full")
-                            : t("runType.incremental")}
+                        {backupTypeLabel(s) ?? t("runType.full")}
                       </Badge>
                     </td>
                     <td className="nums hidden py-2.5 pr-3 text-muted-foreground md:table-cell">

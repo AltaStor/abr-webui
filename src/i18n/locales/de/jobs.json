@@ -24,6 +24,7 @@
     "hourly_one": "Stündlich",
     "hourly_other": "Alle {{count}} h",
     "weekly": "Wöchentlich · {{day}} {{time}}",
+    "weeklyNoDay": "Wöchentlich · kein Tag gewählt",
     "customCron": "Benutzerdefiniert · {{cron}}",
     "custom": "Benutzerdefinierter Zeitplan",
     "daily": "Täglich · {{time}}",
@@ -824,14 +825,16 @@
       "hourly": "innerhalb der Stunde",
       "every4h": "innerhalb von 4 Stunden",
       "weekly": "nächsten {{day}} um {{time}}",
-      "daily": "heute Abend um {{time}}"
+      "daily": "heute Abend um {{time}}",
+      "weeklyNoDay": "sobald Sie einen Tag wählen"
     },
     "errors": {
       "name": "Geben Sie dem Job einen Namen.",
       "scopeReplication": "Wählen Sie mindestens eine VM zum Replizieren aus.",
       "filesPaths": "Fügen Sie auf jedem ausgewählten Server mindestens einen Pfad hinzu.",
       "targetEnv": "Wählen Sie eine Zielumgebung für das Replikat.",
-      "repository": "Wählen Sie ein Repository für die Backups aus."
+      "repository": "Wählen Sie ein Repository für die Backups aus.",
+      "scheduleDays": "Wählen Sie mindestens einen Tag für den Sicherungsplan."
     },
     "scope": {
       "filesSummary_one": "{{count}} Pfad auf {{servers}}",
@@ -894,7 +897,7 @@
       "weeklySub": "Einmal wöchentlich"
     },
     "atTime": "Um Uhrzeit",
-    "onDay": "Am Tag",
+    "onDays": "An Tagen",
     "recoveryPointsToKeep": "Aufzubewahrende Wiederherstellungspunkte",
     "howLongToKeep": "Aufbewahrung festlegen",
     "retentionAriaReplication": "Auf dem Replikat aufzubewahrende Wiederherstellungspunkte",
@@ -925,7 +928,9 @@
         "activeDays": "Wählen Sie mindestens einen Tag für das aktive Vollbackup.",
         "syntheticDays": "Wählen Sie mindestens einen Tag für das synthetische Vollbackup."
       },
-      "syntheticOverridden": "Dies läuft zur selben Zeit wie das aktive Vollbackup, das Vorrang hat — die Zusammenführung würde also nie ausgeführt. Verschieben Sie eines von beiden auf einen anderen Tag oder eine andere Uhrzeit."
+      "syntheticOverridden": "Dies läuft zur selben Zeit wie das aktive Vollbackup, das Vorrang hat — die Zusammenführung würde also nie ausgeführt. Verschieben Sie eines von beiden auf einen anderen Tag oder eine andere Uhrzeit.",
+      "syntheticOverriddenDays": "Am {{days}} läuft die aktive Vollsicherung zur selben Zeit und hat Vorrang, an diesen Tagen findet also keine Zusammenführung statt. Verschieben Sie eine von beiden auf einen anderen Tag oder eine andere Zeit.",
+      "syntheticOverriddenDayOfMonth": "Am {{day}}. des Monats läuft die aktive Vollsicherung zur selben Zeit und hat Vorrang, an diesem Tag findet also keine Zusammenführung statt. Verschieben Sie eine von beiden auf einen anderen Tag oder eine andere Zeit."
     },
     "advanced": "Erweiterte Einstellungen",
     "advancedHint": "(Standardwerte werden angewendet)",
@@ -943,10 +948,8 @@
       "compressionHelp": "Ermöglicht es Ihnen, die Komprimierungsstufe anzupassen, um Backup-Größe, Verarbeitungsgeschwindigkeit und CPU-Auslastung auszubalancieren.\n0 = keine Komprimierung, schnellste Verarbeitung\n9 = mehr Datenersparnis, höhere CPU-Auslastung",
       "compressionHint": "Niedrigere Komprimierungsstufen sind schneller, höhere sparen mehr Speicherplatz und Bandbreite. Standard ist 3.",
       "encryptionKeyLabel": "Verschlüsselungsschlüssel",
-      "encryptionKeyManaged": "Von der Appliance verwaltet",
-      "encryptionKeyCustom": "Eigenen Schlüssel verwenden",
-      "encryptionKeyManagedHint": "AltaStor erzeugt einen 256-Bit-Schlüssel und bewahrt ihn auf. Er wird nie angezeigt, die einzige Kopie liegt also auf dieser Appliance — exportieren Sie den Katalog, um eine Kopie außerhalb zu haben.",
       "encryptionKeyCustomHint": "Sie besitzen den Schlüssel. Damit geschriebene Wiederherstellungspunkte lassen sich auf jeder AltaStor-Appliance wiederherstellen, auch wenn diese und ihr Katalog verloren sind.",
+      "encryptionKeyKeep": "Leer lassen, um den Schlüssel zu behalten, den dieser Job bereits verwendet.",
       "encryptionKeyPlaceholder": "Mindestens 12 Zeichen",
       "encryptionKeyGenerate": "Erzeugen",
       "encryptionKeyCopy": "Schlüssel kopieren",
@@ -956,7 +959,7 @@
       "encryptionKeyEscrow": "Bewahren Sie diesen Schlüssel jetzt außerhalb der Appliance auf. Damit geschriebene Backups sind ohne ihn nicht wiederherstellbar, und AltaStor zeigt ihn nicht erneut an.",
       "encryptionKeyReplaces": "Dies ersetzt den aktuellen Schlüssel des Jobs: Bereits geschriebene Wiederherstellungspunkte behalten den Schlüssel, mit dem sie geschrieben wurden.",
       "encryptionKeyError": {
-        "empty": "Geben Sie einen Schlüssel ein oder lassen Sie die Appliance einen verwalten.",
+        "empty": "Geben Sie einen Schlüssel ein oder erzeugen Sie einen.",
         "whitespace": "Ein Schlüssel darf nicht mit einem Leerzeichen beginnen oder enden — die Appliance speichert ihn ohne, es wäre also nicht der Schlüssel, den Sie gesichert haben.",
         "tooShort": "Verwenden Sie mindestens 12 Zeichen.",
         "tooSimple": "Mischen Sie mindestens drei aus: Kleinbuchstaben, Großbuchstaben, Ziffern, Sonderzeichen — oder erzeugen Sie einen Schlüssel."

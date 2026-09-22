@@ -29,9 +29,14 @@ export function scheduleLabel(schedule: Schedule, disabled = false): string {
       return i18n.t("jobs:schedule.hourly", { count: n });
     }
     case "weekly": {
-      const day = schedule.daysOfWeek?.[0] ?? 0;
+      const days = [...(schedule.daysOfWeek ?? [])].sort((a, b) => a - b);
       const time = schedule.atTime ?? "01:00";
-      return i18n.t("jobs:schedule.weekly", { day: dayShortLabel(day), time });
+      // Every day the operator picked, not just the first: the schedule card
+      // takes a list now, and showing one of three days back to them would be
+      // a summary of a schedule they didn't set.
+      return days.length
+        ? i18n.t("jobs:schedule.weekly", { day: days.map(dayShortLabel).join(", "), time })
+        : i18n.t("jobs:schedule.weeklyNoDay");
     }
     case "custom":
       return schedule.cron
@@ -59,7 +64,12 @@ function fullSchedulePattern(schedule: FullBackupSchedule): string {
   switch (schedule.frequency) {
     case "weekly": {
       const days = [...(schedule.daysOfWeek ?? [])].sort((a, b) => a - b);
-      return i18n.t("jobs:schedule.weekly", { day: days.map(dayShortLabel).join(", "), time });
+      // A weekly schedule with no day is not a schedule the appliance would
+      // accept, and printing "Weekly · 03:30" made an unsaveable form read like
+      // a finished one.
+      return days.length
+        ? i18n.t("jobs:schedule.weekly", { day: days.map(dayShortLabel).join(", "), time })
+        : i18n.t("jobs:schedule.weeklyNoDay");
     }
     case "monthly":
       return i18n.t("jobs:schedule.monthly", { day: schedule.dayOfMonth ?? 1, time });

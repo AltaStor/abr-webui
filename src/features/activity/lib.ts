@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 // Copyright © 2026 Norvitex OÜ
 
-import { DatabaseBackup, HardDriveDownload, RotateCcw, ShieldCheck, type LucideIcon } from "@/lib/icons";
+import { DatabaseBackup, HardDriveDownload, RotateCcw, ShieldCheck, Trash2, type LucideIcon } from "@/lib/icons";
 import type { Session, SessionStatus } from "@/types";
 import type { Tone } from "@/lib/status";
 import i18n from "@/i18n";
@@ -30,10 +30,18 @@ export function isVerify(session: Session): boolean {
   return session.type === "verify";
 }
 
-/** Human label for the kind of run — restore / verify / backup. */
+/** A deletion removes a stored chain (or one segment of it). Like a verify it
+ *  runs against the repository with no job behind it — and unlike either, it
+ *  takes data away, which is the one thing a feed must not mislabel. */
+export function isDelete(session: Session): boolean {
+  return session.type === "delete";
+}
+
+/** Human label for the kind of run — restore / verify / delete / backup. */
 export function runKind(session: Session): string {
   if (isRestore(session)) return i18n.t("activity:runKind.restore");
   if (session.type === "verify") return i18n.t("activity:runKind.verify");
+  if (session.type === "delete") return i18n.t("activity:runKind.delete");
   if (session.type === "backup-copy") return i18n.t("activity:runKind.backupCopy");
   return i18n.t("activity:runKind.backup");
 }
@@ -44,6 +52,7 @@ export function runKindIcon(session: Session): LucideIcon {
   // A verification reads a stored chain without moving any of it — the shield
   // says "checked", where the database glyph would claim data was written.
   if (session.type === "verify") return ShieldCheck;
+  if (session.type === "delete") return Trash2;
   if (session.type === "backup-copy") return HardDriveDownload;
   return DatabaseBackup;
 }

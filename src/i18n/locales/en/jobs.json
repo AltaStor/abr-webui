@@ -24,6 +24,7 @@
     "hourly_one": "Every hour",
     "hourly_other": "Every {{count}}h",
     "weekly": "Weekly · {{day}} {{time}}",
+    "weeklyNoDay": "Weekly · no day picked",
     "customCron": "Custom · {{cron}}",
     "custom": "Custom schedule",
     "daily": "Daily · {{time}}",
@@ -824,14 +825,16 @@
       "hourly": "within the hour",
       "every4h": "within 4 hours",
       "weekly": "next {{day}} at {{time}}",
-      "daily": "tonight at {{time}}"
+      "daily": "tonight at {{time}}",
+      "weeklyNoDay": "once you pick a day"
     },
     "errors": {
       "name": "Give the job a name.",
       "scopeReplication": "Select at least one VM to replicate.",
       "filesPaths": "Add at least one path on every selected server.",
       "targetEnv": "Pick a target environment for the replica.",
-      "repository": "Pick a repository to store backups in."
+      "repository": "Pick a repository to store backups in.",
+      "scheduleDays": "Pick at least one day for the backup schedule."
     },
     "scope": {
       "filesSummary_one": "{{count}} path on {{servers}}",
@@ -894,7 +897,7 @@
       "weeklySub": "Once a week"
     },
     "atTime": "At time",
-    "onDay": "On day",
+    "onDays": "On days",
     "recoveryPointsToKeep": "Recovery points to keep",
     "howLongToKeep": "Set retention",
     "retentionAriaReplication": "Recovery points to keep on the replica",
@@ -925,7 +928,9 @@
         "activeDays": "Pick at least one day for the active full backup.",
         "syntheticDays": "Pick at least one day for the synthetic full backup."
       },
-      "syntheticOverridden": "This runs at the same time as the active full backup, which takes priority — so the merge would never run. Move one of them to a different day or time."
+      "syntheticOverridden": "This runs at the same time as the active full backup, which takes priority — so the merge would never run. Move one of them to a different day or time.",
+      "syntheticOverriddenDays": "On {{days}} the active full backup runs at the same time and takes priority, so no merge happens those days. Move one of them to a different day or time.",
+      "syntheticOverriddenDayOfMonth": "On day {{day}} of the month the active full backup runs at the same time and takes priority, so no merge happens that day. Move one of them to a different day or time."
     },
     "advanced": "Advanced settings",
     "advancedHint": "(Defaults are applied)",
@@ -943,10 +948,8 @@
       "compressionHelp": "Allows you to adjust the compression level to balance backup size, processing speed, and CPU usage.\n0 = no compression, fastest processing\n9 = more data savings, higher CPU usage",
       "compressionHint": "Lower compression levels are faster, higher levels save more space and bandwidth. Default is 3.",
       "encryptionKeyLabel": "Encryption key",
-      "encryptionKeyManaged": "Managed by the appliance",
-      "encryptionKeyCustom": "Use my own key",
-      "encryptionKeyManagedHint": "AltaStor generates a 256-bit key and keeps it. It is never displayed, so the only copy lives on this appliance — export the catalog to hold one elsewhere.",
       "encryptionKeyCustomHint": "You hold the key. Restore points written with it can be recovered on any AltaStor appliance, even if this one and its catalog are gone.",
+      "encryptionKeyKeep": "Leave it empty to keep the key this job already uses.",
       "encryptionKeyPlaceholder": "At least 12 characters",
       "encryptionKeyGenerate": "Generate",
       "encryptionKeyCopy": "Copy key",
@@ -956,7 +959,7 @@
       "encryptionKeyEscrow": "Store this key outside the appliance now. Backups written with it can't be restored without it, and AltaStor won't show it again.",
       "encryptionKeyReplaces": "This replaces the job's current key: restore points already written keep the key they were written with.",
       "encryptionKeyError": {
-        "empty": "Enter a key, or let the appliance manage one.",
+        "empty": "Enter a key, or generate one.",
         "whitespace": "A key can't start or end with a space — the appliance stores it without one, so it wouldn't be the key you saved.",
         "tooShort": "Use at least 12 characters.",
         "tooSimple": "Mix at least three of: lowercase, uppercase, digits, symbols — or generate a key."

@@ -168,10 +168,13 @@ export interface JobOptions {
 }
 
 export type JobType = "backup" | "replication" | "backup-copy";
-/** A session's run kind — everything a job can be, plus the two the appliance
- *  runs without a job behind them: "restore" and "verify" (an integrity check
- *  over one stored backup chain). */
-export type SessionType = JobType | "restore" | "verify";
+/** A session's run kind — everything a job can be, plus the three the appliance
+ *  runs without a job behind them: "restore", "verify" (an integrity check over
+ *  one stored backup chain) and "delete" (removing a chain or one of its
+ *  segments). The appliance reports each as a session of its own
+ *  (`task_type`), and a console that doesn't know one of them files it under
+ *  "backup" — which is how a deletion came to be listed as a full backup. */
+export type SessionType = JobType | "restore" | "verify" | "delete";
 export type JobRunState = "idle" | "running" | "disabled";
 
 export interface BackupJob {

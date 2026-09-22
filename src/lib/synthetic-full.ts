@@ -294,44 +294,84 @@ export function syntheticFullFailureKey(message: string): string | null {
 }
 
 /**
- * True when an active full is scheduled so that it always falls due alongside
- * the synthetic full — which means the synthetic full never actually happens.
+ * When an active full is scheduled so that it takes the synthetic full's slot.
  *
  * The appliance resolves a tie between due schedules in favour of the more
  * thorough kind (`active_overrides_synthetic`, in `job_effective_policy`), so
  * "Active full: daily 02:00" + "Synthetic full: daily 02:00" is a legal job
  * that quietly runs an active full every night and never merges anything. The
- * operator gets an expensive full backup where they configured a cheap one, and
- * nothing anywhere says so.
+ * operator gets an expensive full backup where they configured a cheap one.
  *
- * Deliberately conservative: it answers true only where the overlap is total
- * and certain. Two schedules that merely overlap sometimes (weekly Sunday
- * against daily) are a real configuration, and periodic/cron schedules are not
- * compared at all — a wrong warning on a working job is worse than none.
+ * Two answers, because there are two situations and they need different words:
+ *
+ *   "always"   Every merge the schedule asks for is taken. The synthetic full
+ *              never runs at all.
+ *   "partial"  Only the occurrences that land on the days named here — e.g. a
+ *              daily merge against a weekly active full on Saturdays, which
+ *              merges six nights a week and skips the seventh.
+ *
+ * Still deliberately conservative about what it does NOT answer: a collision is
+ * only reported when the two schedules fire at the same time of day and the
+ * calendar says they must meet. An active full on day 15 of the month against a
+ * weekly merge on Mondays meets a few times a year, and only the calendar knows
+ * when, so it is left alone — a wrong warning on a working job is worse than
+ * none.
  */
-export function syntheticFullAlwaysOverridden(
+export interface SyntheticFullOverride {
+  kind: "always" | "partial";
+  /** Weekday indexes (0 = Sunday) the collision falls on. */
+  days?: number[];
+  /** Day of the month the collision falls on. */
+  dayOfMonth?: number;
+}
+
+/** The frequencies whose occurrences can be compared without a calendar. */
+function isCalendarFrequency(
+  schedule: FullBackupSchedule,
+): schedule is FullBackupSchedule & { frequency: "daily" | "weekly" | "monthly" } {
+  return schedule.frequency === "daily" || schedule.frequency === "weekly" || schedule.frequency === "monthly";
+}
+
+export function syntheticFullOverride(
   active: FullBackupSchedule | null | undefined,
   synthetic: FullBackupSchedule | null | undefined,
-): boolean {
-  if (!active?.enabled || !synthetic?.enabled) return false;
-  if (active.frequency !== synthetic.frequency) return false;
-  if (active.atTime !== synthetic.atTime) return false;
+): SyntheticFullOverride | null {
+  if (!active?.enabled || !synthetic?.enabled) return null;
+  // periodic / cron — not comparable without evaluating the expressions.
+  if (!isCalendarFrequency(active) || !isCalendarFrequency(synthetic)) return null;
+  // Different times are different trigger points; nothing collides.
+  if (active.atTime !== synthetic.atTime) return null;
 
-  switch (active.frequency) {
-    case "daily":
-      return true;
-    case "weekly": {
-      const activeDays = new Set(active.daysOfWeek ?? []);
-      const syntheticDays = synthetic.daysOfWeek ?? [];
-      // Every day the merge would run on is a day the active full takes.
-      return syntheticDays.length > 0 && syntheticDays.every((day) => activeDays.has(day));
-    }
-    case "monthly":
-      return active.dayOfMonth === synthetic.dayOfMonth;
-    default:
-      // periodic / cron — not comparable without evaluating the expressions.
-      return false;
+  if (active.frequency === "daily") {
+    // The active full falls due every day, so it takes every merge slot there is.
+    return { kind: "always" };
   }
+
+  if (active.frequency === "weekly") {
+    const activeDays = [...new Set(active.daysOfWeek ?? [])].sort((a, b) => a - b);
+    if (!activeDays.length) return null;
+    if (synthetic.frequency === "daily") return { kind: "partial", days: activeDays };
+    if (synthetic.frequency === "weekly") {
+      const syntheticDays = [...new Set(synthetic.daysOfWeek ?? [])];
+      if (!syntheticDays.length) return null;
+      const overlap = syntheticDays.filter((day) => activeDays.includes(day)).sort((a, b) => a - b);
+      if (!overlap.length) return null;
+      return overlap.length === syntheticDays.length
+        ? { kind: "always" }
+        : { kind: "partial", days: overlap };
+    }
+    // Monthly merge against a weekly active full: which weekday day-N falls on
+    // is a calendar question. Not answered here.
+    return null;
+  }
+
+  // Monthly active full.
+  const dayOfMonth = active.dayOfMonth ?? 1;
+  if (synthetic.frequency === "daily") return { kind: "partial", dayOfMonth };
+  if (synthetic.frequency === "monthly") {
+    return (synthetic.dayOfMonth ?? 1) === dayOfMonth ? { kind: "always" } : null;
+  }
+  return null;
 }
 
 /**

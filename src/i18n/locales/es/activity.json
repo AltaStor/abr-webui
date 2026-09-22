@@ -7,6 +7,7 @@
   "runKind": {
     "restore": "Restauración",
     "verify": "Verificación",
+    "delete": "Eliminación",
     "backupCopy": "Copia de seguridad",
     "diskBackup": "Copia de seguridad de disco",
     "fileBackup": "Copia de seguridad de archivos",
@@ -139,13 +140,9 @@
       "restore": "Operación de restauración",
       "jobLabel": "Trabajo de {{kind}}",
       "deleted": "Trabajo eliminado — historial conservado",
+      "noJob": "{{kind}} — ejecución sin trabajo",
       "openRestore": "Abrir restauración",
       "openJob": "Abrir trabajo"
-    },
-    "backupType": {
-      "full": "Completa",
-      "incremental": "Incremental",
-      "synthetic": "Completo sintético"
     }
   },
   "older": {

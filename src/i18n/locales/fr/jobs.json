@@ -24,6 +24,7 @@
     "hourly_one": "Toutes les heures",
     "hourly_other": "Toutes les {{count}} h",
     "weekly": "Hebdomadaire · {{day}} {{time}}",
+    "weeklyNoDay": "Hebdomadaire · aucun jour choisi",
     "customCron": "Personnalisé · {{cron}}",
     "custom": "Planification personnalisée",
     "daily": "Quotidien · {{time}}",
@@ -824,14 +825,16 @@
       "hourly": "dans l’heure",
       "every4h": "dans les 4 heures",
       "weekly": "{{day}} prochain à {{time}}",
-      "daily": "ce soir à {{time}}"
+      "daily": "ce soir à {{time}}",
+      "weeklyNoDay": "dès que vous choisissez un jour"
     },
     "errors": {
       "name": "Donnez un nom à la tâche.",
       "scopeReplication": "Sélectionnez au moins une VM à répliquer.",
       "filesPaths": "Ajoutez au moins un chemin sur chaque serveur sélectionné.",
       "targetEnv": "Choisissez un environnement cible pour la réplique.",
-      "repository": "Choisissez un référentiel où stocker les sauvegardes."
+      "repository": "Choisissez un référentiel où stocker les sauvegardes.",
+      "scheduleDays": "Choisissez au moins un jour pour la planification des sauvegardes."
     },
     "scope": {
       "filesSummary_one": "{{count}} chemin sur {{servers}}",
@@ -894,7 +897,7 @@
       "weeklySub": "Une fois par semaine"
     },
     "atTime": "À l’heure",
-    "onDay": "Le jour",
+    "onDays": "Les jours",
     "recoveryPointsToKeep": "Points de récupération à conserver",
     "howLongToKeep": "Définir la rétention",
     "retentionAriaReplication": "Points de récupération à conserver sur la réplique",
@@ -925,7 +928,9 @@
         "activeDays": "Choisissez au moins un jour pour la sauvegarde complète active.",
         "syntheticDays": "Choisissez au moins un jour pour la sauvegarde complète synthétique."
       },
-      "syntheticOverridden": "Ceci s’exécute en même temps que la sauvegarde complète active, qui est prioritaire — la fusion ne s’exécuterait donc jamais. Déplacez l’une des deux vers un autre jour ou une autre heure."
+      "syntheticOverridden": "Ceci s’exécute en même temps que la sauvegarde complète active, qui est prioritaire — la fusion ne s’exécuterait donc jamais. Déplacez l’une des deux vers un autre jour ou une autre heure.",
+      "syntheticOverriddenDays": "Le {{days}}, la sauvegarde complète active s’exécute à la même heure et a priorité : aucune fusion n’a lieu ces jours-là. Déplacez l’une des deux à un autre jour ou à une autre heure.",
+      "syntheticOverriddenDayOfMonth": "Le {{day}} du mois, la sauvegarde complète active s’exécute à la même heure et a priorité : aucune fusion n’a lieu ce jour-là. Déplacez l’une des deux à un autre jour ou à une autre heure."
     },
     "advanced": "Paramètres avancés",
     "advancedHint": "(Valeurs par défaut appliquées)",
@@ -943,10 +948,8 @@
       "compressionHelp": "Permet d’ajuster le niveau de compression pour équilibrer la taille des sauvegardes, la vitesse de traitement et l’utilisation du CPU.\n0 = aucune compression, traitement le plus rapide\n9 = plus d’économie de données, utilisation du CPU plus élevée",
       "compressionHint": "Les niveaux de compression faibles sont plus rapides ; les niveaux élevés économisent plus d’espace et de bande passante. Par défaut : 3.",
       "encryptionKeyLabel": "Clé de chiffrement",
-      "encryptionKeyManaged": "Gérée par l’appliance",
-      "encryptionKeyCustom": "Utiliser ma propre clé",
-      "encryptionKeyManagedHint": "AltaStor génère une clé de 256 bits et la conserve. Elle n’est jamais affichée : la seule copie se trouve sur cette appliance — exportez le catalogue pour en garder une ailleurs.",
       "encryptionKeyCustomHint": "Vous détenez la clé. Les points de restauration écrits avec elle sont récupérables sur n’importe quelle appliance AltaStor, même si celle-ci et son catalogue ont disparu.",
+      "encryptionKeyKeep": "Laissez-la vide pour conserver la clé que cette tâche utilise déjà.",
       "encryptionKeyPlaceholder": "Au moins 12 caractères",
       "encryptionKeyGenerate": "Générer",
       "encryptionKeyCopy": "Copier la clé",
@@ -956,7 +959,7 @@
       "encryptionKeyEscrow": "Conservez cette clé hors de l’appliance dès maintenant. Les sauvegardes écrites avec elle sont irrécupérables sans elle, et AltaStor ne l’affichera plus.",
       "encryptionKeyReplaces": "Ceci remplace la clé actuelle de la tâche : les points de restauration déjà écrits conservent la clé avec laquelle ils ont été écrits.",
       "encryptionKeyError": {
-        "empty": "Saisissez une clé, ou laissez l’appliance en gérer une.",
+        "empty": "Saisissez une clé, ou générez-en une.",
         "whitespace": "Une clé ne peut pas commencer ni se terminer par une espace — l’appliance la stocke sans, ce ne serait donc pas la clé que vous avez sauvegardée.",
         "tooShort": "Utilisez au moins 12 caractères.",
         "tooSimple": "Mélangez au moins trois de : minuscules, majuscules, chiffres, symboles — ou générez une clé."

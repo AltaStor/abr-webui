@@ -136,6 +136,10 @@ export function useEventNotifications(): void {
       // Backups tab toasts each run's verdict — and the Activity feed keeps the
       // record either way, so it does not belong in this loop.
       if (session.type === "verify") continue;
+      // Same for a deletion: no job behind it either, so the routing below
+      // would deep-link to an empty job id, and the bell would announce the
+      // removal of a chain under the job placeholder name.
+      if (session.type === "delete") continue;
 
       const key = eventKeyFor(session);
       if (!events[key]) continue;

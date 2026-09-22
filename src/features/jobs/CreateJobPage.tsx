@@ -39,7 +39,7 @@ import { formatStorage } from "@/lib/format";
 import { PLATFORM_META } from "@/lib/platform";
 import {
   repositorySupportsSyntheticFull,
-  syntheticFullAlwaysOverridden,
+  syntheticFullOverride,
 } from "@/lib/synthetic-full";
 import { resourceNameErrorKey, resourceNameProblem } from "@/lib/resource-name";
 import { encryptionKeyProblem } from "@/lib/encryption-key";
@@ -51,7 +51,7 @@ import i18n from "@/i18n";
 import { fullScheduleLabel, pickAccent, retentionLabel, scheduleLabel } from "./lib";
 import { ScopePicker } from "./components/ScopePicker";
 import { JobSummaryPanel, type SummaryData } from "./components/JobSummaryPanel";
-import { EncryptionKeyField, type EncryptionKeySource } from "./components/EncryptionKeyField";
+import { EncryptionKeyField } from "./components/EncryptionKeyField";
 
 type Preset = "hourly" | "every4h" | "daily" | "weekly";
 type JobTypeChoice = "backup" | "replication";
@@ -133,7 +133,17 @@ function toFullSchedule(f: FullScheduleForm, enabled: boolean): FullBackupSchedu
   const base = { frequency: f.frequency, enabled, timezone: f.timezone };
   switch (f.frequency) {
     case "weekly":
-      return { ...base, atTime: f.atTime, daysOfWeek: [...f.daysOfWeek].sort((a, b) => a - b) };
+      return {
+        ...base,
+        atTime: f.atTime,
+        // Never empty: the appliance refuses a weekly schedule with no weekday
+        // whatever its `enabled` flag says, so a form left with no days — only
+        // reachable while the schedule is switched off, since switching it on
+        // blocks the save — would otherwise 422 on the way out.
+        daysOfWeek: (f.daysOfWeek.length ? [...f.daysOfWeek] : [FULL_BACKUP_DEFAULT_DAY]).sort(
+          (a, b) => a - b,
+        ),
+      };
     case "monthly":
       return { ...base, atTime: f.atTime, dayOfMonth: f.dayOfMonth };
     case "periodic":
@@ -150,7 +160,11 @@ interface FormState {
   name: string;
   preset: Preset;
   atTime: string;
-  dayOfWeek: number;
+  /** Weekly preset: the days the job runs on. A list, not a single day — the
+   *  appliance stores weekdays as a list and the Full backups block below has
+   *  always offered several, so offering exactly one here made the same
+   *  question look like two different questions on one page. */
+  daysOfWeek: number[];
   keepDays: number;
   /** Backup jobs only: full backups on their own schedules, next to `preset`. */
   activeFull: FullScheduleForm;
@@ -176,7 +190,7 @@ function presetToSchedule(form: FormState): Schedule {
     case "every4h":
       return { frequency: "hourly", everyHours: 4 };
     case "weekly":
-      return { frequency: "weekly", atTime: form.atTime, daysOfWeek: [form.dayOfWeek] };
+      return { frequency: "weekly", atTime: form.atTime, daysOfWeek: [...form.daysOfWeek].sort((a, b) => a - b) };
     case "daily":
     default:
       return { frequency: "daily", atTime: form.atTime };
@@ -189,17 +203,42 @@ function scheduleToPreset(schedule: Schedule): Preset {
   return "daily";
 }
 
+/** The soonest of `days` (0 = Sunday) that a run at `atTime` would fall on,
+ *  counting today only while that time is still ahead. Null when no day is
+ *  picked at all. */
+function nextWeekday(days: number[], atTime: string): number | null {
+  if (!days.length) return null;
+  const now = new Date();
+  const [hh, mm] = atTime.split(":").map(Number);
+  const passedToday =
+    now.getHours() > (hh ?? 0) || (now.getHours() === (hh ?? 0) && now.getMinutes() >= (mm ?? 0));
+  for (let offset = passedToday ? 1 : 0; offset < 8; offset++) {
+    const day = (now.getDay() + offset) % 7;
+    if (days.includes(day)) return day;
+  }
+  return null;
+}
+
 function firstRunLabel(form: FormState): string {
   switch (form.preset) {
     case "hourly":
       return i18n.t("jobs:create.firstRun.hourly");
     case "every4h":
       return i18n.t("jobs:create.firstRun.every4h");
-    case "weekly":
-      return i18n.t("jobs:create.firstRun.weekly", {
-        day: i18n.t(`jobs:days.long.${DAY_KEYS[form.dayOfWeek]}`),
-        time: form.atTime,
-      });
+    case "weekly": {
+      // No day picked is not a schedule yet, and saying "next  at 03:30" as if
+      // it were is what let the summary read like a finished setting while the
+      // save button refused it.
+      const next = nextWeekday(form.daysOfWeek, form.atTime);
+      return next === null
+        ? i18n.t("jobs:create.firstRun.weeklyNoDay")
+        : i18n.t("jobs:create.firstRun.weekly", {
+            // The FIRST run, so the soonest of the days picked — listing all of
+            // them would answer a different question than the row asks.
+            day: i18n.t(`jobs:days.long.${DAY_KEYS[next]}`),
+            time: form.atTime,
+          });
+    }
     case "daily":
     default:
       return i18n.t("jobs:create.firstRun.daily", { time: form.atTime });
@@ -299,7 +338,7 @@ function JobWizard({
         name: existingJob.name,
         preset: scheduleToPreset(existingJob.schedule),
         atTime,
-        dayOfWeek: existingJob.schedule.daysOfWeek?.[0] ?? 0,
+        daysOfWeek: existingJob.schedule.daysOfWeek?.length ? [...existingJob.schedule.daysOfWeek] : [0],
         keepDays: existingJob.retention.keepDays,
         activeFull: fullScheduleForm(existingJob.activeFullSchedule, activeDefaults),
         syntheticFull: fullScheduleForm(existingJob.syntheticFullSchedule, syntheticDefaults),
@@ -320,7 +359,7 @@ function JobWizard({
       name: "",
       preset: "daily",
       atTime,
-      dayOfWeek: 0,
+      daysOfWeek: [0],
       keepDays: 14,
       activeFull: activeDefaults,
       syntheticFull: syntheticDefaults,
@@ -348,9 +387,8 @@ function JobWizard({
   const [submitting, setSubmitting] = useState(false);
   const [nameTouched, setNameTouched] = useState(false);
   /* The key lives outside `form.options` until submit: `options` is the shape
-   * that goes on the wire, and an operator who types a key and then switches
-   * back to the appliance-managed one must not have it sent anyway. */
-  const [keySource, setKeySource] = useState<EncryptionKeySource>("managed");
+   * that goes on the wire, and the key is only part of it when the operator
+   * actually entered one. */
   const [encryptionKey, setEncryptionKey] = useState("");
   const [keyTouched, setKeyTouched] = useState(false);
   // Distinct from `nameTouched` (a blur/submit flag that only gates the error
@@ -363,6 +401,13 @@ function JobWizard({
     setForm((f) => ({ ...f, [key]: value }));
   const setOption = <K extends keyof JobOptions>(key: K, value: JobOptions[K]) =>
     setForm((f) => ({ ...f, options: { ...f.options, [key]: value } }));
+  const toggleScheduleDay = (day: number) =>
+    setForm((f) => ({
+      ...f,
+      daysOfWeek: f.daysOfWeek.includes(day)
+        ? f.daysOfWeek.filter((d) => d !== day)
+        : [...f.daysOfWeek, day].sort((a, b) => a - b),
+    }));
 
   const repository = repositories.find((r) => r.id === form.repositoryId);
   const schedule = presetToSchedule(form);
@@ -453,11 +498,19 @@ function JobWizard({
   const nameErrorMessage = nameErrorKey ? tCommon(nameErrorKey) : t("create.nameHelp");
   if (nameProblem === "empty") errors.push(t("create.errors.name"));
   else if (nameProblem) errors.push(nameErrorMessage);
-  // Only a custom key is checked: the appliance-managed one is minted with 256
-  // bits of entropy and never passes through here (see lib/encryption-key.ts).
-  const customKeyInUse = form.options.encryption && keySource === "custom";
-  const keyProblem = customKeyInUse ? encryptionKeyProblem(encryptionKey) : null;
+  // An encrypted job is always given its key here — the operator is the only
+  // one who can hold a copy of it (see EncryptionKeyField). The exception is a
+  // job that is already encrypted: the appliance is holding that key, so an
+  // empty field means "keep it" rather than "no key".
+  const hasStoredKey = Boolean(editMode && existingJob?.options.encryption);
+  const keyEntered = form.options.encryption && !(hasStoredKey && encryptionKey === "");
+  const keyProblem = keyEntered ? encryptionKeyProblem(encryptionKey) : null;
   if (keyProblem) errors.push(t(`create.opt.encryptionKeyError.${keyProblem}`));
+  // Same rule the appliance enforces (`normalize_schedule_payload`: "Weekly
+  // schedules require at least one weekday") and the same one the Full backups
+  // block below already applied to its own weekly pickers.
+  if (form.preset === "weekly" && form.daysOfWeek.length === 0)
+    errors.push(t("create.errors.scheduleDays"));
   if (selected.size === 0)
     errors.push(isReplication ? t("create.errors.scopeReplication") : t("create.vm.scopeError"));
   if (isReplication && !form.targetEnvironmentId) errors.push(t("create.errors.targetEnv"));
@@ -481,13 +534,26 @@ function JobWizard({
     if (fullScheduleMissing) errors.push(t("create.full.errors.required"));
   }
   /* Not an error — the appliance accepts it and runs an active full instead —
-   * so it is a note under the synthetic editor rather than a blocked submit. */
-  const syntheticAlwaysOverridden =
-    hasFullSchedules &&
-    syntheticFullAlwaysOverridden(
-      form.activeFull.on ? toFullSchedule(form.activeFull, true) : null,
-      form.syntheticFull.on ? toFullSchedule(form.syntheticFull, true) : null,
-    );
+   * so it is a note under the synthetic editor rather than a blocked submit.
+   * "partial" carries the days the two schedules actually meet on, which is the
+   * case a same-day-and-time-only check used to miss entirely (a daily merge
+   * against a weekly active full). */
+  const syntheticOverride = hasFullSchedules
+    ? syntheticFullOverride(
+        form.activeFull.on ? toFullSchedule(form.activeFull, true) : null,
+        form.syntheticFull.on ? toFullSchedule(form.syntheticFull, true) : null,
+      )
+    : null;
+  const syntheticOverrideNote = (() => {
+    if (!syntheticOverride) return undefined;
+    if (syntheticOverride.kind === "always") return t("create.full.syntheticOverridden");
+    if (syntheticOverride.dayOfMonth !== undefined) {
+      return t("create.full.syntheticOverriddenDayOfMonth", { day: syntheticOverride.dayOfMonth });
+    }
+    return t("create.full.syntheticOverriddenDays", {
+      days: (syntheticOverride.days ?? []).map((d) => t(`days.long.${DAY_KEYS[d]}`)).join(", "),
+    });
+  })();
 
   /** Whether any GFS count is set at all — an "active" policy with every count
    *  at zero archives nothing, and the switch's hint says so rather than
@@ -508,7 +574,15 @@ function JobWizard({
     stored: FullBackupSchedule | null | undefined,
   ): FullBackupSchedule | null | undefined => {
     if (!hasFullSchedules) return undefined;
-    const desired = f.on ? toFullSchedule(f, true) : stored ? toFullSchedule(f, false) : null;
+    /* "Off" has one spelling on the wire: the schedule with `enabled: false`.
+     * Creating used to send `null` for the same switch that editing expressed
+     * as a disabled object, so one action had two representations in the
+     * contract. A job with no such schedule at all still sends nothing — that
+     * is the field being left alone, not a second way of saying "off", and
+     * sending a disabled default instead would store a monthly full backup the
+     * operator never configured and then describe it back to them as
+     * suspended. */
+    const desired = f.on ? toFullSchedule(f, true) : stored ? toFullSchedule(f, false) : undefined;
     if (!editMode) return desired;
     return fullScheduleKey(desired) === fullScheduleKey(stored) ? undefined : desired;
   };
@@ -550,10 +624,10 @@ function JobWizard({
       activeFullSchedule: fullScheduleInput(form.activeFull, existingJob?.activeFullSchedule),
       syntheticFullSchedule: fullScheduleInput(form.syntheticFull, existingJob?.syntheticFullSchedule),
       retention: { keepDays: form.keepDays, gfs },
-      // The key rides with the options only while "Use my own key" is the
-      // selection — see EncryptionKeyField and `optionsToTaskParams`, where
-      // omitting it is what leaves the appliance's own key alone.
-      options: customKeyInUse ? { ...form.options, encryptionKey } : form.options,
+      // The key rides with the options only when the operator entered one — see
+      // `optionsToTaskParams`, where omitting it is what carries a job's stored
+      // key through an edit untouched.
+      options: keyEntered ? { ...form.options, encryptionKey } : form.options,
       accent: existingJob?.accent ?? pickAccent(jobCount),
       runNow,
       replicaTarget,
@@ -893,20 +967,20 @@ function JobWizard({
                   </div>
                   {form.preset === "weekly" && (
                     <div className="space-y-1.5">
-                      <Label>{t("create.onDay")}</Label>
+                      <Label>{t("create.onDays")}</Label>
                       <div className="flex flex-wrap gap-1">
                         {DAY_KEYS.map((d, i) => (
                           <button
                             key={d}
                             type="button"
-                            onClick={() => set("dayOfWeek", i)}
+                            onClick={() => toggleScheduleDay(i)}
                             className={cn(
                               "h-9 w-10 border font-display text-xs font-medium transition-colors",
-                              form.dayOfWeek === i
+                              form.daysOfWeek.includes(i)
                                 ? "border-primary/40 bg-primary/15 text-primary"
                                 : "border-border text-muted-foreground hover:text-foreground",
                             )}
-                            aria-pressed={form.dayOfWeek === i}
+                            aria-pressed={form.daysOfWeek.includes(i)}
                           >
                             {t(`days.short.${d}`)}
                           </button>
@@ -954,12 +1028,10 @@ function JobWizard({
                   note={
                     repository && !repositorySupportsSyntheticFull(repository)
                       ? t("create.full.syntheticUnsupported", { repository: repository.name })
-                      // Legal, but a no-op: the active full wins every time
-                      // they both fall due, so the merge never runs. Say so
+                      // Legal, but the active full wins wherever the two fall
+                      // due together — always, or on the days named. Say so
                       // rather than let the job quietly do the expensive thing.
-                      : syntheticAlwaysOverridden
-                        ? t("create.full.syntheticOverridden")
-                        : undefined
+                      : syntheticOverrideNote
                   }
                 />
                 {fullScheduleMissing && (
@@ -1077,17 +1149,15 @@ function JobWizard({
                       </div>
                     </div>
 
-                    {/* Where the key comes from is only a question once
-                        encryption is on, and it is a disaster-recovery question
-                        rather than a preference — see EncryptionKeyField. */}
+                    {/* The key is only asked for once encryption is on, and
+                        answering it is a disaster-recovery decision rather than
+                        a preference — see EncryptionKeyField. */}
                     {form.options.encryption && (
                       <EncryptionKeyField
-                        source={keySource}
-                        onSourceChange={setKeySource}
                         value={encryptionKey}
                         onChange={setEncryptionKey}
                         touched={keyTouched || encryptionKey !== ""}
-                        replacesExistingKey={Boolean(editMode && existingJob?.options.encryption)}
+                        hasStoredKey={hasStoredKey}
                       />
                     )}
 

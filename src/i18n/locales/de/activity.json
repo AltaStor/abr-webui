@@ -7,6 +7,7 @@
   "runKind": {
     "restore": "Wiederherstellung",
     "verify": "Überprüfung",
+    "delete": "Löschung",
     "backupCopy": "Backup-Kopie",
     "diskBackup": "Datenträger-Backup",
     "fileBackup": "Datei-Backup",
@@ -139,13 +140,9 @@
       "restore": "Wiederherstellungsvorgang",
       "jobLabel": "{{kind}} Job",
       "deleted": "Job gelöscht — Verlauf erhalten",
+      "noJob": "{{kind}} — Lauf ohne Job",
       "openRestore": "Wiederherstellung öffnen",
       "openJob": "Job öffnen"
-    },
-    "backupType": {
-      "full": "Vollständig",
-      "incremental": "Inkrementell",
-      "synthetic": "Synthetisches Vollbackup"
     }
   },
   "older": {

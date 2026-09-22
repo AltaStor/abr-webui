@@ -7,6 +7,7 @@
   "runKind": {
     "restore": "Restauration",
     "verify": "Vérification",
+    "delete": "Suppression",
     "backupCopy": "Copie de sauvegarde",
     "diskBackup": "Sauvegarde de disque",
     "fileBackup": "Sauvegarde de fichiers",
@@ -139,13 +140,9 @@
       "restore": "Opération de restauration",
       "jobLabel": "Tâche {{kind}}",
       "deleted": "Tâche supprimée — historique conservé",
+      "noJob": "{{kind}} — exécution sans tâche",
       "openRestore": "Ouvrir la restauration",
       "openJob": "Ouvrir la tâche"
-    },
-    "backupType": {
-      "full": "Complète",
-      "incremental": "Incrémentielle",
-      "synthetic": "Complète synthétique"
     }
   },
   "older": {

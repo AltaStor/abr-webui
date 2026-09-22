@@ -25,6 +25,13 @@ export type LockMode = (typeof LOCK_MODES)[number];
 export const DEFAULT_LOCK_MODE: LockMode = "governance";
 export const DEFAULT_LOCK_DAYS = "30";
 
+/** What the create dialog proposes instead, for a repository that holds nothing
+ *  yet: the shortest period the appliance accepts. Enabling the lock there is a
+ *  decision about a bucket the operator is still configuring, so the form starts
+ *  at the smallest commitment and lets them raise it, rather than handing them a
+ *  month of undeletable storage they didn't ask for. */
+export const CREATE_LOCK_DAYS = "1";
+
 /** The lock as the form holds it: days stay a string so a half-typed number is
  *  the operator's own text and not a value silently coerced to 0. */
 export interface ImmutabilityDraft {

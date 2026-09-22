@@ -11,6 +11,7 @@ import { formatDateTime, formatDuration, formatRelative, formatStorage } from "@
 import { TimeStamp } from "@/components/TimeStamp";
 import i18n from "@/i18n";
 import type { Session } from "@/types";
+import { backupTypeLabel } from "@/lib/run-type";
 import { runKind, runKindIcon } from "../lib";
 
 /** Grid template shared by the header and every row so columns line up. */
@@ -30,12 +31,17 @@ export function RunRow({ session: s, onOpen }: { session: Session; onOpen: (sess
   const trigger = TRIGGER_META[s.triggeredBy];
   const TriggerIcon = trigger.icon;
   const KindIcon = runKindIcon(s);
+  // What the run actually did. A feed that only says "Backup · Manual" makes a
+  // full, an incremental and a merge look like the same row, and the answer was
+  // one click away in the detail panel — so it belongs on the row itself.
+  const typeLabel = backupTypeLabel(s);
 
   // One coherent label so screen readers announce the whole run, not column fragments.
   const ariaLabel = [
     meta.label,
     s.jobName,
     runKind(s),
+    ...(typeLabel ? [typeLabel] : []),
     trigger.label,
     t("row.aria.started", { time: formatRelative(s.startedAt), abs: formatDateTime(s.startedAt) }),
     running
@@ -74,7 +80,7 @@ export function RunRow({ session: s, onOpen }: { session: Session; onOpen: (sess
         <div className="flex min-w-0 items-center gap-2.5">
           <span
             className="flex h-7 w-7 shrink-0 items-center justify-center bg-muted/60"
-            title={runKind(s)}
+            title={typeLabel ? `${runKind(s)} · ${typeLabel}` : runKind(s)}
           >
             <KindIcon className="h-3.5 w-3.5 text-muted-foreground" />
           </span>
@@ -82,6 +88,12 @@ export function RunRow({ session: s, onOpen }: { session: Session; onOpen: (sess
             <span className="block truncate font-medium">{s.jobName}</span>
             <div className="mt-0.5 flex items-center gap-1.5 text-[11px] text-muted-foreground">
               <span>{runKind(s)}</span>
+              {typeLabel && (
+                <>
+                  <span className="text-muted-foreground/40">·</span>
+                  <span>{typeLabel}</span>
+                </>
+              )}
               <span className="text-muted-foreground/40">·</span>
               <span className="inline-flex items-center gap-1">
                 <TriggerIcon className="h-3 w-3" />
