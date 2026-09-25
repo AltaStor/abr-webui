@@ -363,6 +363,7 @@
     "title": "Modifier le référentiel",
     "description": "Ajustez la capacité, la compression, l'immuabilité et les limites de débit. Les modifications prennent effet dès l'enregistrement.",
     "saving": "Enregistrement en cours…",
-    "saveSettings": "Enregistrer les paramètres"
+    "saveSettings": "Enregistrer les paramètres",
+    "savedStaysOpen": "Enregistré. Les points de restauration déjà stockés ici ({{count}}) ne sont pas couverts — placez-les sous le verrou ci-dessous, ou fermez."
   }
 }

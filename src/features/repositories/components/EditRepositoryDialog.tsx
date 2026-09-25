@@ -114,6 +114,9 @@ function EditRepositoryForm({
   const [validation, setValidation] = useState<RepositoryValidationResult | null>(null);
   const [effect, setEffect] = useState<ImmutabilityEffect | null>(null);
   const [saveError, setSaveError] = useState<{ message: string; checks: S3ConnectionCheck[] } | null>(null);
+  /* The save went through and the dialog stayed open for the effect report.
+   * Without this it looked identical to a dialog that had done nothing. */
+  const [justSaved, setJustSaved] = useState(false);
 
   /* The dialog is keyed on repo.id, so the form is seeded once per repository
    * and never fights the poll: a store refresh mid-edit must not overwrite what
@@ -150,6 +153,7 @@ function EditRepositoryForm({
     setEffect(null);
     setSaveError(null);
     setApplyArmed(false);
+    setJustSaved(false);
   }
 
   async function handleValidate() {
@@ -208,12 +212,25 @@ function EditRepositoryForm({
       toast.success(t("edit.toast.saved.title"), {
         description: t("edit.toast.saved.descriptionGeneric", { name: result.repository.name }),
       });
-      if (result.immutabilityEffect) {
-        // Deliberately does NOT close: the effect report is the answer to "what
-        // did that actually do to my data", and the stored backups it names are
-        // still unprotected until "apply to stored backups" is run from here.
-        setEffect(result.immutabilityEffect);
+      /* Stay open only while there is something left to DO here. A lock change
+       * leaves the backups already stored outside it, and "apply to stored
+       * backups" — the only place that can fix that — lives in this dialog, so
+       * closing would hide the one action the save just made necessary.
+       *
+       * When there is nothing stored to protect, or it is already covered, the
+       * report is just an account of a save that worked: it goes to the toast
+       * and the dialog closes, which is what every other save in the console
+       * does and what an operator waiting on a spinner expects. */
+      const effectReport = result.immutabilityEffect;
+      const leavesStoredDataUncovered =
+        effectReport != null &&
+        effectReport.existingRestorePoints > 0 &&
+        !effectReport.existingDataProtected &&
+        immutabilityEnabled(effectReport.current);
+      if (leavesStoredDataUncovered) {
+        setEffect(effectReport);
         setValidation(null);
+        setJustSaved(true);
         return;
       }
       onClose();
@@ -300,6 +317,13 @@ function EditRepositoryForm({
                 />
               )}
 
+              {justSaved && (
+                <p className="flex items-start gap-1.5 bg-success-subtle px-3 py-2 text-[11px] leading-relaxed text-success-text">
+                  <ShieldCheck className="mt-px h-3.5 w-3.5 shrink-0" />
+                  {t("edit.savedStaysOpen", { count: restorePointCount })}
+                </p>
+              )}
+
               {effect && <ImmutabilityEffectPanel effect={effect} />}
 
               {/* Bringing already-stored backups under the lock. Its own action,
@@ -374,14 +398,21 @@ function EditRepositoryForm({
 
       <DialogFooter className="border-t border-border p-6 pt-4">
         <DialogClose asChild>
-          <Button type="button" variant="ghost">
-            {effect ? t("common:actions.close") : t("common:actions.cancel")}
+          {/* Once the save is in, closing is the way out, not cancelling
+              something — there is nothing left to cancel. */}
+          <Button type="button" variant={justSaved ? "default" : "ghost"}>
+            {justSaved || effect ? t("common:actions.close") : t("common:actions.cancel")}
           </Button>
         </DialogClose>
-        <Button type="submit" disabled={!canSave}>
-          <ShieldCheck className="h-4 w-4" />
-          {saving ? t("edit.saving") : t("edit.saveSettings")}
-        </Button>
+        {!justSaved && (
+          <Button type="submit" disabled={!canSave}>
+            {/* A repository save can take a while — the appliance may be talking
+                to the bucket — so the button holds the wait instead of looking
+                like a click that did nothing. */}
+            {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <ShieldCheck className="h-4 w-4" />}
+            {saving ? t("edit.saving") : t("edit.saveSettings")}
+          </Button>
+        )}
       </DialogFooter>
     </form>
   );

@@ -39,6 +39,7 @@ import type {
   RestoreExistingVmOption,
   RestoreNetworkOption,
   RestorePoint,
+  RestoreSourceDisk,
   RestoreSourceNic,
   S3ConnectionCheck,
   Schedule,
@@ -247,6 +248,33 @@ function hostNetworkNames(host: Host): string[] {
   if (catalog.length <= 1) return catalog;
   const roll = seededRandom(hashId(`${host.id}-net`))();
   return catalog.slice(0, 1 + Math.max(1, Math.round(roll * (catalog.length - 1))));
+}
+
+/**
+ * The source VM's disks, as a restore point would record them — deterministic
+ * per VM, and deliberately spread over more than one datastore for some VMs:
+ * the demo world is where the multi-datastore placement UI gets exercised, and
+ * a world where every VM sits on exactly one datastore would never show it.
+ */
+function vmSourceDisks(vm: VM): RestoreSourceDisk[] {
+  const catalog = vm.environmentId === "env-prox" ? PROXMOX_DATASTORES : VSPHERE_DATASTORES;
+  const home = vmOriginalDatastore(vm);
+  const roll = seededRandom(hashId(`${vm.id}-disks`))();
+  const diskCount = 1 + Math.round(roll * 2);
+  const second = catalog.find((name) => name !== home) ?? home;
+  const provisionedBytes = Math.max(vm.provisionedGB, 1) * 1_000_000_000;
+  const usedBytes = Math.max(vm.usedGB, 1) * 1_000_000_000;
+  return Array.from({ length: diskCount }, (_, index) => ({
+    id: `${vm.id}::disk::${index + 1}`,
+    label: `Hard disk ${index + 1}`,
+    capacityBytes: Math.round(provisionedBytes / diskCount),
+    usedBytes: Math.round(usedBytes / diskCount),
+    // The first disk is the system disk and stays thick; the rest are thin, so
+    // the two figures above are both exercised by the capacity check.
+    provisioning: index === 0 ? "vmfs_thick" : "vmfs_thin",
+    // Second and later disks live elsewhere — that is the case being modelled.
+    sourceDatastore: index === 0 ? home : second,
+  }));
 }
 
 /** Datastores mounted on a given host — deterministic per host. */
@@ -939,6 +967,18 @@ export function createSimDriver(handle: WorldHandle): WorldDriver {
             `Placing on ${target ?? "an automatically-selected host"}${input.datastore ? ` · datastore ${input.datastore}` : ""}…`,
           ),
         );
+        if (input.datastoreMappings?.length) {
+          // Named individually: which datastore each one lands on is the whole
+          // point of the mapping, and a count would hide it.
+          for (const mapping of input.datastoreMappings) {
+            const target = state.hosts
+              .flatMap((h) => hostDatastoreNames(h).map((name) => ({ id: `${h.environmentId}::datastore::${name}`, name })))
+              .find((d) => d.id === mapping.target)?.name;
+            logs.push(
+              makeLog("info", `Placing disks from ${mapping.sourceDatastore} on ${target ?? mapping.target}…`),
+            );
+          }
+        }
         if (input.networkMappings?.length) {
           const count = input.networkMappings.length;
           logs.push(makeLog("info", `Mapping ${count} network adapter${count === 1 ? "" : "s"}…`));
@@ -1012,8 +1052,10 @@ export function createSimDriver(handle: WorldHandle): WorldDriver {
       // wizard falls back to its own rule (source host, else the environment's
       // first) — exactly what it does against a real target environment that
       // isn't the restore point's own.
+      const sourceDisks = vm ? vmSourceDisks(vm) : [];
       return Promise.resolve({
         sourceNics,
+        sourceDisks,
         datastores: Array.from(datastoreMap.values()),
         networks,
         existingVms,
@@ -1022,6 +1064,10 @@ export function createSimDriver(handle: WorldHandle): WorldDriver {
         defaultHostId: vm?.hostId ?? null,
         defaultDatastoreId: null,
         defaultEnvironmentId: vm?.environmentId ?? null,
+        // No appliance to resolve a default target, so the wizard pairs by name
+        // and lets the operator finish it — same as any other target
+        // environment that isn't the restore point's own.
+        defaultDatastoreMappings: [],
       });
     },
 

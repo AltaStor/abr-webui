@@ -363,6 +363,7 @@
     "title": "Editar repositorio",
     "description": "Ajuste la capacidad, la compresión, la inmutabilidad y los límites de rendimiento. Los cambios surten efecto en cuanto guarda.",
     "saving": "Guardando…",
-    "saveSettings": "Guardar ajustes"
+    "saveSettings": "Guardar ajustes",
+    "savedStaysOpen": "Guardado. Los puntos de restauración ya almacenados aquí ({{count}}) no quedan cubiertos: póngalos bajo el bloqueo más abajo o cierre."
   }
 }

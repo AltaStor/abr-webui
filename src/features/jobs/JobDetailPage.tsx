@@ -33,7 +33,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/components/ui/sonner";
 import { formatDateTime, formatRelative } from "@/lib/format";
-import { JOB_DISABLED_META, lastRunMeta, rateTone } from "@/lib/status";
+import { lastRunMeta, rateTone } from "@/lib/status";
 import { apiErrorMessage } from "@/services/api.http";
 import { useWorldStore } from "@/store/world";
 import { REPO_TYPE_META } from "@/features/repositories/components/repoMeta";
@@ -264,17 +264,13 @@ export default function JobDetailPage() {
           icon={lastRunMeta(job.lastStatus).icon}
           tone={disabled ? "muted" : lastRunMeta(job.lastStatus).tone}
           label={t("detailStats.lastRun")}
-          // A job that has never run has no last run — the queued pill claimed
-          // a first one was pending, on a job with nothing queued and an empty
-          // run history, while the jobs list said "Never run" for the same job.
-          // `lastRunMeta` is what that list uses.
-          value={
-            disabled ? (
-              <StatusPill meta={JOB_DISABLED_META} size="sm" />
-            ) : (
-              <StatusPill meta={lastRunMeta(job.lastStatus)} size="sm" />
-            )
-          }
+          /* The outcome of the last run, and nothing else. It used to answer a
+             different question than its label asked: "Queued" on a job that had
+             never run, and "Disabled" on a job whose last run had an outcome
+             like any other — while the jobs list, reading the same two fields,
+             said "Never run" for both. Enablement is the Next run tile's
+             business; here it only drains the colour. */
+          value={<StatusPill meta={lastRunMeta(job.lastStatus)} size="sm" />}
           // Six tiles across cannot carry both halves without clipping, and the
           // Last run card directly below already says how long ago. So the tile
           // takes the half the page was missing: which run this was.

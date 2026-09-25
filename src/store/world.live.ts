@@ -1017,6 +1017,8 @@ export function createLiveDriver(handle: WorldHandle): WorldDriver {
         targetHostId: input.destination === "new-location" ? input.targetHostId : undefined,
         datastore: input.destination === "new-location" ? input.datastore : undefined,
         networkMappings: input.destination === "new-location" ? input.networkMappings : undefined,
+        datastoreMappings:
+          input.destination === "new-location" ? input.datastoreMappings : undefined,
         powerOn: input.destination === "new-location" ? input.powerOn : undefined,
         force: input.destination === "original" ? input.force : undefined,
         encryptionKey: input.encryptionKey,
@@ -1064,6 +1066,7 @@ export function createLiveDriver(handle: WorldHandle): WorldDriver {
         console.warn("[world.live] getRestorePlacementOptions failed:", err);
         return {
           sourceNics: [],
+          sourceDisks: [],
           datastores: [],
           networks: [],
           existingVms: [],
@@ -1072,6 +1075,7 @@ export function createLiveDriver(handle: WorldHandle): WorldDriver {
           defaultHostId: null,
           defaultDatastoreId: null,
           defaultEnvironmentId: null,
+          defaultDatastoreMappings: [],
         };
       }
     },

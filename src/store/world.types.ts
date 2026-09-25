@@ -213,6 +213,10 @@ export interface RestoreInput {
   /** Source-NIC → target-network id pairs, one per source adapter. Empty ⇒
    *  automatic mapping. */
   networkMappings?: { nicId: string; target: string }[];
+  /** Source-datastore → target-datastore id pairs, one per datastore the source
+   *  VM's disks live on. `datastore` above is the default the rest fall back
+   *  to; this is what places a VM whose disks span several datastores. */
+  datastoreMappings?: { sourceDatastore: string; target: string }[];
   /** Power the restored VM on once the restore completes. */
   powerOn?: boolean;
   /** Authorizes an in-place restore (destination "original" against a VM

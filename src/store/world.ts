@@ -94,6 +94,7 @@ export const useWorldStore = create<WorldState>(() => ({
     driver?.actions.getRestorePlacementOptions(restorePointId) ??
     Promise.resolve({
       sourceNics: [],
+      sourceDisks: [],
       datastores: [],
       networks: [],
       existingVms: [],
@@ -102,6 +103,7 @@ export const useWorldStore = create<WorldState>(() => ({
       defaultHostId: null,
       defaultDatastoreId: null,
       defaultEnvironmentId: null,
+      defaultDatastoreMappings: [],
     }),
   deleteRestorePoint: (id, segmentId, force) =>
     driver?.actions.deleteRestorePoint(id, segmentId, force) ??

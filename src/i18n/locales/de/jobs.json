@@ -59,7 +59,6 @@
     "active": "Aktives Vollbackup",
     "synthetic": "Synthetisches Vollbackup",
     "off": "Aus",
-    "suspended": "{{schedule}} (ausgesetzt)",
     "nextActive": "Nächstes aktives Vollbackup: {{when}}",
     "nextSynthetic": "Nächstes synthetisches Vollbackup: {{when}}"
   },
@@ -894,7 +893,8 @@
       "hourlySub": "Stündlich",
       "every4hSub": "Alle 4 Stunden",
       "dailySub": "Einmal täglich",
-      "weeklySub": "Einmal wöchentlich"
+      "weeklySub_one": "Einmal pro Woche",
+      "weeklySub_other": "{{count}} Tage pro Woche"
     },
     "atTime": "Um Uhrzeit",
     "onDays": "An Tagen",
@@ -930,7 +930,10 @@
       },
       "syntheticOverridden": "Dies läuft zur selben Zeit wie das aktive Vollbackup, das Vorrang hat — die Zusammenführung würde also nie ausgeführt. Verschieben Sie eines von beiden auf einen anderen Tag oder eine andere Uhrzeit.",
       "syntheticOverriddenDays": "Am {{days}} läuft die aktive Vollsicherung zur selben Zeit und hat Vorrang, an diesen Tagen findet also keine Zusammenführung statt. Verschieben Sie eine von beiden auf einen anderen Tag oder eine andere Zeit.",
-      "syntheticOverriddenDayOfMonth": "Am {{day}}. des Monats läuft die aktive Vollsicherung zur selben Zeit und hat Vorrang, an diesem Tag findet also keine Zusammenführung statt. Verschieben Sie eine von beiden auf einen anderen Tag oder eine andere Zeit."
+      "syntheticOverriddenDayOfMonth": "Am {{day}}. des Monats läuft die aktive Vollsicherung zur selben Zeit und hat Vorrang, an diesem Tag findet also keine Zusammenführung statt. Verschieben Sie eine von beiden auf einen anderen Tag oder eine andere Zeit.",
+      "syntheticSameDayEvery": "Am selben Tag läuft zu einer anderen Zeit eine aktive Vollsicherung. Sie beginnt eine neue Kette, die Zusammenführung hat also nichts zusammenzuführen oder wird Stunden später ersetzt. Verschieben Sie eine von beiden auf einen anderen Tag.",
+      "syntheticSameDays": "Am {{days}} läuft zu einer anderen Zeit auch eine aktive Vollsicherung. Sie beginnt eine neue Kette, die Zusammenführung an diesem Tag hat also nichts zusammenzuführen oder wird Stunden später ersetzt. Verschieben Sie eine von beiden auf einen anderen Tag.",
+      "syntheticSameDayOfMonth": "Am {{day}}. des Monats läuft zu einer anderen Zeit auch eine aktive Vollsicherung. Sie beginnt eine neue Kette, die Zusammenführung an diesem Tag hat also nichts zusammenzuführen oder wird Stunden später ersetzt. Verschieben Sie eine von beiden auf einen anderen Tag."
     },
     "advanced": "Erweiterte Einstellungen",
     "advancedHint": "(Standardwerte werden angewendet)",

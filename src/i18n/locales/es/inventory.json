@@ -518,7 +518,7 @@
       "destinationCollision": "El completo fusionado se escribiría justo donde está almacenada la cadena que lee. Elige otro repositorio de destino.",
       "repositoryUnsupported": "El repositorio no puede fusionar una cadena de copias. Los completos sintéticos necesitan un repositorio local o de almacenamiento de objetos.",
       "invalidChain": "La cadena no está en un estado que se pueda fusionar: tiene que empezar con una copia completa y contener solo incrementales después.",
-      "noIncrementals": "Cuando arrancó la ejecución ya no quedaban incrementales que fusionar."
+      "noIncrementals": "La cadena solo contenía una copia completa sin incrementales, así que la fusión la habría copiado sin cambios."
     }
   }
 }

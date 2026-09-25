@@ -518,7 +518,7 @@
       "destinationCollision": "The merged full would be written exactly where the chain it reads from is stored. Pick a different target repository.",
       "repositoryUnsupported": "The repository can't merge a backup chain. Synthetic fulls need a local or object-storage repository.",
       "invalidChain": "The chain isn't in a state that can be merged: it has to start with a full backup and hold only incrementals after it.",
-      "noIncrementals": "There were no incrementals left to merge by the time the run started."
+      "noIncrementals": "The chain held only a full backup with no incrementals, so the merge would have copied it unchanged."
     }
   }
 }

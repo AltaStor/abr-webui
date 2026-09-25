@@ -50,13 +50,18 @@ export function scheduleLabel(schedule: Schedule, disabled = false): string {
 
 /**
  * Label for an active/synthetic full schedule: "Weekly · Sun, Wed 22:00",
- * "Monthly · day 1 02:00", or "Off" when the job has none. A suspended
- * schedule keeps its pattern, marked as suspended.
+ * "Monthly · day 1 02:00", or "Off".
+ *
+ * A schedule that is switched off reads "Off" and not "<pattern> (suspended)",
+ * because every job now stores one whether or not anyone configured it — "off"
+ * is one shape on the wire (see `fullScheduleInput`) — and quoting the pattern
+ * of a disabled schedule would announce a monthly full backup the operator
+ * never picked. What a switched-off schedule would resume with belongs in the
+ * editor, where its fields are, and that is where it is shown.
  */
 export function fullScheduleLabel(schedule: FullBackupSchedule | null | undefined): string {
-  if (!schedule) return i18n.t("jobs:fullSchedule.off");
-  const pattern = fullSchedulePattern(schedule);
-  return schedule.enabled ? pattern : i18n.t("jobs:fullSchedule.suspended", { schedule: pattern });
+  if (!schedule || !schedule.enabled) return i18n.t("jobs:fullSchedule.off");
+  return fullSchedulePattern(schedule);
 }
 
 function fullSchedulePattern(schedule: FullBackupSchedule): string {

@@ -518,7 +518,7 @@
       "destinationCollision": "Das zusammengeführte Vollbackup würde genau dort geschrieben, wo die gelesene Kette liegt. Wählen Sie ein anderes Ziel-Repository.",
       "repositoryUnsupported": "Das Repository kann keine Sicherungskette zusammenführen. Synthetische Vollbackups benötigen ein lokales oder Objektspeicher-Repository.",
       "invalidChain": "Die Kette ist nicht in einem zusammenführbaren Zustand: Sie muss mit einem Vollbackup beginnen und danach nur Inkremente enthalten.",
-      "noIncrementals": "Zum Startzeitpunkt des Laufs waren keine Inkremente mehr zum Zusammenführen vorhanden."
+      "noIncrementals": "Die Kette enthielt nur eine Vollsicherung ohne Inkremente, die Zusammenführung hätte sie also unverändert kopiert."
     }
   }
 }

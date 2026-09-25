@@ -363,6 +363,7 @@
     "title": "Repository bearbeiten",
     "description": "Passen Sie Kapazität, Komprimierung, Unveränderlichkeit und Durchsatzgrenzen an. Änderungen werden wirksam, sobald Sie speichern.",
     "saving": "Wird gespeichert…",
-    "saveSettings": "Einstellungen speichern"
+    "saveSettings": "Einstellungen speichern",
+    "savedStaysOpen": "Gespeichert. Die hier bereits gespeicherten Wiederherstellungspunkte ({{count}}) sind nicht erfasst — stellen Sie sie unten unter die Sperre oder schließen Sie."
   }
 }

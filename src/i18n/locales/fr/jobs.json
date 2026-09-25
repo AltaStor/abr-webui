@@ -59,7 +59,6 @@
     "active": "Complète active",
     "synthetic": "Complète synthétique",
     "off": "Désactivée",
-    "suspended": "{{schedule}} (suspendue)",
     "nextActive": "Prochaine complète active : {{when}}",
     "nextSynthetic": "Prochaine complète synthétique : {{when}}"
   },
@@ -894,7 +893,8 @@
       "hourlySub": "Toutes les heures",
       "every4hSub": "Toutes les 4 heures",
       "dailySub": "Une fois par jour",
-      "weeklySub": "Une fois par semaine"
+      "weeklySub_one": "Une fois par semaine",
+      "weeklySub_other": "{{count}} jours par semaine"
     },
     "atTime": "À l’heure",
     "onDays": "Les jours",
@@ -930,7 +930,10 @@
       },
       "syntheticOverridden": "Ceci s’exécute en même temps que la sauvegarde complète active, qui est prioritaire — la fusion ne s’exécuterait donc jamais. Déplacez l’une des deux vers un autre jour ou une autre heure.",
       "syntheticOverriddenDays": "Le {{days}}, la sauvegarde complète active s’exécute à la même heure et a priorité : aucune fusion n’a lieu ces jours-là. Déplacez l’une des deux à un autre jour ou à une autre heure.",
-      "syntheticOverriddenDayOfMonth": "Le {{day}} du mois, la sauvegarde complète active s’exécute à la même heure et a priorité : aucune fusion n’a lieu ce jour-là. Déplacez l’une des deux à un autre jour ou à une autre heure."
+      "syntheticOverriddenDayOfMonth": "Le {{day}} du mois, la sauvegarde complète active s’exécute à la même heure et a priorité : aucune fusion n’a lieu ce jour-là. Déplacez l’une des deux à un autre jour ou à une autre heure.",
+      "syntheticSameDayEvery": "Une sauvegarde complète active s’exécute le même jour, à une autre heure. Elle commence une nouvelle chaîne : la fusion n’a donc rien à fusionner, ou est remplacée quelques heures plus tard. Déplacez l’une des deux à un autre jour.",
+      "syntheticSameDays": "Une sauvegarde complète active s’exécute aussi le {{days}}, à une autre heure. Elle commence une nouvelle chaîne : la fusion de ce jour-là n’a donc rien à fusionner, ou est remplacée quelques heures plus tard. Déplacez l’une des deux à un autre jour.",
+      "syntheticSameDayOfMonth": "Une sauvegarde complète active s’exécute aussi le {{day}} du mois, à une autre heure. Elle commence une nouvelle chaîne : la fusion de ce jour-là n’a donc rien à fusionner, ou est remplacée quelques heures plus tard. Déplacez l’une des deux à un autre jour."
     },
     "advanced": "Paramètres avancés",
     "advancedHint": "(Valeurs par défaut appliquées)",

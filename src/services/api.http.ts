@@ -1475,6 +1475,22 @@ export async function getRestorePlacementOptions(restorePointId: string): Promis
     sourceNetwork: str(n.source_network).trim() || null,
     connected: n.connected !== false,
   }));
+  /* "[datastore1] folder/disk.vmdk" — the datastore a disk lived on is the part
+   * in brackets, which is also the name `datastore_map` takes on the way back
+   * (`_source_disk_datastore` parses the same path server-side). */
+  const sourceDatastoreOf = (datastorePath: string): string | null => {
+    const match = /^\s*\[([^\]]+)\]/.exec(datastorePath);
+    return match ? match[1].trim() || null : null;
+  };
+  const disks = Array.isArray(sourceVm.disks) ? (sourceVm.disks as Dict[]) : [];
+  const sourceDisks = disks.map((d, i) => ({
+    id: str(d.id) || `disk-${i}`,
+    label: str(d.label) || `Hard disk ${i + 1}`,
+    capacityBytes: d.capacity_bytes == null ? null : num(d.capacity_bytes),
+    usedBytes: d.used_bytes == null ? null : num(d.used_bytes),
+    provisioning: str(d.provisioning).trim() || null,
+    sourceDatastore: sourceDatastoreOf(str(d.datastore_path)),
+  }));
   const originalDatastore = str(sourceVm.original_datastore).trim() || null;
   const originalHost = str(sourceVm.original_host).trim() || null;
 
@@ -1501,8 +1517,18 @@ export async function getRestorePlacementOptions(restorePointId: string): Promis
 
   const defaults = asDict(res.defaults);
 
+  const defaultDatastoreMappings = (
+    Array.isArray(defaults.datastore_mappings) ? (defaults.datastore_mappings as Dict[]) : []
+  )
+    .map((m) => ({
+      sourceDatastore: str(m.source_datastore).trim(),
+      targetDatastoreId: str(m.target_datastore_id).trim(),
+    }))
+    .filter((m) => m.sourceDatastore !== "");
+
   return {
     sourceNics,
+    sourceDisks,
     datastores,
     networks,
     existingVms,
@@ -1511,6 +1537,7 @@ export async function getRestorePlacementOptions(restorePointId: string): Promis
     defaultHostId: str(defaults.target_host_id).trim() || null,
     defaultDatastoreId: str(defaults.target_datastore_id).trim() || null,
     defaultEnvironmentId: str(defaults.target_inventory_id).trim() || null,
+    defaultDatastoreMappings,
   };
 }
 
@@ -1534,6 +1561,10 @@ export async function startRestore(payload: {
    *  two source NICs sharing a network name can still map independently
    *  (see `_resolve_restore_network_selection`'s `source_nic_id` branch). */
   networkMappings?: { nicId: string; target: string }[];
+  /** Per source datastore — `target` is a target datastore *id*. Sent for a
+   *  new-location restore only: an in-place restore keeps every disk on its own
+   *  datastore and the appliance refuses a mapping for it. */
+  datastoreMappings?: { sourceDatastore: string; target: string }[];
   powerOn?: boolean;
   /** Authorizes an in-place restore — required by the backend whenever
    *  `target.mode` is "original"; ignored otherwise. */
@@ -1555,6 +1586,16 @@ export async function startRestore(payload: {
     if (payload.targetEnvironmentId) body.target_inventory_id = payload.targetEnvironmentId;
     if (payload.targetHostId) body.target_host = payload.targetHostId;
     if (payload.datastore) body.target_datastore = payload.datastore;
+    /* `target_datastore` above is the default every disk falls back to; this
+     * places the disks of each SOURCE datastore individually, which is what a
+     * VM spread over several datastores needs (see
+     * `_resolve_restore_datastore_placement`). */
+    if (payload.datastoreMappings?.length) {
+      body.datastore_mappings = payload.datastoreMappings.map((m) => ({
+        source_datastore: m.sourceDatastore,
+        target_datastore_id: m.target,
+      }));
+    }
   }
   if (payload.networkMappings?.length) {
     body.network_mappings = payload.networkMappings.map((m) => ({

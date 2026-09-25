@@ -136,13 +136,18 @@ function toFullSchedule(f: FullScheduleForm, enabled: boolean): FullBackupSchedu
       return {
         ...base,
         atTime: f.atTime,
-        // Never empty: the appliance refuses a weekly schedule with no weekday
-        // whatever its `enabled` flag says, so a form left with no days — only
-        // reachable while the schedule is switched off, since switching it on
-        // blocks the save — would otherwise 422 on the way out.
-        daysOfWeek: (f.daysOfWeek.length ? [...f.daysOfWeek] : [FULL_BACKUP_DEFAULT_DAY]).sort(
-          (a, b) => a - b,
-        ),
+        /* An empty day list survives only while the schedule is SWITCHED OFF —
+         * switching it on blocks the save until a day is picked — and the
+         * appliance refuses a weekly schedule with no weekday whatever its
+         * `enabled` flag says. So the fallback applies to the disabled schedule
+         * that goes on the wire, and never to the enabled one: substituting a
+         * day there would print a day the operator never chose back at them in
+         * the summary, which is precisely the thing the summary must not do. */
+        daysOfWeek: f.daysOfWeek.length
+          ? [...f.daysOfWeek].sort((a, b) => a - b)
+          : enabled
+            ? []
+            : [FULL_BACKUP_DEFAULT_DAY],
       };
     case "monthly":
       return { ...base, atTime: f.atTime, dayOfMonth: f.dayOfMonth };
@@ -546,13 +551,21 @@ function JobWizard({
     : null;
   const syntheticOverrideNote = (() => {
     if (!syntheticOverride) return undefined;
-    if (syntheticOverride.kind === "always") return t("create.full.syntheticOverridden");
-    if (syntheticOverride.dayOfMonth !== undefined) {
-      return t("create.full.syntheticOverriddenDayOfMonth", { day: syntheticOverride.dayOfMonth });
+    const { kind, days, dayOfMonth } = syntheticOverride;
+    const dayList = () => (days ?? []).map((d) => t(`days.long.${DAY_KEYS[d]}`)).join(", ");
+    if (kind === "sameDay") {
+      // Different times, so neither overrides the other — they just both happen
+      // that day, and the merge is the one that ends up with nothing to do.
+      if (dayOfMonth !== undefined) return t("create.full.syntheticSameDayOfMonth", { day: dayOfMonth });
+      return days?.length
+        ? t("create.full.syntheticSameDays", { days: dayList() })
+        : t("create.full.syntheticSameDayEvery");
     }
-    return t("create.full.syntheticOverriddenDays", {
-      days: (syntheticOverride.days ?? []).map((d) => t(`days.long.${DAY_KEYS[d]}`)).join(", "),
-    });
+    if (kind === "always") return t("create.full.syntheticOverridden");
+    if (dayOfMonth !== undefined) {
+      return t("create.full.syntheticOverriddenDayOfMonth", { day: dayOfMonth });
+    }
+    return t("create.full.syntheticOverriddenDays", { days: dayList() });
   })();
 
   /** Whether any GFS count is set at all — an "active" policy with every count
@@ -574,15 +587,15 @@ function JobWizard({
     stored: FullBackupSchedule | null | undefined,
   ): FullBackupSchedule | null | undefined => {
     if (!hasFullSchedules) return undefined;
-    /* "Off" has one spelling on the wire: the schedule with `enabled: false`.
-     * Creating used to send `null` for the same switch that editing expressed
-     * as a disabled object, so one action had two representations in the
-     * contract. A job with no such schedule at all still sends nothing — that
-     * is the field being left alone, not a second way of saying "off", and
-     * sending a disabled default instead would store a monthly full backup the
-     * operator never configured and then describe it back to them as
-     * suspended. */
-    const desired = f.on ? toFullSchedule(f, true) : stored ? toFullSchedule(f, false) : undefined;
+    /* "Off" has exactly one spelling on the wire, on create and on edit alike:
+     * the schedule as the form holds it, with `enabled: false`. Creating used
+     * to send `null` and then, briefly, nothing at all, for the same switch
+     * that editing expressed as a disabled object — three shapes for one
+     * action, which is what made "is this schedule off, absent, or cleared?" a
+     * question the API could be asked in three ways and answer differently.
+     * The job keeps the settings behind the switch either way, which is what
+     * the editor's own "Off. The job keeps its settings" hint promises. */
+    const desired = toFullSchedule(f, f.on);
     if (!editMode) return desired;
     return fullScheduleKey(desired) === fullScheduleKey(stored) ? undefined : desired;
   };
@@ -952,7 +965,7 @@ function JobWizard({
                 <PresetChip icon={Clock} label={t("create.preset.hourly")} sub={t("create.preset.hourlySub")} active={form.preset === "hourly"} onClick={() => set("preset", "hourly")} />
                 <PresetChip icon={Clock} label={t("create.preset.every4h")} sub={t("create.preset.every4hSub")} active={form.preset === "every4h"} onClick={() => set("preset", "every4h")} />
                 <PresetChip icon={CalendarDays} label={t("create.preset.daily")} sub={t("create.preset.dailySub")} active={form.preset === "daily"} onClick={() => set("preset", "daily")} />
-                <PresetChip icon={CalendarDays} label={t("create.preset.weekly")} sub={t("create.preset.weeklySub")} active={form.preset === "weekly"} onClick={() => set("preset", "weekly")} />
+                <PresetChip icon={CalendarDays} label={t("create.preset.weekly")} sub={t("create.preset.weeklySub", { count: form.preset === "weekly" ? Math.max(form.daysOfWeek.length, 1) : 1 })} active={form.preset === "weekly"} onClick={() => set("preset", "weekly")} />
               </div>
               {needsTime && (
                 <div className="flex flex-wrap items-end gap-3">

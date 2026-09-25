@@ -294,7 +294,7 @@ export function syntheticFullFailureKey(message: string): string | null {
 }
 
 /**
- * When an active full is scheduled so that it takes the synthetic full's slot.
+ * When an active full backup lands on the same day as the synthetic full.
  *
  * The appliance resolves a tie between due schedules in favour of the more
  * thorough kind (`active_overrides_synthetic`, in `job_effective_policy`), so
@@ -302,24 +302,28 @@ export function syntheticFullFailureKey(message: string): string | null {
  * that quietly runs an active full every night and never merges anything. The
  * operator gets an expensive full backup where they configured a cheap one.
  *
- * Two answers, because there are two situations and they need different words:
+ * A collision at a DIFFERENT time on the same day is not a tie and nothing
+ * overrides anything, but it is just as wasted: an active full starts a new
+ * chain, so a merge a few hours either side of it either has nothing to merge
+ * yet or is superseded before the day is out. Both are worth saying, in
+ * different words:
  *
- *   "always"   Every merge the schedule asks for is taken. The synthetic full
- *              never runs at all.
- *   "partial"  Only the occurrences that land on the days named here — e.g. a
- *              daily merge against a weekly active full on Saturdays, which
- *              merges six nights a week and skips the seventh.
+ *   "always"   Same time, every occurrence. The merge never runs at all.
+ *   "partial"  Same time, some occurrences — a daily merge against a weekly
+ *              active full, which merges six nights a week and skips the
+ *              seventh.
+ *   "sameDay"  Different times, same day. The merge runs and achieves little.
  *
- * Still deliberately conservative about what it does NOT answer: a collision is
- * only reported when the two schedules fire at the same time of day and the
- * calendar says they must meet. An active full on day 15 of the month against a
- * weekly merge on Mondays meets a few times a year, and only the calendar knows
- * when, so it is left alone — a wrong warning on a working job is worse than
- * none.
+ * Still deliberately conservative about what it does NOT answer: only pairs the
+ * calendar can decide are compared. An active full on day 15 of the month
+ * against a weekly merge on Mondays meets a few times a year, and only the
+ * calendar knows when, so it is left alone — a wrong warning on a working job
+ * is worse than none.
  */
 export interface SyntheticFullOverride {
-  kind: "always" | "partial";
-  /** Weekday indexes (0 = Sunday) the collision falls on. */
+  kind: "always" | "partial" | "sameDay";
+  /** Weekday indexes (0 = Sunday) the collision falls on. Absent when it falls
+   *  on every day the merge is due. */
   days?: number[];
   /** Day of the month the collision falls on. */
   dayOfMonth?: number;
@@ -339,26 +343,30 @@ export function syntheticFullOverride(
   if (!active?.enabled || !synthetic?.enabled) return null;
   // periodic / cron — not comparable without evaluating the expressions.
   if (!isCalendarFrequency(active) || !isCalendarFrequency(synthetic)) return null;
-  // Different times are different trigger points; nothing collides.
-  if (active.atTime !== synthetic.atTime) return null;
+
+  // Same time is what makes the appliance choose between them; a different time
+  // on the same day is a weaker finding, not a non-finding.
+  const sameTime = active.atTime === synthetic.atTime;
+  const collide = (kind: "always" | "partial", rest: Omit<SyntheticFullOverride, "kind"> = {}) =>
+    sameTime ? { kind, ...rest } : { kind: "sameDay" as const, ...rest };
 
   if (active.frequency === "daily") {
-    // The active full falls due every day, so it takes every merge slot there is.
-    return { kind: "always" };
+    // The active full falls due every day, so it meets every merge there is.
+    return collide("always");
   }
 
   if (active.frequency === "weekly") {
     const activeDays = [...new Set(active.daysOfWeek ?? [])].sort((a, b) => a - b);
     if (!activeDays.length) return null;
-    if (synthetic.frequency === "daily") return { kind: "partial", days: activeDays };
+    if (synthetic.frequency === "daily") return collide("partial", { days: activeDays });
     if (synthetic.frequency === "weekly") {
       const syntheticDays = [...new Set(synthetic.daysOfWeek ?? [])];
       if (!syntheticDays.length) return null;
       const overlap = syntheticDays.filter((day) => activeDays.includes(day)).sort((a, b) => a - b);
       if (!overlap.length) return null;
       return overlap.length === syntheticDays.length
-        ? { kind: "always" }
-        : { kind: "partial", days: overlap };
+        ? collide("always")
+        : collide("partial", { days: overlap });
     }
     // Monthly merge against a weekly active full: which weekday day-N falls on
     // is a calendar question. Not answered here.
@@ -367,9 +375,9 @@ export function syntheticFullOverride(
 
   // Monthly active full.
   const dayOfMonth = active.dayOfMonth ?? 1;
-  if (synthetic.frequency === "daily") return { kind: "partial", dayOfMonth };
+  if (synthetic.frequency === "daily") return collide("partial", { dayOfMonth });
   if (synthetic.frequency === "monthly") {
-    return (synthetic.dayOfMonth ?? 1) === dayOfMonth ? { kind: "always" } : null;
+    return (synthetic.dayOfMonth ?? 1) === dayOfMonth ? collide("always") : null;
   }
   return null;
 }

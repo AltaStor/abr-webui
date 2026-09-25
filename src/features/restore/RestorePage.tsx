@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/sonner";
 import { apiErrorCode, apiErrorMessage } from "@/services/api.http";
 import { useWorldStore } from "@/store/world";
-import type { RestorePoint, VM } from "@/types";
+import type { RestoreDatastoreMapping, RestorePoint, VM } from "@/types";
 import { RestoreStepper, type StepDef } from "./components/RestoreStepper";
 import { ChooseVmStep } from "./components/ChooseVmStep";
 import { ChoosePointStep } from "./components/ChoosePointStep";
@@ -82,6 +82,13 @@ export default function RestorePage() {
   // onAutoPlacementChange.
   const [autoPlacement, setAutoPlacement] = useState({ hostId: "", datastore: "" });
   const [networkMappings, setNetworkMappings] = useState<NetworkMapping[]>([]);
+  /* Where each of the source VM's datastores lands, and whether that placement
+   * is startable at all — an unmapped source datastore, or a target too small
+   * for what lands on it, is refused here rather than by the appliance halfway
+   * through the restore. Reported up by ChooseModeStep, which is where the
+   * target inventory is loaded. */
+  const [datastoreMappings, setDatastoreMappings] = useState<RestoreDatastoreMapping[]>([]);
+  const [placementBlocked, setPlacementBlocked] = useState(false);
   const [powerOn, setPowerOn] = useState(false);
   const [overwriteConfirmed, setOverwriteConfirmed] = useState(false);
   /* Never persisted and never sent unless typed: an empty key means "let the
@@ -226,10 +233,11 @@ export default function RestorePage() {
     if (!vm || !point) return false;
     if (destination === "new-location") {
       if (crossHypervisorBlocked) return false;
+      if (placementBlocked) return false;
       return !!targetEnvId && !validateRestoredVmName(newName) && !nameConflict;
     }
     return !originalLocationOverwrite || overwriteConfirmed;
-  }, [vm, point, destination, targetEnvId, newName, nameConflict, originalLocationOverwrite, overwriteConfirmed, crossHypervisorBlocked]);
+  }, [vm, point, destination, targetEnvId, newName, nameConflict, originalLocationOverwrite, overwriteConfirmed, crossHypervisorBlocked, placementBlocked]);
 
   /* One refusal, one toast: a console-owned headline that names what was
    * refused, the console's own explanation, and — only underneath both — the
@@ -272,6 +280,16 @@ export default function RestorePage() {
             : undefined,
         networkMappings:
           destination === "new-location" ? networkMappings.filter((m) => m.target.trim()) : undefined,
+        /* Placed per source datastore, which is the only way a VM whose disks
+         * span several of them lands where the operator asked. Not sent for an
+         * in-place restore: every disk stays where it is and the appliance
+         * refuses a mapping outright. */
+        datastoreMappings:
+          destination === "new-location"
+            ? datastoreMappings
+                .filter((m) => m.sourceDatastore && m.targetDatastoreId)
+                .map((m) => ({ sourceDatastore: m.sourceDatastore, target: m.targetDatastoreId }))
+            : undefined,
         powerOn: destination === "new-location" ? powerOn : undefined,
         force: destination === "original" ? overwriteConfirmed : undefined,
         encryptionKey: encryptionKey.trim() || undefined,
@@ -356,6 +374,9 @@ export default function RestorePage() {
                 onTargetHostIdChange={setTargetHostId}
                 datastore={datastore}
                 onDatastoreChange={setDatastore}
+                datastoreMappings={datastoreMappings}
+                onDatastoreMappingsChange={setDatastoreMappings}
+                onPlacementBlockedChange={setPlacementBlocked}
                 onAutoPlacementChange={setAutoPlacement}
                 networkMappings={networkMappings}
                 onNetworkMappingsChange={setNetworkMappings}

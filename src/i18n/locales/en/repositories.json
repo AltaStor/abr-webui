@@ -363,6 +363,7 @@
     "title": "Edit repository",
     "description": "Rename this repository.",
     "saving": "Saving…",
-    "saveSettings": "Save settings"
+    "saveSettings": "Save settings",
+    "savedStaysOpen": "Saved. The restore points already stored here ({{count}}) are not covered by it — put them under the lock below, or close."
   }
 }

@@ -445,6 +445,39 @@ export interface RestoreExistingVmOption {
 }
 
 /**
+ * One of the source VM's virtual disks, as the restore point records it.
+ *
+ * A VM's disks do not all live on one datastore — a system disk on flash and a
+ * database on bulk storage is the ordinary case — so a restore to a new
+ * location has to be told where each SOURCE datastore goes, and how much space
+ * that takes on each target. Both figures are here because which one applies
+ * depends on the disk: a thin disk needs only what the backup actually holds,
+ * a thick one needs its whole provisioned size (`_restore_disk_target_is_thin`
+ * in abr-core).
+ */
+export interface RestoreSourceDisk {
+  id: string;
+  label: string;
+  /** Provisioned size. Null when the point never recorded it. */
+  capacityBytes: number | null;
+  /** What the backup holds — only known for a point that holds the whole disk. */
+  usedBytes: number | null;
+  /** The source disk type ("vmfs_thin", …), which decides which of the two
+   *  figures above a restore of it needs. */
+  provisioning: string | null;
+  /** The datastore the disk lived on, from its "[datastore] folder/disk.vmdk"
+   *  path. Null when the point recorded no path for it. */
+  sourceDatastore: string | null;
+}
+
+/** Where one of the source VM's datastores is restored to. `targetDatastoreId`
+ *  is a target datastore's id, never its name. */
+export interface RestoreDatastoreMapping {
+  sourceDatastore: string;
+  targetDatastoreId: string;
+}
+
+/**
  * Placement choices for a new-location restore, resolved against the actual
  * source VM and the candidate target environments — not free text. Fetched
  * per restore point (the source VM's networks live on its manifest, not the
@@ -453,6 +486,8 @@ export interface RestoreExistingVmOption {
 export interface RestorePlacementOptions {
   /** The source VM's real network adapters, one entry per NIC. */
   sourceNics: RestoreSourceNic[];
+  /** The source VM's disks, in the order the restore point lists them. */
+  sourceDisks: RestoreSourceDisk[];
   datastores: RestoreDatastoreOption[];
   networks: RestoreNetworkOption[];
   /** VMs already registered in a candidate target environment, for a
@@ -473,6 +508,10 @@ export interface RestorePlacementOptions {
   defaultDatastoreId: string | null;
   /** Environment the two defaults above were resolved against. */
   defaultEnvironmentId: string | null;
+  /** The appliance's own starting mapping — every source datastore paired with
+   *  the default target (`defaults.datastore_mappings`). Like the two defaults
+   *  above it is resolved for the restore point's own environment only. */
+  defaultDatastoreMappings: RestoreDatastoreMapping[];
 }
 
 export type RepositoryType =

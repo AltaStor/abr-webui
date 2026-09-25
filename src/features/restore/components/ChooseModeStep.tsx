@@ -33,14 +33,11 @@ import { PLATFORM_META } from "@/lib/platform";
 import { crossHypervisorRestoreBlocked } from "../refusals";
 import { useWorldStore } from "@/store/world";
 import { CrossHypervisorBlockCard } from "./ConversionPlanCard";
-import type { RestorePoint, VM } from "@/types";
+import type { RestoreDatastoreMapping, RestorePoint, VM } from "@/types";
+import { DatastoreMappingFields } from "./DatastoreMappingFields";
+import { resolveDatastoreMappings, sourceDatastoreGroups, datastoreMappingProblems } from "../datastore-mapping";
 
 export type RestoreDestination = "original" | "new-location";
-
-/** Matches the decimal GB the rest of the console derives `sizeGB`/`provisionedGB`
- *  from (see `GB` in api.http.ts) — bytes-from-the-wire fields here must divide by
- *  the same unit or the datastore-capacity comparison silently drifts. */
-const GB = 1_000_000_000;
 
 /** One row in the network-mapping list — keyed by the source NIC's own id
  *  (not its network name), so two adapters on the same source network still
@@ -101,6 +98,15 @@ interface ChooseModeStepProps {
   onTargetHostIdChange: (id: string) => void;
   datastore: string;
   onDatastoreChange: (v: string) => void;
+  /** Where each of the source VM's datastores lands. One row per source
+   *  datastore, because a VM's disks are routinely spread over several and the
+   *  appliance places them per datastore, not per VM. */
+  datastoreMappings: RestoreDatastoreMapping[];
+  onDatastoreMappingsChange: (mappings: RestoreDatastoreMapping[]) => void;
+  /** Reported whenever the placement stops being startable — an unmapped
+   *  source datastore, or a target that certainly cannot hold what lands on
+   *  it. Same one-way reporting shape as onNameConflictChange. */
+  onPlacementBlockedChange: (blocked: boolean) => void;
   /** What an "Automatic" host/datastore actually resolves to for the target
    *  currently chosen. Reported up so the restore request names them outright
    *  instead of leaving the appliance to re-derive defaults that only ever
@@ -181,6 +187,9 @@ export function ChooseModeStep({
   onTargetHostIdChange,
   datastore,
   onDatastoreChange,
+  datastoreMappings,
+  onDatastoreMappingsChange,
+  onPlacementBlockedChange,
   onAutoPlacementChange,
   networkMappings,
   onNetworkMappingsChange,
@@ -286,15 +295,85 @@ export function ChooseModeStep({
     return effectiveHostId ? inEnv.filter((d) => d.hostIds.includes(effectiveHostId)) : inEnv;
   }, [placement, targetEnvId, effectiveHostId]);
 
-  // Non-blocking heads-up only — the VM's actual on-disk usage is often well
-  // under its provisioned size (thin disks, dedup), so a tight datastore isn't
-  // necessarily a real problem, just worth flagging before the restore runs.
-  const selectedDatastoreLowSpace = useMemo(() => {
-    if (!datastore.trim()) return null;
-    const freeBytes = targetDatastoreOptions.find((d) => d.name === datastore)?.freeBytes;
-    if (freeBytes == null) return null;
-    return freeBytes / GB < vm.provisionedGB ? freeBytes : null;
-  }, [datastore, targetDatastoreOptions, vm.provisionedGB]);
+  // The datastores this VM's disks actually live on — the rows the operator
+  // maps, and the unit the appliance places disks by.
+  const sourceGroups = useMemo(
+    () => sourceDatastoreGroups(placement?.sourceDisks ?? []),
+    [placement],
+  );
+
+  /* Re-derive the mapping whenever the target host or environment changes, the
+   * same way the network rows are re-derived: keep a choice that is still
+   * valid on the new host, otherwise pair by name, otherwise fall back to the
+   * appliance's default target. Keyed so an unrelated re-render never clobbers
+   * a choice the operator made. */
+  const mappedKeyRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (!placement) return;
+    const key = `${point.id}:${targetEnvId}:${effectiveHostId}`;
+    if (mappedKeyRef.current === key) return;
+    mappedKeyRef.current = key;
+    const previous = new Map(datastoreMappings.map((m) => [m.sourceDatastore, m.targetDatastoreId]));
+    const resolved = resolveDatastoreMappings(sourceGroups, targetDatastoreOptions, { previous });
+    onDatastoreMappingsChange(
+      sourceGroups.map((group) => ({
+        sourceDatastore: group.name,
+        targetDatastoreId: resolved.get(group.name) ?? "",
+      })),
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [placement, point.id, targetEnvId, effectiveHostId]);
+
+  /* `target_datastore` on the wire is the default every disk falls back to, so
+   * it follows the first source datastore's target: with one source datastore
+   * that IS the placement, and with several the rest ride in the mapping. */
+  const primaryTargetName = useMemo(() => {
+    const primary = sourceGroups[0];
+    if (!primary) return "";
+    const targetId = datastoreMappings.find((m) => m.sourceDatastore === primary.name)?.targetDatastoreId;
+    return targetDatastoreOptions.find((d) => d.id === targetId)?.name ?? "";
+  }, [sourceGroups, datastoreMappings, targetDatastoreOptions]);
+  useEffect(() => {
+    if (destination !== "new-location") return;
+    if (primaryTargetName !== datastore) onDatastoreChange(primaryTargetName);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [primaryTargetName, destination]);
+
+  /* Adapters still waiting for a target network. The appliance takes the
+   * mapping all-or-nothing — "Network mappings are required for all source
+   * adapters" (422) the moment one adapter is mapped and another is not — so a
+   * half-filled list is a refusal, and it belongs here rather than at submit
+   * time. An adapter whose source network the point never recorded cannot be
+   * mapped at all and is not counted. */
+  const unmappedNics = useMemo(
+    () =>
+      targetNetworkOptions.length === 0
+        ? []
+        : networkMappings
+            .filter((mapping) => mapping.source.trim() && !mapping.target.trim())
+            .map((mapping) => sourceNics.find((nic) => nic.id === mapping.nicId)?.label ?? mapping.source),
+    [networkMappings, sourceNics, targetNetworkOptions],
+  );
+
+  /* What the appliance would refuse, refused here instead: a source datastore
+   * with nowhere to go, a target that certainly cannot hold what the mapping
+   * sends it, or an adapter left without a network. Only for a new-location
+   * restore — in place, every disk stays on its own datastore and there is
+   * nothing to map. */
+  const placementBlocked =
+    destination === "new-location" &&
+    !!targetEnvId &&
+    !placementLoading &&
+    (unmappedNics.length > 0 ||
+      datastoreMappingProblems(
+        sourceGroups,
+        new Map(datastoreMappings.map((m) => [m.sourceDatastore, m.targetDatastoreId])),
+        targetDatastoreOptions,
+      ).length > 0);
+  useEffect(() => {
+    onPlacementBlockedChange(placementBlocked);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [placementBlocked]);
 
   // Re-derive the mapping rows (one per real source NIC — never deduped by
   // network name, so two adapters sharing a source network still get their
@@ -366,6 +445,13 @@ export function ChooseModeStep({
   // on. Keeping the source VM's original datastore here regardless of host was
   // the bug: change the host and the label went on naming a datastore that
   // host never mounted, one the dropdown below no longer even listed.
+  /* What "Automatic" resolves to, but only where that can be said truthfully:
+   * the target datastore this VM's own disks came from, or the appliance's
+   * default for the restore point's own environment. It deliberately does NOT
+   * fall back to the host's first datastore the way it used to — in a vCenter
+   * whose datastores are named ds-01, ds-02, ds-03 that named ds-01 for every
+   * VM in the estate, which reads as a decision about this VM and is nothing of
+   * the kind. With no honest answer the label stays a plain "Automatic". */
   const autoDatastoreName = useMemo(() => {
     if (targetDatastoreOptions.length === 0) return null;
     const original = placement?.originalDatastore
@@ -375,7 +461,7 @@ export function ChooseModeStep({
       placement?.defaultEnvironmentId === targetEnvId
         ? targetDatastoreOptions.find((d) => d.id === placement?.defaultDatastoreId)
         : undefined;
-    return (original ?? applianceChoice ?? targetDatastoreOptions[0]).name;
+    return (original ?? applianceChoice)?.name ?? null;
   }, [targetDatastoreOptions, targetEnvId, placement]);
   const autoHostName = useMemo(
     () => targetHostOptions.find((h) => h.id === autoHostId)?.name ?? null,
@@ -503,9 +589,12 @@ export function ChooseModeStep({
                 )}
               </div>
 
-              {/* Advanced placement — target host, datastore, network mapping, power-on. */}
-              <div className="grid gap-3 pt-1 sm:grid-cols-2">
-                <div className="space-y-1.5">
+              {/* Advanced placement — target host, datastore mapping, network
+                  mapping, power-on. The host comes first because it decides
+                  which datastores and port groups the two mappings below can
+                  even offer. */}
+              <div className="pt-1">
+                <div className="max-w-[320px] space-y-1.5">
                   <label htmlFor="restore-target-host" className="text-xs font-medium text-muted-foreground">
                     {t("mode.targetHost")}
                   </label>
@@ -527,35 +616,21 @@ export function ChooseModeStep({
                     </SelectContent>
                   </Select>
                 </div>
-
-                <div className="space-y-1.5">
-                  <label htmlFor="restore-datastore" className="text-xs font-medium text-muted-foreground">
-                    {t("mode.datastore")}
-                  </label>
-                  <Select value={datastore} onValueChange={onDatastoreChange} disabled={!targetEnvId}>
-                    <SelectTrigger id="restore-datastore">
-                      <SelectValue placeholder={datastoreAutoLabel} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="">{datastoreAutoLabel}</SelectItem>
-                      {targetDatastoreOptions.map((d) => (
-                        <SelectItem key={d.id} value={d.name}>
-                          {d.name}
-                          {d.freeBytes != null && ` · ${t("mode.datastoreFree", { free: formatStorage(d.freeBytes / GB) })}`}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  {selectedDatastoreLowSpace != null && (
-                    <p className="text-xs text-warning-text">
-                      {t("mode.datastoreLowSpace", {
-                        free: formatStorage(selectedDatastoreLowSpace / GB),
-                        needed: formatStorage(vm.provisionedGB),
-                      })}
-                    </p>
-                  )}
-                </div>
               </div>
+
+              {/* Datastore mapping — one row per datastore the VM's disks live
+                  on, because they do not all live on one. */}
+              <DatastoreMappingFields
+                groups={sourceGroups}
+                targets={targetDatastoreOptions}
+                mappings={datastoreMappings}
+                onChange={onDatastoreMappingsChange}
+                loading={placementLoading}
+                disabled={!targetEnvId}
+                noHostDatastores={
+                  !!targetEnvId && !placementLoading && targetDatastoreOptions.length === 0
+                }
+              />
 
               <div className="space-y-1.5 pt-1">
                 <span className="text-xs font-medium text-muted-foreground">{t("mode.networkMap")}</span>
@@ -613,6 +688,17 @@ export function ChooseModeStep({
                   </p>
                 ) : (
                   <p className="text-[11px] text-muted-foreground">{t("mode.networkMapHint")}</p>
+                )}
+                {targetEnvId && !placementLoading && unmappedNics.length > 0 && (
+                  <p className="flex items-start gap-1.5 text-xs text-danger" role="alert">
+                    <AlertTriangle className="mt-px h-3.5 w-3.5 shrink-0" />
+                    <span>
+                      {t("mode.networkMapIncomplete", {
+                        count: unmappedNics.length,
+                        adapters: unmappedNics.join(", "),
+                      })}
+                    </span>
+                  </p>
                 )}
               </div>
 
@@ -672,9 +758,17 @@ export function ChooseModeStep({
                 icon={ServerCog}
                 label={t("summary.placement")}
                 value={targetHostOptions.find((h) => h.id === targetHostId)?.name ?? hostAutoLabel}
+                /* Names where the disks actually land. With one source
+                   datastore that is one name; with several, the extra targets
+                   are the part a single name would hide. */
                 sub={
                   datastore.trim()
-                    ? t("summary.placementSub", { datastore: datastore.trim() })
+                    ? sourceGroups.length > 1
+                      ? t("summary.placementSubMapped", {
+                          datastore: datastore.trim(),
+                          count: sourceGroups.length - 1,
+                        })
+                      : t("summary.placementSub", { datastore: datastore.trim() })
                     : datastoreAutoLabel
                 }
               />

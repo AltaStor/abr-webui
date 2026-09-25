@@ -518,7 +518,7 @@
       "destinationCollision": "La complète fusionnée serait écrite exactement là où est stockée la chaîne qu'elle lit. Choisissez un autre référentiel cible.",
       "repositoryUnsupported": "Le référentiel ne peut pas fusionner une chaîne de sauvegarde. Les complètes synthétiques exigent un référentiel local ou de stockage objet.",
       "invalidChain": "La chaîne n'est pas dans un état fusionnable : elle doit commencer par une sauvegarde complète et ne contenir que des incrémentielles ensuite.",
-      "noIncrementals": "Il ne restait plus d'incrémentielle à fusionner au démarrage de l'exécution."
+      "noIncrementals": "La chaîne ne contenait qu’une sauvegarde complète sans incréments : la fusion l’aurait donc copiée telle quelle."
     }
   }
 }
