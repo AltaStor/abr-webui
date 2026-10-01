@@ -853,7 +853,7 @@ export function createLiveDriver(handle: WorldHandle): WorldDriver {
         revision: s.revision + 1,
       }));
       try {
-        await api.setJobEnabled(jobId, enabled, current.schedule);
+        await api.setJobEnabled(jobId, enabled);
       } catch (err) {
         if (!stopped) await refreshJob(jobId); // revert to server truth
         throw err;

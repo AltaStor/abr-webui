@@ -1390,17 +1390,10 @@ export async function runJobSessions(
   };
 }
 
-/**
- * Enable/disable is a PATCH on the job's schedule — the orchestrator has no
- * dedicated enable/disable route and, critically, does NOT recognize a bare
- * top-level `enabled` field (`edit_job_record` in abr_v41.py only inspects
- * `schedule`), so that flag has to travel nested inside the current schedule
- * or the appliance 422s with "job edit requires at least one editable option".
- */
-export const setJobEnabled = (id: string, enabled: boolean, schedule: Schedule) =>
+export const setJobEnabled = (id: string, enabled: boolean) =>
   request<void>(`/jobs/${id}`, {
     method: "PATCH",
-    body: JSON.stringify({ schedule: { ...scheduleToWire(schedule), enabled } }),
+    body: JSON.stringify({ enabled }),
   });
 
 export interface StopSessionResult {
