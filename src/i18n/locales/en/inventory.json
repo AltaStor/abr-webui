@@ -86,7 +86,7 @@
     "vmsFilteredTitle": "No VMs match these filters",
     "vmsTitle": "No virtual machines found",
     "vmsFilteredDesc": "Try widening your search, clearing a filter, or picking a broader scope.",
-    "vmsDesc": "Use “Add source” to connect a vCenter or ESXi platform.",
+    "vmsDesc": "Use “Add source” to connect a vCenter, ESXi or Hyper-V platform.",
     "serversFilteredTitle": "No servers match these filters",
     "serversTitle": "No physical servers",
     "serversFilteredDesc": "Try widening your search or clearing a filter.",
@@ -372,7 +372,7 @@
   },
   "addEnvironment": {
     "title": "Add environment",
-    "description": "Register a VMware vCenter Server or standalone ESXi host so AltaStor can discover and protect its VMs.",
+    "description": "Register a VMware vCenter Server, a standalone ESXi host, or a Hyper-V host or cluster so AltaStor can discover and protect its VMs.",
     "platformLabel": "Platform",
     "type": {
       "vcenter": {
@@ -382,12 +382,18 @@
       "esxiStandalone": {
         "label": "VMware ESXi (standalone)",
         "hint": "A single ESXi host, managed directly."
+      },
+      "hyperv": {
+        "label": "Microsoft Hyper-V",
+        "hint": "A Hyper-V host, or any node or the name of a failover cluster. AltaStor needs WinRM (5986 or 5985) and SMB (445) to every node, and an account that is a local administrator on each."
       }
     },
     "nameLabel": "Name",
     "addressLabel": "Address",
     "addressInvalid": "Enter a valid FQDN or IP address — no protocol, path, or spaces.",
     "portLabel": "Port",
+    "portAuto": "Auto",
+    "portAutoHint": "Left empty, AltaStor tries WinRM over HTTPS (5986) first, then HTTP (5985).",
     "usernameLabel": "Username",
     "passwordLabel": "Password",
     "skipTlsLabel": "Skip TLS verification",
@@ -519,6 +525,29 @@
       "repositoryUnsupported": "The repository can't merge a backup chain. Synthetic fulls need a local or object-storage repository.",
       "invalidChain": "The chain isn't in a state that can be merged: it has to start with a full backup and hold only incrementals after it.",
       "noIncrementals": "The chain held only a full backup with no incrementals, so the merge would have copied it unchanged."
+    }
+  },
+  "hypervConfig": {
+    "title": "Hyper-V configuration",
+    "generation": "Generation",
+    "generation1": "Generation 1 (BIOS)",
+    "generation2": "Generation 2 (UEFI)",
+    "configurationVersion": "Configuration version",
+    "placement": "Runs on",
+    "clustered": "{{node}} (clustered)",
+    "standalone": "{{node}}",
+    "checkpoints": "Checkpoints",
+    "checkpointsNote_one": "This VM has {{count}} checkpoint. Backups work as usual, but recovery to the original location is refused until it is deleted: replacing the disks would break the checkpoint chain. Restore to a new location instead, or delete the checkpoint first.",
+    "checkpointsNote_other": "This VM has {{count}} checkpoints. Backups work as usual, but recovery to the original location is refused until they are deleted: replacing the disks would break the checkpoint chain. Restore to a new location instead, or delete the checkpoints first.",
+    "disks": "Disks",
+    "noDisks": "No disks discovered.",
+    "adapters": "Network adapters",
+    "noAdapters": "No network adapters discovered.",
+    "notConnected": "Not connected",
+    "unknown": "Unknown",
+    "skip": {
+      "passThrough": "Pass-through disk, not backed up",
+      "vhdSet": "Shared VHD Set, not backed up"
     }
   }
 }

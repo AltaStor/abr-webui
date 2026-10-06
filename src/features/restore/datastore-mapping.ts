@@ -25,8 +25,16 @@ import type { RestoreDatastoreOption, RestoreSourceDisk } from "@/types";
 
 /** Source disk types that are thin on disk, so a restore of them needs what the
  *  backup holds rather than the provisioned size. Mirrors
- *  `_THIN_SOURCE_DISK_TYPES`. */
-const THIN_SOURCE_DISK_TYPES = new Set(["vmfs_thin", "vmfs_sparse", "monolithic_sparse", "split_sparse"]);
+ *  `_THIN_SOURCE_DISK_TYPES` — VMware's thin formats, and Hyper-V's dynamic and
+ *  differencing VHDX. */
+const THIN_SOURCE_DISK_TYPES = new Set([
+  "vmfs_thin",
+  "vmfs_sparse",
+  "monolithic_sparse",
+  "split_sparse",
+  "dynamic",
+  "differencing",
+]);
 
 /** A disk whose source datastore the restore point never recorded. It cannot be
  *  mapped — the appliance has no name to key it by — so it is grouped under

@@ -38,6 +38,8 @@ import {
 import { REPO_TYPE_META } from "./repoMeta";
 import { ImmutabilityFields } from "./ImmutabilityFields";
 import { ValidationResultPanel } from "./ValidationResultPanel";
+import { ShareFields } from "./ShareFields";
+import { draftToShare, EMPTY_SHARE_DRAFT, shareDraftProblem, type ShareDraft } from "./share";
 import {
   CREATE_LOCK_DAYS,
   DEFAULT_LOCK_MODE,
@@ -93,6 +95,7 @@ export function AddRepositoryDialog() {
   const [name, setName] = useState("");
   const [type, setType] = useState<OfferedRepositoryType>("object-lock-s3");
   const [path, setPath] = useState("");
+  const [shareDraft, setShareDraft] = useState<ShareDraft>(EMPTY_SHARE_DRAFT);
   const [submitting, setSubmitting] = useState(false);
 
   // S3 connection settings — only used when type is "object-lock-s3".
@@ -159,7 +162,7 @@ export function AddRepositoryDialog() {
   // isn't asked for; local capacity is read from the filesystem after creation.
   const formValid = isS3
     ? bucketValid && regionValid && accessKeyValid && secretKeyValid && endpointWellFormed && lockDaysOk
-    : true;
+    : shareDraftProblem(shareDraft) === null;
   const canSubmit = formValid && nameValid && !submitting;
   // The pre-create test goes through the same server-side validation, so it
   // needs the same fields before it can say anything useful.
@@ -169,6 +172,7 @@ export function AddRepositoryDialog() {
     setName("");
     setType("object-lock-s3");
     setPath("");
+    setShareDraft(EMPTY_SHARE_DRAFT);
     setSubmitting(false);
     setBucket("");
     setPrefix("");
@@ -239,6 +243,7 @@ export function AddRepositoryDialog() {
             immutability,
           }
         : undefined,
+      share: isS3 ? undefined : (draftToShare(shareDraft) ?? undefined),
     });
     setSubmitting(false);
     if (!result.ok) {
@@ -497,17 +502,20 @@ export function AddRepositoryDialog() {
               </div>
             </div>
           ) : (
-            <div className="space-y-1.5">
-              <Label htmlFor="repo-path">{t("add.pathLabel")}</Label>
-              <Input
-                id="repo-path"
-                value={path}
-                onChange={(e) => setPath(e.target.value)}
-                placeholder={PATH_PLACEHOLDER[type]}
-                className="nums"
-                spellCheck={false}
-              />
-            </div>
+            <>
+              <div className="space-y-1.5">
+                <Label htmlFor="repo-path">{t("add.pathLabel")}</Label>
+                <Input
+                  id="repo-path"
+                  value={path}
+                  onChange={(e) => setPath(e.target.value)}
+                  placeholder={PATH_PLACEHOLDER[type]}
+                  className="nums"
+                  spellCheck={false}
+                />
+              </div>
+              <ShareFields idPrefix="repo" draft={shareDraft} onChange={setShareDraft} />
+            </>
           )}
 
           {createError && (

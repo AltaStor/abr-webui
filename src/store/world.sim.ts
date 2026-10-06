@@ -1101,6 +1101,11 @@ export function createSimDriver(handle: WorldHandle): WorldDriver {
         ...(patch.compression !== undefined && { compression: patch.compression }),
         ...(patch.ioThrottleMBps !== undefined && { ioThrottleMBps: patch.ioThrottleMBps }),
         ...(patch.maxConcurrentTasks !== undefined && { maxConcurrentTasks: patch.maxConcurrentTasks }),
+        ...(patch.share !== undefined && {
+          share: patch.share
+            ? { server: patch.share.server, share: patch.share.share, username: patch.share.username }
+            : null,
+        }),
         ...(patch.maintenanceMode !== undefined && { maintenanceMode: patch.maintenanceMode }),
         ...(patch.immutability !== undefined && { immutability: patch.immutability }),
       };
@@ -1419,6 +1424,10 @@ export function createSimDriver(handle: WorldHandle): WorldDriver {
         immutability:
           input.type === "object-lock-s3"
             ? (input.s3?.immutability ?? { mode: "none", retentionDays: 0 })
+            : null,
+        share:
+          input.type === "local" && input.share
+            ? { server: input.share.server, share: input.share.share, username: input.share.username }
             : null,
       };
       handle.set((s) => ({

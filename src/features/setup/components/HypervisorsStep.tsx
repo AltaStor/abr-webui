@@ -31,17 +31,17 @@ interface HypervisorsStepProps {
 /**
  * Only the platforms this appliance can actually back up.
  *
- * The orchestrator will happily *register* a Hyper-V or Proxmox inventory and
- * even discover its VMs — but every run against one fails with "unsupported
- * hypervisor kind", so offering them here would let the operator finish the
- * wizard holding a registration that can never produce a backup. They are kept
+ * The orchestrator will happily *register* a Proxmox inventory and even
+ * discover its VMs — but every run against one fails with "unsupported
+ * hypervisor kind", so offering it here would let the operator finish the
+ * wizard holding a registration that can never produce a backup. It is kept
  * out of the picker (the same call the Inventory "Add environment" dialog
  * makes), and the step says so rather than being quietly short.
  *
  * `HYPERVISOR_LABEL` still covers all four types: it also labels environments
  * that already exist. This list is what the wizard is willing to create.
  */
-const TYPES: EnvironmentType[] = ["vcenter", "esxi-standalone"];
+const TYPES: EnvironmentType[] = ["vcenter", "esxi-standalone", "hyperv"];
 
 export function HypervisorsStep({ rows, onChange }: HypervisorsStepProps) {
   const { t } = useTranslation("setup");

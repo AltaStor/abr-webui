@@ -429,11 +429,17 @@ export function ChooseModeStep({
     [environments, targetEnvId],
   );
 
+  /* Hyper-V calls a datastore a storage location and a network a virtual
+   * switch, and replaces a VM's disks in place rather than the VM itself — the
+   * wording follows the platform the VM lands on (an i18n context: every
+   * "_hyperv" key falls back to the plain one). */
+  const terms =
+    (destination === "original" ? sourcePlatform : targetEnv?.hypervisor) === "hyperv" ? "hyperv" : undefined;
+
   /* A New-location restore onto a target whose platform differs from the
-   * source's is refused: this appliance has one hypervisor plugin (vCenter),
-   * so nothing here can register the VM on another platform or convert its
-   * disks for it. RestorePage holds "Start restore" disabled on the same
-   * condition. */
+   * source's is refused: nothing here can register the VM on another platform
+   * or convert its disks for it. RestorePage holds "Start restore" disabled on
+   * the same condition. */
   const crossHypervisorTarget = useMemo(() => {
     if (destination !== "new-location") return undefined;
     if (!sourcePlatform || !targetEnv) return undefined;
@@ -498,7 +504,7 @@ export function ChooseModeStep({
               active={destination === "original"}
               icon={MapPin}
               title={t("mode.original.title")}
-              description={t("mode.original.desc")}
+              description={t("mode.original.desc", { context: terms })}
               onClick={() => onDestinationChange("original")}
             />
             <ChoiceCard
@@ -514,7 +520,7 @@ export function ChooseModeStep({
               <div className="flex items-start gap-2.5 border border-warning/30 bg-warning/[0.06] px-3 py-2.5">
                 <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-warning" />
                 <p className="text-xs text-warning-text">
-                  {t("mode.originalOverwriteWarning")}
+                  {t("mode.originalOverwriteWarning", { context: terms })}
                 </p>
               </div>
               <div className="space-y-1.5">
@@ -630,10 +636,11 @@ export function ChooseModeStep({
                 noHostDatastores={
                   !!targetEnvId && !placementLoading && targetDatastoreOptions.length === 0
                 }
+                terms={terms}
               />
 
               <div className="space-y-1.5 pt-1">
-                <span className="text-xs font-medium text-muted-foreground">{t("mode.networkMap")}</span>
+                <span className="text-xs font-medium text-muted-foreground">{t("mode.networkMap", { context: terms })}</span>
                 {destination === "new-location" && placementLoading ? (
                   <Skeleton className="h-9 w-full max-w-md" />
                 ) : sourceNics.length === 0 ? (
@@ -653,7 +660,7 @@ export function ChooseModeStep({
                       return (
                         <div key={mapping.nicId} className="flex items-center gap-2">
                           <Select value={mapping.nicId} disabled>
-                            <SelectTrigger className="max-w-[240px]" aria-label={t("mode.networkMapSource")}>
+                            <SelectTrigger className="max-w-[240px]" aria-label={t("mode.networkMapSource", { context: terms })}>
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
@@ -666,8 +673,8 @@ export function ChooseModeStep({
                             onValueChange={(value) => updateNetworkTarget(mapping.nicId, value)}
                             disabled={!targetEnvId || targetNetworkOptions.length === 0}
                           >
-                            <SelectTrigger className="max-w-[200px]" aria-label={t("mode.networkMapTarget")}>
-                              <SelectValue placeholder={t("mode.networkMapTargetPlaceholder")} />
+                            <SelectTrigger className="max-w-[200px]" aria-label={t("mode.networkMapTarget", { context: terms })}>
+                              <SelectValue placeholder={t("mode.networkMapTargetPlaceholder", { context: terms })} />
                             </SelectTrigger>
                             <SelectContent>
                               {targetNetworkOptions.map((n) => (
@@ -684,16 +691,17 @@ export function ChooseModeStep({
                 )}
                 {targetEnvId && sourceNics.length > 0 && !placementLoading && targetNetworkOptions.length === 0 ? (
                   <p className="text-xs text-warning-text">
-                    {targetHostId ? t("mode.networkMapHostNone") : t("mode.networkMapEnvNone")}
+                    {targetHostId ? t("mode.networkMapHostNone", { context: terms }) : t("mode.networkMapEnvNone", { context: terms })}
                   </p>
                 ) : (
-                  <p className="text-[11px] text-muted-foreground">{t("mode.networkMapHint")}</p>
+                  <p className="text-[11px] text-muted-foreground">{t("mode.networkMapHint", { context: terms })}</p>
                 )}
                 {targetEnvId && !placementLoading && unmappedNics.length > 0 && (
                   <p className="flex items-start gap-1.5 text-xs text-danger" role="alert">
                     <AlertTriangle className="mt-px h-3.5 w-3.5 shrink-0" />
                     <span>
                       {t("mode.networkMapIncomplete", {
+                        context: terms,
                         count: unmappedNics.length,
                         adapters: unmappedNics.join(", "),
                       })}
@@ -735,7 +743,7 @@ export function ChooseModeStep({
               icon={MapPin}
               label={t("summary.recoveryMode")}
               value={t("mode.entireVm.title")}
-              sub={destination === "original" ? t("mode.sub.original") : t("mode.sub.newLocation")}
+              sub={destination === "original" ? t("mode.sub.original", { context: terms }) : t("mode.sub.newLocation")}
             />
             <SummaryRow
               icon={MapPin}
@@ -765,10 +773,11 @@ export function ChooseModeStep({
                   datastore.trim()
                     ? sourceGroups.length > 1
                       ? t("summary.placementSubMapped", {
+                          context: terms,
                           datastore: datastore.trim(),
                           count: sourceGroups.length - 1,
                         })
-                      : t("summary.placementSub", { datastore: datastore.trim() })
+                      : t("summary.placementSub", { datastore: datastore.trim(), context: terms })
                     : datastoreAutoLabel
                 }
               />

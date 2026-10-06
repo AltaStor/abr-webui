@@ -51,6 +51,7 @@ export function DatastoreMappingFields({
   loading,
   disabled,
   noHostDatastores,
+  terms,
 }: {
   groups: SourceDatastoreGroup[];
   /** Target datastores the chosen host actually mounts. */
@@ -62,8 +63,11 @@ export function DatastoreMappingFields({
   /** The target host mounts nothing — a different problem from an unmapped
    *  row, and one the operator fixes by changing host, not by picking here. */
   noHostDatastores: boolean;
+  /** "hyperv" words a datastore as a storage location (an i18n context). */
+  terms?: "hyperv";
 }) {
-  const { t } = useTranslation("restore");
+  const { t: translate } = useTranslation("restore");
+  const t = (key: string, options: Record<string, unknown> = {}) => translate(key, { ...options, context: terms });
   const bySource = new Map(mappings.map((m) => [m.sourceDatastore, m.targetDatastoreId]));
   const problems = datastoreMappingProblems(groups, bySource, targets);
   const loads = targetDatastoreLoads(groups, bySource, targets);

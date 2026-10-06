@@ -492,7 +492,8 @@
     "deduplication": "Deduplicación",
     "deduplicationHint": "A nivel de bloque",
     "compression": "Compresión",
-    "compressionLevel": "Nivel {{level}}"
+    "compressionLevel": "Nivel {{level}}",
+    "guestConsistency": "Coherencia del punto de control"
   },
   "health": {
     "title": "Estado de los archivos de copia de seguridad",
@@ -834,7 +835,8 @@
       "filesPaths": "Añade al menos una ruta en cada servidor seleccionado.",
       "targetEnv": "Elige un entorno de destino para la réplica.",
       "repository": "Elige un repositorio donde guardar las copias de seguridad.",
-      "scheduleDays": "Elija al menos un día para la planificación de copias."
+      "scheduleDays": "Elija al menos un día para la planificación de copias.",
+      "hypervRepository": "Las VMs de Hyper-V necesitan un repositorio S3, o uno local compartido con los hosts por SMB: abr-vhdx-tool escribe sus discos desde el host de Hyper-V, que no puede llegar a {{repository}}. Indique su recurso compartido en Repositorios → Editar."
     },
     "scope": {
       "filesSummary_one": "{{count}} ruta en {{servers}}",
@@ -985,7 +987,22 @@
     "gfsMonthly": "Mensual",
     "gfsYearly": "Anual",
     "loadingJob": "Cargando trabajo",
-    "whatIs": "¿Qué es {{term}}?"
+    "whatIs": "¿Qué es {{term}}?",
+    "hyperv": {
+      "title": "Hyper-V",
+      "term": "copia de Hyper-V",
+      "help": "Las VMs de Hyper-V se copian desde un punto de control de recuperación, que congela sus discos mientras abr-vhdx-tool los lee en el host. Después, el punto de control pasa a ser un punto de referencia, de modo que la siguiente copia solo lee lo que el seguimiento de cambios resistente (RCT) indica como cambiado.",
+      "consistencyHint": {
+        "application": "Un invitado en ejecución se pone en reposo mediante VSS; si no es posible, el punto de control es coherente ante fallos y la ejecución lo indica.",
+        "crash": "El invitado nunca interviene: como desenchufarlo en el momento del punto de control."
+      }
+    }
+  },
+  "hyperv": {
+    "consistency": {
+      "application": "Coherente con las aplicaciones",
+      "crash": "Coherente ante fallos"
+    }
   },
   "retentionRun": {
     "title": "Aplicar retención ahora",

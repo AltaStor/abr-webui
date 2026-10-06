@@ -218,6 +218,9 @@
     "threatLockedTitle": "Bloqueado por amenaza · sellado por respuesta a amenazas",
     "threatLockedBody": "Este repositorio conserva puntos de restauración para {{names}}, actualmente bajo investigación activa de amenazas. Cualquier punto inmutable aquí permanece protegido. El sellado se levanta automáticamente cuando la amenaza se contiene o se descarta.",
     "storagePath": "Ruta de almacenamiento",
+    "hypervShare": "Recurso de Hyper-V",
+    "hypervShareAccount": "como {{account}}",
+    "hypervShareInventoryAccount": "con la cuenta del inventario de Hyper-V",
     "immutability": "Inmutabilidad",
     "immutabilityOff": "Desactivada: las copias siguen siendo eliminables",
     "immutabilityConfiguredNote_zero": "Esta es la configuración establecida. Ejecuta «Verificar repositorio» para confirmar que el bucket realmente la aplica.",
@@ -365,5 +368,16 @@
     "saving": "Guardando…",
     "saveSettings": "Guardar ajustes",
     "savedStaysOpen": "Guardado. Los puntos de restauración ya almacenados aquí ({{count}}) no quedan cubiertos: póngalos bajo el bloqueo más abajo o cierre."
+  },
+  "share": {
+    "label": "Recurso compartido SMB para hosts Hyper-V",
+    "optional": "(opcional)",
+    "hint": "Las copias de Hyper-V las escribe abr-vhdx-tool en el host de Hyper-V, que no ve las carpetas de este appliance. Comparta esta carpeta por SMB e introduzca la ruta por la que la alcanza cada host; déjelo vacío si aquí no se respalda ninguna VM de Hyper-V.",
+    "uncInvalid": "Introduzca una ruta UNC: \\\\servidor\\recurso, opcionalmente seguida de una carpeta del recurso.",
+    "usernameLabel": "Cuenta",
+    "passwordLabel": "Contraseña",
+    "passwordUnchanged": "Sin cambios",
+    "passwordRequired": "Introduzca la contraseña de la cuenta.",
+    "accountHint": "El recurso debe escribir como el usuario con el que se ejecuta el appliance (force user de Samba). Sin cuenta, los hosts lo abren con la del inventario de Hyper-V."
   }
 }

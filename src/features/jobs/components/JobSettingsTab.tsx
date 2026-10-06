@@ -17,6 +17,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { useWorldStore } from "@/store/world";
 import { formatDateTime, formatStorage, usagePercent } from "@/lib/format";
 import type { BackupJob, Repository } from "@/types";
 import { fullScheduleLabel, retentionLabel, scheduleLabel } from "../lib";
@@ -32,6 +33,12 @@ export function JobSettingsTab({ job, repository, onApplyRetention }: Props) {
   const { t } = useTranslation("jobs");
   const { options, retention, schedule } = job;
   const compressionLabel = t("settings.compressionLevel", { level: options.compression });
+  const hyperv = useWorldStore((s) =>
+    job.vmIds.some((vmId) => {
+      const vm = s.vms.find((v) => v.id === vmId);
+      return s.environments.find((e) => e.id === vm?.environmentId)?.hypervisor === "hyperv";
+    }),
+  );
 
   return (
     <div className="space-y-4">
@@ -166,6 +173,12 @@ export function JobSettingsTab({ job, repository, onApplyRetention }: Props) {
         <CardContent className="grid grid-cols-2 gap-3 pt-0">
           <Toggle on={options.encryption} label={t("settings.encryption")} hint="AES-256" icon={Lock} />
           <Value label={t("settings.compression")} value={compressionLabel} />
+          {hyperv && (
+            <Value
+              label={t("settings.guestConsistency")}
+              value={t(`hyperv.consistency.${options.guestConsistency ?? "application"}`)}
+            />
+          )}
         </CardContent>
       </Card>
     </div>

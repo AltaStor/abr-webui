@@ -117,7 +117,7 @@
     "credentialHint": "e.g. vault:secret/hv-lab — secrets never live in the manifest.",
     "partialWarning": "Fill every field or clear the row — partial rows aren't applied.",
     "addAnother": "Add another",
-    "vmwareOnly": "Only VMware vCenter and standalone ESXi can be added here. This appliance can register Hyper-V and Proxmox environments, but no run against one would succeed yet."
+    "vmwareOnly": "VMware vCenter, standalone ESXi and Hyper-V can be added here. This appliance can register Proxmox environments, but no run against one would succeed yet."
   },
   "review": {
     "title": "Review",

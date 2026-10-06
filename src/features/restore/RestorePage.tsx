@@ -215,12 +215,11 @@ export default function RestorePage() {
     setOverwriteConfirmed(false);
   }, [vm?.id, destination]);
 
-  /* This appliance ships one hypervisor plugin (vCenter), so it can neither
-   * create the VM on another platform nor convert its disks for one. The
-   * wizard can still OFFER such a target — Hyper-V and Proxmox inventories
-   * register and scan — so the refusal has to happen here, on the step that
-   * offers it, instead of after a typed confirmation. See
-   * `crossHypervisorRestoreBlocked`. */
+  /* This appliance restores a VM only onto the platform it came from: it can
+   * neither create the VM on another platform nor convert its disks for one.
+   * The wizard can still OFFER such a target — every inventory kind registers
+   * and scans — so the refusal has to happen here, on the step that offers it,
+   * instead of after a typed confirmation. See `crossHypervisorRestoreBlocked`. */
   const crossHypervisorBlocked = useMemo(() => {
     if (destination !== "new-location" || !vm || !targetEnvId) return false;
     return crossHypervisorRestoreBlocked(

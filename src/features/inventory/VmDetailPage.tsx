@@ -51,6 +51,7 @@ import { restoreLink } from "@/features/restore/link";
 import type { RestorePoint } from "@/types";
 import { PowerDot } from "./components/PowerDot";
 import { SpecRow } from "./components/SpecRow";
+import { HyperVConfigCard } from "./components/HyperVConfigCard";
 import { ProtectionSummaryCard } from "./components/ProtectionSummaryCard";
 import { DeleteRestorePointDialog } from "./components/DeleteRestorePointDialog";
 import { SyntheticFullDialog } from "./components/SyntheticFullDialog";
@@ -269,53 +270,56 @@ export default function VmDetailPage() {
       <ProtectionSummaryCard vm={vm} unreachableCount={unreachableCount} />
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-12">
-        {/* Specs */}
-        <Card className="lg:col-span-4">
-          <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-2 text-base">
-              <Server className="h-4 w-4 text-muted-foreground" />
-              {t("vmDetail.specs")}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pt-0">
-            <div className="divide-y divide-border/60">
-              <SpecRow label={t("vmDetail.powerState")}>
-                <span className="inline-flex items-center gap-1.5">
-                  <StatusDot tone={powerMeta.tone === "muted" ? "muted-foreground" : powerMeta.tone} />
-                  {powerMeta.label}
-                </span>
-              </SpecRow>
-              <SpecRow label={t("vmDetail.vcpus")}>
-                <span className="inline-flex items-center gap-1.5">
-                  <Cpu className="h-3.5 w-3.5 text-muted-foreground" />
-                  <span className="nums">{vm.vcpus}</span>
-                </span>
-              </SpecRow>
-              <SpecRow label={t("vmDetail.memory")}>
-                <span className="inline-flex items-center gap-1.5">
-                  <MemoryStick className="h-3.5 w-3.5 text-muted-foreground" />
-                  <span className="nums">{vm.memoryGB} GB</span>
-                </span>
-              </SpecRow>
-              <SpecRow label={t("vmDetail.provisioned")}>
-                <span className="nums">{formatStorage(vm.provisionedGB, 0)}</span>
-              </SpecRow>
-              <SpecRow label={t("vmDetail.used")}>
-                <span className="inline-flex items-center gap-1.5">
-                  <HardDrive className="h-3.5 w-3.5 text-muted-foreground" />
-                  <span className="nums">{formatStorage(vm.usedGB, 0)}</span>
-                </span>
-              </SpecRow>
-              <SpecRow label={t("vmDetail.ipAddress")}>
-                <span className="inline-flex items-center gap-1.5">
-                  <Network className="h-3.5 w-3.5 text-muted-foreground" />
-                  <span className="nums">{vm.ipAddress}</span>
-                </span>
-              </SpecRow>
-              <SpecRow label={t("vmDetail.guestOs")}>{osFamilyLabel(vm.osFamily)}</SpecRow>
-            </div>
-          </CardContent>
-        </Card>
+        <div className="flex flex-col gap-4 lg:col-span-4">
+          {/* Specs */}
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="flex items-center gap-2 text-base">
+                <Server className="h-4 w-4 text-muted-foreground" />
+                {t("vmDetail.specs")}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="pt-0">
+              <div className="divide-y divide-border/60">
+                <SpecRow label={t("vmDetail.powerState")}>
+                  <span className="inline-flex items-center gap-1.5">
+                    <StatusDot tone={powerMeta.tone === "muted" ? "muted-foreground" : powerMeta.tone} />
+                    {powerMeta.label}
+                  </span>
+                </SpecRow>
+                <SpecRow label={t("vmDetail.vcpus")}>
+                  <span className="inline-flex items-center gap-1.5">
+                    <Cpu className="h-3.5 w-3.5 text-muted-foreground" />
+                    <span className="nums">{vm.vcpus}</span>
+                  </span>
+                </SpecRow>
+                <SpecRow label={t("vmDetail.memory")}>
+                  <span className="inline-flex items-center gap-1.5">
+                    <MemoryStick className="h-3.5 w-3.5 text-muted-foreground" />
+                    <span className="nums">{vm.memoryGB} GB</span>
+                  </span>
+                </SpecRow>
+                <SpecRow label={t("vmDetail.provisioned")}>
+                  <span className="nums">{formatStorage(vm.provisionedGB, 0)}</span>
+                </SpecRow>
+                <SpecRow label={t("vmDetail.used")}>
+                  <span className="inline-flex items-center gap-1.5">
+                    <HardDrive className="h-3.5 w-3.5 text-muted-foreground" />
+                    <span className="nums">{formatStorage(vm.usedGB, 0)}</span>
+                  </span>
+                </SpecRow>
+                <SpecRow label={t("vmDetail.ipAddress")}>
+                  <span className="inline-flex items-center gap-1.5">
+                    <Network className="h-3.5 w-3.5 text-muted-foreground" />
+                    <span className="nums">{vm.ipAddress}</span>
+                  </span>
+                </SpecRow>
+                <SpecRow label={t("vmDetail.guestOs")}>{osFamilyLabel(vm.osFamily)}</SpecRow>
+              </div>
+            </CardContent>
+          </Card>
+          {vm.hyperv && <HyperVConfigCard details={vm.hyperv} />}
+        </div>
 
         {/* Jobs + restore points */}
         <div className="flex flex-col gap-4 lg:col-span-8">

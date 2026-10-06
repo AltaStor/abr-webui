@@ -9,8 +9,8 @@
  *
  * None of it was true. Every field came from `computeConversionPlan`, a pure
  * client-side guess — the appliance was never asked and had nothing to say:
- * this orchestrator ships one hypervisor plugin (`python/srv/plugins/vcenter`)
- * and contains no disk-format conversion and no driver injection at all. The
+ * this orchestrator restores each platform's VMs with that platform's own
+ * plugin and contains no disk-format conversion and no driver injection at all. The
  * card promised a recovery that cannot happen, in a wizard people open during
  * an outage, and staked a boot-confidence verdict on it.
  *

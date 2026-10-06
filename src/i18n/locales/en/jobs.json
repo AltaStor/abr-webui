@@ -492,7 +492,8 @@
     "deduplication": "Deduplication",
     "deduplicationHint": "Block-level",
     "compression": "Compression",
-    "compressionLevel": "Level {{level}}"
+    "compressionLevel": "Level {{level}}",
+    "guestConsistency": "Checkpoint consistency"
   },
   "health": {
     "title": "Backup-file health",
@@ -834,7 +835,8 @@
       "filesPaths": "Add at least one path on every selected server.",
       "targetEnv": "Pick a target environment for the replica.",
       "repository": "Pick a repository to store backups in.",
-      "scheduleDays": "Pick at least one day for the backup schedule."
+      "scheduleDays": "Pick at least one day for the backup schedule.",
+      "hypervRepository": "Hyper-V VMs need an S3 repository, or a local one shared to the hosts over SMB: abr-vhdx-tool writes their disks from the Hyper-V host, which cannot reach {{repository}}. Give it its share under Repositories → Edit."
     },
     "scope": {
       "filesSummary_one": "{{count}} path on {{servers}}",
@@ -985,7 +987,22 @@
     "gfsMonthly": "Monthly",
     "gfsYearly": "Yearly",
     "loadingJob": "Loading job",
-    "whatIs": "What is {{term}}?"
+    "whatIs": "What is {{term}}?",
+    "hyperv": {
+      "title": "Hyper-V",
+      "term": "Hyper-V backup",
+      "help": "Hyper-V VMs are backed up from a recovery checkpoint, which freezes their disks while abr-vhdx-tool reads them on the host. The checkpoint then becomes a reference point, so the next backup reads only what resilient change tracking (RCT) reports as changed.",
+      "consistencyHint": {
+        "application": "A running guest is quiesced through VSS; if it cannot be, the checkpoint is crash-consistent and the run says so.",
+        "crash": "The guest is never involved — like pulling the plug at the moment of the checkpoint."
+      }
+    }
+  },
+  "hyperv": {
+    "consistency": {
+      "application": "Application-consistent",
+      "crash": "Crash-consistent"
+    }
   },
   "retentionRun": {
     "title": "Apply retention now",

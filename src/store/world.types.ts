@@ -29,6 +29,7 @@ import type {
   ReplicaTarget,
   Repository,
   RepositoryImmutability,
+  RepositoryShareInput,
   RepositoryValidationResult,
   RestorePlacementOptions,
   RestorePoint,
@@ -93,6 +94,9 @@ export interface RepositoryEdit {
   /** Object Lock. Omitted leaves the repository's setting untouched; included,
    *  it replaces it — mode "none" turns the lock off for future backups. */
   immutability?: RepositoryImmutability;
+  /** A local repository's SMB share for Hyper-V hosts. Omitted leaves it as
+   *  it is; null removes it. */
+  share?: RepositoryShareInput | null;
 }
 
 /** Editable environment fields for the edit dialog / world action. */

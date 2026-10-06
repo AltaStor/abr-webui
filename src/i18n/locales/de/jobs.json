@@ -492,7 +492,8 @@
     "deduplication": "Deduplizierung",
     "deduplicationHint": "Blockbasiert",
     "compression": "Komprimierung",
-    "compressionLevel": "Stufe {{level}}"
+    "compressionLevel": "Stufe {{level}}",
+    "guestConsistency": "Prüfpunkt-Konsistenz"
   },
   "health": {
     "title": "Backup-Datei-Zustand",
@@ -834,7 +835,8 @@
       "filesPaths": "Fügen Sie auf jedem ausgewählten Server mindestens einen Pfad hinzu.",
       "targetEnv": "Wählen Sie eine Zielumgebung für das Replikat.",
       "repository": "Wählen Sie ein Repository für die Backups aus.",
-      "scheduleDays": "Wählen Sie mindestens einen Tag für den Sicherungsplan."
+      "scheduleDays": "Wählen Sie mindestens einen Tag für den Sicherungsplan.",
+      "hypervRepository": "Hyper-V-VMs benötigen ein S3-Repository oder ein lokales, das den Hosts per SMB freigegeben ist: abr-vhdx-tool schreibt ihre Datenträger vom Hyper-V-Host aus, der {{repository}} nicht erreichen kann. Tragen Sie die Freigabe unter Repositorys → Bearbeiten ein."
     },
     "scope": {
       "filesSummary_one": "{{count}} Pfad auf {{servers}}",
@@ -985,7 +987,22 @@
     "gfsMonthly": "Monatlich",
     "gfsYearly": "Jährlich",
     "loadingJob": "Job wird geladen",
-    "whatIs": "Was ist {{term}}?"
+    "whatIs": "Was ist {{term}}?",
+    "hyperv": {
+      "title": "Hyper-V",
+      "term": "Hyper-V-Backup",
+      "help": "Hyper-V-VMs werden aus einem Wiederherstellungsprüfpunkt gesichert, der ihre Datenträger einfriert, während abr-vhdx-tool sie auf dem Host liest. Danach wird der Prüfpunkt zu einem Referenzpunkt, sodass das nächste Backup nur liest, was die robuste Änderungsnachverfolgung (RCT) als geändert meldet.",
+      "consistencyHint": {
+        "application": "Ein laufender Gast wird über VSS stillgelegt; gelingt das nicht, ist der Prüfpunkt absturzkonsistent, und die Ausführung meldet es.",
+        "crash": "Der Gast wird nie einbezogen — als würde im Moment des Prüfpunkts der Stecker gezogen."
+      }
+    }
+  },
+  "hyperv": {
+    "consistency": {
+      "application": "Anwendungskonsistent",
+      "crash": "Absturzkonsistent"
+    }
   },
   "retentionRun": {
     "title": "Aufbewahrung jetzt anwenden",

@@ -492,7 +492,8 @@
     "deduplication": "Déduplication",
     "deduplicationHint": "Au niveau bloc",
     "compression": "Compression",
-    "compressionLevel": "Niveau {{level}}"
+    "compressionLevel": "Niveau {{level}}",
+    "guestConsistency": "Cohérence du point de contrôle"
   },
   "health": {
     "title": "État des fichiers de sauvegarde",
@@ -834,7 +835,8 @@
       "filesPaths": "Ajoutez au moins un chemin sur chaque serveur sélectionné.",
       "targetEnv": "Choisissez un environnement cible pour la réplique.",
       "repository": "Choisissez un référentiel où stocker les sauvegardes.",
-      "scheduleDays": "Choisissez au moins un jour pour la planification des sauvegardes."
+      "scheduleDays": "Choisissez au moins un jour pour la planification des sauvegardes.",
+      "hypervRepository": "Les VMs Hyper-V ont besoin d’un référentiel S3, ou d’un référentiel local partagé avec les hôtes en SMB : abr-vhdx-tool écrit leurs disques depuis l’hôte Hyper-V, qui ne peut pas atteindre {{repository}}. Indiquez son partage dans Référentiels → Modifier."
     },
     "scope": {
       "filesSummary_one": "{{count}} chemin sur {{servers}}",
@@ -985,7 +987,22 @@
     "gfsMonthly": "Mensuel",
     "gfsYearly": "Annuel",
     "loadingJob": "Chargement de la tâche",
-    "whatIs": "Qu’est-ce que {{term}} ?"
+    "whatIs": "Qu’est-ce que {{term}} ?",
+    "hyperv": {
+      "title": "Hyper-V",
+      "term": "sauvegarde Hyper-V",
+      "help": "Les VMs Hyper-V sont sauvegardées depuis un point de contrôle de récupération, qui fige leurs disques pendant qu’abr-vhdx-tool les lit sur l’hôte. Le point de contrôle devient ensuite un point de référence : la sauvegarde suivante ne lit que ce que le suivi des modifications résilient (RCT) signale comme modifié.",
+      "consistencyHint": {
+        "application": "Un invité en cours d’exécution est mis au repos via VSS ; si c’est impossible, le point de contrôle est cohérent en cas de panne, et l’exécution le signale.",
+        "crash": "L’invité n’intervient jamais — comme si l’on débranchait la machine au moment du point de contrôle."
+      }
+    }
+  },
+  "hyperv": {
+    "consistency": {
+      "application": "Cohérent avec les applications",
+      "crash": "Cohérent en cas de panne"
+    }
   },
   "retentionRun": {
     "title": "Appliquer la rétention maintenant",
