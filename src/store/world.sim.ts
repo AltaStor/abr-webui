@@ -39,6 +39,8 @@ import type {
   RestoreExistingVmOption,
   RestoreNetworkOption,
   RestorePoint,
+  RetentionChainReport,
+  RetentionRunResult,
   RestoreSourceDisk,
   RestoreSourceNic,
   S3ConnectionCheck,
@@ -61,6 +63,7 @@ import type {
   WorldHandle,
   WorldState,
 } from "@/store/world.types";
+import { retentionRefused } from "@/store/world.types";
 
 /* --------------------------- id / time helpers -------------------------- */
 let _id = 0;
@@ -1175,6 +1178,78 @@ export function createSimDriver(handle: WorldHandle): WorldDriver {
      * (@/lib/synthetic-full), so a chain that could not be merged against a
      * real appliance cannot be merged here either — a demo that accepted what
      * production refuses would be worse than no demo. */
+    /* Retention, by the appliance's rule (apply_retention_to_chain): a
+     * full-plus-incrementals segment goes only when every point in it has
+     * expired and none is kept by GFS; under a GFS-kept full, its expired
+     * incrementals may go alone. The demo has no Object Lock to hold anything. */
+    runRetention: (jobId, dryRun) => {
+      const state = handle.get();
+      const job = state.jobs.find((j) => j.id === jobId);
+      if (!job) return Promise.resolve(retentionRefused(jobId, dryRun, "Job not found"));
+      if (job.type !== "backup") {
+        return Promise.resolve(retentionRefused(jobId, dryRun, "Retention applies to backup jobs"));
+      }
+      const cutoff = Date.now() - job.retention.keepDays * 86_400_000;
+      const expired = (point: RestorePoint) => new Date(point.createdAt).getTime() < cutoff;
+      const chains = new Map<string, RestorePoint[]>();
+      for (const point of state.restorePoints) {
+        if (point.jobId !== jobId) continue;
+        const key = `${point.vmId}::${point.repositoryId}`;
+        chains.set(key, [...(chains.get(key) ?? []), point]);
+      }
+      const reports: RetentionChainReport[] = [...chains.values()].map((points) => {
+        const removed: string[] = [];
+        for (const segment of segmentChainPoints(points)) {
+          const all = segment.points;
+          const incrementals = all.filter((point) => point.type !== "full");
+          if (segment.full?.gfsProtected) {
+            if (incrementals.length && incrementals.every((point) => expired(point) && !point.gfsProtected)) {
+              removed.push(...incrementals.map((point) => point.id));
+            }
+          } else if (all.every(expired) && !all.some((point) => point.gfsProtected)) {
+            removed.push(...all.map((point) => point.id));
+          }
+        }
+        const first = points[0];
+        return {
+          vmId: first.vmId,
+          vmName: first.vmName || null,
+          repositoryId: first.repositoryId || null,
+          repositoryName: state.repositories.find((r) => r.id === first.repositoryId)?.name ?? null,
+          points: points.length,
+          removed,
+          held: [],
+          failed: [],
+          keptForChain: [],
+          skippedReason: null,
+        };
+      });
+      const removedIds = new Set(reports.flatMap((report) => report.removed));
+      if (!dryRun && removedIds.size > 0) {
+        handle.set((s) => ({
+          restorePoints: s.restorePoints.filter((point) => !removedIds.has(point.id)),
+          revision: s.revision + 1,
+        }));
+      }
+      return Promise.resolve<RetentionRunResult>({
+        ok: true,
+        jobId,
+        jobName: job.name,
+        dryRun,
+        retentionDays: job.retention.keepDays,
+        summary: {
+          chains: reports.length,
+          points: reports.reduce((sum, report) => sum + report.points, 0),
+          removed: removedIds.size,
+          held: 0,
+          failed: 0,
+          skipped: 0,
+        },
+        chains: reports,
+        ranAt: nowIso(),
+      });
+    },
+
     runSyntheticFull: ({ jobId, vmId, targetRepositoryId }) => {
       const state = handle.get();
       const job = state.jobs.find((j) => j.id === jobId);

@@ -265,7 +265,8 @@
     "runNow": "Jetzt ausführen",
     "runFull": "Vollsicherung ausführen",
     "runOptions": "Ausführungsoptionen",
-    "deleteJob": "Job löschen"
+    "deleteJob": "Job löschen",
+    "applyRetention": "Aufbewahrung jetzt anwenden…"
   },
   "toast": {
     "started": "{{name}} gestartet",
@@ -985,5 +986,43 @@
     "gfsYearly": "Jährlich",
     "loadingJob": "Job wird geladen",
     "whatIs": "Was ist {{term}}?"
+  },
+  "retentionRun": {
+    "title": "Aufbewahrung jetzt anwenden",
+    "lead": "Dieser Job bewahrt {{policy}} auf. Ein Vollbackup und die inkrementellen Backups darauf werden gemeinsam entfernt, und erst wenn alle abgelaufen sind, damit jeder verbleibende Wiederherstellungspunkt wiederherstellbar bleibt. Die Aufbewahrung läuft auch nach jedem Backup.",
+    "checking": "Abgelaufene Wiederherstellungspunkte werden ermittelt…",
+    "apply_one": "{{count}} Wiederherstellungspunkt entfernen",
+    "apply_other": "{{count}} Wiederherstellungspunkte entfernen",
+    "nothingToRemove": "Nichts zu entfernen",
+    "previewNone_one": "Der einzige Wiederherstellungspunkt ist noch nicht abgelaufen.",
+    "previewNone_other": "Keiner der {{count}} Wiederherstellungspunkte ist bisher abgelaufen.",
+    "previewSome_one": "{{count}} von {{total}} Wiederherstellungspunkten ist abgelaufen und würde entfernt.",
+    "previewSome_other": "{{count}} von {{total}} Wiederherstellungspunkten sind abgelaufen und würden entfernt.",
+    "doneSome_one": "{{count}} von {{total}} Wiederherstellungspunkten entfernt.",
+    "doneSome_other": "{{count}} von {{total}} Wiederherstellungspunkten entfernt.",
+    "noPoints": "Dieser Job hat noch keine Wiederherstellungspunkte.",
+    "heldExplained": "Gesperrte Wiederherstellungspunkte sind abgelaufen, stehen aber noch unter S3 Object Lock; sie werden in einem späteren Durchlauf entfernt, sobald die Sperre endet. Ältere Punkte, von denen sie abhängen, bleiben mit ihnen erhalten.",
+    "col": {
+      "vm": "VM",
+      "repository": "Repository",
+      "points": "Punkte",
+      "willRemove": "Wird entfernt",
+      "removed": "Entfernt",
+      "note": "Hinweis"
+    },
+    "note": {
+      "skipped": "Übersprungen: {{reason}}",
+      "held_one": "{{count}} durch Object Lock gesperrt bis {{until}}",
+      "held_other": "{{count}} durch Object Lock gesperrt bis {{until}}",
+      "failed_one": "{{count}} konnte nicht entfernt werden; bleibt für den nächsten Durchlauf",
+      "failed_other": "{{count}} konnten nicht entfernt werden; bleiben für den nächsten Durchlauf"
+    },
+    "toast": {
+      "failed": "Aufbewahrung von {{name}} wurde nicht ausgeführt",
+      "partial_one": "Die Aufbewahrung von {{name}} konnte {{count}} Wiederherstellungspunkt nicht entfernen; er bleibt für den nächsten Durchlauf",
+      "partial_other": "Die Aufbewahrung von {{name}} konnte {{count}} Wiederherstellungspunkte nicht entfernen; sie bleiben für den nächsten Durchlauf",
+      "done_one": "Die Aufbewahrung von {{name}} hat {{count}} Wiederherstellungspunkt entfernt",
+      "done_other": "Die Aufbewahrung von {{name}} hat {{count}} Wiederherstellungspunkte entfernt"
+    }
   }
 }

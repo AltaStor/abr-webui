@@ -167,6 +167,40 @@ export interface JobOptions {
   throttleMBps?: number;
 }
 
+/** One backup chain (job × VM × repository) as a retention pass saw it. */
+export interface RetentionChainReport {
+  vmId: string;
+  vmName: string | null;
+  repositoryId: string | null;
+  repositoryName: string | null;
+  /** Restore points in the chain when the pass started. */
+  points: number;
+  /** Ids removed — or, for a preview, the ids a real pass would remove. */
+  removed: string[];
+  /** Expired points kept because S3 Object Lock still holds their data. */
+  held: { pointId: string; until: string }[];
+  /** Expired points whose stored data could not be removed; kept for retry. */
+  failed: string[];
+  /** Expired points kept because a newer point they carry is held or failed. */
+  keptForChain: string[];
+  /** Set when the chain was left alone, e.g. a backup of the VM is running. */
+  skippedReason: string | null;
+}
+
+/** POST /jobs/{id}/retention — what a retention pass removed or would remove. */
+export interface RetentionRunResult {
+  ok: boolean;
+  /** The appliance's refusal, when ok is false. */
+  message?: string;
+  jobId: string;
+  jobName: string;
+  dryRun: boolean;
+  retentionDays: number;
+  summary: { chains: number; points: number; removed: number; held: number; failed: number; skipped: number };
+  chains: RetentionChainReport[];
+  ranAt: string;
+}
+
 export type JobType = "backup" | "replication" | "backup-copy";
 /** A session's run kind — everything a job can be, plus the three the appliance
  *  runs without a job behind them: "restore", "verify" (an integrity check over

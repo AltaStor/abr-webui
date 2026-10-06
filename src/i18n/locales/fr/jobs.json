@@ -265,7 +265,8 @@
     "runNow": "Exécuter maintenant",
     "runFull": "Exécuter une sauvegarde complète",
     "runOptions": "Options d'exécution",
-    "deleteJob": "Supprimer la tâche"
+    "deleteJob": "Supprimer la tâche",
+    "applyRetention": "Appliquer la rétention maintenant…"
   },
   "toast": {
     "started": "{{name}} démarrée",
@@ -985,5 +986,43 @@
     "gfsYearly": "Annuel",
     "loadingJob": "Chargement de la tâche",
     "whatIs": "Qu’est-ce que {{term}} ?"
+  },
+  "retentionRun": {
+    "title": "Appliquer la rétention maintenant",
+    "lead": "Ce job conserve {{policy}}. Une sauvegarde complète et les incrémentielles qui s’y rattachent sont supprimées ensemble, et seulement une fois toutes expirées, afin que chaque point de restauration restant reste restaurable. La rétention s’exécute aussi après chaque sauvegarde.",
+    "checking": "Recherche des points de restauration expirés…",
+    "apply_one": "Supprimer {{count}} point de restauration",
+    "apply_other": "Supprimer {{count}} points de restauration",
+    "nothingToRemove": "Rien à supprimer",
+    "previewNone_one": "Le point de restauration n’a pas encore expiré.",
+    "previewNone_other": "Aucun des {{count}} points de restauration n’a encore expiré.",
+    "previewSome_one": "{{count}} point de restauration sur {{total}} a expiré et serait supprimé.",
+    "previewSome_other": "{{count}} points de restauration sur {{total}} ont expiré et seraient supprimés.",
+    "doneSome_one": "{{count}} point de restauration sur {{total}} supprimé.",
+    "doneSome_other": "{{count}} points de restauration sur {{total}} supprimés.",
+    "noPoints": "Ce job n’a pas encore de point de restauration.",
+    "heldExplained": "Les points de restauration retenus ont expiré mais restent sous S3 Object Lock ; ils seront supprimés lors d’un passage ultérieur, à la fin du verrouillage. Les points plus anciens dont ils dépendent restent avec eux.",
+    "col": {
+      "vm": "VM",
+      "repository": "Référentiel",
+      "points": "Points",
+      "willRemove": "À supprimer",
+      "removed": "Supprimés",
+      "note": "Remarque"
+    },
+    "note": {
+      "skipped": "Ignoré : {{reason}}",
+      "held_one": "{{count}} retenu par Object Lock jusqu’au {{until}}",
+      "held_other": "{{count}} retenus par Object Lock jusqu’au {{until}}",
+      "failed_one": "{{count}} n’a pas pu être supprimé ; conservé pour le prochain passage",
+      "failed_other": "{{count}} n’ont pas pu être supprimés ; conservés pour le prochain passage"
+    },
+    "toast": {
+      "failed": "La rétention de {{name}} ne s’est pas exécutée",
+      "partial_one": "La rétention de {{name}} n’a pas pu supprimer {{count}} point de restauration ; il est conservé pour le prochain passage",
+      "partial_other": "La rétention de {{name}} n’a pas pu supprimer {{count}} points de restauration ; ils sont conservés pour le prochain passage",
+      "done_one": "La rétention de {{name}} a supprimé {{count}} point de restauration",
+      "done_other": "La rétention de {{name}} a supprimé {{count}} points de restauration"
+    }
   }
 }

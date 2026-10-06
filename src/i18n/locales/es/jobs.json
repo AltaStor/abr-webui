@@ -265,7 +265,8 @@
     "runNow": "Ejecutar ahora",
     "runFull": "Ejecutar copia de seguridad completa",
     "runOptions": "Opciones de ejecución",
-    "deleteJob": "Eliminar trabajo"
+    "deleteJob": "Eliminar trabajo",
+    "applyRetention": "Aplicar retención ahora…"
   },
   "toast": {
     "started": "{{name}} iniciado",
@@ -985,5 +986,43 @@
     "gfsYearly": "Anual",
     "loadingJob": "Cargando trabajo",
     "whatIs": "¿Qué es {{term}}?"
+  },
+  "retentionRun": {
+    "title": "Aplicar retención ahora",
+    "lead": "Este trabajo conserva {{policy}}. Una copia completa y las incrementales sobre ella se eliminan juntas, y solo cuando todas han caducado, para que cada punto de restauración que quede pueda restaurarse. La retención también se ejecuta después de cada copia.",
+    "checking": "Comprobando qué puntos de restauración han caducado…",
+    "apply_one": "Eliminar {{count}} punto de restauración",
+    "apply_other": "Eliminar {{count}} puntos de restauración",
+    "nothingToRemove": "Nada que eliminar",
+    "previewNone_one": "El único punto de restauración aún no ha caducado.",
+    "previewNone_other": "Ninguno de los {{count}} puntos de restauración ha caducado aún.",
+    "previewSome_one": "{{count}} de {{total}} puntos de restauración ha caducado y se eliminaría.",
+    "previewSome_other": "{{count}} de {{total}} puntos de restauración han caducado y se eliminarían.",
+    "doneSome_one": "Se eliminó {{count}} de {{total}} puntos de restauración.",
+    "doneSome_other": "Se eliminaron {{count}} de {{total}} puntos de restauración.",
+    "noPoints": "Este trabajo aún no tiene puntos de restauración.",
+    "heldExplained": "Los puntos de restauración retenidos han caducado, pero S3 Object Lock aún los protege; se eliminan en una pasada posterior, cuando termine el bloqueo. Los puntos más antiguos de los que dependen se quedan con ellos.",
+    "col": {
+      "vm": "VM",
+      "repository": "Repositorio",
+      "points": "Puntos",
+      "willRemove": "Se eliminarán",
+      "removed": "Eliminados",
+      "note": "Nota"
+    },
+    "note": {
+      "skipped": "Omitido: {{reason}}",
+      "held_one": "{{count}} retenido por Object Lock hasta {{until}}",
+      "held_other": "{{count}} retenidos por Object Lock hasta {{until}}",
+      "failed_one": "{{count}} no se pudo eliminar; se conserva para la próxima pasada",
+      "failed_other": "{{count}} no se pudieron eliminar; se conservan para la próxima pasada"
+    },
+    "toast": {
+      "failed": "La retención de {{name}} no se ejecutó",
+      "partial_one": "La retención de {{name}} no pudo eliminar {{count}} punto de restauración; se conserva para la próxima pasada",
+      "partial_other": "La retención de {{name}} no pudo eliminar {{count}} puntos de restauración; se conservan para la próxima pasada",
+      "done_one": "La retención de {{name}} eliminó {{count}} punto de restauración",
+      "done_other": "La retención de {{name}} eliminó {{count}} puntos de restauración"
+    }
   }
 }

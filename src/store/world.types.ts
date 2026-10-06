@@ -33,6 +33,7 @@ import type {
   RestorePlacementOptions,
   RestorePoint,
   Retention,
+  RetentionRunResult,
   S3ConnectionCheck,
   S3ConnectionTestResult,
   S3RepositoryConfig,
@@ -291,6 +292,10 @@ export interface WorldState extends WorldData {
    *  VM. Starts the run and resolves; the merge itself reports through the
    *  session feed like any other run, and lands as a new full restore point. */
   runSyntheticFull(input: SyntheticFullInput): Promise<SyntheticFullStartResult>;
+  /** Apply a backup job's retention to every chain it wrote — or, with
+   *  `dryRun`, report what that would remove and change nothing. Never
+   *  rejects: a refusal comes back as `ok: false` with the appliance's words. */
+  runRetention(jobId: string, dryRun: boolean): Promise<RetentionRunResult>;
   /* -------- repository lifecycle (advanced storage management) -------- */
   createRepository(input: CreateRepositoryInput): Promise<RepositoryWriteResult>;
   editRepository(id: string, patch: RepositoryEdit): Promise<RepositoryWriteResult>;
@@ -339,6 +344,7 @@ export type WorldActions = Pick<
   | "deleteRestorePoint"
   | "verifyBackups"
   | "runSyntheticFull"
+  | "runRetention"
   | "createRepository"
   | "editRepository"
   | "deleteRepository"
@@ -365,6 +371,22 @@ export interface WorldDriver {
   /** Begin feeding the store. Live rejects when the appliance is unreachable. */
   start(): Promise<void>;
   stop(): void;
+}
+
+/** The shape every refused or unreachable retention run resolves with, so the
+ *  dialog has a single result type to render. */
+export function retentionRefused(jobId: string, dryRun: boolean, message: string): RetentionRunResult {
+  return {
+    ok: false,
+    message,
+    jobId,
+    jobName: "",
+    dryRun,
+    retentionDays: 0,
+    summary: { chains: 0, points: 0, removed: 0, held: 0, failed: 0, skipped: 0 },
+    chains: [],
+    ranAt: new Date().toISOString(),
+  };
 }
 
 export const EMPTY_WORLD: WorldData = {

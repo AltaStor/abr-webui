@@ -26,6 +26,7 @@ import type {
   WorldDriver,
   WorldHandle,
 } from "@/store/world.types";
+import { retentionRefused } from "@/store/world.types";
 import { applyReadState, persistAllAlertsRead, persistAlertRead } from "@/store/notifications.persist";
 import { segmentChainPoints } from "@/lib/restore-points";
 import { restoreRunName } from "@/lib/format";
@@ -1146,6 +1147,22 @@ export function createLiveDriver(handle: WorldHandle): WorldDriver {
         return { ok: true, sessionIds };
       } catch (err) {
         return { ok: false, message: apiFailureMessage(err) };
+      }
+    },
+
+    runRetention: async (jobId, dryRun) => {
+      try {
+        const result = await api.runJobRetention(jobId, dryRun);
+        // A real pass removes restore points, which the session feed never
+        // carries: re-read the affected VMs' points so the Backups views stop
+        // offering what is gone.
+        if (!dryRun && !stopped && result.summary.removed > 0) {
+          const vmIds = [...new Set(result.chains.filter((c) => c.removed.length > 0).map((c) => c.vmId))];
+          await Promise.all(vmIds.map((vmId) => refreshVmRestorePoints(vmId)));
+        }
+        return result;
+      } catch (err) {
+        return retentionRefused(jobId, dryRun, apiFailureMessage(err));
       }
     },
 

@@ -265,7 +265,8 @@
     "runNow": "Run now",
     "runFull": "Run full backup",
     "runOptions": "Run options",
-    "deleteJob": "Delete job"
+    "deleteJob": "Delete job",
+    "applyRetention": "Apply retention now…"
   },
   "toast": {
     "started": "Started {{name}}",
@@ -985,6 +986,44 @@
     "gfsYearly": "Yearly",
     "loadingJob": "Loading job",
     "whatIs": "What is {{term}}?"
+  },
+  "retentionRun": {
+    "title": "Apply retention now",
+    "lead": "This job keeps {{policy}}. A full backup and the incrementals on it are removed together, and only once all of them have expired, so every restore point left can still be restored. Retention also runs after each backup.",
+    "checking": "Checking which restore points have expired…",
+    "apply_one": "Remove {{count}} restore point",
+    "apply_other": "Remove {{count}} restore points",
+    "nothingToRemove": "Nothing to remove",
+    "previewNone_one": "None of the {{count}} restore point has expired yet.",
+    "previewNone_other": "None of the {{count}} restore points has expired yet.",
+    "previewSome_one": "{{count}} of {{total}} restore points has expired and would be removed.",
+    "previewSome_other": "{{count}} of {{total}} restore points have expired and would be removed.",
+    "doneSome_one": "Removed {{count}} of {{total}} restore points.",
+    "doneSome_other": "Removed {{count}} of {{total}} restore points.",
+    "noPoints": "This job has no restore points yet.",
+    "heldExplained": "Held restore points are expired but still under S3 Object Lock; they go on a later pass, once the lock ends. Older points they depend on stay with them.",
+    "col": {
+      "vm": "VM",
+      "repository": "Repository",
+      "points": "Points",
+      "willRemove": "Will remove",
+      "removed": "Removed",
+      "note": "Note"
+    },
+    "note": {
+      "skipped": "Skipped: {{reason}}",
+      "held_one": "{{count}} held by Object Lock until {{until}}",
+      "held_other": "{{count}} held by Object Lock until {{until}}",
+      "failed_one": "{{count}} could not be removed; kept for the next pass",
+      "failed_other": "{{count}} could not be removed; kept for the next pass"
+    },
+    "toast": {
+      "failed": "Retention of {{name}} did not run",
+      "partial_one": "Retention of {{name}} could not remove {{count}} restore point; it is kept for the next pass",
+      "partial_other": "Retention of {{name}} could not remove {{count}} restore points; they are kept for the next pass",
+      "done_one": "Retention of {{name}} removed {{count}} restore point",
+      "done_other": "Retention of {{name}} removed {{count}} restore points"
+    }
   },
   "clock": {
     "title": "This job's last run is ahead of the server clock",

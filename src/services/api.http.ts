@@ -62,6 +62,7 @@ import type {
   RepositoryValidationResult,
   RestorePlacementOptions,
   RestorePoint,
+  RetentionRunResult,
   Retention,
   S3ConnectionCheck,
   S3ConnectionTestResult,
@@ -1432,6 +1433,56 @@ export async function runJobSessions(
     sessionIds: items.map((item) => str(item.id)).filter(Boolean),
     lastSessionId: str(res.last_session_id),
   };
+}
+
+function mapRetentionRun(res: Dict): RetentionRunResult {
+  const summary = asDict(res.summary);
+  const chains = Array.isArray(res.chains) ? (res.chains as Dict[]) : [];
+  const ids = (value: unknown) => (Array.isArray(value) ? value.map((item) => str(item)).filter(Boolean) : []);
+  return {
+    ok: true,
+    jobId: str(res.job_id),
+    jobName: str(res.job_name),
+    dryRun: Boolean(res.dry_run),
+    retentionDays: num(res.retention_days),
+    summary: {
+      chains: num(summary.chains),
+      points: num(summary.points),
+      removed: num(summary.removed),
+      held: num(summary.held),
+      failed: num(summary.failed),
+      skipped: num(summary.skipped),
+    },
+    chains: chains.map((chain) => ({
+      vmId: str(chain.vm_id),
+      vmName: str(chain.vm_name) || null,
+      repositoryId: str(chain.repository_id) || null,
+      repositoryName: str(chain.repository_name) || null,
+      points: num(chain.points),
+      removed: ids(chain.removed),
+      held: (Array.isArray(chain.held) ? (chain.held as Dict[]) : []).map((item) => ({
+        pointId: str(asDict(item).point_id),
+        until: str(asDict(item).until),
+      })),
+      failed: ids(chain.failed),
+      keptForChain: ids(chain.kept_for_chain),
+      skippedReason: str(chain.skipped_reason) || null,
+    })),
+    ranAt: str(res.ran_at),
+  };
+}
+
+/**
+ * Apply a backup job's retention to every chain it wrote — or, with
+ * `dryRun`, report what that would remove without removing anything
+ * (`POST /jobs/{id}/retention`). Retention also runs after every backup on
+ * the appliance; this is the operator's "now", and the preview behind it.
+ */
+export async function runJobRetention(id: string, dryRun: boolean): Promise<RetentionRunResult> {
+  const res = asDict(
+    await request<Dict>(`/jobs/${id}/retention`, { method: "POST", body: JSON.stringify({ dry_run: dryRun }) }),
+  );
+  return mapRetentionRun(res);
 }
 
 export const setJobEnabled = (id: string, enabled: boolean) =>
