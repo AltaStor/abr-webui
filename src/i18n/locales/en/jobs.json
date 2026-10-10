@@ -985,5 +985,9 @@
     "gfsYearly": "Yearly",
     "loadingJob": "Loading job",
     "whatIs": "What is {{term}}?"
+  },
+  "clock": {
+    "title": "This job's last run is ahead of the server clock",
+    "mark": "Last run is ahead of the server clock"
   }
 }

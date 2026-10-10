@@ -202,6 +202,7 @@ export interface BackupJob {
   /** Last session status, for the list pill. */
   lastStatus: SessionStatus | null;
   lastRunAt: string | null;
+  clockWarnings?: string[];
   nextRunAt: string | null;
   createdAt: string;
   /** 0–100, success ratio over recent runs. */

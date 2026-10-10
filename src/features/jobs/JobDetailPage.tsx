@@ -5,6 +5,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import {
+  AlertTriangle,
   CalendarClock,
   CheckCircle2,
   ChevronDown,
@@ -258,6 +259,17 @@ export default function JobDetailPage() {
       {/* Six across only from xl. At lg the tiles are ~160px wide, which clipped
           the hint's timestamp and left the repository name and status pill cramped
           for the same reason; three across is the shape this band already had. */}
+      {job.clockWarnings?.length ? (
+        <div className="flex items-start gap-2.5 border border-warning/30 bg-warning/10 px-3 py-2.5">
+          <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-warning" aria-hidden="true" />
+          <div className="space-y-1 text-xs text-foreground">
+            <p className="font-medium text-warning-text">{t("clock.title")}</p>
+            {job.clockWarnings.map((warning) => (
+              <p key={warning}>{warning}</p>
+            ))}
+          </div>
+        </div>
+      ) : null}
       <KpiBand className="grid-cols-2 sm:grid-cols-3 xl:grid-cols-6">
         <KpiCard
           density="compact"

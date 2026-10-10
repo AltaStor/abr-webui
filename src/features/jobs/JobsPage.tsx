@@ -42,6 +42,7 @@ import { cn } from "@/lib/utils";
 import { formatCountdown, formatDateTime, formatDuration, formatFullDateTime, formatRelative } from "@/lib/format";
 import { JOB_DISABLED_META, JOB_NEVER_RUN_META, SESSION_META, lastRunMeta } from "@/lib/status";
 import { JobDisabledMark } from "./components/JobDisabledMark";
+import { ClockAheadMark } from "./components/ClockAheadMark";
 import { apiErrorMessage } from "@/services/api.http";
 import { useWorldStore } from "@/store/world";
 import type { BackupJob, Repository, Session, SessionStatus } from "@/types";
@@ -416,7 +417,10 @@ export default function JobsPage() {
           const session = lastRunByJob.get(job.id);
           return (
             <div className="min-w-0">
-              <span className="nums block text-sm text-muted-foreground">{formatRelative(job.lastRunAt)}</span>
+              <span className="flex items-center gap-1.5">
+                <span className="nums block text-sm text-muted-foreground">{formatRelative(job.lastRunAt)}</span>
+                <ClockAheadMark warnings={job.clockWarnings} />
+              </span>
               <Hint
                 label={
                   <span className="block space-y-0.5">

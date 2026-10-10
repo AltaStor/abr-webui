@@ -641,6 +641,9 @@ function mapJob(job: Dict, sessions: Session[]): BackupJob {
     state: activeCount > 0 ? "running" : enabled ? "idle" : "disabled",
     lastStatus,
     lastRunAt: strOrNull(job.last_run_at),
+    clockWarnings: (Array.isArray(job.clock_anomalies) ? job.clock_anomalies : [])
+      .map((anomaly) => str(asDict(anomaly).message))
+      .filter(Boolean),
     nextRunAt: enabled ? strOrNull(job.next_run_at) : null,
     createdAt: str(job.created_at) || new Date(0).toISOString(),
     successRate,
