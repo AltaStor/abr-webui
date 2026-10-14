@@ -221,7 +221,7 @@
     "original": {
       "title": "Ursprünglicher Speicherort",
       "desc": "Stellt die VM unter ihrem ursprünglichen Namen, Host und Datastore wieder her. Falls die VM noch existiert, wird sie an Ort und Stelle überschrieben, sobald die Wiederherstellung fertig geschrieben ist.",
-      "desc_hyperv": "Stellt die Datenträger der VM in der VM selbst auf ihrem aktuellen Host wieder her. Sie behält ihre Identität, ihre Netzwerkadapter und ihre Clusterrolle; nur Datenträger, Prozessoren und Arbeitsspeicher kehren zum Stand des Backups zurück."
+      "desc_hyperv": "Stellt die Datenträger der VM in der VM selbst auf ihrem aktuellen Host wieder her. Sie behält ihre Identität, ihre Netzwerkadapter und ihre Clusterrolle; Datenträger, Prozessoren und Arbeitsspeicher kehren zum Stand des Backups zurück, ihre Adapter zu den im Backup erfassten virtuellen Switches und VLANs."
     },
     "newLocation": {
       "title": "Neuer Speicherort",
@@ -247,7 +247,7 @@
       "blocked": "Diese Appliance kann nicht auf einen anderen Hypervisor wiederherstellen."
     },
     "originalOverwriteWarning": "Dieser Vorgang überschreibt die vorhandene VM auf ihrem aktuellen Host und Datastore, nachdem alle Festplatten wiederhergestellt wurden. Diese Aktion kann nicht rückgängig gemacht werden.",
-    "originalOverwriteWarning_hyperv": "Dies schaltet die VM aus, setzt Prozessoren und Arbeitsspeicher auf den im Backup erfassten Stand zurück und ersetzt ihre Datenträger durch die wiederhergestellten; die aktuellen Datenträgerdateien werden gelöscht, sobald die VM auf die neuen verweist. Eine VM mit Prüfpunkten wird abgelehnt: Löschen Sie diese zuerst, oder stellen Sie an einem neuen Ort wieder her. Diese Aktion kann nicht rückgängig gemacht werden.",
+    "originalOverwriteWarning_hyperv": "Dies schaltet die VM aus, setzt Prozessoren und Arbeitsspeicher auf den im Backup erfassten Stand zurück und ersetzt ihre Datenträger durch die wiederhergestellten; die aktuellen Datenträgerdateien werden gelöscht, sobald die VM auf die neuen verweist. Ihre Netzwerkadapter werden wieder mit den im Backup erfassten virtuellen Switches und VLANs verbunden. Abgelehnt wird eine VM mit Prüfpunkten, ebenso ein Host, dem ein im Backup erfasster Switch fehlt: Löschen Sie zuerst die Prüfpunkte bzw. legen Sie den Switch neu an, oder stellen Sie an einem neuen Ort wieder her. Diese Aktion kann nicht rückgängig gemacht werden.",
     "originalOverwriteConfirmLabel": "Geben Sie <1>{{name}}</1> ein, um das Überschreiben zu bestätigen",
     "restoredVmName": "Name der wiederhergestellten VM",
     "restoredVmNameHint": "Leer lassen, um <1>{{name}}</1> zu verwenden.",

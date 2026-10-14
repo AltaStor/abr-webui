@@ -221,7 +221,7 @@
     "original": {
       "title": "Emplacement d'origine",
       "desc": "Restaure la VM sous son nom, son hôte et son datastore d’origine. Si la VM existe encore, elle est écrasée sur place une fois la restauration entièrement écrite.",
-      "desc_hyperv": "Restaure les disques de la VM dans la VM elle-même, sur son hôte actuel. Elle conserve son identité, ses cartes réseau et son rôle de cluster ; seuls ses disques, ses processeurs et sa mémoire reviennent à l’état de la sauvegarde."
+      "desc_hyperv": "Restaure les disques de la VM dans la VM elle-même, sur son hôte actuel. Elle conserve son identité, ses cartes réseau et son rôle de cluster ; ses disques, ses processeurs et sa mémoire reviennent à l’état de la sauvegarde, et ses cartes réseau aux commutateurs virtuels et VLAN que la sauvegarde a enregistrés."
     },
     "newLocation": {
       "title": "Nouvel emplacement",
@@ -247,7 +247,7 @@
       "blocked": "Cette appliance ne peut pas restaurer vers un autre hyperviseur."
     },
     "originalOverwriteWarning": "Cette opération écrasera la VM existante sur son hôte et son datastore actuels une fois tous les disques restaurés. Cette action est irréversible.",
-    "originalOverwriteWarning_hyperv": "Cette opération éteint la VM, ramène ses processeurs et sa mémoire à ce que la sauvegarde a enregistré et remplace ses disques par ceux restaurés, en supprimant les fichiers de disque actuels une fois que la VM pointe vers les nouveaux. Une VM avec des points de contrôle est refusée : supprimez-les d’abord, ou restaurez vers un nouvel emplacement. Cette action est irréversible.",
+    "originalOverwriteWarning_hyperv": "Cette opération éteint la VM, ramène ses processeurs et sa mémoire à ce que la sauvegarde a enregistré et remplace ses disques par ceux restaurés, en supprimant les fichiers de disque actuels une fois que la VM pointe vers les nouveaux. Ses cartes réseau sont reconnectées aux commutateurs virtuels et VLAN que la sauvegarde a enregistrés. Une VM avec des points de contrôle est refusée, tout comme un hôte qui n’a plus un commutateur enregistré par la sauvegarde : supprimez d’abord les points de contrôle ou recréez le commutateur, ou restaurez vers un nouvel emplacement. Cette action est irréversible.",
     "originalOverwriteConfirmLabel": "Tapez <1>{{name}}</1> pour confirmer l'écrasement",
     "restoredVmName": "Nom de la VM restaurée",
     "restoredVmNameHint": "Laissez vide pour utiliser <1>{{name}}</1>.",

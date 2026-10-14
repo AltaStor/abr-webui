@@ -221,7 +221,7 @@
     "original": {
       "title": "Original location",
       "desc": "Restore the VM under its original name, host, and datastore. If the VM still exists, it will be overwritten in place once the restore process finishes writing.",
-      "desc_hyperv": "Restore the VM's disks into the VM itself, on its current host. It keeps its identity, network adapters and cluster role; only its disks, processors and memory go back to the backup."
+      "desc_hyperv": "Restore the VM's disks into the VM itself, on its current host. It keeps its identity, network adapters and cluster role; its disks, processors and memory go back to the backup, and its adapters back to the virtual switches and VLANs the backup recorded."
     },
     "newLocation": {
       "title": "New location",
@@ -247,7 +247,7 @@
       "blocked": "This appliance can’t restore onto a different hypervisor."
     },
     "originalOverwriteWarning": "This operation will overwrite the existing VM on its current host and datastore after all disks are restored. This action cannot be undone.",
-    "originalOverwriteWarning_hyperv": "This turns the VM off, sets it back to the processors and memory the backup recorded, and replaces its disks with the restored ones, deleting the current disk files once the VM points at the new ones. A VM with checkpoints is refused: delete them first, or restore to a new location. This action cannot be undone.",
+    "originalOverwriteWarning_hyperv": "This turns the VM off, sets it back to the processors and memory the backup recorded, and replaces its disks with the restored ones, deleting the current disk files once the VM points at the new ones. Its network adapters are connected back to the virtual switches and VLANs the backup recorded. A VM with checkpoints is refused, and so is a host that no longer has a switch the backup recorded: delete the checkpoints or recreate the switch first, or restore to a new location. This action cannot be undone.",
     "originalOverwriteConfirmLabel": "Type <1>{{name}}</1> to confirm the overwrite",
     "restoredVmName": "Restored VM name",
     "restoredVmNameHint": "Leave blank to use <1>{{name}}</1>.",

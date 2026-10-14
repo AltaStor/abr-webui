@@ -936,7 +936,11 @@
       "syntheticOverriddenDayOfMonth": "El día {{day}} del mes la copia completa activa se ejecuta a la misma hora y tiene prioridad, así que ese día no hay fusión. Mueva una de las dos a otro día u otra hora.",
       "syntheticSameDayEvery": "Una copia completa activa se ejecuta el mismo día, a otra hora. Inicia una cadena nueva, así que la fusión no tiene nada que fusionar o queda sustituida horas después. Mueva una de las dos a otro día.",
       "syntheticSameDays": "Una copia completa activa también se ejecuta los {{days}}, a otra hora. Inicia una cadena nueva, así que la fusión de ese día no tiene nada que fusionar o queda sustituida horas después. Mueva una de las dos a otro día.",
-      "syntheticSameDayOfMonth": "Una copia completa activa también se ejecuta el día {{day}} del mes, a otra hora. Inicia una cadena nueva, así que la fusión de ese día no tiene nada que fusionar o queda sustituida horas después. Mueva una de las dos a otro día."
+      "syntheticSameDayOfMonth": "Una copia completa activa también se ejecuta el día {{day}} del mes, a otra hora. Inicia una cadena nueva, así que la fusión de ese día no tiene nada que fusionar o queda sustituida horas después. Mueva una de las dos a otro día.",
+      "syntheticOverriddenDayOfMonthOnDays": "Cuando el día {{day}} del mes cae en {{days}}, la copia completa activa se ejecuta a la misma hora y tiene prioridad, así que ese día no hay fusión. Mueva una de las dos a otro día u otra hora.",
+      "syntheticSameDayOfMonthOnDays": "Cuando el día {{day}} del mes cae en {{days}}, una copia completa activa también se ejecuta ese día, a otra hora. Inicia una cadena nueva, así que la fusión de ese día no tiene nada que fusionar o queda sustituida horas después. Mueva una de las dos a otro día.",
+      "syntheticOverriddenMonthEnd": "En los meses sin día {{day}}, las dos se ejecutan el último día del mes a la misma hora y la copia completa activa tiene prioridad, así que ese mes no hay fusión. Mueva una de las dos a otro día u otra hora.",
+      "syntheticSameMonthEnd": "En los meses sin día {{day}}, una copia completa activa también se ejecuta el último día del mes, a otra hora. Inicia una cadena nueva, así que la fusión de ese día no tiene nada que fusionar o queda sustituida horas después. Mueva una de las dos a otro día."
     },
     "advanced": "Configuración avanzada",
     "advancedHint": "(Se aplican valores predeterminados)",

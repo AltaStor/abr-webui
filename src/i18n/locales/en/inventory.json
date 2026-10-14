@@ -507,7 +507,7 @@
       "no-job": "No backup job has produced restore points for this VM yet, so there is no chain to merge.",
       "no-chain": "This job hasn't produced any restore points for this VM yet, so there is no chain to merge.",
       "chain-not-anchored": "This chain's oldest restore point is an incremental, with no full backup beneath it. A synthetic full needs a full backup to merge onto.",
-      "no-incrementals": "This chain is a full backup with no incrementals on top of it. Merging would copy it unchanged, so there is nothing to do yet.",
+      "no-incrementals": "The chain holds only a full backup with no incrementals, so a synthetic full would copy it unchanged.",
       "source-repository-unsupported": "{{repository}} can't merge a backup chain. Synthetic fulls need a local or object-storage repository.",
       "source-repository-offline": "{{repository}} is unreachable, so the chain stored in it can't be read.",
       "target-repository-unsupported": "{{repository}} can't hold a merged backup. Pick a local or object-storage repository.",
@@ -524,7 +524,7 @@
       "destinationCollision": "The merged full would be written exactly where the chain it reads from is stored. Pick a different target repository.",
       "repositoryUnsupported": "The repository can't merge a backup chain. Synthetic fulls need a local or object-storage repository.",
       "invalidChain": "The chain isn't in a state that can be merged: it has to start with a full backup and hold only incrementals after it.",
-      "noIncrementals": "The chain held only a full backup with no incrementals, so the merge would have copied it unchanged."
+      "noIncrementals": "The chain holds only a full backup with no incrementals, so a synthetic full would copy it unchanged."
     }
   },
   "hypervConfig": {

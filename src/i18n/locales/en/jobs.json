@@ -936,7 +936,11 @@
       "syntheticOverriddenDayOfMonth": "On day {{day}} of the month the active full backup runs at the same time and takes priority, so no merge happens that day. Move one of them to a different day or time.",
       "syntheticSameDayEvery": "An active full backup runs on the same day, at a different time. It starts a new chain, so the merge has nothing to merge yet or is replaced hours later. Move one of them to another day.",
       "syntheticSameDays": "An active full backup also runs on {{days}}, at a different time. It starts a new chain, so the merge on that day has nothing to merge yet or is replaced hours later. Move one of them to another day.",
-      "syntheticSameDayOfMonth": "An active full backup also runs on day {{day}} of the month, at a different time. It starts a new chain, so the merge that day has nothing to merge yet or is replaced hours later. Move one of them to another day."
+      "syntheticSameDayOfMonth": "An active full backup also runs on day {{day}} of the month, at a different time. It starts a new chain, so the merge that day has nothing to merge yet or is replaced hours later. Move one of them to another day.",
+      "syntheticOverriddenDayOfMonthOnDays": "When day {{day}} of the month falls on {{days}}, the active full backup runs at the same time and takes priority, so no merge happens that day. Move one of them to a different day or time.",
+      "syntheticSameDayOfMonthOnDays": "When day {{day}} of the month falls on {{days}}, an active full backup also runs that day, at a different time. It starts a new chain, so the merge that day has nothing to merge yet or is replaced hours later. Move one of them to another day.",
+      "syntheticOverriddenMonthEnd": "In months without day {{day}}, both run on the last day of the month at the same time, and the active full backup takes priority, so no merge happens that month. Move one of them to a different day or time.",
+      "syntheticSameMonthEnd": "In months without day {{day}}, an active full backup also runs on the last day of the month, at a different time. It starts a new chain, so the merge that day has nothing to merge yet or is replaced hours later. Move one of them to another day."
     },
     "advanced": "Advanced settings",
     "advancedHint": "(Defaults are applied)",

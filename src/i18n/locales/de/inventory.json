@@ -507,7 +507,7 @@
       "no-job": "Für diese VM hat noch kein Sicherungsauftrag Wiederherstellungspunkte erzeugt, es gibt also keine Kette zum Zusammenführen.",
       "no-chain": "Dieser Auftrag hat für diese VM noch keine Wiederherstellungspunkte erzeugt, es gibt also keine Kette zum Zusammenführen.",
       "chain-not-anchored": "Der älteste Wiederherstellungspunkt dieser Kette ist ein Inkrement ohne darunterliegendes Vollbackup. Ein synthetisches Vollbackup benötigt ein Vollbackup als Basis.",
-      "no-incrementals": "Diese Kette besteht aus einem Vollbackup ohne Inkremente. Ein Zusammenführen würde es unverändert kopieren — es gibt noch nichts zu tun.",
+      "no-incrementals": "Die Kette enthält nur ein Vollbackup ohne Inkremente, ein synthetisches Vollbackup würde es also unverändert kopieren.",
       "source-repository-unsupported": "{{repository}} kann keine Sicherungskette zusammenführen. Synthetische Vollbackups benötigen ein lokales oder Objektspeicher-Repository.",
       "source-repository-offline": "{{repository}} ist nicht erreichbar, die dort gespeicherte Kette kann nicht gelesen werden.",
       "target-repository-unsupported": "{{repository}} kann kein zusammengeführtes Backup aufnehmen. Wählen Sie ein lokales oder Objektspeicher-Repository.",
@@ -524,7 +524,7 @@
       "destinationCollision": "Das zusammengeführte Vollbackup würde genau dort geschrieben, wo die gelesene Kette liegt. Wählen Sie ein anderes Ziel-Repository.",
       "repositoryUnsupported": "Das Repository kann keine Sicherungskette zusammenführen. Synthetische Vollbackups benötigen ein lokales oder Objektspeicher-Repository.",
       "invalidChain": "Die Kette ist nicht in einem zusammenführbaren Zustand: Sie muss mit einem Vollbackup beginnen und danach nur Inkremente enthalten.",
-      "noIncrementals": "Die Kette enthielt nur eine Vollsicherung ohne Inkremente, die Zusammenführung hätte sie also unverändert kopiert."
+      "noIncrementals": "Die Kette enthält nur ein Vollbackup ohne Inkremente, ein synthetisches Vollbackup würde es also unverändert kopieren."
     }
   },
   "hypervConfig": {

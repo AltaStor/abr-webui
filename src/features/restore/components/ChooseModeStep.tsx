@@ -432,9 +432,13 @@ export function ChooseModeStep({
   /* Hyper-V calls a datastore a storage location and a network a virtual
    * switch, and replaces a VM's disks in place rather than the VM itself — the
    * wording follows the platform the VM lands on (an i18n context: every
-   * "_hyperv" key falls back to the plain one). */
+   * "_hyperv" key falls back to the plain one). The "Original location" card
+   * always describes the source VM's own platform. */
+  const sourceTerms = sourcePlatform === "hyperv" ? "hyperv" : undefined;
   const terms =
-    (destination === "original" ? sourcePlatform : targetEnv?.hypervisor) === "hyperv" ? "hyperv" : undefined;
+    (destination === "original" || !targetEnv ? sourcePlatform : targetEnv.hypervisor) === "hyperv"
+      ? "hyperv"
+      : undefined;
 
   /* A New-location restore onto a target whose platform differs from the
    * source's is refused: nothing here can register the VM on another platform
@@ -504,7 +508,7 @@ export function ChooseModeStep({
               active={destination === "original"}
               icon={MapPin}
               title={t("mode.original.title")}
-              description={t("mode.original.desc", { context: terms })}
+              description={t("mode.original.desc", { context: sourceTerms })}
               onClick={() => onDestinationChange("original")}
             />
             <ChoiceCard

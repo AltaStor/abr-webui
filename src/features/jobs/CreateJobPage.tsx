@@ -563,8 +563,24 @@ function JobWizard({
     : null;
   const syntheticOverrideNote = (() => {
     if (!syntheticOverride) return undefined;
-    const { kind, days, dayOfMonth } = syntheticOverride;
+    const { kind, days, dayOfMonth, monthsWithoutDay } = syntheticOverride;
     const dayList = () => (days ?? []).map((d) => t(`days.long.${DAY_KEYS[d]}`)).join(", ");
+    // Only some months: the ones without a day, or the ones a day of the month
+    // falls on one of the weekdays ("Monday or Wednesday").
+    if (monthsWithoutDay !== undefined) {
+      return t(kind === "sameDay" ? "create.full.syntheticSameMonthEnd" : "create.full.syntheticOverriddenMonthEnd", {
+        day: monthsWithoutDay,
+      });
+    }
+    if (dayOfMonth !== undefined && days?.length) {
+      const anyOfDays = new Intl.ListFormat(i18n.language, { type: "disjunction" }).format(
+        days.map((d) => t(`days.long.${DAY_KEYS[d]}`)),
+      );
+      return t(
+        kind === "sameDay" ? "create.full.syntheticSameDayOfMonthOnDays" : "create.full.syntheticOverriddenDayOfMonthOnDays",
+        { day: dayOfMonth, days: anyOfDays },
+      );
+    }
     if (kind === "sameDay") {
       // Different times, so neither overrides the other — they just both happen
       // that day, and the merge is the one that ends up with nothing to do.

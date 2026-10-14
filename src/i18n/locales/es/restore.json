@@ -221,7 +221,7 @@
     "original": {
       "title": "Ubicación original",
       "desc": "Restaure la VM con su nombre, host y almacén de datos originales. Si la VM todavía existe, se sobrescribirá en el sitio en cuanto el proceso de restauración termine de escribir.",
-      "desc_hyperv": "Restaura los discos de la VM en la propia VM, en su host actual. Conserva su identidad, sus adaptadores de red y su rol de clúster; solo sus discos, procesadores y memoria vuelven al estado de la copia."
+      "desc_hyperv": "Restaura los discos de la VM en la propia VM, en su host actual. Conserva su identidad, sus adaptadores de red y su rol de clúster; sus discos, procesadores y memoria vuelven al estado de la copia, y sus adaptadores a los conmutadores virtuales y VLAN que registró la copia."
     },
     "newLocation": {
       "title": "Nueva ubicación",
@@ -247,7 +247,7 @@
       "blocked": "Esta appliance no puede restaurar en otro hipervisor."
     },
     "originalOverwriteWarning": "Esta operación sobrescribirá la VM existente en su host y almacén de datos actuales una vez restaurados todos los discos. Esta acción no se puede deshacer.",
-    "originalOverwriteWarning_hyperv": "Esto apaga la VM, devuelve sus procesadores y su memoria a lo que registró la copia y sustituye sus discos por los restaurados, eliminando los archivos de disco actuales cuando la VM ya apunta a los nuevos. Una VM con puntos de control se rechaza: elimínelos antes o restaure en una ubicación nueva. Esta acción no se puede deshacer.",
+    "originalOverwriteWarning_hyperv": "Esto apaga la VM, devuelve sus procesadores y su memoria a lo que registró la copia y sustituye sus discos por los restaurados, eliminando los archivos de disco actuales cuando la VM ya apunta a los nuevos. Sus adaptadores de red se vuelven a conectar a los conmutadores virtuales y VLAN que registró la copia. Se rechaza una VM con puntos de control, y también un host al que le falta un conmutador que registró la copia: elimine antes los puntos de control o vuelva a crear el conmutador, o restaure en una ubicación nueva. Esta acción no se puede deshacer.",
     "originalOverwriteConfirmLabel": "Escriba <1>{{name}}</1> para confirmar la sobrescritura",
     "restoredVmName": "Nombre de la VM restaurada",
     "restoredVmNameHint": "Déjelo en blanco para usar <1>{{name}}</1>.",

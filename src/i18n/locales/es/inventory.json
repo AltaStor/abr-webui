@@ -507,7 +507,7 @@
       "no-job": "Ningún trabajo de copia ha producido todavía puntos de restauración para esta VM, así que no hay cadena que fusionar.",
       "no-chain": "Este trabajo aún no ha producido puntos de restauración para esta VM, así que no hay cadena que fusionar.",
       "chain-not-anchored": "El punto de restauración más antiguo de esta cadena es un incremental, sin una copia completa debajo. Un completo sintético necesita una copia completa sobre la que fusionar.",
-      "no-incrementals": "Esta cadena es una copia completa sin incrementales encima. Fusionarla la copiaría sin cambios, así que todavía no hay nada que hacer.",
+      "no-incrementals": "La cadena solo contiene una copia completa sin incrementales, así que un completo sintético la copiaría sin cambios.",
       "source-repository-unsupported": "{{repository}} no puede fusionar una cadena de copias. Los completos sintéticos necesitan un repositorio local o de almacenamiento de objetos.",
       "source-repository-offline": "{{repository}} no está accesible, así que no se puede leer la cadena almacenada en él.",
       "target-repository-unsupported": "{{repository}} no puede albergar una copia fusionada. Elige un repositorio local o de almacenamiento de objetos.",
@@ -524,7 +524,7 @@
       "destinationCollision": "El completo fusionado se escribiría justo donde está almacenada la cadena que lee. Elige otro repositorio de destino.",
       "repositoryUnsupported": "El repositorio no puede fusionar una cadena de copias. Los completos sintéticos necesitan un repositorio local o de almacenamiento de objetos.",
       "invalidChain": "La cadena no está en un estado que se pueda fusionar: tiene que empezar con una copia completa y contener solo incrementales después.",
-      "noIncrementals": "La cadena solo contenía una copia completa sin incrementales, así que la fusión la habría copiado sin cambios."
+      "noIncrementals": "La cadena solo contiene una copia completa sin incrementales, así que un completo sintético la copiaría sin cambios."
     }
   },
   "hypervConfig": {

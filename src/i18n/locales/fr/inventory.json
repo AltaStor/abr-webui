@@ -507,7 +507,7 @@
       "no-job": "Aucune tâche de sauvegarde n'a encore produit de points de restauration pour cette VM : il n'y a donc pas de chaîne à fusionner.",
       "no-chain": "Cette tâche n'a pas encore produit de points de restauration pour cette VM : il n'y a donc pas de chaîne à fusionner.",
       "chain-not-anchored": "Le point de restauration le plus ancien de cette chaîne est une incrémentielle, sans sauvegarde complète en dessous. Une complète synthétique a besoin d'une sauvegarde complète comme base.",
-      "no-incrementals": "Cette chaîne est une sauvegarde complète sans incrémentielle au-dessus. La fusionner la copierait à l'identique : il n'y a encore rien à faire.",
+      "no-incrementals": "La chaîne ne contient qu’une sauvegarde complète sans incrémentielle : une complète synthétique la copierait donc telle quelle.",
       "source-repository-unsupported": "{{repository}} ne peut pas fusionner une chaîne de sauvegarde. Les complètes synthétiques exigent un référentiel local ou de stockage objet.",
       "source-repository-offline": "{{repository}} est injoignable : la chaîne qui y est stockée ne peut pas être lue.",
       "target-repository-unsupported": "{{repository}} ne peut pas héberger une sauvegarde fusionnée. Choisissez un référentiel local ou de stockage objet.",
@@ -524,7 +524,7 @@
       "destinationCollision": "La complète fusionnée serait écrite exactement là où est stockée la chaîne qu'elle lit. Choisissez un autre référentiel cible.",
       "repositoryUnsupported": "Le référentiel ne peut pas fusionner une chaîne de sauvegarde. Les complètes synthétiques exigent un référentiel local ou de stockage objet.",
       "invalidChain": "La chaîne n'est pas dans un état fusionnable : elle doit commencer par une sauvegarde complète et ne contenir que des incrémentielles ensuite.",
-      "noIncrementals": "La chaîne ne contenait qu’une sauvegarde complète sans incréments : la fusion l’aurait donc copiée telle quelle."
+      "noIncrementals": "La chaîne ne contient qu’une sauvegarde complète sans incrémentielle : une complète synthétique la copierait donc telle quelle."
     }
   },
   "hypervConfig": {
