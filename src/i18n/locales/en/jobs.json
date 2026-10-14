@@ -989,5 +989,18 @@
   "clock": {
     "title": "This job's last run is ahead of the server clock",
     "mark": "Last run is ahead of the server clock"
+  },
+  "runResult": {
+    "failed": "{{count}} of {{total}} VMs failed",
+    "stopped": "{{count}} of {{total}} VMs stopped",
+    "warning": "{{count}} of {{total}} VMs with warnings",
+    "running": "{{done}} of {{total}} VMs done",
+    "title": "Last run: {{summary}}",
+    "vmResult": {
+      "failed": "Failed",
+      "stopped": "Stopped",
+      "warning": "Completed with warnings"
+    },
+    "openSession": "Open session"
   }
 }

@@ -41,6 +41,7 @@ import { REPO_TYPE_META } from "@/features/repositories/components/repoMeta";
 import { fullScheduleLabel, jobTypeMeta, retentionLabel, scheduleLabel } from "./lib";
 import { ActiveRunPanel } from "./components/ActiveRunPanel";
 import { LastRunSummary } from "./components/LastRunSummary";
+import { LastRunProblems, lastRunAsSession } from "./components/RunOutcome";
 import { ThroughputChart } from "./components/ThroughputChart";
 import { RunHistoryTable } from "./components/RunHistoryTable";
 import { JobObjectsTab } from "./components/JobObjectsTab";
@@ -77,7 +78,7 @@ export default function JobDetailPage() {
   const activeSession = jobSessions.find((s) => s.status === "running");
   // The newest finished run — shown when nothing is live so the Overview never
   // goes blank the instant a run ends (the live panel used to just disappear).
-  const lastFinished = jobSessions.find((s) => s.status !== "running");
+  const lastFinished = lastRunAsSession(job?.lastRun, jobSessions) ?? jobSessions.find((s) => s.status !== "running");
 
   // Keep the big run panel up for a grace window AFTER a run finishes, showing
   // its terminal Success/Failed state — so a run visibly *completes* instead of
@@ -270,6 +271,7 @@ export default function JobDetailPage() {
           </div>
         </div>
       ) : null}
+      <LastRunProblems run={job.lastRun} />
       <KpiBand className="grid-cols-2 sm:grid-cols-3 xl:grid-cols-6">
         <KpiCard
           density="compact"

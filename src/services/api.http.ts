@@ -45,7 +45,9 @@ import type {
   Hypervisor,
   ImmutabilityEffect,
   ImmutabilityMode,
+  JobLastRun,
   JobOptions,
+  JobRunResult,
   JobType,
   LogLevel,
   LogLine,
@@ -569,7 +571,44 @@ function mapRetention(job: Dict): Retention {
  * Split out of `mapJob` so a caller that already holds the session list can
  * attach these without `mapJob` refetching it — see `withJobRunStats`.
  */
-function jobRunStats(jobSessions: Session[]): Pick<BackupJob, "recentRuns" | "successRate" | "lastStatus"> {
+const RUN_RESULTS: JobRunResult[] = ["success", "warning", "failed", "stopped", "running"];
+
+function mapLastRun(raw: unknown): JobLastRun | null {
+  const run = asDict(raw);
+  const result = str(run.result) as JobRunResult;
+  if (!str(run.id) || !RUN_RESULTS.includes(result)) return null;
+  return {
+    id: str(run.id),
+    result,
+    vmCount: num(run.vm_count),
+    succeeded: num(run.succeeded),
+    warning: num(run.warning),
+    failed: num(run.failed),
+    stopped: num(run.stopped),
+    running: num(run.running),
+    vms: (Array.isArray(run.vms) ? run.vms : []).map((item) => {
+      const vm = asDict(item);
+      const vmResult = str(vm.result) as JobRunResult;
+      return {
+        vmId: strOrNull(vm.vm_id),
+        vmName: str(vm.vm_name) || str(vm.vm_id),
+        result: RUN_RESULTS.includes(vmResult) ? vmResult : "running",
+        sessionIds: Array.isArray(vm.session_ids) ? vm.session_ids.map((id) => str(id)) : [],
+        message: str(vm.message) || undefined,
+      };
+    }),
+  };
+}
+
+/** A stopped run is shown like a stopped session: failed. */
+function runStatusOf(result: JobRunResult): SessionStatus {
+  return result === "stopped" ? "failed" : result;
+}
+
+function jobRunStats(
+  jobSessions: Session[],
+  lastRun?: JobLastRun | null,
+): Pick<BackupJob, "recentRuns" | "successRate" | "lastStatus"> {
   const mine = [...jobSessions].sort(
     (a, b) => new Date(a.startedAt).getTime() - new Date(b.startedAt).getTime(),
   );
@@ -580,7 +619,7 @@ function jobRunStats(jobSessions: Session[]): Pick<BackupJob, "recentRuns" | "su
     successRate: finished.length
       ? Math.round((finished.filter((s) => s.status === "success").length / finished.length) * 100)
       : 100,
-    lastStatus: mine.length ? mine[mine.length - 1].status : null,
+    lastStatus: lastRun ? runStatusOf(lastRun.result) : mine.length ? mine[mine.length - 1].status : null,
   };
 }
 
@@ -599,7 +638,7 @@ export function withJobRunStats(jobs: BackupJob[], sessions: Session[]): BackupJ
     if (bucket) bucket.push(session);
     else byJob.set(session.jobId, [session]);
   }
-  return jobs.map((job) => ({ ...job, ...jobRunStats(byJob.get(job.id) ?? []) }));
+  return jobs.map((job) => ({ ...job, ...jobRunStats(byJob.get(job.id) ?? [], job.lastRun) }));
 }
 
 /** Build a job from its DTO, enriched with run history from `sessions` (may be
@@ -615,7 +654,8 @@ function mapJob(job: Dict, sessions: Session[]): BackupJob {
   const activeCount = num(job.active_session_count);
   const enabled = job.enabled !== false && str(job.status) !== "disabled";
 
-  const { recentRuns, successRate, lastStatus } = jobRunStats(sessions.filter((s) => s.jobId === id));
+  const lastRun = mapLastRun(job.last_run);
+  const { recentRuns, successRate, lastStatus } = jobRunStats(sessions.filter((s) => s.jobId === id), lastRun);
 
   const scopeSummary =
     (str(inventory.name) ? `${str(inventory.name)} · ` : "") +
@@ -640,6 +680,7 @@ function mapJob(job: Dict, sessions: Session[]): BackupJob {
     options: mapJobOptions(asDict(job.task_parameters ?? job.backup_options), job.compression_level, asDict(job.encryption)),
     state: activeCount > 0 ? "running" : enabled ? "idle" : "disabled",
     lastStatus,
+    lastRun,
     lastRunAt: strOrNull(job.last_run_at),
     clockWarnings: (Array.isArray(job.clock_anomalies) ? job.clock_anomalies : [])
       .map((anomaly) => str(asDict(anomaly).message))

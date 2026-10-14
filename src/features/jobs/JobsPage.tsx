@@ -43,6 +43,7 @@ import { formatCountdown, formatDateTime, formatDuration, formatFullDateTime, fo
 import { JOB_DISABLED_META, JOB_NEVER_RUN_META, SESSION_META, lastRunMeta } from "@/lib/status";
 import { JobDisabledMark } from "./components/JobDisabledMark";
 import { ClockAheadMark } from "./components/ClockAheadMark";
+import { LastRunCounts } from "./components/RunOutcome";
 import { apiErrorMessage } from "@/services/api.http";
 import { useWorldStore } from "@/store/world";
 import type { BackupJob, Repository, Session, SessionStatus } from "@/types";
@@ -361,7 +362,12 @@ export default function JobsPage() {
         /* Outcome only — disabling a job must not rewrite the history of its runs,
          * for the sort key any more than for the pill. */
         accessorFn: (j) => j.lastStatus ?? "",
-        cell: ({ row }) => <StatusPill meta={lastRunMeta(row.original.lastStatus)} size="sm" />,
+        cell: ({ row }) => (
+          <div>
+            <StatusPill meta={lastRunMeta(row.original.lastStatus)} size="sm" />
+            <LastRunCounts run={row.original.lastRun} />
+          </div>
+        ),
       },
       {
         id: "schedule",

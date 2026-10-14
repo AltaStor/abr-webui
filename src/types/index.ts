@@ -177,6 +177,29 @@ export type JobType = "backup" | "replication" | "backup-copy";
 export type SessionType = JobType | "restore" | "verify" | "delete";
 export type JobRunState = "idle" | "running" | "disabled";
 
+export type JobRunResult = "success" | "warning" | "failed" | "stopped" | "running";
+
+export interface JobLastRunVm {
+  vmId: string | null;
+  vmName: string;
+  result: JobRunResult;
+  sessionIds: string[];
+  message?: string;
+}
+
+/** The appliance's account of a job's last run over all of its VMs. */
+export interface JobLastRun {
+  id: string;
+  result: JobRunResult;
+  vmCount: number;
+  succeeded: number;
+  warning: number;
+  failed: number;
+  stopped: number;
+  running: number;
+  vms: JobLastRunVm[];
+}
+
 export interface BackupJob {
   id: string;
   name: string;
@@ -199,8 +222,11 @@ export interface BackupJob {
   retention: Retention;
   options: JobOptions;
   state: JobRunState;
-  /** Last session status, for the list pill. */
+  /** Last run status, for the list pill. */
   lastStatus: SessionStatus | null;
+  /** The last run over all VMs; null for a job that has not run since the
+   *  appliance started reporting runs. */
+  lastRun?: JobLastRun | null;
   lastRunAt: string | null;
   clockWarnings?: string[];
   nextRunAt: string | null;
