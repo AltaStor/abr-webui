@@ -218,6 +218,9 @@
     "threatLockedTitle": "Threat-locked · sealed by threat response",
     "threatLockedBody": "This repository holds restore points for {{names}}, currently under active threat investigation. The seal lifts automatically when the threat is contained or dismissed.",
     "storagePath": "Storage path",
+    "hypervShare": "Hyper-V share",
+    "hypervShareAccount": "as {{account}}",
+    "hypervShareInventoryAccount": "with the Hyper-V inventory's account",
     "immutability": "Immutability",
     "immutabilityOff": "Off — backups stay deletable",
     "immutabilityConfiguredNote_zero": "This is the configured setting. Run Verify repository to confirm the bucket really enforces it.",
@@ -365,5 +368,16 @@
     "saving": "Saving…",
     "saveSettings": "Save settings",
     "savedStaysOpen": "Saved. The restore points already stored here ({{count}}) are not covered by it — put them under the lock below, or close."
+  },
+  "share": {
+    "label": "SMB share for Hyper-V hosts",
+    "optional": "(optional)",
+    "hint": "Hyper-V backups are written by abr-vhdx-tool on the Hyper-V host, which cannot see a folder of this appliance. Share this folder over SMB and enter the path every host reaches it by; leave it empty if no Hyper-V VM is backed up here.",
+    "uncInvalid": "Enter a UNC path: \\\\server\\share, optionally with a folder of the share after it.",
+    "usernameLabel": "Account",
+    "passwordLabel": "Password",
+    "passwordUnchanged": "Unchanged",
+    "passwordRequired": "Enter the account's password.",
+    "accountHint": "The share must write as the user the appliance runs as (Samba's force user). Without an account, the hosts open it with the Hyper-V inventory's own."
   }
 }

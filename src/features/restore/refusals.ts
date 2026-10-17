@@ -136,12 +136,13 @@ export function classifyRestoreFailure(err: unknown): ClassifiedRefusal {
 /**
  * Whether this appliance can restore a `from` guest onto a `to` environment.
  *
- * It cannot, unless the two platforms match: the orchestrator ships exactly
- * one hypervisor plugin (`python/srv/plugins/vcenter`), so there is nothing
- * that can register a VM on Hyper-V or Proxmox and nothing that converts a
- * disk between formats. Inventories of those kinds can still be registered
- * and scanned, which is why a cross-platform target is reachable in the
- * wizard at all — and why it has to be refused there rather than promised.
+ * It cannot, unless the two platforms match: the orchestrator restores a
+ * VMware point with its vCenter plugin and a Hyper-V point with its Hyper-V
+ * plugin, and has nothing that converts a disk or a guest between them — it
+ * refuses a mismatched target with `restore_option_unsupported`. Inventories
+ * of every kind can be registered and scanned, which is why a cross-platform
+ * target is reachable in the wizard at all — and why it has to be refused
+ * there rather than promised.
  */
 export function crossHypervisorRestoreBlocked(
   from: Hypervisor | undefined,

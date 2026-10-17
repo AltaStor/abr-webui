@@ -53,13 +53,17 @@ export function EditEnvironmentDialog({ environment, open, onOpenChange }: EditE
   );
 }
 
+/** The port an environment answers on when its record doesn't say: WinRM over
+ *  HTTPS for Hyper-V, the vSphere API otherwise. */
+const defaultPort = (environment: Environment) => (environment.hypervisor === "hyperv" ? 5986 : 443);
+
 function EditEnvironmentForm({ environment, onClose }: { environment: Environment; onClose: () => void }) {
   const { t } = useTranslation("inventory");
   const { t: tCommon } = useTranslation("common");
   const editEnvironment = useWorldStore((s) => s.editEnvironment);
   const [name, setName] = useState(environment.name);
   const [endpoint, setEndpoint] = useState(environment.endpoint);
-  const [port, setPort] = useState(String(environment.port ?? 443));
+  const [port, setPort] = useState(String(environment.port ?? defaultPort(environment)));
   const [insecure, setInsecure] = useState(Boolean(environment.insecure));
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -69,7 +73,7 @@ function EditEnvironmentForm({ environment, onClose }: { environment: Environmen
   useEffect(() => {
     setName(environment.name);
     setEndpoint(environment.endpoint);
-    setPort(String(environment.port ?? 443));
+    setPort(String(environment.port ?? defaultPort(environment)));
     setInsecure(Boolean(environment.insecure));
     setUsername("");
     setPassword("");
@@ -93,7 +97,7 @@ function EditEnvironmentForm({ environment, onClose }: { environment: Environmen
     const patch: EnvironmentEdit = {};
     if (name !== environment.name) patch.name = name;
     if (endpointTrimmed !== environment.endpoint) patch.endpoint = endpointTrimmed;
-    if (portNum !== (environment.port ?? 443)) patch.port = portNum;
+    if (portNum !== (environment.port ?? defaultPort(environment))) patch.port = portNum;
     if (insecure !== Boolean(environment.insecure)) patch.insecure = insecure;
     if (username.trim() !== "") patch.username = username.trim();
     if (password !== "") patch.password = password;

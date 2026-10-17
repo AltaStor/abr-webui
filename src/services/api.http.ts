@@ -43,6 +43,7 @@ import type {
   FullBackupSchedule,
   Host,
   Hypervisor,
+  HyperVVmDetails,
   ImmutabilityEffect,
   ImmutabilityMode,
   JobLastRun,
@@ -58,10 +59,12 @@ import type {
   ReplicaTarget,
   Repository,
   RepositoryImmutability,
+  RepositoryShareInput,
   RepositoryType,
   RepositoryValidationResult,
   RestorePlacementOptions,
   RestorePoint,
+  RetentionRunResult,
   Retention,
   S3ConnectionCheck,
   S3ConnectionTestResult,
@@ -544,6 +547,10 @@ function mapJobOptions(params: Dict, compressionLevel?: unknown, encryption?: Di
     encryption: Boolean(encryption?.enabled ?? params.encryption_enabled),
     compression: Math.min(9, Math.max(0, level)),
     dedup: params.dedup === undefined ? true : Boolean(params.dedup),
+    guestConsistency:
+      params.hyperv_consistency === "crash" || params.hyperv_consistency === "application"
+        ? params.hyperv_consistency
+        : undefined,
   };
 }
 
@@ -713,6 +720,10 @@ function mapRepository(r: Dict): Repository {
     immutability: mapImmutability(r.immutability),
     supportsImmutability: Boolean(asDict(r.capabilities).supports_immutability),
     supportsSyntheticFull: Boolean(asDict(r.capabilities).supports_synthetic_full),
+    share:
+      str(r.type) === "local" && str(r.server) && str(r.share)
+        ? { server: str(r.server), share: str(r.share), username: strOrNull(r.username) }
+        : null,
   };
 }
 
@@ -821,10 +832,37 @@ async function fetchInventoryTree(): Promise<{ vms: VM[]; hosts: Host[] }> {
         lastBackupAt: null,
         restorePointCount: 0,
         ipAddress: str(n.ip_address),
+        hyperv: n.hyperv ? mapHyperVDetails(asDict(n.hyperv)) : undefined,
       });
     }
   });
   return { vms, hosts };
+}
+
+function mapHyperVDetails(d: Dict): HyperVVmDetails {
+  const list = (v: unknown) => (Array.isArray(v) ? (v as unknown[]).map(asDict) : []);
+  return {
+    generation: d.generation == null ? null : num(d.generation),
+    configurationVersion: strOrNull(d.configuration_version),
+    checkpointCount: num(d.checkpoint_count),
+    clustered: Boolean(d.clustered),
+    ownerNode: strOrNull(d.owner_node),
+    disks: list(d.disks).map((disk) => ({
+      name: str(disk.name),
+      controller: strOrNull(disk.controller),
+      path: strOrNull(disk.path),
+      format: strOrNull(disk.format),
+      type: strOrNull(disk.type),
+      capacityGB: num(disk.capacity_bytes) / GB,
+    })),
+    networkAdapters: list(d.network_adapters).map((nic) => ({
+      name: str(nic.name),
+      // Discovery reports the switch even for an adapter that is switched off
+      // from it; only a connected one is on that switch.
+      switchName: nic.connected === false ? null : strOrNull(nic.switch),
+      mac: strOrNull(nic.mac),
+    })),
+  };
 }
 
 /** Overlay restore-point coverage onto VMs so protection status is real. */
@@ -1304,6 +1342,8 @@ function optionsToTaskParams(o: JobOptions): Dict {
   // stored key through untouched on an edit — sending a key here REPLACES the
   // job's, so it must never be sent speculatively.
   else if (o.encryptionKey) params.encryption_key = o.encryptionKey;
+  // Hyper-V policy: only sent once chosen, so a VMware job never grows it.
+  if (o.guestConsistency) params.hyperv_consistency = o.guestConsistency;
   return params;
 }
 
@@ -1434,6 +1474,56 @@ export async function runJobSessions(
   };
 }
 
+function mapRetentionRun(res: Dict): RetentionRunResult {
+  const summary = asDict(res.summary);
+  const chains = Array.isArray(res.chains) ? (res.chains as Dict[]) : [];
+  const ids = (value: unknown) => (Array.isArray(value) ? value.map((item) => str(item)).filter(Boolean) : []);
+  return {
+    ok: true,
+    jobId: str(res.job_id),
+    jobName: str(res.job_name),
+    dryRun: Boolean(res.dry_run),
+    retentionDays: num(res.retention_days),
+    summary: {
+      chains: num(summary.chains),
+      points: num(summary.points),
+      removed: num(summary.removed),
+      held: num(summary.held),
+      failed: num(summary.failed),
+      skipped: num(summary.skipped),
+    },
+    chains: chains.map((chain) => ({
+      vmId: str(chain.vm_id),
+      vmName: str(chain.vm_name) || null,
+      repositoryId: str(chain.repository_id) || null,
+      repositoryName: str(chain.repository_name) || null,
+      points: num(chain.points),
+      removed: ids(chain.removed),
+      held: (Array.isArray(chain.held) ? (chain.held as Dict[]) : []).map((item) => ({
+        pointId: str(asDict(item).point_id),
+        until: str(asDict(item).until),
+      })),
+      failed: ids(chain.failed),
+      keptForChain: ids(chain.kept_for_chain),
+      skippedReason: str(chain.skipped_reason) || null,
+    })),
+    ranAt: str(res.ran_at),
+  };
+}
+
+/**
+ * Apply a backup job's retention to every chain it wrote — or, with
+ * `dryRun`, report what that would remove without removing anything
+ * (`POST /jobs/{id}/retention`). Retention also runs after every backup on
+ * the appliance; this is the operator's "now", and the preview behind it.
+ */
+export async function runJobRetention(id: string, dryRun: boolean): Promise<RetentionRunResult> {
+  const res = asDict(
+    await request<Dict>(`/jobs/${id}/retention`, { method: "POST", body: JSON.stringify({ dry_run: dryRun }) }),
+  );
+  return mapRetentionRun(res);
+}
+
 export const setJobEnabled = (id: string, enabled: boolean) =>
   request<void>(`/jobs/${id}`, {
     method: "PATCH",
@@ -1498,6 +1588,23 @@ export async function stopJob(id: string): Promise<void> {
  * are reachable from, so picking a host narrows both lists to what that host
  * can actually serve.
  */
+
+/**
+ * The storage location a Hyper-V disk path is on, as the host reports its
+ * storage: "C:\ClusterStorage\Volume1" for a Cluster Shared Volume,
+ * "\\fs01\vms" for an SMB share, "D:" for a local drive. Mirrors
+ * `_parse_windows_storage_path` in abr-core, which keys `datastore_map` by the
+ * same names. Null for anything that isn't a Windows path.
+ */
+export function windowsStorageLocation(path: string): string | null {
+  const value = path.trim().replace(/\//g, "\\");
+  const csv = /^([A-Za-z]:\\ClusterStorage\\[^\\]+)(?:\\|$)/i.exec(value);
+  if (csv) return csv[1][0].toUpperCase() + csv[1].slice(1);
+  const unc = /^(\\\\[^\\]+\\[^\\]+)(?:\\|$)/.exec(value);
+  if (unc) return unc[1];
+  const drive = /^([A-Za-z]:)(?:\\|$)/.exec(value);
+  return drive ? drive[1].toUpperCase() : null;
+}
 export async function getRestorePlacementOptions(restorePointId: string): Promise<RestorePlacementOptions> {
   const res = asDict(
     await request<Dict>(`/restore/context?restore_point_id=${encodeURIComponent(restorePointId)}`),
@@ -1514,10 +1621,13 @@ export async function getRestorePlacementOptions(restorePointId: string): Promis
   }));
   /* "[datastore1] folder/disk.vmdk" — the datastore a disk lived on is the part
    * in brackets, which is also the name `datastore_map` takes on the way back
-   * (`_source_disk_datastore` parses the same path server-side). */
+   * (`_source_disk_datastore` parses the same path server-side). A Hyper-V disk
+   * is a Windows path instead, and its storage location is the Cluster Shared
+   * Volume, share or drive it is on (`_parse_windows_storage_path`). */
   const sourceDatastoreOf = (datastorePath: string): string | null => {
     const match = /^\s*\[([^\]]+)\]/.exec(datastorePath);
-    return match ? match[1].trim() || null : null;
+    if (match) return match[1].trim() || null;
+    return windowsStorageLocation(datastorePath);
   };
   const disks = Array.isArray(sourceVm.disks) ? (sourceVm.disks as Dict[]) : [];
   const sourceDisks = disks.map((d, i) => ({
@@ -1774,6 +1884,7 @@ export async function createRepository(
   if (wireType === "s3" && input.s3) {
     body.s3 = s3ConfigWireBody(input.s3);
   }
+  if (wireType === "local" && input.share) Object.assign(body, shareWireFields(input.share));
   const created = asDict(await request<Dict>("/repositories", { method: "POST", body: JSON.stringify(body) }));
   // Creating an S3 repository with Object Lock on comes back with the same
   // effect report an edit does — what the setting does to data written from
@@ -1833,6 +1944,18 @@ export interface RepositoryPatch {
   /** Object Lock. Sent as the appliance's strictly-paired block — mode "none"
    *  with 0 days turns it off, any other mode needs at least 1 day. */
   immutability?: RepositoryImmutability;
+  /** A local repository's SMB share; null removes it. */
+  share?: RepositoryShareInput | null;
+}
+
+/** A local repository's share as the appliance takes it: its server, share,
+ *  username and password fields, where "" clears one. The password goes only
+ *  when one was typed, so an edit that leaves it blank keeps the stored one. */
+function shareWireFields(share: RepositoryShareInput | null): Dict {
+  if (!share) return { server: "", share: "", username: "" };
+  const fields: Dict = { server: share.server, share: share.share, username: share.username ?? "" };
+  if (share.password) fields.password = share.password;
+  return fields;
 }
 
 export async function patchRepository(
@@ -1850,6 +1973,7 @@ export async function patchRepository(
         patch.immutability.mode === "none" ? 0 : patch.immutability.retentionDays,
     };
   }
+  if (patch.share !== undefined) Object.assign(body, shareWireFields(patch.share));
   const updated = asDict(
     await request<Dict>(`/repositories/${id}`, { method: "PATCH", body: JSON.stringify(body) }),
   );

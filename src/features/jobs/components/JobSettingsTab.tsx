@@ -15,7 +15,9 @@ import {
   Sparkles,
 } from "@/lib/icons";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { useWorldStore } from "@/store/world";
 import { formatDateTime, formatStorage, usagePercent } from "@/lib/format";
 import type { BackupJob, Repository } from "@/types";
 import { fullScheduleLabel, retentionLabel, scheduleLabel } from "../lib";
@@ -23,12 +25,20 @@ import { fullScheduleLabel, retentionLabel, scheduleLabel } from "../lib";
 interface Props {
   job: BackupJob;
   repository?: Repository;
+  /** Opens the apply-retention dialog; absent for jobs retention doesn't run on. */
+  onApplyRetention?: () => void;
 }
 
-export function JobSettingsTab({ job, repository }: Props) {
+export function JobSettingsTab({ job, repository, onApplyRetention }: Props) {
   const { t } = useTranslation("jobs");
   const { options, retention, schedule } = job;
   const compressionLabel = t("settings.compressionLevel", { level: options.compression });
+  const hyperv = useWorldStore((s) =>
+    job.vmIds.some((vmId) => {
+      const vm = s.vms.find((v) => v.id === vmId);
+      return s.environments.find((e) => e.id === vm?.environmentId)?.hypervisor === "hyperv";
+    }),
+  );
 
   return (
     <div className="space-y-4">
@@ -103,6 +113,11 @@ export function JobSettingsTab({ job, repository }: Props) {
               <p className="text-xs text-muted-foreground">{t("settings.noGfs")}</p>
             )}
             <p className="pt-1 text-xs text-muted-foreground">{retentionLabel(retention)}</p>
+            {onApplyRetention && (
+              <Button variant="outline" size="sm" className="mt-1" onClick={onApplyRetention}>
+                {t("actions.applyRetention")}
+              </Button>
+            )}
           </CardContent>
         </Card>
 
@@ -158,6 +173,12 @@ export function JobSettingsTab({ job, repository }: Props) {
         <CardContent className="grid grid-cols-2 gap-3 pt-0">
           <Toggle on={options.encryption} label={t("settings.encryption")} hint="AES-256" icon={Lock} />
           <Value label={t("settings.compression")} value={compressionLabel} />
+          {hyperv && (
+            <Value
+              label={t("settings.guestConsistency")}
+              value={t(`hyperv.consistency.${options.guestConsistency ?? "application"}`)}
+            />
+          )}
         </CardContent>
       </Card>
     </div>

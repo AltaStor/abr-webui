@@ -218,6 +218,9 @@
     "threatLockedTitle": "Verrouillé par menace · scellé par la réponse aux menaces",
     "threatLockedBody": "Ce référentiel conserve les points de restauration de {{names}}, actuellement sous investigation active pour menace. Tout point immuable ici reste protégé. Le scellement se lève automatiquement lorsque la menace est contenue ou écartée.",
     "storagePath": "Chemin de stockage",
+    "hypervShare": "Partage Hyper-V",
+    "hypervShareAccount": "en tant que {{account}}",
+    "hypervShareInventoryAccount": "avec le compte de l’inventaire Hyper-V",
     "immutability": "Immuabilité",
     "immutabilityOff": "Désactivée — les sauvegardes restent supprimables",
     "immutabilityConfiguredNote_zero": "Il s’agit du paramètre configuré. Lancez « Vérifier le référentiel » pour confirmer que le bucket l’applique réellement.",
@@ -365,5 +368,16 @@
     "saving": "Enregistrement en cours…",
     "saveSettings": "Enregistrer les paramètres",
     "savedStaysOpen": "Enregistré. Les points de restauration déjà stockés ici ({{count}}) ne sont pas couverts — placez-les sous le verrou ci-dessous, ou fermez."
+  },
+  "share": {
+    "label": "Partage SMB pour les hôtes Hyper-V",
+    "optional": "(facultatif)",
+    "hint": "Les sauvegardes Hyper-V sont écrites par abr-vhdx-tool sur l’hôte Hyper-V, qui ne voit pas les dossiers de cette appliance. Partagez ce dossier en SMB et indiquez le chemin par lequel chaque hôte l’atteint ; laissez vide si aucune VM Hyper-V n’est sauvegardée ici.",
+    "uncInvalid": "Saisissez un chemin UNC : \\\\serveur\\partage, éventuellement suivi d’un dossier du partage.",
+    "usernameLabel": "Compte",
+    "passwordLabel": "Mot de passe",
+    "passwordUnchanged": "Inchangé",
+    "passwordRequired": "Saisissez le mot de passe du compte.",
+    "accountHint": "Le partage doit écrire en tant qu’utilisateur sous lequel tourne l’appliance (force user de Samba). Sans compte, les hôtes l’ouvrent avec celui de l’inventaire Hyper-V."
   }
 }

@@ -22,6 +22,7 @@ import { createLiveDriver } from "./world.live";
 import { createSimDriver } from "./world.sim";
 import {
   EMPTY_WORLD,
+  retentionRefused,
   type RepositoryWriteResult,
   type WorldDriver,
   type WorldHandle,
@@ -114,6 +115,8 @@ export const useWorldStore = create<WorldState>(() => ({
   runSyntheticFull: (input) =>
     driver?.actions.runSyntheticFull(input) ??
     Promise.resolve({ ok: false, message: "world not started" } as const),
+  runRetention: (jobId, dryRun) =>
+    driver?.actions.runRetention(jobId, dryRun) ?? Promise.resolve(retentionRefused(jobId, dryRun, "world not started")),
   createRepository: (input) =>
     driver?.actions.createRepository(input) ?? Promise.resolve(NO_WORLD_WRITE),
   editRepository: (id, patch) =>

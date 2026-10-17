@@ -2,13 +2,13 @@
 // Copyright © 2026 Norvitex OÜ
 
 /**
- * Register a hypervisor environment — VMware vCenter or standalone ESXi — as
- * an inventory the orchestrator can discover and back up.
+ * Register a hypervisor environment — VMware vCenter, standalone ESXi, or a
+ * Hyper-V host or failover cluster — as an inventory the orchestrator can
+ * discover and back up.
  *
  * This POSTs `/api/v1/inventories` and triggers discovery (matching
- * `abr inventory add --type`). VMware is the only platform offered here:
- * Hyper-V and Proxmox aren't wired end-to-end (backup execution isn't real
- * for either yet), so they're kept out of the creation flow rather than
+ * `abr inventory add --type`). Proxmox isn't wired end-to-end (backup execution
+ * isn't real for it yet), so it's kept out of the creation flow rather than
  * registering an environment the console can't actually protect.
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -42,8 +42,14 @@ import type { EnvironmentType } from "@/types";
 interface TypeOption {
   value: EnvironmentType;
   label: string;
-  defaultPort: number;
+  /** Null leaves the port to the appliance: for Hyper-V it tries WinRM over
+   *  HTTPS (5986) and then HTTP (5985), and pinning one would stop that. */
+  defaultPort: number | null;
   hint: string;
+  /** Example name, address and account, in the platform's own form. */
+  namePlaceholder: string;
+  addressPlaceholder: string;
+  usernamePlaceholder: string;
 }
 
 const TYPE_OPTIONS: TypeOption[] = [
@@ -52,12 +58,27 @@ const TYPE_OPTIONS: TypeOption[] = [
     get label() { return i18n.t("inventory:addEnvironment.type.vcenter.label"); },
     defaultPort: 443,
     get hint() { return i18n.t("inventory:addEnvironment.type.vcenter.hint"); },
+    namePlaceholder: "lab-vcenter",
+    addressPlaceholder: "vcenter.corp.local",
+    usernamePlaceholder: "administrator@vsphere.local",
   },
   {
     value: "esxi-standalone",
     get label() { return i18n.t("inventory:addEnvironment.type.esxiStandalone.label"); },
     defaultPort: 443,
     get hint() { return i18n.t("inventory:addEnvironment.type.esxiStandalone.hint"); },
+    namePlaceholder: "lab-vcenter",
+    addressPlaceholder: "vcenter.corp.local",
+    usernamePlaceholder: "administrator@vsphere.local",
+  },
+  {
+    value: "hyperv",
+    get label() { return i18n.t("inventory:addEnvironment.type.hyperv.label"); },
+    defaultPort: null,
+    get hint() { return i18n.t("inventory:addEnvironment.type.hyperv.hint"); },
+    namePlaceholder: "lab-hyperv",
+    addressPlaceholder: "hv01.corp.local",
+    usernamePlaceholder: "CORP\\administrator",
   },
 ];
 
@@ -143,7 +164,7 @@ export function AddEnvironmentDialog({
   const onTypeChange = (value: string) => {
     const opt = TYPE_OPTIONS.find((o) => o.value === value);
     if (!opt) return;
-    setForm((f) => ({ ...f, type: opt.value, port: String(opt.defaultPort) }));
+    setForm((f) => ({ ...f, type: opt.value, port: opt.defaultPort === null ? "" : String(opt.defaultPort) }));
   };
 
   const portNum = Number(form.port);
@@ -271,7 +292,7 @@ export function AddEnvironmentDialog({
               id="env-name"
               value={form.name}
               onChange={(e) => set("name", e.target.value)}
-              placeholder="lab-vcenter"
+              placeholder={option.namePlaceholder}
               maxLength={RESOURCE_NAME_MAX_LENGTH}
               autoComplete="off"
               spellCheck={false}
@@ -289,7 +310,7 @@ export function AddEnvironmentDialog({
                 id="env-endpoint"
                 value={form.endpoint}
                 onChange={(e) => set("endpoint", e.target.value)}
-                placeholder="vcenter.corp.local"
+                placeholder={option.addressPlaceholder}
                 autoComplete="off"
                 spellCheck={false}
                 aria-invalid={!endpointValid}
@@ -308,10 +329,14 @@ export function AddEnvironmentDialog({
                 max={65535}
                 value={form.port}
                 onChange={(e) => set("port", e.target.value)}
+                placeholder={option.defaultPort === null ? t("addEnvironment.portAuto") : undefined}
                 aria-invalid={!portValid}
               />
             </div>
           </div>
+          {option.defaultPort === null && form.port.trim() === "" && (
+            <p className="-mt-2 text-xs text-muted-foreground">{t("addEnvironment.portAutoHint")}</p>
+          )}
 
           <div className="grid gap-3 sm:grid-cols-2">
             <div className="space-y-1.5">
@@ -320,7 +345,7 @@ export function AddEnvironmentDialog({
                 id="env-user"
                 value={form.username}
                 onChange={(e) => set("username", e.target.value)}
-                placeholder="administrator@vsphere.local"
+                placeholder={option.usernamePlaceholder}
                 autoComplete="off"
                 spellCheck={false}
               />

@@ -265,7 +265,8 @@
     "runNow": "Exécuter maintenant",
     "runFull": "Exécuter une sauvegarde complète",
     "runOptions": "Options d'exécution",
-    "deleteJob": "Supprimer la tâche"
+    "deleteJob": "Supprimer la tâche",
+    "applyRetention": "Appliquer la rétention maintenant…"
   },
   "toast": {
     "started": "{{name}} démarrée",
@@ -491,7 +492,8 @@
     "deduplication": "Déduplication",
     "deduplicationHint": "Au niveau bloc",
     "compression": "Compression",
-    "compressionLevel": "Niveau {{level}}"
+    "compressionLevel": "Niveau {{level}}",
+    "guestConsistency": "Cohérence du point de contrôle"
   },
   "health": {
     "title": "État des fichiers de sauvegarde",
@@ -833,7 +835,8 @@
       "filesPaths": "Ajoutez au moins un chemin sur chaque serveur sélectionné.",
       "targetEnv": "Choisissez un environnement cible pour la réplique.",
       "repository": "Choisissez un référentiel où stocker les sauvegardes.",
-      "scheduleDays": "Choisissez au moins un jour pour la planification des sauvegardes."
+      "scheduleDays": "Choisissez au moins un jour pour la planification des sauvegardes.",
+      "hypervRepository": "Les VMs Hyper-V ont besoin d’un référentiel S3, ou d’un référentiel local partagé avec les hôtes en SMB : abr-vhdx-tool écrit leurs disques depuis l’hôte Hyper-V, qui ne peut pas atteindre {{repository}}. Indiquez son partage dans Référentiels → Modifier."
     },
     "scope": {
       "filesSummary_one": "{{count}} chemin sur {{servers}}",
@@ -933,7 +936,11 @@
       "syntheticOverriddenDayOfMonth": "Le {{day}} du mois, la sauvegarde complète active s’exécute à la même heure et a priorité : aucune fusion n’a lieu ce jour-là. Déplacez l’une des deux à un autre jour ou à une autre heure.",
       "syntheticSameDayEvery": "Une sauvegarde complète active s’exécute le même jour, à une autre heure. Elle commence une nouvelle chaîne : la fusion n’a donc rien à fusionner, ou est remplacée quelques heures plus tard. Déplacez l’une des deux à un autre jour.",
       "syntheticSameDays": "Une sauvegarde complète active s’exécute aussi le {{days}}, à une autre heure. Elle commence une nouvelle chaîne : la fusion de ce jour-là n’a donc rien à fusionner, ou est remplacée quelques heures plus tard. Déplacez l’une des deux à un autre jour.",
-      "syntheticSameDayOfMonth": "Une sauvegarde complète active s’exécute aussi le {{day}} du mois, à une autre heure. Elle commence une nouvelle chaîne : la fusion de ce jour-là n’a donc rien à fusionner, ou est remplacée quelques heures plus tard. Déplacez l’une des deux à un autre jour."
+      "syntheticSameDayOfMonth": "Une sauvegarde complète active s’exécute aussi le {{day}} du mois, à une autre heure. Elle commence une nouvelle chaîne : la fusion de ce jour-là n’a donc rien à fusionner, ou est remplacée quelques heures plus tard. Déplacez l’une des deux à un autre jour.",
+      "syntheticOverriddenDayOfMonthOnDays": "Quand le {{day}} du mois tombe un {{days}}, la sauvegarde complète active s’exécute à la même heure et a priorité : aucune fusion n’a lieu ce jour-là. Déplacez l’une des deux à un autre jour ou à une autre heure.",
+      "syntheticSameDayOfMonthOnDays": "Quand le {{day}} du mois tombe un {{days}}, une sauvegarde complète active s’exécute aussi ce jour-là, à une autre heure. Elle commence une nouvelle chaîne : la fusion de ce jour-là n’a donc rien à fusionner, ou est remplacée quelques heures plus tard. Déplacez l’une des deux à un autre jour.",
+      "syntheticOverriddenMonthEnd": "Les mois sans jour {{day}}, les deux s’exécutent le dernier jour du mois à la même heure et la sauvegarde complète active a priorité : aucune fusion n’a lieu ce mois-là. Déplacez l’une des deux à un autre jour ou à une autre heure.",
+      "syntheticSameMonthEnd": "Les mois sans jour {{day}}, une sauvegarde complète active s’exécute aussi le dernier jour du mois, à une autre heure. Elle commence une nouvelle chaîne : la fusion de ce jour-là n’a donc rien à fusionner, ou est remplacée quelques heures plus tard. Déplacez l’une des deux à un autre jour."
     },
     "advanced": "Paramètres avancés",
     "advancedHint": "(Valeurs par défaut appliquées)",
@@ -984,6 +991,59 @@
     "gfsMonthly": "Mensuel",
     "gfsYearly": "Annuel",
     "loadingJob": "Chargement de la tâche",
-    "whatIs": "Qu’est-ce que {{term}} ?"
+    "whatIs": "Qu’est-ce que {{term}} ?",
+    "hyperv": {
+      "title": "Hyper-V",
+      "term": "sauvegarde Hyper-V",
+      "help": "Les VMs Hyper-V sont sauvegardées depuis un point de contrôle de récupération, qui fige leurs disques pendant qu’abr-vhdx-tool les lit sur l’hôte. Le point de contrôle devient ensuite un point de référence : la sauvegarde suivante ne lit que ce que le suivi des modifications résilient (RCT) signale comme modifié.",
+      "consistencyHint": {
+        "application": "Un invité en cours d’exécution est mis au repos via VSS ; si c’est impossible, le point de contrôle est cohérent en cas de panne, et l’exécution le signale.",
+        "crash": "L’invité n’intervient jamais — comme si l’on débranchait la machine au moment du point de contrôle."
+      }
+    }
+  },
+  "hyperv": {
+    "consistency": {
+      "application": "Cohérent avec les applications",
+      "crash": "Cohérent en cas de panne"
+    }
+  },
+  "retentionRun": {
+    "title": "Appliquer la rétention maintenant",
+    "lead": "Ce job conserve {{policy}}. Une sauvegarde complète et les incrémentielles qui s’y rattachent sont supprimées ensemble, et seulement une fois toutes expirées, afin que chaque point de restauration restant reste restaurable. La rétention s’exécute aussi après chaque sauvegarde.",
+    "checking": "Recherche des points de restauration expirés…",
+    "apply_one": "Supprimer {{count}} point de restauration",
+    "apply_other": "Supprimer {{count}} points de restauration",
+    "nothingToRemove": "Rien à supprimer",
+    "previewNone_one": "Le point de restauration n’a pas encore expiré.",
+    "previewNone_other": "Aucun des {{count}} points de restauration n’a encore expiré.",
+    "previewSome_one": "{{count}} point de restauration sur {{total}} a expiré et serait supprimé.",
+    "previewSome_other": "{{count}} points de restauration sur {{total}} ont expiré et seraient supprimés.",
+    "doneSome_one": "{{count}} point de restauration sur {{total}} supprimé.",
+    "doneSome_other": "{{count}} points de restauration sur {{total}} supprimés.",
+    "noPoints": "Ce job n’a pas encore de point de restauration.",
+    "heldExplained": "Les points de restauration retenus ont expiré mais restent sous S3 Object Lock ; ils seront supprimés lors d’un passage ultérieur, à la fin du verrouillage. Les points plus anciens dont ils dépendent restent avec eux.",
+    "col": {
+      "vm": "VM",
+      "repository": "Référentiel",
+      "points": "Points",
+      "willRemove": "À supprimer",
+      "removed": "Supprimés",
+      "note": "Remarque"
+    },
+    "note": {
+      "skipped": "Ignoré : {{reason}}",
+      "held_one": "{{count}} retenu par Object Lock jusqu’au {{until}}",
+      "held_other": "{{count}} retenus par Object Lock jusqu’au {{until}}",
+      "failed_one": "{{count}} n’a pas pu être supprimé ; conservé pour le prochain passage",
+      "failed_other": "{{count}} n’ont pas pu être supprimés ; conservés pour le prochain passage"
+    },
+    "toast": {
+      "failed": "La rétention de {{name}} ne s’est pas exécutée",
+      "partial_one": "La rétention de {{name}} n’a pas pu supprimer {{count}} point de restauration ; il est conservé pour le prochain passage",
+      "partial_other": "La rétention de {{name}} n’a pas pu supprimer {{count}} points de restauration ; ils sont conservés pour le prochain passage",
+      "done_one": "La rétention de {{name}} a supprimé {{count}} point de restauration",
+      "done_other": "La rétention de {{name}} a supprimé {{count}} points de restauration"
+    }
   }
 }

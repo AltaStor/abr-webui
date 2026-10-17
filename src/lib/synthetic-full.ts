@@ -289,6 +289,8 @@ export function syntheticFullFailureKey(message: string): string | null {
   if (/synthetic full needs it to start with a full|every backup after the full/i.test(message)) {
     return "invalidChain";
   }
+  // The appliance's sentence needs no next step, so the console's is that
+  // sentence word for word: the banner, the VM row and the log then agree.
   if (/only a full backup with no incrementals/i.test(message)) return "noIncrementals";
   return null;
 }
@@ -314,19 +316,23 @@ export function syntheticFullFailureKey(message: string): string | null {
  *              seventh.
  *   "sameDay"  Different times, same day. The merge runs and achieves little.
  *
- * Still deliberately conservative about what it does NOT answer: only pairs the
- * calendar can decide are compared. An active full on day 15 of the month
- * against a weekly merge on Mondays meets a few times a year, and only the
- * calendar knows when, so it is left alone — a wrong warning on a working job
- * is worse than none.
+ * Any pair whose days can meet is reported, including the ones that meet only
+ * in some months: an active full on day 15 against a weekly merge on Mondays
+ * (the months the 15th is a Monday), or monthly schedules on the 30th and the
+ * 31st (every 30-day month, where both run on the 30th). Only periodic and cron
+ * schedules, set from the CLI, are left alone.
  */
 export interface SyntheticFullOverride {
   kind: "always" | "partial" | "sameDay";
   /** Weekday indexes (0 = Sunday) the collision falls on. Absent when it falls
-   *  on every day the merge is due. */
+   *  on every day the merge is due. With `dayOfMonth`, the collision falls on
+   *  that day of the month in the months it is one of these weekdays. */
   days?: number[];
   /** Day of the month the collision falls on. */
   dayOfMonth?: number;
+  /** Two monthly schedules on different days from the 28th on: both run on the
+   *  last day of each month that has no day `monthsWithoutDay`. */
+  monthsWithoutDay?: number;
 }
 
 /** The frequencies whose occurrences can be compared without a calendar. */
@@ -336,13 +342,23 @@ function isCalendarFrequency(
   return schedule.frequency === "daily" || schedule.frequency === "weekly" || schedule.frequency === "monthly";
 }
 
+/** A weekly schedule on all seven days falls due every day, so it is compared
+ *  as a daily one. */
+function asDaily<S extends FullBackupSchedule>(schedule: S): S {
+  return schedule.frequency === "weekly" && new Set(schedule.daysOfWeek ?? []).size === 7
+    ? { ...schedule, frequency: "daily" }
+    : schedule;
+}
+
 export function syntheticFullOverride(
-  active: FullBackupSchedule | null | undefined,
-  synthetic: FullBackupSchedule | null | undefined,
+  activeSchedule: FullBackupSchedule | null | undefined,
+  syntheticSchedule: FullBackupSchedule | null | undefined,
 ): SyntheticFullOverride | null {
-  if (!active?.enabled || !synthetic?.enabled) return null;
+  if (!activeSchedule?.enabled || !syntheticSchedule?.enabled) return null;
   // periodic / cron — not comparable without evaluating the expressions.
-  if (!isCalendarFrequency(active) || !isCalendarFrequency(synthetic)) return null;
+  if (!isCalendarFrequency(activeSchedule) || !isCalendarFrequency(syntheticSchedule)) return null;
+  const active = asDaily(activeSchedule);
+  const synthetic = asDaily(syntheticSchedule);
 
   // Same time is what makes the appliance choose between them; a different time
   // on the same day is a weaker finding, not a non-finding.
@@ -368,18 +384,25 @@ export function syntheticFullOverride(
         ? collide("always")
         : collide("partial", { days: overlap });
     }
-    // Monthly merge against a weekly active full: which weekday day-N falls on
-    // is a calendar question. Not answered here.
-    return null;
+    // A monthly merge meets it in the months its day falls on one of these.
+    return collide("partial", { dayOfMonth: synthetic.dayOfMonth ?? 1, days: activeDays });
   }
 
   // Monthly active full.
   const dayOfMonth = active.dayOfMonth ?? 1;
   if (synthetic.frequency === "daily") return collide("partial", { dayOfMonth });
-  if (synthetic.frequency === "monthly") {
-    return (synthetic.dayOfMonth ?? 1) === dayOfMonth ? collide("always") : null;
+  if (synthetic.frequency === "weekly") {
+    const syntheticDays = [...new Set(synthetic.daysOfWeek ?? [])].sort((a, b) => a - b);
+    if (!syntheticDays.length) return null;
+    return collide("partial", { dayOfMonth, days: syntheticDays });
   }
-  return null;
+  const syntheticDay = synthetic.dayOfMonth ?? 1;
+  if (syntheticDay === dayOfMonth) return collide("always");
+  // A day a month is too short for runs on its last day (`_next_monthly_after`),
+  // so two different days from the 28th on still meet there: the 30th and the
+  // 31st in every 30-day month, any two of them in February.
+  const earlier = Math.min(syntheticDay, dayOfMonth);
+  return earlier >= 28 ? collide("partial", { monthsWithoutDay: earlier + 1 }) : null;
 }
 
 /**

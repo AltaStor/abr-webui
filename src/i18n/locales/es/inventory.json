@@ -86,7 +86,7 @@
     "vmsFilteredTitle": "Ninguna VM coincide con estos filtros",
     "vmsTitle": "No se encontraron máquinas virtuales",
     "vmsFilteredDesc": "Prueba a ampliar la búsqueda, borrar un filtro o elegir un alcance más amplio.",
-    "vmsDesc": "Usa «Añadir origen» para conectar una plataforma vCenter o ESXi.",
+    "vmsDesc": "Usa «Añadir origen» para conectar una plataforma vCenter, ESXi o Hyper-V.",
     "serversFilteredTitle": "Ningún servidor coincide con estos filtros",
     "serversTitle": "No hay servidores físicos",
     "serversFilteredDesc": "Prueba a ampliar la búsqueda o borrar un filtro.",
@@ -372,7 +372,7 @@
   },
   "addEnvironment": {
     "title": "Agregar entorno",
-    "description": "Registre un VMware vCenter Server o un host ESXi independiente para que AltaStor pueda detectar y proteger sus VMs.",
+    "description": "Registre un VMware vCenter Server, un host ESXi independiente o un host o clúster de Hyper-V para que AltaStor pueda detectar y proteger sus VMs.",
     "platformLabel": "Plataforma",
     "type": {
       "vcenter": {
@@ -382,12 +382,18 @@
       "esxiStandalone": {
         "label": "VMware ESXi (independiente)",
         "hint": "Un único host ESXi, gestionado directamente."
+      },
+      "hyperv": {
+        "label": "Microsoft Hyper-V",
+        "hint": "Un host de Hyper-V, o cualquier nodo o el nombre de un clúster de conmutación por error. AltaStor necesita WinRM (5986 o 5985) y SMB (445) hacia cada nodo, y una cuenta que sea administrador local en cada uno."
       }
     },
     "nameLabel": "Nombre",
     "addressLabel": "Dirección",
     "addressInvalid": "Introduzca un FQDN o una dirección IP válidos — sin protocolo, ruta ni espacios.",
     "portLabel": "Puerto",
+    "portAuto": "Auto",
+    "portAutoHint": "Si se deja vacío, AltaStor prueba primero WinRM por HTTPS (5986) y después por HTTP (5985).",
     "usernameLabel": "Nombre de usuario",
     "passwordLabel": "Contraseña",
     "skipTlsLabel": "Omitir la verificación TLS",
@@ -501,7 +507,7 @@
       "no-job": "Ningún trabajo de copia ha producido todavía puntos de restauración para esta VM, así que no hay cadena que fusionar.",
       "no-chain": "Este trabajo aún no ha producido puntos de restauración para esta VM, así que no hay cadena que fusionar.",
       "chain-not-anchored": "El punto de restauración más antiguo de esta cadena es un incremental, sin una copia completa debajo. Un completo sintético necesita una copia completa sobre la que fusionar.",
-      "no-incrementals": "Esta cadena es una copia completa sin incrementales encima. Fusionarla la copiaría sin cambios, así que todavía no hay nada que hacer.",
+      "no-incrementals": "La cadena solo contiene una copia completa sin incrementales, así que un completo sintético la copiaría sin cambios.",
       "source-repository-unsupported": "{{repository}} no puede fusionar una cadena de copias. Los completos sintéticos necesitan un repositorio local o de almacenamiento de objetos.",
       "source-repository-offline": "{{repository}} no está accesible, así que no se puede leer la cadena almacenada en él.",
       "target-repository-unsupported": "{{repository}} no puede albergar una copia fusionada. Elige un repositorio local o de almacenamiento de objetos.",
@@ -518,7 +524,30 @@
       "destinationCollision": "El completo fusionado se escribiría justo donde está almacenada la cadena que lee. Elige otro repositorio de destino.",
       "repositoryUnsupported": "El repositorio no puede fusionar una cadena de copias. Los completos sintéticos necesitan un repositorio local o de almacenamiento de objetos.",
       "invalidChain": "La cadena no está en un estado que se pueda fusionar: tiene que empezar con una copia completa y contener solo incrementales después.",
-      "noIncrementals": "La cadena solo contenía una copia completa sin incrementales, así que la fusión la habría copiado sin cambios."
+      "noIncrementals": "La cadena solo contiene una copia completa sin incrementales, así que un completo sintético la copiaría sin cambios."
+    }
+  },
+  "hypervConfig": {
+    "title": "Configuración de Hyper-V",
+    "generation": "Generación",
+    "generation1": "Generación 1 (BIOS)",
+    "generation2": "Generación 2 (UEFI)",
+    "configurationVersion": "Versión de configuración",
+    "placement": "Se ejecuta en",
+    "clustered": "{{node}} (en clúster)",
+    "standalone": "{{node}}",
+    "checkpoints": "Puntos de control",
+    "checkpointsNote_one": "Esta VM tiene {{count}} punto de control. Las copias funcionan con normalidad, pero la recuperación en la ubicación original se rechaza hasta que se elimine: sustituir los discos rompería la cadena de puntos de control. Restaure en una ubicación nueva o elimine antes el punto de control.",
+    "checkpointsNote_other": "Esta VM tiene {{count}} puntos de control. Las copias funcionan con normalidad, pero la recuperación en la ubicación original se rechaza hasta que se eliminen: sustituir los discos rompería la cadena de puntos de control. Restaure en una ubicación nueva o elimine antes los puntos de control.",
+    "disks": "Discos",
+    "noDisks": "No se detectaron discos.",
+    "adapters": "Adaptadores de red",
+    "noAdapters": "No se detectaron adaptadores de red.",
+    "notConnected": "Sin conectar",
+    "unknown": "Desconocido",
+    "skip": {
+      "passThrough": "Disco de paso directo, no se copia",
+      "vhdSet": "Conjunto VHD compartido, no se copia"
     }
   }
 }

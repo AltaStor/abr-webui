@@ -14,6 +14,7 @@ import {
   ShieldCheck,
   Trash2,
   X,
+  Network,
   type LucideIcon,
 } from "@/lib/icons";
 import {
@@ -37,6 +38,7 @@ import type { BackupJob, Repository, RepositoryValidationResult } from "@/types"
 import { immutabilityLabel, REPO_STATUS_META, REPO_TYPE_META } from "./repoMeta";
 import { RepositoryActionsMenu, type RepositoryActions } from "./RepositoryActionsMenu";
 import { ValidationResultPanel } from "./ValidationResultPanel";
+import { formatUnc } from "./share";
 
 interface RepositoryDetailDialogProps {
   repo: Repository | null;
@@ -174,6 +176,17 @@ function RepositoryDetailBody({
           <Field icon={ServerCog} label={t("detail.storagePath")}>
             <code className="nums bg-muted/60 px-2 py-1 text-xs">{repo.path}</code>
           </Field>
+
+          {repo.share && (
+            <Field icon={Network} label={t("detail.hypervShare")}>
+              <code className="nums bg-muted/60 px-2 py-1 text-xs">{formatUnc(repo.share)}</code>
+              <span className="ml-2 text-xs text-muted-foreground">
+                {repo.share.username
+                  ? t("detail.hypervShareAccount", { account: repo.share.username })
+                  : t("detail.hypervShareInventoryAccount")}
+              </span>
+            </Field>
+          )}
 
           {/* Object Lock — shown only where the backend has the concept, so a
               local repository isn't told it has immutability "off" when the

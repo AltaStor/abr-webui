@@ -265,7 +265,8 @@
     "runNow": "Ejecutar ahora",
     "runFull": "Ejecutar copia de seguridad completa",
     "runOptions": "Opciones de ejecución",
-    "deleteJob": "Eliminar trabajo"
+    "deleteJob": "Eliminar trabajo",
+    "applyRetention": "Aplicar retención ahora…"
   },
   "toast": {
     "started": "{{name}} iniciado",
@@ -491,7 +492,8 @@
     "deduplication": "Deduplicación",
     "deduplicationHint": "A nivel de bloque",
     "compression": "Compresión",
-    "compressionLevel": "Nivel {{level}}"
+    "compressionLevel": "Nivel {{level}}",
+    "guestConsistency": "Coherencia del punto de control"
   },
   "health": {
     "title": "Estado de los archivos de copia de seguridad",
@@ -833,7 +835,8 @@
       "filesPaths": "Añade al menos una ruta en cada servidor seleccionado.",
       "targetEnv": "Elige un entorno de destino para la réplica.",
       "repository": "Elige un repositorio donde guardar las copias de seguridad.",
-      "scheduleDays": "Elija al menos un día para la planificación de copias."
+      "scheduleDays": "Elija al menos un día para la planificación de copias.",
+      "hypervRepository": "Las VMs de Hyper-V necesitan un repositorio S3, o uno local compartido con los hosts por SMB: abr-vhdx-tool escribe sus discos desde el host de Hyper-V, que no puede llegar a {{repository}}. Indique su recurso compartido en Repositorios → Editar."
     },
     "scope": {
       "filesSummary_one": "{{count}} ruta en {{servers}}",
@@ -933,7 +936,11 @@
       "syntheticOverriddenDayOfMonth": "El día {{day}} del mes la copia completa activa se ejecuta a la misma hora y tiene prioridad, así que ese día no hay fusión. Mueva una de las dos a otro día u otra hora.",
       "syntheticSameDayEvery": "Una copia completa activa se ejecuta el mismo día, a otra hora. Inicia una cadena nueva, así que la fusión no tiene nada que fusionar o queda sustituida horas después. Mueva una de las dos a otro día.",
       "syntheticSameDays": "Una copia completa activa también se ejecuta los {{days}}, a otra hora. Inicia una cadena nueva, así que la fusión de ese día no tiene nada que fusionar o queda sustituida horas después. Mueva una de las dos a otro día.",
-      "syntheticSameDayOfMonth": "Una copia completa activa también se ejecuta el día {{day}} del mes, a otra hora. Inicia una cadena nueva, así que la fusión de ese día no tiene nada que fusionar o queda sustituida horas después. Mueva una de las dos a otro día."
+      "syntheticSameDayOfMonth": "Una copia completa activa también se ejecuta el día {{day}} del mes, a otra hora. Inicia una cadena nueva, así que la fusión de ese día no tiene nada que fusionar o queda sustituida horas después. Mueva una de las dos a otro día.",
+      "syntheticOverriddenDayOfMonthOnDays": "Cuando el día {{day}} del mes cae en {{days}}, la copia completa activa se ejecuta a la misma hora y tiene prioridad, así que ese día no hay fusión. Mueva una de las dos a otro día u otra hora.",
+      "syntheticSameDayOfMonthOnDays": "Cuando el día {{day}} del mes cae en {{days}}, una copia completa activa también se ejecuta ese día, a otra hora. Inicia una cadena nueva, así que la fusión de ese día no tiene nada que fusionar o queda sustituida horas después. Mueva una de las dos a otro día.",
+      "syntheticOverriddenMonthEnd": "En los meses sin día {{day}}, las dos se ejecutan el último día del mes a la misma hora y la copia completa activa tiene prioridad, así que ese mes no hay fusión. Mueva una de las dos a otro día u otra hora.",
+      "syntheticSameMonthEnd": "En los meses sin día {{day}}, una copia completa activa también se ejecuta el último día del mes, a otra hora. Inicia una cadena nueva, así que la fusión de ese día no tiene nada que fusionar o queda sustituida horas después. Mueva una de las dos a otro día."
     },
     "advanced": "Configuración avanzada",
     "advancedHint": "(Se aplican valores predeterminados)",
@@ -984,6 +991,59 @@
     "gfsMonthly": "Mensual",
     "gfsYearly": "Anual",
     "loadingJob": "Cargando trabajo",
-    "whatIs": "¿Qué es {{term}}?"
+    "whatIs": "¿Qué es {{term}}?",
+    "hyperv": {
+      "title": "Hyper-V",
+      "term": "copia de Hyper-V",
+      "help": "Las VMs de Hyper-V se copian desde un punto de control de recuperación, que congela sus discos mientras abr-vhdx-tool los lee en el host. Después, el punto de control pasa a ser un punto de referencia, de modo que la siguiente copia solo lee lo que el seguimiento de cambios resistente (RCT) indica como cambiado.",
+      "consistencyHint": {
+        "application": "Un invitado en ejecución se pone en reposo mediante VSS; si no es posible, el punto de control es coherente ante fallos y la ejecución lo indica.",
+        "crash": "El invitado nunca interviene: como desenchufarlo en el momento del punto de control."
+      }
+    }
+  },
+  "hyperv": {
+    "consistency": {
+      "application": "Coherente con las aplicaciones",
+      "crash": "Coherente ante fallos"
+    }
+  },
+  "retentionRun": {
+    "title": "Aplicar retención ahora",
+    "lead": "Este trabajo conserva {{policy}}. Una copia completa y las incrementales sobre ella se eliminan juntas, y solo cuando todas han caducado, para que cada punto de restauración que quede pueda restaurarse. La retención también se ejecuta después de cada copia.",
+    "checking": "Comprobando qué puntos de restauración han caducado…",
+    "apply_one": "Eliminar {{count}} punto de restauración",
+    "apply_other": "Eliminar {{count}} puntos de restauración",
+    "nothingToRemove": "Nada que eliminar",
+    "previewNone_one": "El único punto de restauración aún no ha caducado.",
+    "previewNone_other": "Ninguno de los {{count}} puntos de restauración ha caducado aún.",
+    "previewSome_one": "{{count}} de {{total}} puntos de restauración ha caducado y se eliminaría.",
+    "previewSome_other": "{{count}} de {{total}} puntos de restauración han caducado y se eliminarían.",
+    "doneSome_one": "Se eliminó {{count}} de {{total}} puntos de restauración.",
+    "doneSome_other": "Se eliminaron {{count}} de {{total}} puntos de restauración.",
+    "noPoints": "Este trabajo aún no tiene puntos de restauración.",
+    "heldExplained": "Los puntos de restauración retenidos han caducado, pero S3 Object Lock aún los protege; se eliminan en una pasada posterior, cuando termine el bloqueo. Los puntos más antiguos de los que dependen se quedan con ellos.",
+    "col": {
+      "vm": "VM",
+      "repository": "Repositorio",
+      "points": "Puntos",
+      "willRemove": "Se eliminarán",
+      "removed": "Eliminados",
+      "note": "Nota"
+    },
+    "note": {
+      "skipped": "Omitido: {{reason}}",
+      "held_one": "{{count}} retenido por Object Lock hasta {{until}}",
+      "held_other": "{{count}} retenidos por Object Lock hasta {{until}}",
+      "failed_one": "{{count}} no se pudo eliminar; se conserva para la próxima pasada",
+      "failed_other": "{{count}} no se pudieron eliminar; se conservan para la próxima pasada"
+    },
+    "toast": {
+      "failed": "La retención de {{name}} no se ejecutó",
+      "partial_one": "La retención de {{name}} no pudo eliminar {{count}} punto de restauración; se conserva para la próxima pasada",
+      "partial_other": "La retención de {{name}} no pudo eliminar {{count}} puntos de restauración; se conservan para la próxima pasada",
+      "done_one": "La retención de {{name}} eliminó {{count}} punto de restauración",
+      "done_other": "La retención de {{name}} eliminó {{count}} puntos de restauración"
+    }
   }
 }

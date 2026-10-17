@@ -265,7 +265,8 @@
     "runNow": "Jetzt ausführen",
     "runFull": "Vollsicherung ausführen",
     "runOptions": "Ausführungsoptionen",
-    "deleteJob": "Job löschen"
+    "deleteJob": "Job löschen",
+    "applyRetention": "Aufbewahrung jetzt anwenden…"
   },
   "toast": {
     "started": "{{name}} gestartet",
@@ -491,7 +492,8 @@
     "deduplication": "Deduplizierung",
     "deduplicationHint": "Blockbasiert",
     "compression": "Komprimierung",
-    "compressionLevel": "Stufe {{level}}"
+    "compressionLevel": "Stufe {{level}}",
+    "guestConsistency": "Prüfpunkt-Konsistenz"
   },
   "health": {
     "title": "Backup-Datei-Zustand",
@@ -833,7 +835,8 @@
       "filesPaths": "Fügen Sie auf jedem ausgewählten Server mindestens einen Pfad hinzu.",
       "targetEnv": "Wählen Sie eine Zielumgebung für das Replikat.",
       "repository": "Wählen Sie ein Repository für die Backups aus.",
-      "scheduleDays": "Wählen Sie mindestens einen Tag für den Sicherungsplan."
+      "scheduleDays": "Wählen Sie mindestens einen Tag für den Sicherungsplan.",
+      "hypervRepository": "Hyper-V-VMs benötigen ein S3-Repository oder ein lokales, das den Hosts per SMB freigegeben ist: abr-vhdx-tool schreibt ihre Datenträger vom Hyper-V-Host aus, der {{repository}} nicht erreichen kann. Tragen Sie die Freigabe unter Repositorys → Bearbeiten ein."
     },
     "scope": {
       "filesSummary_one": "{{count}} Pfad auf {{servers}}",
@@ -933,7 +936,11 @@
       "syntheticOverriddenDayOfMonth": "Am {{day}}. des Monats läuft die aktive Vollsicherung zur selben Zeit und hat Vorrang, an diesem Tag findet also keine Zusammenführung statt. Verschieben Sie eine von beiden auf einen anderen Tag oder eine andere Zeit.",
       "syntheticSameDayEvery": "Am selben Tag läuft zu einer anderen Zeit eine aktive Vollsicherung. Sie beginnt eine neue Kette, die Zusammenführung hat also nichts zusammenzuführen oder wird Stunden später ersetzt. Verschieben Sie eine von beiden auf einen anderen Tag.",
       "syntheticSameDays": "Am {{days}} läuft zu einer anderen Zeit auch eine aktive Vollsicherung. Sie beginnt eine neue Kette, die Zusammenführung an diesem Tag hat also nichts zusammenzuführen oder wird Stunden später ersetzt. Verschieben Sie eine von beiden auf einen anderen Tag.",
-      "syntheticSameDayOfMonth": "Am {{day}}. des Monats läuft zu einer anderen Zeit auch eine aktive Vollsicherung. Sie beginnt eine neue Kette, die Zusammenführung an diesem Tag hat also nichts zusammenzuführen oder wird Stunden später ersetzt. Verschieben Sie eine von beiden auf einen anderen Tag."
+      "syntheticSameDayOfMonth": "Am {{day}}. des Monats läuft zu einer anderen Zeit auch eine aktive Vollsicherung. Sie beginnt eine neue Kette, die Zusammenführung an diesem Tag hat also nichts zusammenzuführen oder wird Stunden später ersetzt. Verschieben Sie eine von beiden auf einen anderen Tag.",
+      "syntheticOverriddenDayOfMonthOnDays": "Fällt der {{day}}. des Monats auf {{days}}, läuft die aktive Vollsicherung zur selben Zeit und hat Vorrang, an diesem Tag findet also keine Zusammenführung statt. Verschieben Sie eine von beiden auf einen anderen Tag oder eine andere Zeit.",
+      "syntheticSameDayOfMonthOnDays": "Fällt der {{day}}. des Monats auf {{days}}, läuft an diesem Tag zu einer anderen Zeit auch eine aktive Vollsicherung. Sie beginnt eine neue Kette, die Zusammenführung an diesem Tag hat also nichts zusammenzuführen oder wird Stunden später ersetzt. Verschieben Sie eine von beiden auf einen anderen Tag.",
+      "syntheticOverriddenMonthEnd": "In Monaten ohne Tag {{day}} laufen beide zur selben Zeit am letzten Tag des Monats, und die aktive Vollsicherung hat Vorrang, in diesem Monat findet also keine Zusammenführung statt. Verschieben Sie eine von beiden auf einen anderen Tag oder eine andere Zeit.",
+      "syntheticSameMonthEnd": "In Monaten ohne Tag {{day}} läuft am letzten Tag des Monats zu einer anderen Zeit auch eine aktive Vollsicherung. Sie beginnt eine neue Kette, die Zusammenführung an diesem Tag hat also nichts zusammenzuführen oder wird Stunden später ersetzt. Verschieben Sie eine von beiden auf einen anderen Tag."
     },
     "advanced": "Erweiterte Einstellungen",
     "advancedHint": "(Standardwerte werden angewendet)",
@@ -984,6 +991,59 @@
     "gfsMonthly": "Monatlich",
     "gfsYearly": "Jährlich",
     "loadingJob": "Job wird geladen",
-    "whatIs": "Was ist {{term}}?"
+    "whatIs": "Was ist {{term}}?",
+    "hyperv": {
+      "title": "Hyper-V",
+      "term": "Hyper-V-Backup",
+      "help": "Hyper-V-VMs werden aus einem Wiederherstellungsprüfpunkt gesichert, der ihre Datenträger einfriert, während abr-vhdx-tool sie auf dem Host liest. Danach wird der Prüfpunkt zu einem Referenzpunkt, sodass das nächste Backup nur liest, was die robuste Änderungsnachverfolgung (RCT) als geändert meldet.",
+      "consistencyHint": {
+        "application": "Ein laufender Gast wird über VSS stillgelegt; gelingt das nicht, ist der Prüfpunkt absturzkonsistent, und die Ausführung meldet es.",
+        "crash": "Der Gast wird nie einbezogen — als würde im Moment des Prüfpunkts der Stecker gezogen."
+      }
+    }
+  },
+  "hyperv": {
+    "consistency": {
+      "application": "Anwendungskonsistent",
+      "crash": "Absturzkonsistent"
+    }
+  },
+  "retentionRun": {
+    "title": "Aufbewahrung jetzt anwenden",
+    "lead": "Dieser Job bewahrt {{policy}} auf. Ein Vollbackup und die inkrementellen Backups darauf werden gemeinsam entfernt, und erst wenn alle abgelaufen sind, damit jeder verbleibende Wiederherstellungspunkt wiederherstellbar bleibt. Die Aufbewahrung läuft auch nach jedem Backup.",
+    "checking": "Abgelaufene Wiederherstellungspunkte werden ermittelt…",
+    "apply_one": "{{count}} Wiederherstellungspunkt entfernen",
+    "apply_other": "{{count}} Wiederherstellungspunkte entfernen",
+    "nothingToRemove": "Nichts zu entfernen",
+    "previewNone_one": "Der einzige Wiederherstellungspunkt ist noch nicht abgelaufen.",
+    "previewNone_other": "Keiner der {{count}} Wiederherstellungspunkte ist bisher abgelaufen.",
+    "previewSome_one": "{{count}} von {{total}} Wiederherstellungspunkten ist abgelaufen und würde entfernt.",
+    "previewSome_other": "{{count}} von {{total}} Wiederherstellungspunkten sind abgelaufen und würden entfernt.",
+    "doneSome_one": "{{count}} von {{total}} Wiederherstellungspunkten entfernt.",
+    "doneSome_other": "{{count}} von {{total}} Wiederherstellungspunkten entfernt.",
+    "noPoints": "Dieser Job hat noch keine Wiederherstellungspunkte.",
+    "heldExplained": "Gesperrte Wiederherstellungspunkte sind abgelaufen, stehen aber noch unter S3 Object Lock; sie werden in einem späteren Durchlauf entfernt, sobald die Sperre endet. Ältere Punkte, von denen sie abhängen, bleiben mit ihnen erhalten.",
+    "col": {
+      "vm": "VM",
+      "repository": "Repository",
+      "points": "Punkte",
+      "willRemove": "Wird entfernt",
+      "removed": "Entfernt",
+      "note": "Hinweis"
+    },
+    "note": {
+      "skipped": "Übersprungen: {{reason}}",
+      "held_one": "{{count}} durch Object Lock gesperrt bis {{until}}",
+      "held_other": "{{count}} durch Object Lock gesperrt bis {{until}}",
+      "failed_one": "{{count}} konnte nicht entfernt werden; bleibt für den nächsten Durchlauf",
+      "failed_other": "{{count}} konnten nicht entfernt werden; bleiben für den nächsten Durchlauf"
+    },
+    "toast": {
+      "failed": "Aufbewahrung von {{name}} wurde nicht ausgeführt",
+      "partial_one": "Die Aufbewahrung von {{name}} konnte {{count}} Wiederherstellungspunkt nicht entfernen; er bleibt für den nächsten Durchlauf",
+      "partial_other": "Die Aufbewahrung von {{name}} konnte {{count}} Wiederherstellungspunkte nicht entfernen; sie bleiben für den nächsten Durchlauf",
+      "done_one": "Die Aufbewahrung von {{name}} hat {{count}} Wiederherstellungspunkt entfernt",
+      "done_other": "Die Aufbewahrung von {{name}} hat {{count}} Wiederherstellungspunkte entfernt"
+    }
   }
 }

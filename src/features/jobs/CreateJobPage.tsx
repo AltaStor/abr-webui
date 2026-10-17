@@ -404,6 +404,14 @@ function JobWizard({
 
   const set = <K extends keyof FormState>(key: K, value: FormState[K]) =>
     setForm((f) => ({ ...f, [key]: value }));
+  /* Hyper-V carries a policy of its own (checkpoint consistency); it only means
+   * something once a Hyper-V VM is in scope, so it only shows then. */
+  const hypervSelected =
+    !isReplication &&
+    vms.some(
+      (v) => selected.has(v.id) && environments.find((e) => e.id === v.environmentId)?.hypervisor === "hyperv",
+    );
+
   const setOption = <K extends keyof JobOptions>(key: K, value: JobOptions[K]) =>
     setForm((f) => ({ ...f, options: { ...f.options, [key]: value } }));
   const toggleScheduleDay = (day: number) =>
@@ -520,6 +528,10 @@ function JobWizard({
     errors.push(isReplication ? t("create.errors.scopeReplication") : t("create.vm.scopeError"));
   if (isReplication && !form.targetEnvironmentId) errors.push(t("create.errors.targetEnv"));
   if (!isReplication && !repository) errors.push(t("create.errors.repository"));
+  // abr-vhdx-tool moves Hyper-V disks on the host itself, which reaches S3, and
+  // a folder of the appliance only through the SMB share the repository names.
+  if (hypervSelected && repository && repository.type !== "object-lock-s3" && !repository.share)
+    errors.push(t("create.errors.hypervRepository", { repository: repository.name }));
 
   // Full backup schedules belong to backup jobs. A backup-copy job copies its
   // source's schedules, and the appliance doesn't check them on copy jobs.
@@ -551,8 +563,24 @@ function JobWizard({
     : null;
   const syntheticOverrideNote = (() => {
     if (!syntheticOverride) return undefined;
-    const { kind, days, dayOfMonth } = syntheticOverride;
+    const { kind, days, dayOfMonth, monthsWithoutDay } = syntheticOverride;
     const dayList = () => (days ?? []).map((d) => t(`days.long.${DAY_KEYS[d]}`)).join(", ");
+    // Only some months: the ones without a day, or the ones a day of the month
+    // falls on one of the weekdays ("Monday or Wednesday").
+    if (monthsWithoutDay !== undefined) {
+      return t(kind === "sameDay" ? "create.full.syntheticSameMonthEnd" : "create.full.syntheticOverriddenMonthEnd", {
+        day: monthsWithoutDay,
+      });
+    }
+    if (dayOfMonth !== undefined && days?.length) {
+      const anyOfDays = new Intl.ListFormat(i18n.language, { type: "disjunction" }).format(
+        days.map((d) => t(`days.long.${DAY_KEYS[d]}`)),
+      );
+      return t(
+        kind === "sameDay" ? "create.full.syntheticSameDayOfMonthOnDays" : "create.full.syntheticOverriddenDayOfMonthOnDays",
+        { day: dayOfMonth, days: anyOfDays },
+      );
+    }
     if (kind === "sameDay") {
       // Different times, so neither overrides the other — they just both happen
       // that day, and the merge is the one that ends up with nothing to do.
@@ -1172,6 +1200,35 @@ function JobWizard({
                         touched={keyTouched || encryptionKey !== ""}
                         hasStoredKey={hasStoredKey}
                       />
+                    )}
+
+                    {hypervSelected && (
+                      <div className="space-y-3">
+                        <p className="flex items-center gap-1.5 text-sm font-medium">
+                          {t("create.hyperv.title")}
+                          <HelpHint term={t("create.hyperv.term")} label={t("create.hyperv.help")} />
+                        </p>
+                        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                          <div className="space-y-1.5">
+                            <Label htmlFor="hyperv-consistency">{t("settings.guestConsistency")}</Label>
+                            <Select
+                              value={form.options.guestConsistency ?? "application"}
+                              onValueChange={(v) => setOption("guestConsistency", v as "application" | "crash")}
+                            >
+                              <SelectTrigger id="hyperv-consistency">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="application">{t("hyperv.consistency.application")}</SelectItem>
+                                <SelectItem value="crash">{t("hyperv.consistency.crash")}</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <p className="text-[11px] text-muted-foreground">
+                              {t(`create.hyperv.consistencyHint.${form.options.guestConsistency ?? "application"}`)}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
                     )}
 
                     {/* GFS archival is backup-only — replicas keep N recovery points, no long-term tail. */}

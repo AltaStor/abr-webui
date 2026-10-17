@@ -86,7 +86,7 @@
     "vmsFilteredTitle": "Keine VMs entsprechen diesen Filtern",
     "vmsTitle": "Keine virtuellen Maschinen gefunden",
     "vmsFilteredDesc": "Erweitern Sie die Suche, setzen Sie einen Filter zurück oder wählen Sie einen größeren Bereich.",
-    "vmsDesc": "Verwenden Sie „Quelle hinzufügen“, um eine vCenter- oder ESXi-Plattform zu verbinden.",
+    "vmsDesc": "Verwenden Sie „Quelle hinzufügen“, um eine vCenter-, ESXi- oder Hyper-V-Plattform zu verbinden.",
     "serversFilteredTitle": "Keine Server entsprechen diesen Filtern",
     "serversTitle": "Keine physischen Server",
     "serversFilteredDesc": "Erweitern Sie die Suche oder setzen Sie einen Filter zurück.",
@@ -372,7 +372,7 @@
   },
   "addEnvironment": {
     "title": "Umgebung hinzufügen",
-    "description": "Registrieren Sie einen VMware vCenter Server oder einen eigenständigen ESXi-Host, damit AltaStor dessen VMs erkennen und schützen kann.",
+    "description": "Registrieren Sie einen VMware vCenter Server, einen eigenständigen ESXi-Host oder einen Hyper-V-Host bzw. -Cluster, damit AltaStor dessen VMs erkennen und schützen kann.",
     "platformLabel": "Plattform",
     "type": {
       "vcenter": {
@@ -382,12 +382,18 @@
       "esxiStandalone": {
         "label": "VMware ESXi (eigenständig)",
         "hint": "Ein einzelner ESXi-Host, direkt verwaltet."
+      },
+      "hyperv": {
+        "label": "Microsoft Hyper-V",
+        "hint": "Ein Hyper-V-Host oder ein beliebiger Knoten bzw. der Name eines Failoverclusters. AltaStor benötigt WinRM (5986 oder 5985) und SMB (445) zu jedem Knoten sowie ein Konto, das auf jedem ein lokaler Administrator ist."
       }
     },
     "nameLabel": "Name",
     "addressLabel": "Adresse",
     "addressInvalid": "Geben Sie einen gültigen FQDN oder eine IP-Adresse ein — ohne Protokoll, Pfad oder Leerzeichen.",
     "portLabel": "Port",
+    "portAuto": "Auto",
+    "portAutoHint": "Bleibt das Feld leer, versucht AltaStor zuerst WinRM über HTTPS (5986), dann über HTTP (5985).",
     "usernameLabel": "Benutzername",
     "passwordLabel": "Passwort",
     "skipTlsLabel": "TLS-Überprüfung überspringen",
@@ -501,7 +507,7 @@
       "no-job": "Für diese VM hat noch kein Sicherungsauftrag Wiederherstellungspunkte erzeugt, es gibt also keine Kette zum Zusammenführen.",
       "no-chain": "Dieser Auftrag hat für diese VM noch keine Wiederherstellungspunkte erzeugt, es gibt also keine Kette zum Zusammenführen.",
       "chain-not-anchored": "Der älteste Wiederherstellungspunkt dieser Kette ist ein Inkrement ohne darunterliegendes Vollbackup. Ein synthetisches Vollbackup benötigt ein Vollbackup als Basis.",
-      "no-incrementals": "Diese Kette besteht aus einem Vollbackup ohne Inkremente. Ein Zusammenführen würde es unverändert kopieren — es gibt noch nichts zu tun.",
+      "no-incrementals": "Die Kette enthält nur ein Vollbackup ohne Inkremente, ein synthetisches Vollbackup würde es also unverändert kopieren.",
       "source-repository-unsupported": "{{repository}} kann keine Sicherungskette zusammenführen. Synthetische Vollbackups benötigen ein lokales oder Objektspeicher-Repository.",
       "source-repository-offline": "{{repository}} ist nicht erreichbar, die dort gespeicherte Kette kann nicht gelesen werden.",
       "target-repository-unsupported": "{{repository}} kann kein zusammengeführtes Backup aufnehmen. Wählen Sie ein lokales oder Objektspeicher-Repository.",
@@ -518,7 +524,30 @@
       "destinationCollision": "Das zusammengeführte Vollbackup würde genau dort geschrieben, wo die gelesene Kette liegt. Wählen Sie ein anderes Ziel-Repository.",
       "repositoryUnsupported": "Das Repository kann keine Sicherungskette zusammenführen. Synthetische Vollbackups benötigen ein lokales oder Objektspeicher-Repository.",
       "invalidChain": "Die Kette ist nicht in einem zusammenführbaren Zustand: Sie muss mit einem Vollbackup beginnen und danach nur Inkremente enthalten.",
-      "noIncrementals": "Die Kette enthielt nur eine Vollsicherung ohne Inkremente, die Zusammenführung hätte sie also unverändert kopiert."
+      "noIncrementals": "Die Kette enthält nur ein Vollbackup ohne Inkremente, ein synthetisches Vollbackup würde es also unverändert kopieren."
+    }
+  },
+  "hypervConfig": {
+    "title": "Hyper-V-Konfiguration",
+    "generation": "Generation",
+    "generation1": "Generation 1 (BIOS)",
+    "generation2": "Generation 2 (UEFI)",
+    "configurationVersion": "Konfigurationsversion",
+    "placement": "Läuft auf",
+    "clustered": "{{node}} (im Cluster)",
+    "standalone": "{{node}}",
+    "checkpoints": "Prüfpunkte",
+    "checkpointsNote_one": "Diese VM hat {{count}} Prüfpunkt. Backups laufen wie gewohnt, aber die Wiederherstellung am ursprünglichen Ort wird abgelehnt, bis er gelöscht ist: Das Ersetzen der Datenträger würde die Prüfpunktkette zerstören. Stellen Sie stattdessen an einem neuen Ort wieder her, oder löschen Sie den Prüfpunkt zuerst.",
+    "checkpointsNote_other": "Diese VM hat {{count}} Prüfpunkte. Backups laufen wie gewohnt, aber die Wiederherstellung am ursprünglichen Ort wird abgelehnt, bis sie gelöscht sind: Das Ersetzen der Datenträger würde die Prüfpunktkette zerstören. Stellen Sie stattdessen an einem neuen Ort wieder her, oder löschen Sie die Prüfpunkte zuerst.",
+    "disks": "Datenträger",
+    "noDisks": "Keine Datenträger erkannt.",
+    "adapters": "Netzwerkadapter",
+    "noAdapters": "Keine Netzwerkadapter erkannt.",
+    "notConnected": "Nicht verbunden",
+    "unknown": "Unbekannt",
+    "skip": {
+      "passThrough": "Pass-Through-Datenträger, nicht gesichert",
+      "vhdSet": "Freigegebener VHD-Satz, nicht gesichert"
     }
   }
 }

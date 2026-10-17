@@ -265,7 +265,8 @@
     "runNow": "Run now",
     "runFull": "Run full backup",
     "runOptions": "Run options",
-    "deleteJob": "Delete job"
+    "deleteJob": "Delete job",
+    "applyRetention": "Apply retention now…"
   },
   "toast": {
     "started": "Started {{name}}",
@@ -491,7 +492,8 @@
     "deduplication": "Deduplication",
     "deduplicationHint": "Block-level",
     "compression": "Compression",
-    "compressionLevel": "Level {{level}}"
+    "compressionLevel": "Level {{level}}",
+    "guestConsistency": "Checkpoint consistency"
   },
   "health": {
     "title": "Backup-file health",
@@ -833,7 +835,8 @@
       "filesPaths": "Add at least one path on every selected server.",
       "targetEnv": "Pick a target environment for the replica.",
       "repository": "Pick a repository to store backups in.",
-      "scheduleDays": "Pick at least one day for the backup schedule."
+      "scheduleDays": "Pick at least one day for the backup schedule.",
+      "hypervRepository": "Hyper-V VMs need an S3 repository, or a local one shared to the hosts over SMB: abr-vhdx-tool writes their disks from the Hyper-V host, which cannot reach {{repository}}. Give it its share under Repositories → Edit."
     },
     "scope": {
       "filesSummary_one": "{{count}} path on {{servers}}",
@@ -933,7 +936,11 @@
       "syntheticOverriddenDayOfMonth": "On day {{day}} of the month the active full backup runs at the same time and takes priority, so no merge happens that day. Move one of them to a different day or time.",
       "syntheticSameDayEvery": "An active full backup runs on the same day, at a different time. It starts a new chain, so the merge has nothing to merge yet or is replaced hours later. Move one of them to another day.",
       "syntheticSameDays": "An active full backup also runs on {{days}}, at a different time. It starts a new chain, so the merge on that day has nothing to merge yet or is replaced hours later. Move one of them to another day.",
-      "syntheticSameDayOfMonth": "An active full backup also runs on day {{day}} of the month, at a different time. It starts a new chain, so the merge that day has nothing to merge yet or is replaced hours later. Move one of them to another day."
+      "syntheticSameDayOfMonth": "An active full backup also runs on day {{day}} of the month, at a different time. It starts a new chain, so the merge that day has nothing to merge yet or is replaced hours later. Move one of them to another day.",
+      "syntheticOverriddenDayOfMonthOnDays": "When day {{day}} of the month falls on {{days}}, the active full backup runs at the same time and takes priority, so no merge happens that day. Move one of them to a different day or time.",
+      "syntheticSameDayOfMonthOnDays": "When day {{day}} of the month falls on {{days}}, an active full backup also runs that day, at a different time. It starts a new chain, so the merge that day has nothing to merge yet or is replaced hours later. Move one of them to another day.",
+      "syntheticOverriddenMonthEnd": "In months without day {{day}}, both run on the last day of the month at the same time, and the active full backup takes priority, so no merge happens that month. Move one of them to a different day or time.",
+      "syntheticSameMonthEnd": "In months without day {{day}}, an active full backup also runs on the last day of the month, at a different time. It starts a new chain, so the merge that day has nothing to merge yet or is replaced hours later. Move one of them to another day."
     },
     "advanced": "Advanced settings",
     "advancedHint": "(Defaults are applied)",
@@ -984,7 +991,60 @@
     "gfsMonthly": "Monthly",
     "gfsYearly": "Yearly",
     "loadingJob": "Loading job",
-    "whatIs": "What is {{term}}?"
+    "whatIs": "What is {{term}}?",
+    "hyperv": {
+      "title": "Hyper-V",
+      "term": "Hyper-V backup",
+      "help": "Hyper-V VMs are backed up from a recovery checkpoint, which freezes their disks while abr-vhdx-tool reads them on the host. The checkpoint then becomes a reference point, so the next backup reads only what resilient change tracking (RCT) reports as changed.",
+      "consistencyHint": {
+        "application": "A running guest is quiesced through VSS; if it cannot be, the checkpoint is crash-consistent and the run says so.",
+        "crash": "The guest is never involved — like pulling the plug at the moment of the checkpoint."
+      }
+    }
+  },
+  "hyperv": {
+    "consistency": {
+      "application": "Application-consistent",
+      "crash": "Crash-consistent"
+    }
+  },
+  "retentionRun": {
+    "title": "Apply retention now",
+    "lead": "This job keeps {{policy}}. A full backup and the incrementals on it are removed together, and only once all of them have expired, so every restore point left can still be restored. Retention also runs after each backup.",
+    "checking": "Checking which restore points have expired…",
+    "apply_one": "Remove {{count}} restore point",
+    "apply_other": "Remove {{count}} restore points",
+    "nothingToRemove": "Nothing to remove",
+    "previewNone_one": "None of the {{count}} restore point has expired yet.",
+    "previewNone_other": "None of the {{count}} restore points has expired yet.",
+    "previewSome_one": "{{count}} of {{total}} restore points has expired and would be removed.",
+    "previewSome_other": "{{count}} of {{total}} restore points have expired and would be removed.",
+    "doneSome_one": "Removed {{count}} of {{total}} restore points.",
+    "doneSome_other": "Removed {{count}} of {{total}} restore points.",
+    "noPoints": "This job has no restore points yet.",
+    "heldExplained": "Held restore points are expired but still under S3 Object Lock; they go on a later pass, once the lock ends. Older points they depend on stay with them.",
+    "col": {
+      "vm": "VM",
+      "repository": "Repository",
+      "points": "Points",
+      "willRemove": "Will remove",
+      "removed": "Removed",
+      "note": "Note"
+    },
+    "note": {
+      "skipped": "Skipped: {{reason}}",
+      "held_one": "{{count}} held by Object Lock until {{until}}",
+      "held_other": "{{count}} held by Object Lock until {{until}}",
+      "failed_one": "{{count}} could not be removed; kept for the next pass",
+      "failed_other": "{{count}} could not be removed; kept for the next pass"
+    },
+    "toast": {
+      "failed": "Retention of {{name}} did not run",
+      "partial_one": "Retention of {{name}} could not remove {{count}} restore point; it is kept for the next pass",
+      "partial_other": "Retention of {{name}} could not remove {{count}} restore points; they are kept for the next pass",
+      "done_one": "Retention of {{name}} removed {{count}} restore point",
+      "done_other": "Retention of {{name}} removed {{count}} restore points"
+    }
   },
   "clock": {
     "title": "This job's last run is ahead of the server clock",

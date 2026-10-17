@@ -30,6 +30,8 @@ import type {
 import { ImmutabilityFields } from "./ImmutabilityFields";
 import { ImmutabilityEffectPanel } from "./ImmutabilityEffectPanel";
 import { ValidationResultPanel } from "./ValidationResultPanel";
+import { ShareFields } from "./ShareFields";
+import { draftToShare, shareDraftChanged, shareDraftProblem, shareToDraft, type ShareDraft } from "./share";
 import {
   RESOURCE_NAME_MAX_LENGTH,
   resourceNameErrorKey,
@@ -57,8 +59,9 @@ interface EditRepositoryDialogProps {
 }
 
 /**
- * Edit an existing repository — its name, and (for object storage) its Object
- * Lock configuration.
+ * Edit an existing repository — its name, (for object storage) its Object
+ * Lock configuration, and (for a local folder) the SMB share Hyper-V hosts
+ * reach it by.
  *
  * Immutability used to be write-once: it could be set while creating a
  * repository and never seen again, so a lock that was too short, too long or
@@ -107,6 +110,7 @@ function EditRepositoryForm({
 
   const [name, setName] = useState(repo.name);
   const [lock, setLock] = useState<ImmutabilityDraft>(() => immutabilityToDraft(repo.immutability));
+  const [shareDraft, setShareDraft] = useState<ShareDraft>(() => shareToDraft(repo.share));
   const [saving, setSaving] = useState(false);
   const [validating, setValidating] = useState(false);
   const [applying, setApplying] = useState(false);
@@ -132,8 +136,11 @@ function EditRepositoryForm({
   const nameErrorKey = resourceNameErrorKey(nameProblem);
   const nameDirty = name !== "" && name !== repo.name;
   const lockValid = draftValid(lock);
-  const dirty = nameDirty || lockDirty;
-  const canSave = dirty && lockValid && nameProblem === null && !saving;
+  const isLocal = repo.type === "local";
+  const shareDirty = isLocal && shareDraftChanged(shareDraft, repo.share);
+  const shareValid = shareDraftProblem(shareDraft, repo.share) === null;
+  const dirty = nameDirty || lockDirty || shareDirty;
+  const canSave = dirty && lockValid && shareValid && nameProblem === null && !saving;
   /* Placing stored backups under the lock only makes sense once the lock is
    * saved: the appliance reads the repository's persisted setting, not the
    * draft in this form, and refuses outright when it is off. */
@@ -196,6 +203,7 @@ function EditRepositoryForm({
     const patch: RepositoryEdit = {};
     if (nameDirty) patch.name = name;
     if (lockDirty) patch.immutability = next;
+    if (shareDirty) patch.share = draftToShare(shareDraft);
 
     setSaving(true);
     setSaveError(null);
@@ -266,6 +274,19 @@ function EditRepositoryForm({
             />
             {nameErrorKey && <p className="text-xs text-danger">{tCommon(nameErrorKey)}</p>}
           </div>
+
+          {isLocal && (
+            <ShareFields
+              idPrefix="edit-repo"
+              draft={shareDraft}
+              onChange={(draft) => {
+                setShareDraft(draft);
+                setSaveError(null);
+              }}
+              saved={repo.share}
+              disabled={saving}
+            />
+          )}
 
           {/* Object Lock — only where the backend has the concept, so a local
               repository isn't offered a setting that would mean nothing there. */}

@@ -47,6 +47,7 @@ import { RunHistoryTable } from "./components/RunHistoryTable";
 import { JobObjectsTab } from "./components/JobObjectsTab";
 import { JobSettingsTab } from "./components/JobSettingsTab";
 import { DeleteJobDialog } from "./components/DeleteJobDialog";
+import { RetentionDialog } from "./components/RetentionDialog";
 
 export default function JobDetailPage() {
   const { t } = useTranslation("jobs");
@@ -65,6 +66,7 @@ export default function JobDetailPage() {
   const deleteJob = useWorldStore((s) => s.deleteJob);
 
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const [retentionOpen, setRetentionOpen] = useState(false);
 
   const jobSessions = useMemo(
     () =>
@@ -223,6 +225,10 @@ export default function JobDetailPage() {
                     <DropdownMenuItem onSelect={() => handleRun(true)}>
                       <DatabaseBackup className="h-4 w-4" />
                       {t("actions.runFull")}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onSelect={() => setRetentionOpen(true)}>
+                      <Layers className="h-4 w-4" />
+                      {t("actions.applyRetention")}
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -391,11 +397,18 @@ export default function JobDetailPage() {
         </TabsContent>
 
         <TabsContent value="settings">
-          <JobSettingsTab job={job} repository={repository} />
+          <JobSettingsTab
+            job={job}
+            repository={repository}
+            onApplyRetention={job.type === "backup" ? () => setRetentionOpen(true) : undefined}
+          />
         </TabsContent>
       </Tabs>
 
       <DeleteJobDialog open={deleteOpen} onOpenChange={setDeleteOpen} label={job.name} onConfirm={handleDelete} />
+      {job.type === "backup" && (
+        <RetentionDialog job={job} open={retentionOpen} onOpenChange={setRetentionOpen} />
+      )}
     </div>
   );
 }

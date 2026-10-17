@@ -117,7 +117,7 @@
     "credentialHint": "p. ej., vault:secret/hv-lab: los secretos nunca residen en el manifiesto.",
     "partialWarning": "Rellene todos los campos o vacíe la fila: las filas incompletas no se aplican.",
     "addAnother": "Añadir otro",
-    "vmwareOnly": "Aquí solo se pueden añadir VMware vCenter y hosts ESXi independientes. Esta appliance puede registrar entornos Hyper-V y Proxmox, pero todavía ninguna ejecución contra ellos funcionaría."
+    "vmwareOnly": "Aquí se pueden añadir VMware vCenter, hosts ESXi independientes y Hyper-V. Esta appliance puede registrar entornos Proxmox, pero todavía ninguna ejecución contra ellos funcionaría."
   },
   "review": {
     "title": "Revisión",

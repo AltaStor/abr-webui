@@ -89,6 +89,43 @@ export interface VM {
   ipAddress: string;
   /** Set when protection === "warning" / "unprotected" to explain why. */
   protectionNote?: string;
+  /** Hyper-V VMs only: the configuration discovery read off the host. */
+  hyperv?: HyperVVmDetails;
+}
+
+/** A Hyper-V VM's configuration, disks and adapters, as discovered. */
+export interface HyperVVmDetails {
+  /** 1 (BIOS) or 2 (UEFI). */
+  generation: number | null;
+  /** The VM configuration version, e.g. "10.0". */
+  configurationVersion: string | null;
+  checkpointCount: number;
+  /** A role of a failover cluster, rather than a VM of one standalone host. */
+  clustered: boolean;
+  /** The node the VM runs on now. */
+  ownerNode: string | null;
+  disks: HyperVDisk[];
+  networkAdapters: HyperVNetworkAdapter[];
+}
+
+export interface HyperVDisk {
+  name: string;
+  /** Controller slot, e.g. "SCSI0:1". */
+  controller: string | null;
+  /** The disk's current file; empty for a pass-through physical disk. */
+  path: string | null;
+  /** "VHDX", "VHD" or "VHDSet". */
+  format: string | null;
+  /** "Fixed", "Dynamic" or "Differencing". */
+  type: string | null;
+  capacityGB: number;
+}
+
+export interface HyperVNetworkAdapter {
+  name: string;
+  /** The virtual switch it is connected to; null when it is not connected. */
+  switchName: string | null;
+  mac: string | null;
 }
 
 export type ScheduleFrequency = "hourly" | "daily" | "weekly" | "custom";
@@ -165,6 +202,44 @@ export interface JobOptions {
   /** Backup window, "HH:mm-HH:mm" or undefined for anytime. */
   window?: string;
   throttleMBps?: number;
+  /** Hyper-V only: checkpoint consistency. "application" quiesces a running
+   *  guest through VSS and falls back to crash-consistent when it cannot;
+   *  undefined leaves the appliance default (application). */
+  guestConsistency?: "application" | "crash";
+}
+
+/** One backup chain (job × VM × repository) as a retention pass saw it. */
+export interface RetentionChainReport {
+  vmId: string;
+  vmName: string | null;
+  repositoryId: string | null;
+  repositoryName: string | null;
+  /** Restore points in the chain when the pass started. */
+  points: number;
+  /** Ids removed — or, for a preview, the ids a real pass would remove. */
+  removed: string[];
+  /** Expired points kept because S3 Object Lock still holds their data. */
+  held: { pointId: string; until: string }[];
+  /** Expired points whose stored data could not be removed; kept for retry. */
+  failed: string[];
+  /** Expired points kept because a newer point they carry is held or failed. */
+  keptForChain: string[];
+  /** Set when the chain was left alone, e.g. a backup of the VM is running. */
+  skippedReason: string | null;
+}
+
+/** POST /jobs/{id}/retention — what a retention pass removed or would remove. */
+export interface RetentionRunResult {
+  ok: boolean;
+  /** The appliance's refusal, when ok is false. */
+  message?: string;
+  jobId: string;
+  jobName: string;
+  dryRun: boolean;
+  retentionDays: number;
+  summary: { chains: number; points: number; removed: number; held: number; failed: number; skipped: number };
+  chains: RetentionChainReport[];
+  ranAt: string;
 }
 
 export type JobType = "backup" | "replication" | "backup-copy";
@@ -596,6 +671,26 @@ export interface Repository {
    *  authority for which repositories the dialog may offer. Undefined for a
    *  world that doesn't report it (the demo simulation). */
   supportsSyntheticFull?: boolean;
+  /** Local repositories only: the SMB share Hyper-V hosts reach its folder by
+   *  (abr-vhdx-tool writes Hyper-V backups there from the host). Null when it
+   *  has none, which leaves the repository to VMware jobs. */
+  share?: RepositoryShare | null;
+}
+
+/** A local repository's folder as Windows sees it: \\server\share, where
+ *  `share` may go on into a folder of the share. */
+export interface RepositoryShare {
+  server: string;
+  share: string;
+  /** The account the hosts open it with; null leaves it to the account the
+   *  Hyper-V inventory signs in with. */
+  username: string | null;
+}
+
+/** A share as it is written: the password only travels this way, and an
+ *  empty one on an edit keeps the stored one. */
+export interface RepositoryShareInput extends RepositoryShare {
+  password?: string;
 }
 
 /**
@@ -649,6 +744,8 @@ export interface CreateRepositoryInput {
   capacityGB: number;
   /** Present only when type is "object-lock-s3". */
   s3?: S3RepositoryConfig;
+  /** Local repositories only: the share Hyper-V hosts write through. */
+  share?: RepositoryShareInput;
 }
 
 /** One probe run by the appliance's real S3 connectivity test. */

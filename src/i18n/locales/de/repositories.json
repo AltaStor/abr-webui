@@ -218,6 +218,9 @@
     "threatLockedTitle": "Bedrohungsgesperrt · durch Bedrohungsreaktion versiegelt",
     "threatLockedBody": "Dieses Repository hält Wiederherstellungspunkte für {{names}}, die derzeit aktiv auf eine Bedrohung untersucht werden. Alle unveränderlichen Punkte hier bleiben geschützt. Die Versiegelung wird automatisch aufgehoben, sobald die Bedrohung eingedämmt oder verworfen ist.",
     "storagePath": "Speicherpfad",
+    "hypervShare": "Hyper-V-Freigabe",
+    "hypervShareAccount": "als {{account}}",
+    "hypervShareInventoryAccount": "mit dem Konto des Hyper-V-Inventars",
     "immutability": "Unveränderlichkeit",
     "immutabilityOff": "Aus — Backups bleiben löschbar",
     "immutabilityConfiguredNote_zero": "Dies ist die konfigurierte Einstellung. Führen Sie „Repository überprüfen“ aus, um zu bestätigen, dass der Bucket sie wirklich durchsetzt.",
@@ -365,5 +368,16 @@
     "saving": "Wird gespeichert…",
     "saveSettings": "Einstellungen speichern",
     "savedStaysOpen": "Gespeichert. Die hier bereits gespeicherten Wiederherstellungspunkte ({{count}}) sind nicht erfasst — stellen Sie sie unten unter die Sperre oder schließen Sie."
+  },
+  "share": {
+    "label": "SMB-Freigabe für Hyper-V-Hosts",
+    "optional": "(optional)",
+    "hint": "Hyper-V-Sicherungen schreibt abr-vhdx-tool auf dem Hyper-V-Host, der keinen Ordner dieser Appliance sieht. Geben Sie diesen Ordner per SMB frei und tragen Sie den Pfad ein, über den jeder Host ihn erreicht; leer lassen, wenn hier keine Hyper-V-VM gesichert wird.",
+    "uncInvalid": "Geben Sie einen UNC-Pfad ein: \\\\server\\freigabe, optional mit einem Ordner der Freigabe dahinter.",
+    "usernameLabel": "Konto",
+    "passwordLabel": "Passwort",
+    "passwordUnchanged": "Unverändert",
+    "passwordRequired": "Geben Sie das Passwort des Kontos ein.",
+    "accountHint": "Die Freigabe muss als der Benutzer schreiben, unter dem die Appliance läuft (Sambas force user). Ohne Konto öffnen die Hosts sie mit dem Konto des Hyper-V-Inventars."
   }
 }

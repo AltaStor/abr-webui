@@ -7,9 +7,8 @@
  * ORPHANED, deliberately kept. Nothing in this repository imports it: its one
  * consumer was the restore wizard's conversion-plan card, which was removed
  * because the plan it drew was a client-side guess for a conversion this
- * orchestrator cannot perform — one hypervisor plugin
- * (`python/srv/plugins/vcenter`), no disk-format conversion, no driver
- * injection. The wizard now refuses a cross-platform target instead of
+ * orchestrator cannot perform — each platform restores only its own VMs, with
+ * no disk-format conversion and no driver injection. The wizard now refuses a cross-platform target instead of
  * promising one (see features/restore/refusals.ts).
  *
  * The algorithm is left in place as the reference for whoever builds the real
