@@ -34,6 +34,7 @@ import type {
   ApplianceSettings,
   ApplyImmutabilityResult,
   AuditEvent,
+  BackupConsistency,
   BackupJob,
   CreateEnvironmentInput,
   CreateRepositoryInput,
@@ -462,6 +463,8 @@ function mapSession(s: Dict): Session {
         ]
       : [],
     message,
+    consistency: consistencyOf(s.consistency),
+    consistencyReason: strOrNull(s.consistency_reason),
     stageMessage,
     stopping,
     // Only the JobScheduler's own runs report "schedule" — Run now/Run full
@@ -535,6 +538,10 @@ function mapFullSchedule(raw: unknown): FullBackupSchedule | null {
   }
 }
 
+function consistencyOf(value: unknown): BackupConsistency | null {
+  return value === "quiesced" || value === "crash_consistent" ? value : null;
+}
+
 function mapJobOptions(params: Dict, compressionLevel?: unknown, encryption?: Dict): JobOptions {
   const level = Math.round(num(compressionLevel, DEFAULT_COMPRESSION_LEVEL));
   return {
@@ -551,6 +558,7 @@ function mapJobOptions(params: Dict, compressionLevel?: unknown, encryption?: Di
       params.hyperv_consistency === "crash" || params.hyperv_consistency === "application"
         ? params.hyperv_consistency
         : undefined,
+    onQuiesceFailure: params.on_quiesce_failure === "crash_consistent" ? "crash_consistent" : "fail",
   };
 }
 
@@ -747,6 +755,8 @@ function mapRestorePointFromChainPoint(chain: Dict, point: Dict): RestorePoint {
     compressionRatio: point.compression_ratio == null ? null : num(point.compression_ratio),
     compressionLevel: point.compression_level == null ? null : num(point.compression_level),
     encrypted: typeof point.encryption_enabled === "boolean" ? point.encryption_enabled : null,
+    consistency: consistencyOf(point.consistency),
+    consistencyReason: strOrNull(point.consistency_reason),
     gfsProtected: Boolean(point.gfs_protected),
     // "SyntheticFull" is a full point (the /inc/ test above already types it
     // as one) that was merged from the chain rather than read off the VM.
@@ -1333,6 +1343,7 @@ function optionsToTaskParams(o: JobOptions): Dict {
     encryption_enabled: o.encryption,
     compression_level: o.compression,
     dedup: o.dedup,
+    on_quiesce_failure: o.onQuiesceFailure ?? "fail",
   };
   // null clears any stored key on the way back off (see
   // _merge_task_parameters), so no stale key outlives the setting.

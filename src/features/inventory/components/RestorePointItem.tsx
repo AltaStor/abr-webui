@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 import { formatDateTime, formatRelative, formatStorage } from "@/lib/format";
 import { compressionRatioLabel, pointTypeTooltip } from "@/lib/restore-points";
 import { SyntheticFullBadge } from "@/components/SyntheticFullBadge";
+import { ConsistencyBadge } from "@/components/ConsistencyBadge";
 import type { RestorePoint } from "@/types";
 
 /**
@@ -77,6 +78,7 @@ export function RestorePointItem({
               {t("point.encrypted")}
             </Badge>
           )}
+          <ConsistencyBadge consistency={point.consistency} reason={point.consistencyReason} />
         </div>
         <p className="text-xs text-muted-foreground">
           {formatRelative(point.createdAt)} · {point.jobName}

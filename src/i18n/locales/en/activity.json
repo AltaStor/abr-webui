@@ -126,7 +126,8 @@
       "read": "Read",
       "transferred": "Transferred",
       "guestRead": "Guest read rate",
-      "throughput": "Throughput"
+      "throughput": "Throughput",
+      "consistency": "Consistency"
     },
     "table": {
       "result": "Result",

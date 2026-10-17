@@ -100,5 +100,16 @@
       "title": "Can’t reach your appliance — showing demo data",
       "description": "Everything below is a self-contained example, not your systems. Check the appliance is powered on and reachable, then reload. Press ⌘K → “Connect to live appliance” to retry."
     }
+  },
+  "consistency": {
+    "quiesced": "Quiesced",
+    "crash_consistent": "Crash-consistent",
+    "quiescedTip": "VMware Tools quiesced the guest before the snapshot, so applications and databases had flushed their data to disk.",
+    "reason": {
+      "tools_not_installed": "Crash-consistent: VMware Tools is not installed in the VM, so the guest was not quiesced.",
+      "tools_not_running": "Crash-consistent: VMware Tools was not running in the VM, so the guest was not quiesced.",
+      "quiesce_failed": "Crash-consistent: quiescing the guest failed, and the job is set to take a crash-consistent backup instead of failing.",
+      "not_quiesced": "Crash-consistent: VMware Tools did not quiesce the guest."
+    }
   }
 }

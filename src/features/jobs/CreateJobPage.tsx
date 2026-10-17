@@ -369,7 +369,7 @@ function JobWizard({
       activeFull: activeDefaults,
       syntheticFull: syntheticDefaults,
       repositoryId: "repo-immutable",
-      options: { appAware: true, encryption: false, compression: 3, dedup: true },
+      options: { appAware: true, encryption: false, compression: 3, dedup: true, onQuiesceFailure: "fail" },
       gfsWeekly: 0,
       gfsMonthly: 0,
       gfsYearly: 0,
@@ -1189,6 +1189,17 @@ function JobWizard({
                         <p className="text-[11px] text-muted-foreground">{t("create.opt.compressionHint")}</p>
                       </div>
                     </div>
+
+                    {!isReplication && !hypervSelected && (
+                      <ToggleRow
+                        label={t("create.opt.quiesceFallback")}
+                        hint={t("create.opt.quiesceFallbackHint")}
+                        help={t("create.opt.quiesceFallbackHelp")}
+                        helpTerm={t("create.opt.quiesceFallbackTerm")}
+                        checked={form.options.onQuiesceFailure === "crash_consistent"}
+                        onChange={(v) => setOption("onQuiesceFailure", v ? "crash_consistent" : "fail")}
+                      />
+                    )}
 
                     {/* The key is only asked for once encryption is on, and
                         answering it is a disaster-recovery decision rather than

@@ -23,6 +23,7 @@ import {
 } from "@/lib/restore-points";
 import type { RestorePoint } from "@/types";
 import { SyntheticFullBadge } from "@/components/SyntheticFullBadge";
+import { ConsistencyBadge } from "@/components/ConsistencyBadge";
 import { PointEncryptionBadge, VmEncryptionBadge } from "./EncryptionBadge";
 
 /**
@@ -293,6 +294,7 @@ function BackupPointRow({
             </Badge>
           )}
           <PointEncryptionBadge encrypted={point.encrypted} mixedChain={mixedEncryption} />
+          <ConsistencyBadge consistency={point.consistency} reason={point.consistencyReason} />
         </div>
         <p className="text-xs text-muted-foreground">
           {formatRelative(point.createdAt)}

@@ -185,8 +185,13 @@ export interface Retention {
   };
 }
 
+export type QuiesceFailureAction = "fail" | "crash_consistent";
+
+export type BackupConsistency = "quiesced" | "crash_consistent";
+
 export interface JobOptions {
   appAware: boolean;
+  onQuiesceFailure?: QuiesceFailureAction;
   /** AES-256 at rest. On its own this is all the appliance needs: a job that
    *  turns encryption on without a key of its own gets a 256-bit one minted
    *  server-side. */
@@ -366,6 +371,8 @@ export interface Session {
   vmResults: VmRunResult[];
   /** Set for warning/failed. */
   message?: string;
+  consistency?: BackupConsistency | null;
+  consistencyReason?: string | null;
   /**
    * Live stage caption for a *running* session (e.g. "Backing up disk 2/3:
    * 61%", "Storing changed blocks for disk 1/2: 40%") — the same text the CLI's
@@ -493,6 +500,8 @@ export interface RestorePoint {
    *  it when the point was written. null when it didn't say: that is "unknown",
    *  and reading it as "not encrypted" would be a claim nobody made. */
   encrypted: boolean | null;
+  consistency?: BackupConsistency | null;
+  consistencyReason?: string | null;
   gfsProtected: boolean;
   /**
    * This full point was produced by merging an existing chain (a synthetic

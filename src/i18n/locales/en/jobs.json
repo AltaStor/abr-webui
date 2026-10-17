@@ -493,7 +493,10 @@
     "deduplicationHint": "Block-level",
     "compression": "Compression",
     "compressionLevel": "Level {{level}}",
-    "guestConsistency": "Checkpoint consistency"
+    "guestConsistency": "Checkpoint consistency",
+    "onQuiesceFailure": "If quiescing fails",
+    "onQuiesceFailureFail": "The VM's backup fails",
+    "onQuiesceFailureCrashConsistent": "Crash-consistent backup, with a warning"
   },
   "health": {
     "title": "Backup-file health",
@@ -973,7 +976,11 @@
         "whitespace": "A key can't start or end with a space — the appliance stores it without one, so it wouldn't be the key you saved.",
         "tooShort": "Use at least 12 characters.",
         "tooSimple": "Mix at least three of: lowercase, uppercase, digits, symbols — or generate a key."
-      }
+      },
+      "quiesceFallback": "Crash-consistent backup if quiescing fails",
+      "quiesceFallbackHint": "Off: a VM whose guest cannot be quiesced fails its backup. On: it is backed up crash-consistent, with a warning.",
+      "quiesceFallbackTerm": "quiescing",
+      "quiesceFallbackHelp": "Before the snapshot, VMware Tools quiesces the guest: it runs the pre-freeze scripts in /etc/vmware-tools/backupScripts.d/ (Linux) or the VSS writers (Windows) so applications and databases flush their data. If that fails, the backup either fails, so nobody gets a crash-consistent copy of a database by surprise, or is taken again without quiescing, so the VM keeps getting restore points while the guest is fixed."
     },
     "syncWindow": "Sync window",
     "throttleLabel": "Throttle (MB/s)",

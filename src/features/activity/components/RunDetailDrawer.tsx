@@ -21,6 +21,7 @@ import { LiveThroughput } from "@/components/LiveThroughput";
 import { PipelineStages } from "@/components/PipelineStages";
 import { CountUp } from "@/components/CountUp";
 import { Metric } from "@/components/Metric";
+import { ConsistencyBadge, useConsistencyExplanation } from "@/components/ConsistencyBadge";
 import { LogViewer } from "@/components/LogViewer";
 import { CancelRunButton } from "@/components/CancelRunButton";
 import { EmptyState } from "@/components/EmptyState";
@@ -135,6 +136,7 @@ function RunDetail({ session: s, jobExists, onClose }: { session: Session; jobEx
   // run that succeeded, or failed any other way, keeps the appliance's line.
   const failedSynthetic = Boolean(s.synthetic) && s.status === "failed";
   const resultMessage = failedSynthetic ? syntheticFullFailureMessage(s.message ?? "") : s.message;
+  const consistencyNote = useConsistencyExplanation(s.consistency, s.consistencyReason);
   /* The same sentence for the per-VM row. It used to print the appliance's own
    * text while the banner above it printed the console's, so one failed merge
    * explained itself twice, in two different wordings. The log below keeps the
@@ -242,6 +244,12 @@ function RunDetail({ session: s, jobExists, onClose }: { session: Session; jobEx
           )}
           <Metric label={t("drawer.stat.duration")} value={running ? "—" : formatDuration(s.durationSec)} />
           <Metric label={t("objectNouns.vm.compact")} value={s.vmCount} />
+          {s.consistency && (
+            <Metric
+              label={t("drawer.stat.consistency")}
+              value={<ConsistencyBadge consistency={s.consistency} reason={s.consistencyReason} />}
+            />
+          )}
           {!noByteTelemetry && (
             <>
               <Metric label={t("drawer.stat.read")} value={s.processedGB > 0 ? formatStorage(s.processedGB) : "—"} />
@@ -275,6 +283,10 @@ function RunDetail({ session: s, jobExists, onClose }: { session: Session; jobEx
           >
             {resultMessage}
           </p>
+        )}
+
+        {s.consistency === "crash_consistent" && consistencyNote && (
+          <p className="border border-warning/30 bg-warning/10 px-3 py-2 text-xs text-warning-text">{consistencyNote}</p>
         )}
 
         {/* Per-VM breakdown */}

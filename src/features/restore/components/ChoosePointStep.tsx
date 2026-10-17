@@ -8,6 +8,7 @@ import { format } from "date-fns";
 import { Clock, History, Lock, ServerOff, ShieldCheck } from "@/lib/icons";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { ConsistencyBadge } from "@/components/ConsistencyBadge";
 import { EmptyState } from "@/components/EmptyState";
 import { cn } from "@/lib/utils";
 import { formatRelative, formatStorage } from "@/lib/format";
@@ -201,6 +202,7 @@ export function ChoosePointStep({ vm, selectedId, onSelect }: ChoosePointStepPro
                                     {t("point.encrypted")}
                                   </Badge>
                                 )}
+                                <ConsistencyBadge consistency={p.consistency} reason={p.consistencyReason} />
                               </span>
                               <span className="mt-1 block truncate text-xs text-muted-foreground">
                                 {p.jobName} · {formatRelative(p.createdAt)}

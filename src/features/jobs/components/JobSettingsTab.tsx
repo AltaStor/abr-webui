@@ -179,6 +179,16 @@ export function JobSettingsTab({ job, repository, onApplyRetention }: Props) {
               value={t(`hyperv.consistency.${options.guestConsistency ?? "application"}`)}
             />
           )}
+          {job.type === "backup" && !hyperv && (
+            <Value
+              label={t("settings.onQuiesceFailure")}
+              value={
+                options.onQuiesceFailure === "crash_consistent"
+                  ? t("settings.onQuiesceFailureCrashConsistent")
+                  : t("settings.onQuiesceFailureFail")
+              }
+            />
+          )}
         </CardContent>
       </Card>
     </div>
