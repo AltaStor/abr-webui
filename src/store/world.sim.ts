@@ -881,6 +881,7 @@ export function createSimDriver(handle: WorldHandle): WorldDriver {
         version: hypervisor === "vmware" ? "vSphere 8.0" : "",
         endpoint: input.endpoint,
         port: input.port,
+        protocol: input.type === "hyperv" ? (input.protocol ?? "https") : undefined,
         insecure: Boolean(input.insecure),
         connected: true,
         hostCount: 0,
@@ -893,7 +894,7 @@ export function createSimDriver(handle: WorldHandle): WorldDriver {
     editEnvironment: (id, patch) => {
       // Credentials (username/password) aren't part of the domain model — the
       // sim has nowhere to hold them, same as the appliance never returning
-      // them back over GET. Only name/endpoint/port/insecure are visibly
+      // them back over GET. Only name/endpoint/port/protocol/insecure are visibly
       // editable here.
       handle.set((s) => ({
         environments: s.environments.map((e) =>
@@ -903,6 +904,7 @@ export function createSimDriver(handle: WorldHandle): WorldDriver {
                 ...(patch.name !== undefined && { name: patch.name }),
                 ...(patch.endpoint !== undefined && { endpoint: patch.endpoint }),
                 ...(patch.port !== undefined && { port: patch.port }),
+                ...(patch.protocol !== undefined && { protocol: patch.protocol }),
                 ...(patch.insecure !== undefined && { insecure: patch.insecure }),
               }
             : e,

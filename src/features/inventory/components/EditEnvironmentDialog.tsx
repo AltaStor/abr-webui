@@ -26,8 +26,15 @@ import {
 import { apiErrorMessage } from "@/services/api.http";
 import { useWorldStore } from "@/store/world";
 import type { EnvironmentEdit } from "@/store/world.types";
-import type { Environment } from "@/types";
+import type { Environment, WinrmProtocol } from "@/types";
 import { isValidEnvironmentAddress } from "./AddEnvironmentDialog";
+import {
+  DEFAULT_WINRM_PROTOCOL,
+  WINRM_PORTS,
+  WinrmProtocolNote,
+  WinrmProtocolSelect,
+  portAfterProtocolChange,
+} from "./WinrmProtocolSelect";
 
 interface EditEnvironmentDialogProps {
   environment: Environment | null;
@@ -53,9 +60,10 @@ export function EditEnvironmentDialog({ environment, open, onOpenChange }: EditE
   );
 }
 
-/** The port an environment answers on when its record doesn't say: WinRM over
- *  HTTPS for Hyper-V, the vSphere API otherwise. */
-const defaultPort = (environment: Environment) => (environment.hypervisor === "hyperv" ? 5986 : 443);
+/** The port an environment answers on when its record doesn't say: its WinRM
+ *  protocol's port for Hyper-V, the vSphere API otherwise. */
+const defaultPort = (environment: Environment) =>
+  environment.hypervisor === "hyperv" ? WINRM_PORTS[environment.protocol ?? DEFAULT_WINRM_PROTOCOL] : 443;
 
 function EditEnvironmentForm({ environment, onClose }: { environment: Environment; onClose: () => void }) {
   const { t } = useTranslation("inventory");
@@ -64,6 +72,7 @@ function EditEnvironmentForm({ environment, onClose }: { environment: Environmen
   const [name, setName] = useState(environment.name);
   const [endpoint, setEndpoint] = useState(environment.endpoint);
   const [port, setPort] = useState(String(environment.port ?? defaultPort(environment)));
+  const [protocol, setProtocol] = useState<WinrmProtocol | undefined>(environment.protocol);
   const [insecure, setInsecure] = useState(Boolean(environment.insecure));
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -74,6 +83,7 @@ function EditEnvironmentForm({ environment, onClose }: { environment: Environmen
     setName(environment.name);
     setEndpoint(environment.endpoint);
     setPort(String(environment.port ?? defaultPort(environment)));
+    setProtocol(environment.protocol);
     setInsecure(Boolean(environment.insecure));
     setUsername("");
     setPassword("");
@@ -90,6 +100,12 @@ function EditEnvironmentForm({ environment, onClose }: { environment: Environmen
   const portNum = Number(port);
   const portValid = port.trim() !== "" && Number.isInteger(portNum) && portNum >= 1 && portNum <= 65535;
   const canSubmit = nameProblem === null && endpointTrimmed !== "" && endpointValid && portValid && !saving;
+  const isHyperV = environment.hypervisor === "hyperv";
+
+  const onProtocolChange = (next: WinrmProtocol) => {
+    setProtocol(next);
+    setPort((current) => portAfterProtocolChange(current, next));
+  };
 
   const handleSubmit = async () => {
     if (!canSubmit) return;
@@ -98,6 +114,7 @@ function EditEnvironmentForm({ environment, onClose }: { environment: Environmen
     if (name !== environment.name) patch.name = name;
     if (endpointTrimmed !== environment.endpoint) patch.endpoint = endpointTrimmed;
     if (portNum !== (environment.port ?? defaultPort(environment))) patch.port = portNum;
+    if (isHyperV && protocol && protocol !== environment.protocol) patch.protocol = protocol;
     if (insecure !== Boolean(environment.insecure)) patch.insecure = insecure;
     if (username.trim() !== "") patch.username = username.trim();
     if (password !== "") patch.password = password;
@@ -153,7 +170,7 @@ function EditEnvironmentForm({ environment, onClose }: { environment: Environmen
           {nameErrorKey && <p className="text-xs text-danger">{tCommon(nameErrorKey)}</p>}
         </div>
 
-        <div className="grid gap-3 sm:grid-cols-[1fr_7rem]">
+        <div className={cn("grid gap-3", isHyperV ? "sm:grid-cols-[1fr_6.5rem_6rem]" : "sm:grid-cols-[1fr_7rem]")}>
           <div className="space-y-1.5">
             <Label htmlFor="edit-env-endpoint">{t("editEnvironment.addressLabel")}</Label>
             <Input
@@ -167,6 +184,7 @@ function EditEnvironmentForm({ environment, onClose }: { environment: Environmen
             />
             {!endpointValid && <p className="text-xs text-danger">{t("editEnvironment.addressInvalid")}</p>}
           </div>
+          {isHyperV && <WinrmProtocolSelect id="edit-env-protocol" value={protocol} onChange={onProtocolChange} />}
           <div className="space-y-1.5">
             <Label htmlFor="edit-env-port">{t("editEnvironment.portLabel")}</Label>
             <Input
@@ -181,6 +199,7 @@ function EditEnvironmentForm({ environment, onClose }: { environment: Environmen
             />
           </div>
         </div>
+        {isHyperV && <WinrmProtocolNote protocol={protocol} />}
 
         <div className="grid gap-3 sm:grid-cols-2">
           <div className="space-y-1.5">
@@ -207,13 +226,15 @@ function EditEnvironmentForm({ environment, onClose }: { environment: Environmen
           </div>
         </div>
 
-        <label className="flex items-center justify-between gap-3 border border-border bg-muted/20 px-3 py-2 text-sm">
-          <span className="flex flex-col">
-            <span className="font-medium text-foreground">{t("editEnvironment.skipTlsLabel")}</span>
-            <span className="text-xs text-muted-foreground">{t("editEnvironment.skipTlsHint")}</span>
-          </span>
-          <Switch checked={insecure} onCheckedChange={setInsecure} />
-        </label>
+        {!(isHyperV && protocol === "http") && (
+          <label className="flex items-center justify-between gap-3 border border-border bg-muted/20 px-3 py-2 text-sm">
+            <span className="flex flex-col">
+              <span className="font-medium text-foreground">{t("editEnvironment.skipTlsLabel")}</span>
+              <span className="text-xs text-muted-foreground">{t("editEnvironment.skipTlsHint")}</span>
+            </span>
+            <Switch checked={insecure} onCheckedChange={setInsecure} />
+          </label>
+        )}
       </div>
 
       <DialogFooter>

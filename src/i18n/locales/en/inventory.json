@@ -385,15 +385,13 @@
       },
       "hyperv": {
         "label": "Microsoft Hyper-V",
-        "hint": "A Hyper-V host, or any node or the name of a failover cluster. AltaStor needs WinRM (5986 or 5985) and SMB (445) to every node, and an account that is a local administrator on each."
+        "hint": "A Hyper-V host, or any node or the name of a failover cluster. AltaStor needs WinRM over HTTPS (5986), or HTTP (5985) if you choose it, and SMB (445) to every node, and an account that is a local administrator on each."
       }
     },
     "nameLabel": "Name",
     "addressLabel": "Address",
     "addressInvalid": "Enter a valid FQDN or IP address — no protocol, path, or spaces.",
     "portLabel": "Port",
-    "portAuto": "Auto",
-    "portAutoHint": "Left empty, AltaStor tries WinRM over HTTPS (5986) first, then HTTP (5985).",
     "usernameLabel": "Username",
     "passwordLabel": "Password",
     "skipTlsLabel": "Skip TLS verification",
@@ -433,6 +431,13 @@
         "description": "The environment could not be updated. Try again in a moment."
       }
     }
+  },
+  "winrm": {
+    "protocolLabel": "Protocol",
+    "httpsHint": "WinRM over HTTPS: every node needs an HTTPS listener. AltaStor never falls back to HTTP.",
+    "httpWarning": "WinRM over HTTP has no TLS: the messages are still encrypted, but nothing proves the host is the one you meant. Use it only on a trusted network.",
+    "notDetected": "Auto",
+    "notDetectedHint": "Registered before the protocol setting existed: AltaStor detects it on the next connection and keeps it. Choose one to set it now."
   },
   "rescan": {
     "tooltip": "Pulls newly discovered hosts and VMs from every connected environment.",

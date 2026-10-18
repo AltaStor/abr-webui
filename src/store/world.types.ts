@@ -42,6 +42,7 @@ import type {
   Session,
   Threat,
   VM,
+  WinrmProtocol,
 } from "@/types";
 
 export type WorldMode = "live" | "sim";
@@ -104,6 +105,7 @@ export interface EnvironmentEdit {
   name?: string;
   endpoint?: string;
   port?: number;
+  protocol?: WinrmProtocol;
   username?: string;
   password?: string;
   /** Skip TLS certificate verification (self-signed lab certs). */

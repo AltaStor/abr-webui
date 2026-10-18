@@ -37,14 +37,19 @@ import {
 } from "@/lib/resource-name";
 import { apiErrorMessage } from "@/services/api.http";
 import { useWorldStore } from "@/store/world";
-import type { EnvironmentType } from "@/types";
+import type { EnvironmentType, WinrmProtocol } from "@/types";
+import {
+  DEFAULT_WINRM_PROTOCOL,
+  WINRM_PORTS,
+  WinrmProtocolNote,
+  WinrmProtocolSelect,
+  portAfterProtocolChange,
+} from "./WinrmProtocolSelect";
 
 interface TypeOption {
   value: EnvironmentType;
   label: string;
-  /** Null leaves the port to the appliance: for Hyper-V it tries WinRM over
-   *  HTTPS (5986) and then HTTP (5985), and pinning one would stop that. */
-  defaultPort: number | null;
+  defaultPort: number;
   hint: string;
   /** Example name, address and account, in the platform's own form. */
   namePlaceholder: string;
@@ -74,7 +79,7 @@ const TYPE_OPTIONS: TypeOption[] = [
   {
     value: "hyperv",
     get label() { return i18n.t("inventory:addEnvironment.type.hyperv.label"); },
-    defaultPort: null,
+    defaultPort: WINRM_PORTS[DEFAULT_WINRM_PROTOCOL],
     get hint() { return i18n.t("inventory:addEnvironment.type.hyperv.hint"); },
     namePlaceholder: "lab-hyperv",
     addressPlaceholder: "hv01.corp.local",
@@ -106,6 +111,7 @@ interface FormState {
   name: string;
   endpoint: string;
   port: string;
+  protocol: WinrmProtocol;
   username: string;
   password: string;
   insecure: boolean;
@@ -116,6 +122,7 @@ const emptyForm = (): FormState => ({
   name: "",
   endpoint: "",
   port: "443",
+  protocol: DEFAULT_WINRM_PROTOCOL,
   username: "",
   password: "",
   insecure: true,
@@ -164,8 +171,14 @@ export function AddEnvironmentDialog({
   const onTypeChange = (value: string) => {
     const opt = TYPE_OPTIONS.find((o) => o.value === value);
     if (!opt) return;
-    setForm((f) => ({ ...f, type: opt.value, port: opt.defaultPort === null ? "" : String(opt.defaultPort) }));
+    setForm((f) => ({ ...f, type: opt.value, port: String(opt.defaultPort), protocol: DEFAULT_WINRM_PROTOCOL }));
   };
+
+  const onProtocolChange = (protocol: WinrmProtocol) =>
+    setForm((f) => ({ ...f, protocol, port: portAfterProtocolChange(f.port, protocol) }));
+
+  const isHyperV = form.type === "hyperv";
+  const defaultPort = isHyperV ? WINRM_PORTS[form.protocol] : option.defaultPort;
 
   const portNum = Number(form.port);
   const portValid = form.port.trim() === "" || (Number.isInteger(portNum) && portNum >= 1 && portNum <= 65535);
@@ -228,6 +241,7 @@ export function AddEnvironmentDialog({
         type: form.type,
         endpoint,
         port: form.port.trim() ? Number(form.port) : undefined,
+        protocol: isHyperV ? form.protocol : undefined,
         username: form.username.trim(),
         password: form.password,
         insecure: form.insecure,
@@ -303,7 +317,7 @@ export function AddEnvironmentDialog({
             {nameErrorKey && <p className="text-xs text-danger">{tCommon(nameErrorKey)}</p>}
           </div>
 
-          <div className="grid gap-3 sm:grid-cols-[1fr_7rem]">
+          <div className={cn("grid gap-3", isHyperV ? "sm:grid-cols-[1fr_6.5rem_6rem]" : "sm:grid-cols-[1fr_7rem]")}>
             <div className="space-y-1.5">
               <Label htmlFor="env-endpoint">{t("addEnvironment.addressLabel")}</Label>
               <Input
@@ -320,6 +334,7 @@ export function AddEnvironmentDialog({
                 <p className="text-xs text-danger">{t("addEnvironment.addressInvalid")}</p>
               )}
             </div>
+            {isHyperV && <WinrmProtocolSelect id="env-protocol" value={form.protocol} onChange={onProtocolChange} />}
             <div className="space-y-1.5">
               <Label htmlFor="env-port">{t("addEnvironment.portLabel")}</Label>
               <Input
@@ -329,14 +344,12 @@ export function AddEnvironmentDialog({
                 max={65535}
                 value={form.port}
                 onChange={(e) => set("port", e.target.value)}
-                placeholder={option.defaultPort === null ? t("addEnvironment.portAuto") : undefined}
+                placeholder={String(defaultPort)}
                 aria-invalid={!portValid}
               />
             </div>
           </div>
-          {option.defaultPort === null && form.port.trim() === "" && (
-            <p className="-mt-2 text-xs text-muted-foreground">{t("addEnvironment.portAutoHint")}</p>
-          )}
+          {isHyperV && <WinrmProtocolNote protocol={form.protocol} />}
 
           <div className="grid gap-3 sm:grid-cols-2">
             <div className="space-y-1.5">
@@ -363,13 +376,15 @@ export function AddEnvironmentDialog({
             </div>
           </div>
 
-          <label className="flex items-center justify-between gap-3 border border-border bg-muted/20 px-3 py-2 text-sm">
-            <span className="flex flex-col">
-              <span className="font-medium text-foreground">{t("addEnvironment.skipTlsLabel")}</span>
-              <span className="text-xs text-muted-foreground">{t("addEnvironment.skipTlsHint")}</span>
-            </span>
-            <Switch checked={form.insecure} onCheckedChange={(v) => set("insecure", v)} />
-          </label>
+          {!(isHyperV && form.protocol === "http") && (
+            <label className="flex items-center justify-between gap-3 border border-border bg-muted/20 px-3 py-2 text-sm">
+              <span className="flex flex-col">
+                <span className="font-medium text-foreground">{t("addEnvironment.skipTlsLabel")}</span>
+                <span className="text-xs text-muted-foreground">{t("addEnvironment.skipTlsHint")}</span>
+              </span>
+              <Switch checked={form.insecure} onCheckedChange={(v) => set("insecure", v)} />
+            </label>
+          )}
         </div>
 
         <DialogFooter>

@@ -385,15 +385,13 @@
       },
       "hyperv": {
         "label": "Microsoft Hyper-V",
-        "hint": "Ein Hyper-V-Host oder ein beliebiger Knoten bzw. der Name eines Failoverclusters. AltaStor benötigt WinRM (5986 oder 5985) und SMB (445) zu jedem Knoten sowie ein Konto, das auf jedem ein lokaler Administrator ist."
+        "hint": "Ein Hyper-V-Host oder ein beliebiger Knoten bzw. der Name eines Failoverclusters. AltaStor benötigt WinRM über HTTPS (5986), oder HTTP (5985), wenn Sie es wählen, und SMB (445) zu jedem Knoten sowie ein Konto, das auf jedem ein lokaler Administrator ist."
       }
     },
     "nameLabel": "Name",
     "addressLabel": "Adresse",
     "addressInvalid": "Geben Sie einen gültigen FQDN oder eine IP-Adresse ein — ohne Protokoll, Pfad oder Leerzeichen.",
     "portLabel": "Port",
-    "portAuto": "Auto",
-    "portAutoHint": "Bleibt das Feld leer, versucht AltaStor zuerst WinRM über HTTPS (5986), dann über HTTP (5985).",
     "usernameLabel": "Benutzername",
     "passwordLabel": "Passwort",
     "skipTlsLabel": "TLS-Überprüfung überspringen",
@@ -433,6 +431,13 @@
         "description": "Die Umgebung konnte nicht aktualisiert werden. Versuchen Sie es gleich noch einmal."
       }
     }
+  },
+  "winrm": {
+    "protocolLabel": "Protokoll",
+    "httpsHint": "WinRM über HTTPS: Jeder Knoten braucht einen HTTPS-Listener. AltaStor weicht nie auf HTTP aus.",
+    "httpWarning": "WinRM über HTTP hat kein TLS: Die Nachrichten bleiben verschlüsselt, aber nichts belegt, dass der Host der gemeinte ist. Nur in einem vertrauenswürdigen Netz verwenden.",
+    "notDetected": "Auto",
+    "notDetectedHint": "Vor der Protokolleinstellung registriert: AltaStor erkennt das Protokoll bei der nächsten Verbindung und behält es bei. Wählen Sie eines, um es jetzt festzulegen."
   },
   "rescan": {
     "tooltip": "Holt neu erkannte Hosts und VMs aus allen verbundenen Umgebungen.",

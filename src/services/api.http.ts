@@ -75,6 +75,7 @@ import type {
   SessionStatus,
   Threat,
   VM,
+  WinrmProtocol,
 } from "@/types";
 
 /** Same-origin by default so the Vite `/api` proxy reaches the orchestrator. */
@@ -355,6 +356,7 @@ function mapEnvironment(inv: Dict): Environment {
     version: str(inv.version) || (type === "vcenter" ? "vSphere" : ""),
     endpoint: str(inv.endpoint) || str(inv.address) || str(conn.endpoint) || str(conn.address),
     port: conn.port === undefined || conn.port === null ? undefined : num(conn.port),
+    protocol: conn.protocol === "https" || conn.protocol === "http" ? conn.protocol : undefined,
     insecure: Boolean(conn.insecure),
     connected: str(inv.status) === "available",
     statusError: strOrNull(discovery.last_scan_error),
@@ -1015,6 +1017,7 @@ export async function createEnvironment(input: CreateEnvironmentInput): Promise<
   };
   if (input.token) body.token = input.token;
   if (input.port) body.port = input.port;
+  if (input.protocol) body.protocol = input.protocol;
   return mapEnvironment(asDict(await request<Dict>("/inventories", { method: "POST", body: JSON.stringify(body) })));
 }
 
@@ -1023,6 +1026,7 @@ export interface EnvironmentPatch {
   /** Host / management address (vCenter, ESXi, or Hyper-V host). */
   endpoint?: string;
   port?: number;
+  protocol?: WinrmProtocol;
   username?: string;
   password?: string;
   /** Skip TLS certificate verification (self-signed lab certs). */
@@ -1034,6 +1038,7 @@ export async function patchEnvironment(id: string, patch: EnvironmentPatch): Pro
   if (patch.name !== undefined) body.name = patch.name;
   if (patch.endpoint !== undefined) body.address = patch.endpoint;
   if (patch.port !== undefined) body.port = patch.port;
+  if (patch.protocol !== undefined) body.protocol = patch.protocol;
   if (patch.username !== undefined) body.username = patch.username;
   if (patch.password !== undefined) body.password = patch.password;
   if (patch.insecure !== undefined) body.insecure = patch.insecure;

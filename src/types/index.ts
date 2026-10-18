@@ -10,6 +10,9 @@ export type Hypervisor = "vmware" | "proxmox" | "hyperv";
 
 export type EnvironmentType = "vcenter" | "esxi-standalone" | "proxmox" | "hyperv";
 
+/** How a Hyper-V environment is reached over WinRM. */
+export type WinrmProtocol = "https" | "http";
+
 export interface Environment {
   id: string;
   name: string;
@@ -18,6 +21,9 @@ export interface Environment {
   version: string;
   endpoint: string;
   port?: number;
+  /** Hyper-V only; unset until an environment registered before the setting
+   *  existed has been reached once. */
+  protocol?: WinrmProtocol;
   /** Skip TLS certificate verification (self-signed lab certs). */
   insecure?: boolean;
   connected: boolean;
@@ -35,6 +41,8 @@ export interface CreateEnvironmentInput {
   /** Host / management address (vCenter, ESXi, or Hyper-V host). */
   endpoint: string;
   port?: number;
+  /** Hyper-V only; the appliance defaults to HTTPS. */
+  protocol?: WinrmProtocol;
   username: string;
   password: string;
   /** Bearer token — the Hyper-V agent's API token (alternative to user/pass). */

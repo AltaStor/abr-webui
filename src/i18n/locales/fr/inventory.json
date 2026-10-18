@@ -385,15 +385,13 @@
       },
       "hyperv": {
         "label": "Microsoft Hyper-V",
-        "hint": "Un hôte Hyper-V, ou n’importe quel nœud ou le nom d’un cluster de basculement. AltaStor a besoin de WinRM (5986 ou 5985) et de SMB (445) vers chaque nœud, et d’un compte administrateur local sur chacun."
+        "hint": "Un hôte Hyper-V, ou n’importe quel nœud ou le nom d’un cluster de basculement. AltaStor a besoin de WinRM en HTTPS (5986), ou en HTTP (5985) si vous le choisissez, et de SMB (445) vers chaque nœud, et d’un compte administrateur local sur chacun."
       }
     },
     "nameLabel": "Nom",
     "addressLabel": "Adresse",
     "addressInvalid": "Saisissez un FQDN ou une adresse IP valide — sans protocole, chemin ni espaces.",
     "portLabel": "Port",
-    "portAuto": "Auto",
-    "portAutoHint": "Laissé vide, AltaStor essaie d’abord WinRM en HTTPS (5986), puis en HTTP (5985).",
     "usernameLabel": "Nom d’utilisateur",
     "passwordLabel": "Mot de passe",
     "skipTlsLabel": "Ignorer la vérification TLS",
@@ -433,6 +431,13 @@
         "description": "L’environnement n’a pas pu être mis à jour. Réessayez dans un instant."
       }
     }
+  },
+  "winrm": {
+    "protocolLabel": "Protocole",
+    "httpsHint": "WinRM en HTTPS : chaque nœud a besoin d’un écouteur HTTPS. AltaStor ne se replie jamais sur HTTP.",
+    "httpWarning": "WinRM en HTTP n’a pas de TLS : les messages restent chiffrés, mais rien ne prouve que l’hôte est bien celui que vous visiez. À n’utiliser que sur un réseau de confiance.",
+    "notDetected": "Auto",
+    "notDetectedHint": "Enregistré avant l’existence du réglage de protocole : AltaStor le détecte à la prochaine connexion et le conserve. Choisissez-en un pour le fixer maintenant."
   },
   "rescan": {
     "tooltip": "Récupère les hôtes et VMs nouvellement découverts dans tous les environnements connectés.",
