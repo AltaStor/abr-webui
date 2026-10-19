@@ -1,7 +1,7 @@
 {
   "page": {
     "title": "Journaux",
-    "description": "Le journal système de l’appliance elle-même — événements du planificateur, du stockage, de TLS et de l’API, directement depuis le serveur."
+    "description": "Le journal système de l’appliance et le journal d’audit de chaque commande et modification d’utilisateur."
   },
   "actions": {
     "refreshLog": "Actualiser le journal système",
@@ -36,5 +36,45 @@
     "serverLogUnavailable": "Affichage d’événements déduits des données de cette console : le journal de l’appliance n’a pas pu être lu ({{reason}}).",
     "serverLogUnreachable": "l’appliance n’a pas répondu",
     "serverLogMissing": "L’appliance n’a trouvé aucun journal serveur. Elle a cherché dans : {{paths}}."
+  },
+  "tabs": {
+    "system": "Journal système",
+    "audit": "Journal d’audit"
+  },
+  "audit": {
+    "userPlaceholder": "Filtrer par nom d’utilisateur…",
+    "userLabel": "Seulement les entrées de cet utilisateur",
+    "areaLabel": "Filtrer par domaine du produit",
+    "allAreas": "Tous les domaines",
+    "resultLabel": "Filtrer par résultat",
+    "allResults": "Tous les résultats",
+    "result": {
+      "allowed": "Autorisé",
+      "denied": "Refusé",
+      "failed": "Échoué"
+    },
+    "refresh": "Actualiser le journal d’audit",
+    "loadFailed": "Le journal d’audit n’a pas pu être lu.",
+    "loading": "Lecture du journal d’audit…",
+    "empty": "Aucune entrée d’audit ne correspond.",
+    "column": {
+      "time": "Heure",
+      "user": "Utilisateur · rôle",
+      "function": "Fonction",
+      "target": "Cible",
+      "result": "Résultat",
+      "session": "Session",
+      "via": "Via"
+    },
+    "interface": {
+      "web": "Console web",
+      "cli": "CLI",
+      "api": "API"
+    },
+    "range": "{{from}}–{{to}} sur {{total}}",
+    "newer": "Entrées plus récentes",
+    "older": "Entrées plus anciennes",
+    "note": "Chaque commande de la console, de la CLI, de l’automatisation et de l’API est enregistrée avec le rôle de l’utilisateur à ce moment — autorisée, refusée ou échouée. Les chargements de page de cette console ne le sont pas. Mots de passe, clés et jetons sont masqués avant l’écriture.",
+    "demo": "La démo n’a pas de journal d’audit. Connectez-vous à une appliance active pour le lire."
   }
 }

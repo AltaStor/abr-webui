@@ -1,7 +1,7 @@
 {
   "page": {
     "title": "Protokolle",
-    "description": "Das Systemprotokoll der Appliance – Scheduler-, Speicher-, TLS- und API-Ereignisse, direkt vom Server."
+    "description": "Das Systemprotokoll der Appliance und das Audit-Protokoll aller Befehle und Benutzeränderungen."
   },
   "actions": {
     "refreshLog": "Systemprotokoll aktualisieren",
@@ -36,5 +36,45 @@
     "serverLogUnavailable": "Es werden aus den Daten dieser Konsole abgeleitete Ereignisse angezeigt: Das Protokoll der Appliance konnte nicht gelesen werden ({{reason}}).",
     "serverLogUnreachable": "die Appliance hat nicht geantwortet",
     "serverLogMissing": "Die Appliance hat kein Serverprotokoll gefunden. Gesucht wurde in: {{paths}}."
+  },
+  "tabs": {
+    "system": "Systemprotokoll",
+    "audit": "Audit-Protokoll"
+  },
+  "audit": {
+    "userPlaceholder": "Nach Benutzername filtern…",
+    "userLabel": "Nur Einträge dieses Benutzers",
+    "areaLabel": "Nach Produktbereich filtern",
+    "allAreas": "Alle Bereiche",
+    "resultLabel": "Nach Ergebnis filtern",
+    "allResults": "Alle Ergebnisse",
+    "result": {
+      "allowed": "Erlaubt",
+      "denied": "Verweigert",
+      "failed": "Fehlgeschlagen"
+    },
+    "refresh": "Audit-Protokoll aktualisieren",
+    "loadFailed": "Das Audit-Protokoll konnte nicht gelesen werden.",
+    "loading": "Audit-Protokoll wird gelesen…",
+    "empty": "Keine passenden Audit-Einträge.",
+    "column": {
+      "time": "Zeit",
+      "user": "Benutzer · Rolle",
+      "function": "Funktion",
+      "target": "Ziel",
+      "result": "Ergebnis",
+      "session": "Sitzung",
+      "via": "Über"
+    },
+    "interface": {
+      "web": "Webkonsole",
+      "cli": "CLI",
+      "api": "API"
+    },
+    "range": "{{from}}–{{to}} von {{total}}",
+    "newer": "Neuere Einträge",
+    "older": "Ältere Einträge",
+    "note": "Jeder Befehl aus der Konsole, der CLI, Automatisierung und der API wird mit der Rolle aufgezeichnet, die der Benutzer zu diesem Zeitpunkt hatte – erlaubt, verweigert oder fehlgeschlagen. Seitenaufrufe in dieser Konsole nicht. Passwörter, Schlüssel und Token werden vor dem Schreiben maskiert.",
+    "demo": "Die Demo hat kein Audit-Protokoll. Verbinden Sie sich mit einer Live-Appliance, um es zu lesen."
   }
 }

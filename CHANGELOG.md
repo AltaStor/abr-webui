@@ -14,6 +14,8 @@ All notable changes to the AltaStor WebUI are documented in this file.
 - Settings → Users: add users with a role, change a user's role, enable or
   disable them, delete them, and see the permission matrix of the built-in
   roles. Read-only for an Auditor.
+- Logs → Audit log: the appliance's audit log of every command and user
+  change, from every interface, filterable by user, area and result.
 - Hyper-V support: back up and restore Hyper-V VMs from the console.
   - Register Hyper-V hosts and failover clusters.
   - VM detail shows a Hyper-V VM's generation, placement, checkpoints, disks

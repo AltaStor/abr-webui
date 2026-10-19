@@ -17,10 +17,11 @@
  * out-of-place restore.
  *
  * What is a graceful STUB (no orchestrator support yet — surfaced in the UI as
- * "Work in progress"): replication, threats/ransomware, audit trail, metrics
- * history, appliance settings, first-boot provisioning, and the Hyper-V agent
- * lifecycle. These keep their export signatures so the WIP-gated pages still
- * compile and render empty.
+ * "Work in progress"): replication, threats/ransomware, the world store's audit
+ * event feed (the Logs page reads the real audit log with `listAuditRecords`),
+ * metrics history, appliance settings, first-boot provisioning, and the
+ * Hyper-V agent lifecycle. These keep their export signatures so the
+ * WIP-gated pages still compile and render empty.
  *
  * Transport: same-origin `/api/v1/*` (the Vite dev server proxies to :443).
  * There is NO server-sent-event stream on this backend, so `subscribeEvents`
@@ -1054,6 +1055,74 @@ export async function listFunctions(): Promise<ProductFunction[]> {
     name: str(f.name),
     category: str(f.category),
   }));
+}
+
+/* ---- Audit log (Logs -> Audit) ---- */
+
+export type AuditResult = "allowed" | "denied" | "failed";
+
+export interface AuditRecord {
+  id: string;
+  /** UTC, ISO 8601. */
+  timestamp: string;
+  user: string;
+  /** The role the user held when the record was written. */
+  role: string | null;
+  functionId: string;
+  target: { type: string; id: string | null; name: string | null } | null;
+  result: AuditResult;
+  sessionId: string | null;
+  /** "web", "cli" or "api". */
+  interface: string;
+  command: string | null;
+  client: string | null;
+  error: { code: string; message: string } | null;
+  /** The request, with credentials masked by the appliance. */
+  parameters: Dict | null;
+  details: Dict | null;
+}
+
+export interface AuditLogQuery {
+  limit?: number;
+  offset?: number;
+  user?: string;
+  /** A function ID, or an area with a trailing dot ("job.") for all of it. */
+  function?: string;
+  result?: AuditResult;
+  since?: string;
+}
+
+function mapAuditRecord(r: Dict): AuditRecord {
+  const target = r.target ? asDict(r.target) : null;
+  const error = r.error ? asDict(r.error) : null;
+  const result = str(r.result);
+  return {
+    id: str(r.id),
+    timestamp: str(r.timestamp),
+    user: str(r.user),
+    role: strOrNull(r.role),
+    functionId: str(r.function_id),
+    target: target ? { type: str(target.type), id: strOrNull(target.id), name: strOrNull(target.name) } : null,
+    result: result === "denied" || result === "failed" ? result : "allowed",
+    sessionId: strOrNull(r.session_id),
+    interface: str(r.interface, "api"),
+    command: strOrNull(r.command),
+    client: strOrNull(r.client),
+    error: error ? { code: str(error.code), message: str(error.message) } : null,
+    parameters: r.parameters ? asDict(r.parameters) : null,
+    details: r.details ? asDict(r.details) : null,
+  };
+}
+
+export async function listAuditRecords(q: AuditLogQuery = {}): Promise<{ items: AuditRecord[]; total: number }> {
+  const params = new URLSearchParams();
+  for (const [key, value] of Object.entries(q)) {
+    if (value !== undefined && value !== "") params.set(key, String(value));
+  }
+  const query = params.toString();
+  const res = asDict(await request<Dict>(`/audit${query ? `?${query}` : ""}`));
+  const items = Array.isArray(res.items) ? (res.items as Dict[]).map(mapAuditRecord) : [];
+  return { items, total: num(res.total, items.length) };
 }
 
 /** True when the appliance refused the request because the signed-in user's

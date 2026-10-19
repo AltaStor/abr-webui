@@ -33,4 +33,5 @@ export const qk = {
   users: ["users"] as const,
   roles: ["roles"] as const,
   functions: ["functions"] as const,
+  audit: (query: object) => ["audit", query] as const,
 };

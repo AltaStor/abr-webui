@@ -2,6 +2,7 @@
 // Copyright © 2026 Norvitex OÜ
 
 import { useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
 import { AlertTriangle, Cpu, FileText, Loader2, Package, RotateCw, type LucideIcon } from "@/lib/icons";
@@ -10,14 +11,17 @@ import { PageHeader } from "@/components/PageHeader";
 import { KpiBand } from "@/components/KpiBand";
 import { KpiCard } from "@/components/KpiCard";
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/components/ui/sonner";
 import { downloadBlob } from "@/lib/download";
 import { qk } from "@/lib/query";
 import { apiErrorMessage, getSupportBundle, listSystemLog, type SystemLogRow } from "@/services/api.http";
+import { useCan } from "@/store/permissions";
 import { useWorldStore } from "@/store/world";
 import { buildLiveSystemLog, buildLogsWorld } from "./mock";
 import type { SystemLogEntry } from "./types";
 import { SystemLogTab } from "./components/SystemLogTab";
+import { AuditLogTab } from "./components/AuditLogTab";
 
 interface StatTile {
   label: string;
@@ -48,6 +52,20 @@ export default function LogsPage() {
   const mode = useWorldStore((s) => s.mode);
   const liveLogs = useWorldStore((s) => s.liveLogs);
   const live = mode === "live";
+  const canSystemLog = useCan("system.logs");
+  const canAudit = useCan("audit.view");
+  const canBundle = useCan("system.support_bundle");
+
+  /* The system log and the audit log, each for the roles that may read it;
+   * the tab lives in the URL so a link can open the audit log directly. */
+  const [searchParams, setSearchParams] = useSearchParams();
+  const tab = (searchParams.get("tab") === "audit" && canAudit) || !canSystemLog ? "audit" : "system";
+  const setTab = (value: string) => {
+    const next = new URLSearchParams(searchParams);
+    if (value === "system") next.delete("tab");
+    else next.set("tab", value);
+    setSearchParams(next, { replace: true });
+  };
 
   // One deterministic build; refresh only when the world revision changes so
   // derived-from-store lines stay in sync without re-seeding on every render.
@@ -63,7 +81,7 @@ export default function LogsPage() {
   const serverLog = useQuery({
     queryKey: qk.systemLog,
     queryFn: () => listSystemLog({ limit: SYSTEM_LOG_LIMIT }),
-    enabled: live,
+    enabled: live && canSystemLog,
     refetchInterval: SYSTEM_LOG_REFRESH_MS,
   });
 
@@ -144,6 +162,25 @@ export default function LogsPage() {
         : null
     : null;
 
+  const systemView = (
+    <>
+      <KpiBand className="sm:grid-cols-2 xl:grid-cols-2">
+        {stats.map((s) => (
+          <KpiCard key={s.label} icon={s.icon} tone={s.tone} label={s.label} value={s.value} />
+        ))}
+      </KpiBand>
+
+      {notice && (
+        <p className="flex items-start gap-2 border border-warning/30 bg-warning-subtle px-3 py-2.5 text-xs leading-relaxed text-warning-text">
+          <Cpu className="mt-px h-3.5 w-3.5 shrink-0" />
+          <span>{notice}</span>
+        </p>
+      )}
+
+      <SystemLogTab entries={system} />
+    </>
+  );
+
   return (
     <div className="space-y-5">
       <PageHeader
@@ -151,7 +188,7 @@ export default function LogsPage() {
         description={t("page.description")}
         actions={
           <div className="flex items-center gap-2">
-            {live && (
+            {live && tab === "system" && (
               <Button
                 variant="outline"
                 onClick={() => void serverLog.refetch()}
@@ -168,36 +205,42 @@ export default function LogsPage() {
                 filters the reader can see applied. A menu that exists to offer
                 one thing plus a duplicate of a nearby button is a click in the
                 way of the only thing anyone opens it for. */}
-            <Button
-              variant="outline"
-              onClick={() => void onDownloadSupportBundle()}
-              disabled={bundling}
-            >
-              {bundling ? (
-                <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
-              ) : (
-                <Package className="mr-1.5 h-4 w-4" />
-              )}
-              {bundling ? t("actions.bundling") : t("actions.downloadSupportBundle")}
-            </Button>
+            {canBundle && (
+              <Button
+                variant="outline"
+                onClick={() => void onDownloadSupportBundle()}
+                disabled={bundling}
+              >
+                {bundling ? (
+                  <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
+                ) : (
+                  <Package className="mr-1.5 h-4 w-4" />
+                )}
+                {bundling ? t("actions.bundling") : t("actions.downloadSupportBundle")}
+              </Button>
+            )}
           </div>
         }
       />
 
-      <KpiBand className="sm:grid-cols-2 xl:grid-cols-2">
-        {stats.map((s) => (
-          <KpiCard key={s.label} icon={s.icon} tone={s.tone} label={s.label} value={s.value} />
-        ))}
-      </KpiBand>
-
-      {notice && (
-        <p className="flex items-start gap-2 border border-warning/30 bg-warning-subtle px-3 py-2.5 text-xs leading-relaxed text-warning-text">
-          <Cpu className="mt-px h-3.5 w-3.5 shrink-0" />
-          <span>{notice}</span>
-        </p>
+      {canSystemLog && canAudit ? (
+        <Tabs value={tab} onValueChange={setTab}>
+          <TabsList>
+            <TabsTrigger value="system">{t("tabs.system")}</TabsTrigger>
+            <TabsTrigger value="audit">{t("tabs.audit")}</TabsTrigger>
+          </TabsList>
+          <TabsContent value="system" className="space-y-5">
+            {systemView}
+          </TabsContent>
+          <TabsContent value="audit">
+            <AuditLogTab />
+          </TabsContent>
+        </Tabs>
+      ) : canSystemLog ? (
+        systemView
+      ) : (
+        <AuditLogTab />
       )}
-
-      <SystemLogTab entries={system} />
     </div>
   );
 }

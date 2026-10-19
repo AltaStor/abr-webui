@@ -16,7 +16,7 @@ API and renders no data of its own.
 - **Restore** — restoring VMs from repository restore points
 - **Inventory** — vCenter/ESXi topology and protected VM inventory
 - **Repositories** — backup repository management
-- **Logs** — local log viewer
+- **Logs** — the appliance's system log and audit log
 - **Settings**, **Auth**, **Setup** — appliance configuration, users and roles, authentication, and first-run setup
 
 What each user sees and can do follows their role on the appliance (see
