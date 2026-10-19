@@ -38,6 +38,7 @@ import {
 } from "@/services/api.http";
 import { useWorldStore } from "@/store/world";
 import { SettingsSection } from "../SettingsSection";
+import { useCan } from "@/store/permissions";
 
 /** Mirrors the appliance's MAX_PEM_CHARS — a file bigger than this is the wrong file. */
 const MAX_PEM_FILE_BYTES = 100_000;
@@ -61,6 +62,7 @@ export function TlsCertificateCard() {
   const [replacing, setReplacing] = useState(false);
   const [confirmRevert, setConfirmRevert] = useState(false);
   const [reverting, setReverting] = useState(false);
+  const canEdit = useCan("tls.edit");
 
   useEffect(() => {
     if (mode !== "live") return;
@@ -171,7 +173,7 @@ export function TlsCertificateCard() {
                 announceChange(next, t("security.certificate.toast.installed"));
               }}
             />
-          ) : (
+          ) : !canEdit ? null : (
             <div className="flex flex-wrap justify-end gap-2 border-t border-border/50 pt-3.5">
               {cert.source === "administrator" && (
                 <Button variant="outline" size="sm" onClick={() => setConfirmRevert(true)}>

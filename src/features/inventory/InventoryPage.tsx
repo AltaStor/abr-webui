@@ -51,6 +51,7 @@ import { EditEnvironmentDialog } from "./components/EditEnvironmentDialog";
 import { DeleteEnvironmentDialog } from "./components/DeleteEnvironmentDialog";
 import { buildTree, collectVmIds, type TreeNode } from "./topology";
 import { restoreLink } from "@/features/restore/link";
+import { useCan } from "@/store/permissions";
 
 type PowerFilter = "all" | VM["powerState"];
 type OsFilter = "all" | VM["osFamily"];
@@ -73,6 +74,11 @@ export default function InventoryPage() {
   const jobs = useWorldStore((s) => s.jobs);
   const restorePoints = useWorldStore((s) => s.restorePoints);
   const rescanEnvironment = useWorldStore((s) => s.rescanEnvironment);
+  const canAdd = useCan("inventory.create");
+  const canRescan = useCan("inventory.rescan");
+  const canRestore = useCan("restore.start");
+  const canProtect = useCan("job.create");
+  const canViewJobs = useCan("job.view");
 
   // envFilter from the global UI store seeds the environment filter (optional).
   const globalEnvFilter = useUiStore((s) => s.envFilter);
@@ -367,6 +373,7 @@ export default function InventoryPage() {
           // The row itself is clickable, so each link stops the click from also
           // reaching the row's own navigation.
           if (vm.protection === "protected") {
+            if (!canRestore) return null;
             return (
               <Button
                 asChild
@@ -381,6 +388,7 @@ export default function InventoryPage() {
             );
           }
           const coveringJob = jobForVm.get(vm.id);
+          if (coveringJob ? !canViewJobs : !canProtect) return null;
           return (
             <Button asChild variant="subtle" size="sm">
               <Link
@@ -395,7 +403,7 @@ export default function InventoryPage() {
         },
       },
     ],
-    [envName, hostName, jobForVm, backupSizeByVm, t],
+    [envName, hostName, jobForVm, backupSizeByVm, t, canRestore, canProtect, canViewJobs],
   );
 
   const runningCount = vms.filter((v) => v.powerState === "running").length;
@@ -422,20 +430,24 @@ export default function InventoryPage() {
           <>
             {/* Default size (h-9), not sm (h-8): the header actions and every
                 control on the toolbar below settle on one height. */}
-            <Hint label={t("rescan.tooltip")}>
-              <Button
-                variant="outline"
-                onClick={() => void handleRescan()}
-                disabled={rescanning || environments.length === 0}
-              >
-                <RefreshCw className={cn("h-4 w-4", rescanning && "animate-spin")} />
-                {rescanning ? t("rescan.running") : t("actions.rescanAll")}
+            {canRescan && (
+              <Hint label={t("rescan.tooltip")}>
+                <Button
+                  variant="outline"
+                  onClick={() => void handleRescan()}
+                  disabled={rescanning || environments.length === 0}
+                >
+                  <RefreshCw className={cn("h-4 w-4", rescanning && "animate-spin")} />
+                  {rescanning ? t("rescan.running") : t("actions.rescanAll")}
+                </Button>
+              </Hint>
+            )}
+            {canAdd && (
+              <Button onClick={() => setAddEnvOpen(true)}>
+                <Plus className="h-4 w-4" />
+                {t("actions.addEnvironment")}
               </Button>
-            </Hint>
-            <Button onClick={() => setAddEnvOpen(true)}>
-              <Plus className="h-4 w-4" />
-              {t("actions.addEnvironment")}
-            </Button>
+            )}
           </>
         }
       />

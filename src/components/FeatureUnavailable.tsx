@@ -40,3 +40,16 @@ export function FeatureUnavailable({
     />
   );
 }
+
+/**
+ * What a page says to a user whose role does not allow it — a deep link or a
+ * bookmark into a part of the console the sidebar no longer offers them.
+ */
+export function NotPermitted() {
+  return (
+    <FeatureUnavailable
+      titleKey="featureUnavailable.notPermitted.title"
+      descriptionKey="featureUnavailable.notPermitted.description"
+    />
+  );
+}

@@ -26,6 +26,7 @@ import {
   type AuthUser,
 } from "@/services/api.http";
 import { refreshWorld, useWorldStore } from "@/store/world";
+import { roleRef, usePermissionsStore } from "@/store/permissions";
 import { DemoCredentialsError, simLogin } from "@/mock/auth";
 
 const STORAGE_KEY = "basalt.session";
@@ -34,6 +35,9 @@ interface StoredSession {
   token: string;
   expiresAt: string;
   user: AuthUser;
+  /** What the user's role allowed at sign-in (null: an appliance without
+   *  roles). The live driver refreshes it from `/auth/me` before each hydrate. */
+  permissions?: string[] | null;
 }
 
 function readStoredSession(): StoredSession | null {
@@ -78,7 +82,12 @@ interface AuthState {
 }
 
 const restored = readStoredSession();
-if (restored) setAuthToken(restored.token);
+if (restored) {
+  setAuthToken(restored.token);
+  // A session stored by an older console has no permissions: show nothing
+  // until the first `/auth/me` says what the role allows.
+  usePermissionsStore.getState().setGrants(restored.permissions ?? [], roleRef(restored.user.role));
+}
 
 export const useAuthStore = create<AuthState>((set) => ({
   status: restored ? "signed-in" : "signed-out",
@@ -100,7 +109,13 @@ export const useAuthStore = create<AuthState>((set) => ({
           ? await loginHttp(name.trim(), password, durationSeconds)
           : simLogin(name, password, durationSeconds);
       setAuthToken(result.token);
-      writeStoredSession({ token: result.token, expiresAt: result.expiresAt, user: result.user });
+      usePermissionsStore.getState().setGrants(result.permissions, roleRef(result.user.role));
+      writeStoredSession({
+        token: result.token,
+        expiresAt: result.expiresAt,
+        user: result.user,
+        permissions: result.permissions,
+      });
       set({
         status: "signed-in",
         user: result.user,
@@ -136,6 +151,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     }
     setAuthToken(null);
     writeStoredSession(null);
+    usePermissionsStore.getState().clear();
     set({ status: "signed-out", user: null, mustChangePassword: false, error: null });
     // Drop whatever the previous session's data was — the live driver
     // re-hydrates into the empty/unauthenticated world (see world.live.ts).
@@ -161,6 +177,18 @@ export const useAuthStore = create<AuthState>((set) => ({
 
 setUnauthorizedHandler(() => {
   writeStoredSession(null);
+  usePermissionsStore.getState().clear();
   useAuthStore.setState({ status: "signed-out", user: null, mustChangePassword: false });
   refreshWorld();
+});
+
+/* The live driver refreshes the grants from `/auth/me` before each hydrate;
+ * keep the stored session in step, so a reload starts from the current role. */
+usePermissionsStore.subscribe((state) => {
+  const stored = readStoredSession();
+  if (!stored) return;
+  const permissions = state.grants === "all" ? null : [...state.grants];
+  const user = { ...stored.user, role: state.role?.id ?? stored.user.role };
+  writeStoredSession({ ...stored, user, permissions });
+  if (useAuthStore.getState().user?.id === user.id) useAuthStore.setState({ user });
 });

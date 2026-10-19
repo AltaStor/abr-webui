@@ -356,28 +356,38 @@ function RepositoryDetailBody({
         </div>
       </ScrollArea>
 
-      {/* Actions footer */}
-      <div className="flex flex-wrap items-center justify-end gap-2 border-t border-border p-4">
-        <Button variant="outline" size="sm" onClick={actions.onRescan} disabled={scanning}>
-          <RefreshCw className={scanning ? "h-4 w-4 animate-spin" : "h-4 w-4"} />
-          {scanning ? t("actions.scanning") : t("detail.footer.rescan")}
-        </Button>
-        <Button variant="outline" size="sm" onClick={actions.onVerify} disabled={verifying}>
-          {verifying ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : (
-            <ShieldCheck className="h-4 w-4" />
+      {/* Actions footer — only what the signed-in role may do. */}
+      {(actions.onRescan || actions.onVerify || actions.onEdit || actions.onDelete) && (
+        <div className="flex flex-wrap items-center justify-end gap-2 border-t border-border p-4">
+          {actions.onRescan && (
+            <Button variant="outline" size="sm" onClick={actions.onRescan} disabled={scanning}>
+              <RefreshCw className={scanning ? "h-4 w-4 animate-spin" : "h-4 w-4"} />
+              {scanning ? t("actions.scanning") : t("detail.footer.rescan")}
+            </Button>
           )}
-          {verifying ? t("actions.verifying") : t("actions.verify")}
-        </Button>
-        <Button variant="outline" size="sm" onClick={actions.onEdit}>
-          {t("actions.editSettings")}
-        </Button>
-        <Button variant="destructive" size="sm" onClick={actions.onDelete}>
-          <Trash2 className="h-4 w-4" />
-          {t("common:actions.delete")}
-        </Button>
-      </div>
+          {actions.onVerify && (
+            <Button variant="outline" size="sm" onClick={actions.onVerify} disabled={verifying}>
+              {verifying ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <ShieldCheck className="h-4 w-4" />
+              )}
+              {verifying ? t("actions.verifying") : t("actions.verify")}
+            </Button>
+          )}
+          {actions.onEdit && (
+            <Button variant="outline" size="sm" onClick={actions.onEdit}>
+              {t("actions.editSettings")}
+            </Button>
+          )}
+          {actions.onDelete && (
+            <Button variant="destructive" size="sm" onClick={actions.onDelete}>
+              <Trash2 className="h-4 w-4" />
+              {t("common:actions.delete")}
+            </Button>
+          )}
+        </div>
+      )}
     </>
   );
 }

@@ -18,14 +18,16 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
+/** Each action is offered only when given: the page leaves out what the
+ *  signed-in role does not allow. */
 export interface RepositoryActions {
-  onEdit: () => void;
-  onRescan: () => void;
+  onEdit?: () => void;
+  onRescan?: () => void;
   /** Full repository validation — reachable, Object Lock still as configured,
    *  stored backups still consistent. Distinct from rescan, which only re-reads
    *  the catalog to find what is there. */
-  onVerify: () => void;
-  onDelete: () => void;
+  onVerify?: () => void;
+  onDelete?: () => void;
 }
 
 interface RepositoryActionsMenuProps extends RepositoryActions {
@@ -54,6 +56,7 @@ export function RepositoryActionsMenu({
   repoName,
 }: RepositoryActionsMenuProps) {
   const { t } = useTranslation("repositories");
+  if (!onEdit && !onRescan && !onVerify && !onDelete) return null;
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -71,23 +74,33 @@ export function RepositoryActionsMenu({
         onClick={(e) => e.stopPropagation()}
         className="min-w-[13rem]"
       >
-        <DropdownMenuItem onSelect={onEdit}>
-          <Pencil className="h-4 w-4" />
-          {t("actions.editSettings")}
-        </DropdownMenuItem>
-        <DropdownMenuItem onSelect={onRescan} disabled={scanning}>
-          <RefreshCw className={scanning ? "h-4 w-4 animate-spin" : "h-4 w-4"} />
-          {scanning ? t("actions.scanning") : t("actions.rescan")}
-        </DropdownMenuItem>
-        <DropdownMenuItem onSelect={onVerify} disabled={verifying}>
-          <ShieldCheck className={verifying ? "h-4 w-4 animate-pulse" : "h-4 w-4"} />
-          {verifying ? t("actions.verifying") : t("actions.verify")}
-        </DropdownMenuItem>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem destructive onSelect={onDelete}>
-          <Trash2 className="h-4 w-4" />
-          {t("actions.delete")}
-        </DropdownMenuItem>
+        {onEdit && (
+          <DropdownMenuItem onSelect={onEdit}>
+            <Pencil className="h-4 w-4" />
+            {t("actions.editSettings")}
+          </DropdownMenuItem>
+        )}
+        {onRescan && (
+          <DropdownMenuItem onSelect={onRescan} disabled={scanning}>
+            <RefreshCw className={scanning ? "h-4 w-4 animate-spin" : "h-4 w-4"} />
+            {scanning ? t("actions.scanning") : t("actions.rescan")}
+          </DropdownMenuItem>
+        )}
+        {onVerify && (
+          <DropdownMenuItem onSelect={onVerify} disabled={verifying}>
+            <ShieldCheck className={verifying ? "h-4 w-4 animate-pulse" : "h-4 w-4"} />
+            {verifying ? t("actions.verifying") : t("actions.verify")}
+          </DropdownMenuItem>
+        )}
+        {onDelete && (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem destructive onSelect={onDelete}>
+              <Trash2 className="h-4 w-4" />
+              {t("actions.delete")}
+            </DropdownMenuItem>
+          </>
+        )}
       </DropdownMenuContent>
     </DropdownMenu>
   );

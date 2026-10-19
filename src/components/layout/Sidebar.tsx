@@ -8,7 +8,16 @@ import { cn } from "@/lib/utils";
 import { Logo } from "@/components/brand/Logo";
 import { Hint } from "@/components/ui/tooltip";
 import { PRIMARY_NAV, SECONDARY_NAV, type NavItem } from "@/app/nav";
+import { usePermissionsStore } from "@/store/permissions";
 import { useUiStore } from "@/store/ui";
+
+/** The nav items the signed-in role has a use for. */
+function useVisibleNav(items: NavItem[]): NavItem[] {
+  const grants = usePermissionsStore((s) => s.grants);
+  return items.filter(
+    (item) => !item.functions || grants === "all" || item.functions.some((id) => grants.has(id)),
+  );
+}
 
 function NavLink({ item, collapsed, onNavigate }: { item: NavItem; collapsed: boolean; onNavigate?: () => void }) {
   const { pathname } = useLocation();
@@ -51,6 +60,8 @@ function NavLink({ item, collapsed, onNavigate }: { item: NavItem; collapsed: bo
 
 export function SidebarNav({ collapsed, onNavigate }: { collapsed: boolean; onNavigate?: () => void }) {
   const { t } = useTranslation("nav");
+  const primary = useVisibleNav(PRIMARY_NAV);
+  const secondary = useVisibleNav(SECONDARY_NAV);
   return (
     <div className="flex h-full flex-col">
       {/* Same 68px as the top bar, with the same bottom hairline, so the rule
@@ -62,16 +73,18 @@ export function SidebarNav({ collapsed, onNavigate }: { collapsed: boolean; onNa
       </div>
 
       <nav className="mt-2 flex flex-1 flex-col gap-1 overflow-y-auto px-3">
-        {PRIMARY_NAV.map((item) => (
+        {primary.map((item) => (
           <NavLink key={item.href} item={item} collapsed={collapsed} onNavigate={onNavigate} />
         ))}
 
-        <div className={cn("mb-1 mt-5 px-3", collapsed && "px-0 text-center")}>
-          {!collapsed && (
-            <span className="label-overline">{t("manage")}</span>
-          )}
-        </div>
-        {SECONDARY_NAV.map((item) => (
+        {secondary.length > 0 && (
+          <div className={cn("mb-1 mt-5 px-3", collapsed && "px-0 text-center")}>
+            {!collapsed && (
+              <span className="label-overline">{t("manage")}</span>
+            )}
+          </div>
+        )}
+        {secondary.map((item) => (
           <NavLink key={item.href} item={item} collapsed={collapsed} onNavigate={onNavigate} />
         ))}
       </nav>

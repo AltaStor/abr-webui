@@ -111,10 +111,8 @@ export const router = createBrowserRouter([
           />
         ),
       },
-      // Logs & Audit has no audit-trail backing on the orchestrator yet, so it
-      // renders from locally-generated data instead of an appliance feed (see
-      // its `mock.ts`) — reachable, just not appliance-sourced. Live per-job
-      // logs remain on Activity.
+      // The appliance's system log and its audit log, each for the roles that
+      // may read it. Live per-job logs remain on Activity.
       { path: "logs", element: <LogsPage /> },
       { path: "settings", element: <SettingsPage /> },
       { path: "settings/:section", element: <SettingsPage /> },

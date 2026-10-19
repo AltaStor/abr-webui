@@ -42,7 +42,8 @@
     "reconnecting": "Reconnexion…",
     "reconnectingTip": "Le flux d’événements de l’appliance est interrompu — reconnexion en cours.",
     "demoSimulation": "Simulation de démonstration",
-    "liveAppliance": "Appliance en direct"
+    "liveAppliance": "Appliance en direct",
+    "role": "Rôle : {{role}}"
   },
   "notifications": {
     "aria": "Notifications",

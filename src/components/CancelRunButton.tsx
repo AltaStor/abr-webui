@@ -14,6 +14,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { toast } from "@/components/ui/sonner";
+import { useCan } from "@/store/permissions";
 import { useWorldStore } from "@/store/world";
 import type { Session } from "@/types";
 
@@ -118,6 +119,9 @@ export function CancelRunButton({
   const { t } = useTranslation("common");
   const [open, setOpen] = useState(false);
   const stopping = Boolean(session.stopping);
+  // Not offered to a role that cannot stop sessions (the appliance would refuse).
+  const canStop = useCan("session.stop");
+  if (!canStop) return null;
 
   return (
     <>

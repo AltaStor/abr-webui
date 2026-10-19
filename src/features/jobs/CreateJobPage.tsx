@@ -44,6 +44,8 @@ import {
 import { resourceNameErrorKey, resourceNameProblem } from "@/lib/resource-name";
 import { encryptionKeyProblem } from "@/lib/encryption-key";
 import { apiErrorMessage, fullScheduleKey } from "@/services/api.http";
+import { NotPermitted } from "@/components/FeatureUnavailable";
+import { useCan } from "@/store/permissions";
 import { useWorldStore, type CreateJobInput } from "@/store/world";
 import { REPO_TYPE_META } from "@/features/repositories/components/repoMeta";
 import type { BackupJob, FullBackupSchedule, JobOptions, Schedule } from "@/types";
@@ -255,6 +257,8 @@ export default function CreateJobPage({ kind: kindProp }: { kind?: JobTypeChoice
   const { jobId } = useParams<{ jobId: string }>();
   const ready = useWorldStore((s) => s.ready);
   const existingJob = useWorldStore((s) => (jobId ? s.jobs.find((j) => j.id === jobId) : undefined));
+  const permitted = useCan(jobId ? "job.edit" : "job.create");
+  if (!permitted) return <NotPermitted />;
 
   // Edit mode seeds the form from the job via one-shot useState initializers, so
   // the form must not mount until the job is loaded. On a cold deep-link/refresh

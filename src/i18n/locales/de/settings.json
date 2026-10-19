@@ -28,6 +28,10 @@
       "label": "Sicherheit",
       "blurb": "Zugriff, Sitzungen & HTTPS"
     },
+    "users": {
+      "label": "Benutzer",
+      "blurb": "Benutzer, Rollen & Berechtigungen"
+    },
     "about": {
       "label": "Über",
       "blurb": "Version, Lizenz & Links"
@@ -380,5 +384,68 @@
     "email": "E-Mail",
     "role": "Rolle",
     "send": "Einladung senden"
+  },
+  "users": {
+    "title": "Benutzer",
+    "description": "Wer sich anmelden kann, und die eine Rolle, die jeder hat.",
+    "add": "Benutzer hinzufügen",
+    "loading": "Benutzer werden geladen…",
+    "loadFailed": "Die Benutzer konnten nicht geladen werden.",
+    "column": {
+      "user": "Benutzer",
+      "role": "Rolle",
+      "enabled": "Aktiviert",
+      "created": "Erstellt"
+    },
+    "you": "Sie",
+    "roleFor": "Rolle von {{name}}",
+    "noRole": "Keine gültige Rolle",
+    "enabledFor": "{{name}} kann sich anmelden",
+    "state": {
+      "enabled": "Aktiviert",
+      "disabled": "Deaktiviert"
+    },
+    "deleteUser": "{{name}} löschen",
+    "lastAdminNote": "Das Deaktivieren eines Benutzers meldet ihn überall ab. Der letzte aktivierte Administrator kann weder herabgestuft, deaktiviert noch gelöscht werden, damit immer jemand Benutzer verwalten kann.",
+    "toast": {
+      "updated": "{{name}} aktualisiert",
+      "updateFailed": "Der Benutzer wurde nicht geändert",
+      "created": "{{name}} hinzugefügt",
+      "createFailed": "Der Benutzer wurde nicht hinzugefügt.",
+      "deleted": "{{name}} gelöscht",
+      "deleteFailed": "Der Benutzer wurde nicht gelöscht"
+    },
+    "form": {
+      "title": "Benutzer hinzufügen",
+      "description": "Der Benutzer meldet sich mit diesem Namen und Passwort an und kann tun, was die Rolle erlaubt.",
+      "name": "Benutzername",
+      "fullName": "Vollständiger Name (optional)",
+      "role": "Rolle",
+      "rolePlaceholder": "Rolle wählen",
+      "password": "Passwort",
+      "passwordHint": "Mindestens {{count}} Zeichen.",
+      "confirm": "Passwort bestätigen",
+      "submit": "Benutzer hinzufügen",
+      "nameRequired": "Geben Sie einen Benutzernamen ein.",
+      "roleRequired": "Wählen Sie die Rolle des Benutzers.",
+      "passwordTooShort": "Muss mindestens {{count}} Zeichen lang sein.",
+      "mismatch": "Die Passwörter stimmen nicht überein."
+    },
+    "deleteDialog": {
+      "title": "{{name}} löschen?",
+      "description": "Der Benutzer wird überall abgemeldet und kann sich nicht mehr anmelden. Seine Einträge im Audit-Protokoll bleiben erhalten."
+    }
+  },
+  "roles": {
+    "title": "Rollen & Berechtigungen",
+    "description": "Was jede integrierte Rolle erlaubt, Funktion für Funktion. Alles nicht Erlaubte ist deaktiviert.",
+    "loading": "Rollen werden geladen…",
+    "loadFailed": "Die Rollen konnten nicht geladen werden.",
+    "column": {
+      "function": "Funktion"
+    },
+    "allowed": "Erlaubt",
+    "disabled": "Deaktiviert",
+    "builtInNote": "Die Rollen sind integriert und können weder geändert noch gelöscht werden."
   }
 }

@@ -47,6 +47,7 @@ import {
   draftValid,
   type ImmutabilityDraft,
 } from "./immutability";
+import { useCan } from "@/store/permissions";
 
 /**
  * The only two backends the orchestrator can create: `createRepository` maps
@@ -86,7 +87,13 @@ function isHttpUrl(value: string): boolean {
   }
 }
 
+/** "Add repository", for a role that may add one. */
 export function AddRepositoryDialog() {
+  const canCreate = useCan("repository.create");
+  return canCreate ? <AddRepositoryDialogBody /> : null;
+}
+
+function AddRepositoryDialogBody() {
   const { t } = useTranslation("repositories");
   const { t: tCommon } = useTranslation("common");
   const createRepository = useWorldStore((s) => s.createRepository);

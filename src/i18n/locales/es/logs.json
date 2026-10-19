@@ -1,7 +1,7 @@
 {
   "page": {
     "title": "Registros",
-    "description": "El registro del sistema de la propia appliance: eventos del programador, del almacenamiento, de TLS y de la API, directamente del servidor."
+    "description": "El registro del sistema de la appliance y el registro de auditoría de cada comando y cambio de usuario."
   },
   "actions": {
     "refreshLog": "Actualizar el registro del sistema",
@@ -36,5 +36,45 @@
     "serverLogUnavailable": "Se muestran eventos derivados de los datos de esta consola: no se pudo leer el registro de la appliance ({{reason}}).",
     "serverLogUnreachable": "la appliance no respondió",
     "serverLogMissing": "La appliance no encontró ningún registro del servidor. Buscó en: {{paths}}."
+  },
+  "tabs": {
+    "system": "Registro del sistema",
+    "audit": "Registro de auditoría"
+  },
+  "audit": {
+    "userPlaceholder": "Filtrar por nombre de usuario…",
+    "userLabel": "Solo los registros de este usuario",
+    "areaLabel": "Filtrar por área del producto",
+    "allAreas": "Todas las áreas",
+    "resultLabel": "Filtrar por resultado",
+    "allResults": "Todos los resultados",
+    "result": {
+      "allowed": "Permitido",
+      "denied": "Denegado",
+      "failed": "Fallido"
+    },
+    "refresh": "Actualizar el registro de auditoría",
+    "loadFailed": "No se pudo leer el registro de auditoría.",
+    "loading": "Leyendo el registro de auditoría…",
+    "empty": "Ningún registro de auditoría coincide.",
+    "column": {
+      "time": "Hora",
+      "user": "Usuario · rol",
+      "function": "Función",
+      "target": "Destino",
+      "result": "Resultado",
+      "session": "Sesión",
+      "via": "Vía"
+    },
+    "interface": {
+      "web": "Consola web",
+      "cli": "CLI",
+      "api": "API"
+    },
+    "range": "{{from}}–{{to}} de {{total}}",
+    "newer": "Registros más recientes",
+    "older": "Registros más antiguos",
+    "note": "Cada comando de la consola, la CLI, la automatización y la API se registra con el rol que tenía el usuario en ese momento: permitido, denegado o fallido. Las cargas de página de esta consola no. Contraseñas, claves y tokens se enmascaran antes de escribir el registro.",
+    "demo": "La demo no tiene registro de auditoría. Conéctate a una appliance activa para leerlo."
   }
 }

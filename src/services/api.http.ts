@@ -17,10 +17,11 @@
  * out-of-place restore.
  *
  * What is a graceful STUB (no orchestrator support yet — surfaced in the UI as
- * "Work in progress"): replication, threats/ransomware, audit trail, metrics
- * history, appliance settings, first-boot provisioning, and the Hyper-V agent
- * lifecycle. These keep their export signatures so the WIP-gated pages still
- * compile and render empty.
+ * "Work in progress"): replication, threats/ransomware, the world store's audit
+ * event feed (the Logs page reads the real audit log with `listAuditRecords`),
+ * metrics history, appliance settings, first-boot provisioning, and the
+ * Hyper-V agent lifecycle. These keep their export signatures so the
+ * WIP-gated pages still compile and render empty.
  *
  * Transport: same-origin `/api/v1/*` (the Vite dev server proxies to :443).
  * There is NO server-sent-event stream on this backend, so `subscribeEvents`
@@ -213,6 +214,10 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     [API_VERSION_HEADER]: `${__ABR_API_MAJOR__}.${__ABR_API_MINOR__}`,
   };
   if (authToken) headers.authorization = `Bearer ${authToken}`;
+  // Every read the console makes is a page load the live driver repeats on a
+  // timer, not a command, so the appliance's audit log leaves it out (a read
+  // the role does not allow is still logged as denied). Actions are audited.
+  if ((init?.method ?? "GET").toUpperCase() === "GET") headers["x-abr-refresh"] = "1";
   const res = await fetch(`${BASE}/api/v1${path}`, { ...init, headers });
   checkApiVersion(res);
   if (res.status === 401 && authToken) {
@@ -919,6 +924,10 @@ export interface AuthUser {
   id: string;
   name: string;
   fullName: string;
+  /** The user's one role, by role ID ("backup_operator"). Null from an
+   *  appliance that predates roles. */
+  role: string | null;
+  enabled: boolean;
   createdAt: string | null;
   /** True when the account's password fails the security policy (e.g. the
    * bootstrap admin's default password) — the console forces a change before
@@ -930,6 +939,9 @@ export interface LoginResult {
   token: string;
   expiresAt: string;
   user: AuthUser;
+  /** The function IDs the user's role allows; null from an appliance that
+   *  predates roles, where everything is allowed. */
+  permissions: string[] | null;
 }
 
 function mapAuthUser(u: Dict): AuthUser {
@@ -937,16 +949,186 @@ function mapAuthUser(u: Dict): AuthUser {
     id: str(u.id),
     name: str(u.name),
     fullName: str(u.fullName),
+    role: strOrNull(u.role),
+    enabled: u.enabled !== false,
     createdAt: strOrNull(u.created_at),
     passwordPolicyExempt: Boolean(u.passwordPolicyExempt),
   };
 }
 
+const strListOrNull = (v: unknown): string[] | null =>
+  Array.isArray(v) ? v.filter((item): item is string => typeof item === "string") : null;
+
 export async function login(name: string, password: string, durationSeconds?: number): Promise<LoginResult> {
   const body: Dict = { name, password };
   if (durationSeconds !== undefined) body.duration_seconds = durationSeconds;
   const res = asDict(await request<Dict>("/auth/login", { method: "POST", body: JSON.stringify(body) }));
-  return { token: str(res.token), expiresAt: str(res.expires_at), user: mapAuthUser(asDict(res.user)) };
+  return {
+    token: str(res.token),
+    expiresAt: str(res.expires_at),
+    user: mapAuthUser(asDict(res.user)),
+    permissions: strListOrNull(res.permissions),
+  };
+}
+
+export interface RoleSummary {
+  id: string;
+  name: string;
+  description: string;
+}
+
+export interface WhoAmI {
+  user: AuthUser;
+  role: RoleSummary | null;
+  permissions: string[];
+}
+
+function mapRoleSummary(r: Dict): RoleSummary {
+  return { id: str(r.id), name: str(r.name), description: str(r.description) };
+}
+
+/** The signed-in user, their role and what it allows (GET /auth/me). Null
+ *  from an appliance that predates roles (404), where everything is allowed. */
+export async function whoami(): Promise<WhoAmI | null> {
+  try {
+    const res = asDict(await request<Dict>("/auth/me"));
+    return {
+      user: mapAuthUser(asDict(res.user)),
+      role: res.role ? mapRoleSummary(asDict(res.role)) : null,
+      permissions: strListOrNull(res.permissions) ?? [],
+    };
+  } catch (err) {
+    if (err instanceof ApiError && err.status === 404) return null;
+    throw err;
+  }
+}
+
+/* ---- Users and roles (Settings -> Users) ---- */
+
+export async function listUsers(): Promise<AuthUser[]> {
+  return (await collection<Dict>("/users")).map(mapAuthUser);
+}
+
+export interface CreateUserInput {
+  name: string;
+  fullName: string;
+  role: string;
+  password: string;
+}
+
+export async function createUser(input: CreateUserInput): Promise<AuthUser> {
+  return mapAuthUser(asDict(await request<Dict>("/users", { method: "POST", body: JSON.stringify(input) })));
+}
+
+export async function updateUser(
+  id: string,
+  patch: Partial<Pick<AuthUser, "fullName" | "role" | "enabled">>,
+): Promise<AuthUser> {
+  return mapAuthUser(
+    asDict(await request<Dict>(`/users/${encodeURIComponent(id)}`, { method: "PATCH", body: JSON.stringify(patch) })),
+  );
+}
+
+export const deleteUser = (id: string) => request<Dict>(`/users/${encodeURIComponent(id)}`, { method: "DELETE" });
+
+export interface RoleInfo extends RoleSummary {
+  /** Function IDs this role allows; every other function is disabled. */
+  allowedFunctions: string[];
+}
+
+export interface ProductFunction {
+  id: string;
+  name: string;
+  category: string;
+}
+
+export async function listRoles(): Promise<RoleInfo[]> {
+  return (await collection<Dict>("/roles")).map((r) => ({
+    ...mapRoleSummary(r),
+    allowedFunctions: strListOrNull(r.allowed_functions) ?? [],
+  }));
+}
+
+export async function listFunctions(): Promise<ProductFunction[]> {
+  return (await collection<Dict>("/functions")).map((f) => ({
+    id: str(f.id),
+    name: str(f.name),
+    category: str(f.category),
+  }));
+}
+
+/* ---- Audit log (Logs -> Audit) ---- */
+
+export type AuditResult = "allowed" | "denied" | "failed";
+
+export interface AuditRecord {
+  id: string;
+  /** UTC, ISO 8601. */
+  timestamp: string;
+  user: string;
+  /** The role the user held when the record was written. */
+  role: string | null;
+  functionId: string;
+  target: { type: string; id: string | null; name: string | null } | null;
+  result: AuditResult;
+  sessionId: string | null;
+  /** "web", "cli" or "api". */
+  interface: string;
+  command: string | null;
+  client: string | null;
+  error: { code: string; message: string } | null;
+  /** The request, with credentials masked by the appliance. */
+  parameters: Dict | null;
+  details: Dict | null;
+}
+
+export interface AuditLogQuery {
+  limit?: number;
+  offset?: number;
+  user?: string;
+  /** A function ID, or an area with a trailing dot ("job.") for all of it. */
+  function?: string;
+  result?: AuditResult;
+  since?: string;
+}
+
+function mapAuditRecord(r: Dict): AuditRecord {
+  const target = r.target ? asDict(r.target) : null;
+  const error = r.error ? asDict(r.error) : null;
+  const result = str(r.result);
+  return {
+    id: str(r.id),
+    timestamp: str(r.timestamp),
+    user: str(r.user),
+    role: strOrNull(r.role),
+    functionId: str(r.function_id),
+    target: target ? { type: str(target.type), id: strOrNull(target.id), name: strOrNull(target.name) } : null,
+    result: result === "denied" || result === "failed" ? result : "allowed",
+    sessionId: strOrNull(r.session_id),
+    interface: str(r.interface, "api"),
+    command: strOrNull(r.command),
+    client: strOrNull(r.client),
+    error: error ? { code: str(error.code), message: str(error.message) } : null,
+    parameters: r.parameters ? asDict(r.parameters) : null,
+    details: r.details ? asDict(r.details) : null,
+  };
+}
+
+export async function listAuditRecords(q: AuditLogQuery = {}): Promise<{ items: AuditRecord[]; total: number }> {
+  const params = new URLSearchParams();
+  for (const [key, value] of Object.entries(q)) {
+    if (value !== undefined && value !== "") params.set(key, String(value));
+  }
+  const query = params.toString();
+  const res = asDict(await request<Dict>(`/audit${query ? `?${query}` : ""}`));
+  const items = Array.isArray(res.items) ? (res.items as Dict[]).map(mapAuditRecord) : [];
+  return { items, total: num(res.total, items.length) };
+}
+
+/** True when the appliance refused the request because the signed-in user's
+ *  role does not allow it. */
+export function isPermissionDenied(err: unknown): boolean {
+  return apiErrorCode(err) === "permission_denied";
 }
 
 export const logout = () => request<void>("/auth/logout", { method: "POST", body: "{}" });

@@ -11,6 +11,7 @@ import { compressionRatioLabel, pointTypeTooltip } from "@/lib/restore-points";
 import { SyntheticFullBadge } from "@/components/SyntheticFullBadge";
 import { ConsistencyBadge } from "@/components/ConsistencyBadge";
 import type { RestorePoint } from "@/types";
+import { useCan } from "@/store/permissions";
 
 /**
  * One restore point row. Shared by the VM detail page and the Backups page so a
@@ -32,6 +33,8 @@ export function RestorePointItem({
   restoreBlockedReason?: string;
 }) {
   const { t } = useTranslation("inventory");
+  const canRestore = useCan("restore.start");
+  const canDelete = useCan("backup.delete");
   const offlineTip = t("point.offlineTip");
   const restoreDisabled = unavailable || restoreBlockedReason !== undefined;
   return (
@@ -113,20 +116,22 @@ export function RestorePointItem({
         </span>
       )}
       <div className="flex shrink-0 items-center gap-0.5">
-        <Button
-          variant="ghost"
-          size="sm"
-          className="text-muted-foreground"
-          onClick={onRestore}
-          disabled={restoreDisabled}
-          title={unavailable ? offlineTip : restoreBlockedReason}
-        >
-          <RotateCcw className="h-3.5 w-3.5" />
-          {t("actions.restore")}
-        </Button>
+        {canRestore && (
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-muted-foreground"
+            onClick={onRestore}
+            disabled={restoreDisabled}
+            title={unavailable ? offlineTip : restoreBlockedReason}
+          >
+            <RotateCcw className="h-3.5 w-3.5" />
+            {t("actions.restore")}
+          </Button>
+        )}
         {/* Deletion is segment-granular (a full backup + its incrementals) —
             only the full backup's row can trigger it. */}
-        {point.type === "full" && (
+        {point.type === "full" && canDelete && (
           <Button
             variant="ghost"
             size="icon-sm"

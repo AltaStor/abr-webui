@@ -21,6 +21,9 @@ import { useLanguageEffects } from "@/i18n/apply";
 import { useSidebarAutoCollapse } from "@/app/useSidebarAutoCollapse";
 import { useAutoUpdateCheck } from "@/app/useAutoUpdateCheck";
 import { useEventNotifications } from "@/app/useEventNotifications";
+import { navItemFor } from "@/app/nav";
+import { NotPermitted } from "@/components/FeatureUnavailable";
+import { usePermissionsStore } from "@/store/permissions";
 
 function PageFallback() {
   /* Shape-agnostic placeholder: a title bar (every page has one) plus a single
@@ -33,6 +36,16 @@ function PageFallback() {
       <Skeleton className="h-[28rem] w-full" />
     </div>
   );
+}
+
+/** The page, or an explanation when the signed-in role allows none of what it
+ *  shows. The appliance refuses the reads either way; this says why. */
+function PermittedOutlet() {
+  const { pathname } = useLocation();
+  const grants = usePermissionsStore((s) => s.grants);
+  const needs = navItemFor(pathname)?.functions;
+  if (needs && grants !== "all" && !needs.some((id) => grants.has(id))) return <NotPermitted />;
+  return <Outlet />;
 }
 
 export function AppShell() {
@@ -140,7 +153,7 @@ export function AppShell() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: reduceMotion ? 0 : 0.34, ease: [0.16, 1, 0.3, 1] }}
               >
-                <Outlet />
+                <PermittedOutlet />
               </motion.div>
             </Suspense>
           </div>

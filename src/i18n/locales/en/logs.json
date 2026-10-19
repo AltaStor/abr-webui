@@ -1,7 +1,7 @@
 {
   "page": {
     "title": "Logs",
-    "description": "The appliance's own system log — scheduler, storage, TLS and API events, straight from the server."
+    "description": "The appliance's own system log, and the audit log of every command and user change."
   },
   "actions": {
     "refreshLog": "Refresh the system log",
@@ -36,5 +36,45 @@
     "serverLogUnavailable": "Showing events derived from this console's data: the appliance's own log couldn't be read ({{reason}}).",
     "serverLogUnreachable": "the appliance did not answer",
     "serverLogMissing": "The appliance found no server log to read. It looked in: {{paths}}."
+  },
+  "tabs": {
+    "system": "System log",
+    "audit": "Audit log"
+  },
+  "audit": {
+    "userPlaceholder": "Filter by user name…",
+    "userLabel": "Only records of this user",
+    "areaLabel": "Filter by product area",
+    "allAreas": "All areas",
+    "resultLabel": "Filter by result",
+    "allResults": "All results",
+    "result": {
+      "allowed": "Allowed",
+      "denied": "Denied",
+      "failed": "Failed"
+    },
+    "refresh": "Refresh the audit log",
+    "loadFailed": "The audit log couldn't be read.",
+    "loading": "Reading the audit log…",
+    "empty": "No audit records match.",
+    "column": {
+      "time": "Time",
+      "user": "User · role",
+      "function": "Function",
+      "target": "Target",
+      "result": "Result",
+      "session": "Session",
+      "via": "Via"
+    },
+    "interface": {
+      "web": "Web console",
+      "cli": "CLI",
+      "api": "API"
+    },
+    "range": "{{from}}–{{to}} of {{total}}",
+    "newer": "Newer records",
+    "older": "Older records",
+    "note": "Every command from the console, the CLI, automation and the API is recorded with the role the user held at the time — allowed, denied or failed. Page loads in this console are not. Passwords, keys and tokens are masked before a record is written.",
+    "demo": "The demo has no audit log. Connect to a live appliance to read it."
   }
 }

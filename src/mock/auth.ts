@@ -48,6 +48,10 @@ export function simLogin(name: string, password: string, durationSeconds?: numbe
     id: `demo-${trimmed.toLowerCase()}`,
     name: trimmed,
     fullName: displayName(trimmed),
+    // The demo world has no one to protect anything from: every account is an
+    // Administrator and every action is offered.
+    role: "administrator",
+    enabled: true,
     createdAt: new Date(Date.now() - 90 * 86_400_000).toISOString(),
     // Never force the demo through /change-password — there is no backend to
     // accept the new one, so it would be a dead end.
@@ -59,5 +63,6 @@ export function simLogin(name: string, password: string, durationSeconds?: numbe
     token: "demo-session",
     expiresAt: new Date(Date.now() + (durationSeconds ?? 3600) * 1000).toISOString(),
     user,
+    permissions: null,
   };
 }

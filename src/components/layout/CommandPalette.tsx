@@ -26,6 +26,7 @@ import { StatusPill } from "@/components/StatusPill";
 import { SESSION_META } from "@/lib/status";
 import { useUiStore } from "@/store/ui";
 import { useWorldStore } from "@/store/world";
+import { useCan, useCanAny } from "@/store/permissions";
 import { useSettingsStore } from "@/store/settings";
 import { switchWorldMode } from "@/lib/worldMode";
 import { toast } from "@/components/ui/sonner";
@@ -40,6 +41,14 @@ export function CommandPalette() {
   const vms = useWorldStore((s) => s.vms);
   const runJob = useWorldStore((s) => s.runJob);
   const mode = useWorldStore((s) => s.mode);
+  const canCreateJob = useCan("job.create");
+  const canStartJob = useCan("job.start");
+  const canSeeJobs = useCanAny("job.view", "backup.view");
+  const canSeeActivity = useCan("session.view");
+  const canRestore = useCan("restore.view");
+  const canSeeInventory = useCan("inventory.view");
+  const canSeeRepositories = useCan("repository.view");
+  const canSeeLogs = useCanAny("system.logs", "audit.view");
   const currentLanguage = useSettingsStore((s) => s.appearance.language);
   const setLanguage = useSettingsStore((s) => s.updateAppearance);
 
@@ -65,14 +74,22 @@ export function CommandPalette() {
         setCommandOpen(true);
         return;
       }
-      if ((e.key === "n" || e.key === "N") && !e.metaKey && !e.ctrlKey && !e.altKey && !commandOpen && !typing) {
+      if (
+        canCreateJob &&
+        (e.key === "n" || e.key === "N") &&
+        !e.metaKey &&
+        !e.ctrlKey &&
+        !e.altKey &&
+        !commandOpen &&
+        !typing
+      ) {
         e.preventDefault();
         navigate("/jobs/new/backup");
       }
     };
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
-  }, [commandOpen, setCommandOpen, navigate]);
+  }, [commandOpen, setCommandOpen, navigate, canCreateJob]);
 
   const go = (path: string) => {
     setCommandOpen(false);
@@ -134,17 +151,31 @@ export function CommandPalette() {
 
             <Command.Group heading={t("cmdPalette.group.navigation")}>
               <Item onSelect={() => go("/")} icon={<LayoutDashboard className="h-4 w-4" />} label={t("nav:dashboard")} />
-              <Item value={`${t("nav:backups")} backup jobs schedules restore points`} onSelect={() => go("/jobs")} icon={<DatabaseBackup className="h-4 w-4" />} label={t("nav:backups")} />
-              <Item onSelect={() => go("/activity")} icon={<Activity className="h-4 w-4" />} label={t("nav:activity")} />
-              <Item onSelect={() => go("/restore")} icon={<RotateCcw className="h-4 w-4" />} label={t("nav:restore")} />
-              <Item onSelect={() => go("/inventory")} icon={<Server className="h-4 w-4" />} label={t("nav:inventory")} />
-              <Item onSelect={() => go("/repositories")} icon={<HardDrive className="h-4 w-4" />} label={t("nav:repositories")} />
-              <Item onSelect={() => go("/logs")} icon={<Terminal className="h-4 w-4" />} label={t("nav:logs")} />
+              {canSeeJobs && (
+                <Item value={`${t("nav:backups")} backup jobs schedules restore points`} onSelect={() => go("/jobs")} icon={<DatabaseBackup className="h-4 w-4" />} label={t("nav:backups")} />
+              )}
+              {canSeeActivity && (
+                <Item onSelect={() => go("/activity")} icon={<Activity className="h-4 w-4" />} label={t("nav:activity")} />
+              )}
+              {canRestore && (
+                <Item onSelect={() => go("/restore")} icon={<RotateCcw className="h-4 w-4" />} label={t("nav:restore")} />
+              )}
+              {canSeeInventory && (
+                <Item onSelect={() => go("/inventory")} icon={<Server className="h-4 w-4" />} label={t("nav:inventory")} />
+              )}
+              {canSeeRepositories && (
+                <Item onSelect={() => go("/repositories")} icon={<HardDrive className="h-4 w-4" />} label={t("nav:repositories")} />
+              )}
+              {canSeeLogs && (
+                <Item onSelect={() => go("/logs")} icon={<Terminal className="h-4 w-4" />} label={t("nav:logs")} />
+              )}
               <Item value={`${t("nav:settings")} settings preferences configuration`} onSelect={() => go("/settings")} icon={<Settings className="h-4 w-4" />} label={t("nav:settings")} />
             </Command.Group>
 
             <Command.Group heading={t("cmdPalette.group.actions")}>
-              <Item onSelect={() => go("/jobs/new/backup")} icon={<Plus className="h-4 w-4" />} label={t("cmdPalette.createJob")} shortcut="N" />
+              {canCreateJob && (
+                <Item onSelect={() => go("/jobs/new/backup")} icon={<Plus className="h-4 w-4" />} label={t("cmdPalette.createJob")} shortcut="N" />
+              )}
               <Item
                 onSelect={() => {
                   setCommandOpen(false);
@@ -176,7 +207,7 @@ export function CommandPalette() {
 
             <Command.Group heading={t("cmdPalette.group.runJob")}>
               {jobs
-                .filter((j) => j.state !== "disabled")
+                .filter((j) => canStartJob && j.state !== "disabled")
                 .map((j) => (
                   <Item
                     key={j.id}

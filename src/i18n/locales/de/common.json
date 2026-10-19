@@ -90,6 +90,10 @@
     "replication": {
       "title": "Replikation ist auf dieser Appliance nicht verfügbar",
       "description": "Dieser Build sichert und stellt wieder her; er hält kein laufendes Replikat auf einem zweiten Host vor. Der Link, dem Sie gefolgt sind, stammt aus einer Konsole, die das kann. Es ist nichts defekt und nichts verloren — Ihre Backup-Aufträge und Wiederherstellungspunkte sind unberührt."
+    },
+    "notPermitted": {
+      "title": "Ihre Rolle umfasst diese Seite nicht",
+      "description": "Die Appliance erlaubt jeder Rolle nur die ihr zugewiesenen Funktionen, und nichts von dem, was diese Seite zeigt, ist Ihrer Rolle zugewiesen. Wenn Sie es benötigen, bitten Sie einen Administrator, Ihre Rolle zu ändern."
     }
   },
   "resize": {
@@ -99,5 +103,8 @@
     "whitespace": "Ein Name darf nicht mit einem Leerzeichen beginnen oder enden — entfernen Sie es oder verwenden Sie ein anderes Zeichen.",
     "tooLong": "Verwenden Sie höchstens 125 Zeichen.",
     "charset": "Beginnen Sie mit einem Buchstaben oder einer Ziffer und verwenden Sie dann nur lateinische Buchstaben, Ziffern, Leerzeichen, Punkte, Unterstriche oder Bindestriche."
+  },
+  "permission": {
+    "notAllowed": "Ihre Rolle erlaubt dies nicht."
   }
 }

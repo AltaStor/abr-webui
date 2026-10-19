@@ -58,6 +58,7 @@ import { SyntheticFullDialog } from "./components/SyntheticFullDialog";
 import { RestorePointItem } from "./components/RestorePointItem";
 import { RestorePointCalendar } from "./components/RestorePointCalendar";
 import { POWER_META, osFamilyLabel } from "./components/vm-presentation";
+import { useCan } from "@/store/permissions";
 
 /** Where the operator came from, carried in react-router's location state.
  *  It travels with the navigation and leaves the URL untouched, so a deep link
@@ -86,6 +87,9 @@ export default function VmDetailPage() {
   const repositories = useWorldStore((s) => s.repositories);
   const sessions = useWorldStore((s) => s.sessions);
   const runJob = useWorldStore((s) => s.runJob);
+  const canRestore = useCan("restore.start");
+  const canStartJob = useCan("job.start");
+  const canCreateJob = useCan("job.create");
 
   /** Repositories whose backing storage is currently unreachable — their restore
    *  points still exist but can't be read (or safely deleted) until they return. */
@@ -203,7 +207,7 @@ export default function VmDetailPage() {
         }
         actions={
           <>
-            {vm.protection !== "unprotected" && (
+            {vm.protection !== "unprotected" && canRestore && (
               <Button variant="outline" asChild>
                 <Link to={restoreLink(vm.id)}>
                   <RotateCcw className="h-4 w-4" />
@@ -212,17 +216,21 @@ export default function VmDetailPage() {
               </Button>
             )}
             {primaryJob ? (
-              <Button onClick={onBackUpNow} disabled={isRunning}>
-                <Play className="h-4 w-4" />
-                {isRunning ? t("actions.running") : t("actions.backUpNow")}
-              </Button>
+              canStartJob && (
+                <Button onClick={onBackUpNow} disabled={isRunning}>
+                  <Play className="h-4 w-4" />
+                  {isRunning ? t("actions.running") : t("actions.backUpNow")}
+                </Button>
+              )
             ) : (
-              <Button asChild>
-                <Link to={`/jobs/new/backup?vm=${vm.id}`}>
-                  <Shield className="h-4 w-4" />
-                  {t("actions.protect")}
-                </Link>
-              </Button>
+              canCreateJob && (
+                <Button asChild>
+                  <Link to={`/jobs/new/backup?vm=${vm.id}`}>
+                    <Shield className="h-4 w-4" />
+                    {t("actions.protect")}
+                  </Link>
+                </Button>
+              )
             )}
           </>
         }
@@ -340,12 +348,14 @@ export default function VmDetailPage() {
                   <p className="text-sm text-muted-foreground">
                     {t("vmDetail.noJob")}
                   </p>
-                  <Button size="sm" asChild>
-                    <Link to={`/jobs/new/backup?vm=${vm.id}`}>
-                      <Shield className="h-3.5 w-3.5" />
-                      {t("actions.protect")}
-                    </Link>
-                  </Button>
+                  {canCreateJob && (
+                    <Button size="sm" asChild>
+                      <Link to={`/jobs/new/backup?vm=${vm.id}`}>
+                        <Shield className="h-3.5 w-3.5" />
+                        {t("actions.protect")}
+                      </Link>
+                    </Button>
+                  )}
                 </div>
               ) : (
                 <div className="space-y-1.5">
@@ -398,7 +408,7 @@ export default function VmDetailPage() {
                 {/* Merging a chain belongs beside the chain it merges, not on
                     the Jobs page: this is where an operator is looking at the
                     incrementals that have piled up on a full. */}
-                {canOfferSyntheticFull && (
+                {canOfferSyntheticFull && canStartJob && (
                   <Button
                     variant="ghost"
                     size="sm"
@@ -410,7 +420,7 @@ export default function VmDetailPage() {
                     {t("syntheticFull.action")}
                   </Button>
                 )}
-                {vm.protection !== "unprotected" && (
+                {vm.protection !== "unprotected" && canRestore && (
                   <Button variant="ghost" size="sm" asChild>
                     <Link to={restoreLink(vm.id)}>
                       {t("actions.restore")}

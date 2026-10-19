@@ -5,6 +5,17 @@ All notable changes to the AltaStor WebUI are documented in this file.
 ## Unreleased
 
 ### Added
+- Roles: the console shows each user what their role allows. The sidebar, the
+  pages and every action (run, edit, delete, restore, verify, stop, add, ...)
+  follow the signed-in role's permissions from the appliance, refreshed on
+  every poll; a page the role has no use for explains so, and the console
+  never requests data the role may not read. The account menu shows the role,
+  and a disabled account's sign-in says so.
+- Settings → Users: add users with a role, change a user's role, enable or
+  disable them, delete them, and see the permission matrix of the built-in
+  roles. Read-only for an Auditor.
+- Logs → Audit log: the appliance's audit log of every command and user
+  change, from every interface, filterable by user, area and result.
 - Hyper-V support: back up and restore Hyper-V VMs from the console.
   - Register Hyper-V hosts and failover clusters.
   - VM detail shows a Hyper-V VM's generation, placement, checkpoints, disks
@@ -28,6 +39,8 @@ All notable changes to the AltaStor WebUI are documented in this file.
 ### Changed
 - Enabling or disabling a job is sent as a job-level `enabled` flag instead
   of being nested inside the job's schedule.
+- The console's reads are sent as background refreshes (`X-ABR-Refresh`), so
+  the appliance's audit log records its actions rather than every poll.
 - The Original location card on restore describes the source VM's own
   platform.
 

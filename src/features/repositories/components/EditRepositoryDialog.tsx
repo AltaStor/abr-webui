@@ -47,6 +47,7 @@ import {
   sameImmutability,
   type ImmutabilityDraft,
 } from "./immutability";
+import { useCan } from "@/store/permissions";
 
 interface EditRepositoryDialogProps {
   repo: Repository | null;
@@ -107,6 +108,8 @@ function EditRepositoryForm({
   const editRepository = useWorldStore((s) => s.editRepository);
   const verifyRepositoryImmutability = useWorldStore((s) => s.verifyRepositoryImmutability);
   const applyRepositoryImmutability = useWorldStore((s) => s.applyRepositoryImmutability);
+  const canValidateLock = useCan("repository.verify");
+  const canApplyLock = useCan("repository.apply_immutability");
 
   const [name, setName] = useState(repo.name);
   const [lock, setLock] = useState<ImmutabilityDraft>(() => immutabilityToDraft(repo.immutability));
@@ -310,25 +313,29 @@ function EditRepositoryForm({
                 )}
               </ImmutabilityFields>
 
-              <div className="flex flex-wrap gap-2 border-t border-border pt-3">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => void handleValidate()}
-                  disabled={validating || saving}
-                >
-                  {validating ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <ShieldCheck className="h-4 w-4" />
-                  )}
-                  {validating ? t("immutability.validating") : t("immutability.validate")}
-                </Button>
-              </div>
-              <p className="text-[11px] leading-relaxed text-muted-foreground">
-                {lockDirty ? t("immutability.validateDirtyHint") : t("immutability.validateHint")}
-              </p>
+              {canValidateLock && (
+                <>
+                  <div className="flex flex-wrap gap-2 border-t border-border pt-3">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => void handleValidate()}
+                      disabled={validating || saving}
+                    >
+                      {validating ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <ShieldCheck className="h-4 w-4" />
+                      )}
+                      {validating ? t("immutability.validating") : t("immutability.validate")}
+                    </Button>
+                  </div>
+                  <p className="text-[11px] leading-relaxed text-muted-foreground">
+                    {lockDirty ? t("immutability.validateDirtyHint") : t("immutability.validateHint")}
+                  </p>
+                </>
+              )}
 
               {validation && (
                 <ValidationResultPanel
@@ -351,7 +358,7 @@ function EditRepositoryForm({
                   not a side effect of saving: it rewrites retention on every
                   artifact in the repository, and in compliance mode that is a
                   storage bill nobody can cancel until it expires. */}
-              {supportsLock && restorePointCount > 0 && (
+              {supportsLock && restorePointCount > 0 && canApplyLock && (
                 <div className="space-y-2 border-t border-border pt-3">
                   <p className="text-xs font-medium">{t("immutability.apply.title")}</p>
                   <p className="text-[11px] leading-relaxed text-muted-foreground">

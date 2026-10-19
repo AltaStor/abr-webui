@@ -2,19 +2,22 @@
 // Copyright © 2026 Norvitex OÜ
 
 import { useCallback, useEffect, useState } from "react";
-import { Bell, Info, Palette, ShieldCheck, type LucideIcon } from "@/lib/icons";
+import { Bell, Info, Palette, ShieldCheck, Users, type LucideIcon } from "@/lib/icons";
 import type { AccentKey } from "@/types";
 import i18n from "@/i18n";
+import { usePermissionsStore } from "@/store/permissions";
 
 /* ----------------------------------- nav ---------------------------------- */
 
-export type SectionKey = "appearance" | "notifications" | "security" | "about";
+export type SectionKey = "appearance" | "notifications" | "security" | "users" | "about";
 
 export interface SectionDef {
   key: SectionKey;
   label: string;
   icon: LucideIcon;
   blurb: string;
+  /** Offered only when the signed-in role allows one of these function IDs. */
+  functions?: string[];
 }
 
 /** `label`/`blurb` are getters so they resolve through i18next at access time. */
@@ -22,12 +25,21 @@ export const SECTIONS: SectionDef[] = [
   { key: "appearance", get label() { return i18n.t("settings:sections.appearance.label"); }, icon: Palette, get blurb() { return i18n.t("settings:sections.appearance.blurb"); } },
   { key: "notifications", get label() { return i18n.t("settings:sections.notifications.label"); }, icon: Bell, get blurb() { return i18n.t("settings:sections.notifications.blurb"); } },
   { key: "security", get label() { return i18n.t("settings:sections.security.label"); }, icon: ShieldCheck, get blurb() { return i18n.t("settings:sections.security.blurb"); } },
+  { key: "users", get label() { return i18n.t("settings:sections.users.label"); }, icon: Users, get blurb() { return i18n.t("settings:sections.users.blurb"); }, functions: ["user.view", "role.view"] },
   { key: "about", get label() { return i18n.t("settings:sections.about.label"); }, icon: Info, get blurb() { return i18n.t("settings:sections.about.blurb"); } },
 ];
 
 export function resolveSection(raw: string | undefined): SectionKey {
   const found = SECTIONS.find((s) => s.key === raw);
   return found ? found.key : "appearance";
+}
+
+/** The sections the signed-in role has a use for. */
+export function useVisibleSections(): SectionDef[] {
+  const grants = usePermissionsStore((s) => s.grants);
+  return SECTIONS.filter(
+    (section) => !section.functions || grants === "all" || section.functions.some((id) => grants.has(id)),
+  );
 }
 
 /* ----------------------------- accent swatches ---------------------------- */

@@ -20,6 +20,7 @@ import i18n from "@/i18n";
 import { apiErrorMessage, isVersionMismatchError } from "@/services/api.http";
 import { createLiveDriver } from "./world.live";
 import { createSimDriver } from "./world.sim";
+import { roleRef, usePermissionsStore } from "./permissions";
 import {
   EMPTY_WORLD,
   retentionRefused,
@@ -169,6 +170,9 @@ async function activate(mode: WorldMode, allowFallback: boolean): Promise<void> 
     ready: false,
     apiVersionError: null,
   });
+  // The demo world has nothing to protect: every action is offered there. The
+  // live driver asks the appliance what the signed-in role allows.
+  if (mode === "sim") usePermissionsStore.getState().setGrants(null, roleRef("administrator"));
   const next = mode === "live" ? createLiveDriver(handle) : createSimDriver(handle);
   driver = next;
   try {

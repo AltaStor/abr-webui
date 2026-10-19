@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import type { Environment, HostStatus } from "@/types";
 import type { NodeKind, Rollup, TreeNode } from "../topology";
+import { useCan } from "@/store/permissions";
 
 const KIND_ICON: Record<Exclude<NodeKind, "vm">, LucideIcon> = {
   datacenter: MapPin,
@@ -347,6 +348,10 @@ function SourceSettingsMenu({
   onDelete: (environment: Environment) => void;
 }) {
   const { t } = useTranslation("inventory");
+  const canEdit = useCan("inventory.edit");
+  const canRescan = useCan("inventory.rescan");
+  const canDelete = useCan("inventory.delete");
+  if (!canEdit && !canRescan && !canDelete) return null;
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -361,18 +366,24 @@ function SourceSettingsMenu({
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
-        <DropdownMenuItem onSelect={() => onEdit(environment)}>
-          <Pencil className="h-4 w-4" />
-          {t("sourceSettings.edit")}
-        </DropdownMenuItem>
-        <DropdownMenuItem onSelect={() => onRescan(environment)}>
-          <RefreshCw className="h-4 w-4" />
-          {t("sourceSettings.rescan")}
-        </DropdownMenuItem>
-        <DropdownMenuItem destructive onSelect={() => onDelete(environment)}>
-          <Trash2 className="h-4 w-4" />
-          {t("sourceSettings.remove")}
-        </DropdownMenuItem>
+        {canEdit && (
+          <DropdownMenuItem onSelect={() => onEdit(environment)}>
+            <Pencil className="h-4 w-4" />
+            {t("sourceSettings.edit")}
+          </DropdownMenuItem>
+        )}
+        {canRescan && (
+          <DropdownMenuItem onSelect={() => onRescan(environment)}>
+            <RefreshCw className="h-4 w-4" />
+            {t("sourceSettings.rescan")}
+          </DropdownMenuItem>
+        )}
+        {canDelete && (
+          <DropdownMenuItem destructive onSelect={() => onDelete(environment)}>
+            <Trash2 className="h-4 w-4" />
+            {t("sourceSettings.remove")}
+          </DropdownMenuItem>
+        )}
       </DropdownMenuContent>
     </DropdownMenu>
   );
