@@ -16,14 +16,17 @@ import { useWorldStore } from "@/store/world";
 import { SettingsSection } from "../SettingsSection";
 import { TlsCertificateCard } from "./TlsCertificateCard";
 import { KeyEscrowCard } from "./KeyEscrowCard";
+import { useCan } from "@/store/permissions";
 
 export function SecuritySection() {
+  const canViewCertificate = useCan("tls.view");
+  const canExport = useCan("system.export");
   return (
     <div className="space-y-4">
       <AccessPolicyCard />
       <SessionCard />
-      <TlsCertificateCard />
-      <KeyEscrowCard />
+      {canViewCertificate && <TlsCertificateCard />}
+      {canExport && <KeyEscrowCard />}
     </div>
   );
 }

@@ -15,6 +15,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { useCan } from "@/store/permissions";
 import { formatDateTime, formatRelative, formatStorage } from "@/lib/format";
 import {
   compressionRatioLabel,
@@ -82,6 +83,10 @@ export function BackupJobVmRow({
   onDelete: () => void;
 }) {
   const { t } = useTranslation("jobs");
+  const canVerify = useCan("backup.verify");
+  const canSyntheticFull = useCan("job.start");
+  const canRestore = useCan("restore.start");
+  const canDelete = useCan("backup.delete");
   /** Hover explanation for a row whose repository is offline. */
   const offlineTip = t("point.offlineTip");
   const unreachable = vm.points.filter((p) => offlineRepoIds.has(p.repositoryId)).length;
@@ -176,53 +181,61 @@ export function BackupJobVmRow({
           </span>
         </button>
         <div className="flex shrink-0 items-center gap-0.5">
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            aria-label={t("backupsTab.verify.aria", { vm: vm.name, job: jobName })}
-            title={allUnreachable ? offlineTip : t("backupsTab.verify.tip")}
-            className="text-muted-foreground"
-            onClick={onVerify}
-            disabled={allUnreachable || verifying}
-          >
-            {verifying ? (
-              <Loader2 className="h-3.5 w-3.5 animate-spin" />
-            ) : (
-              <ShieldCheck className="h-3.5 w-3.5" />
-            )}
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            aria-label={t("backupsTab.syntheticFull.aria", { vm: vm.name, job: jobName })}
-            title={allUnreachable ? offlineTip : t("backupsTab.syntheticFull.tip")}
-            className="text-muted-foreground"
-            onClick={onSyntheticFull}
-            disabled={allUnreachable}
-          >
-            <Layers className="h-3.5 w-3.5" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            aria-label={t("backupsTab.restoreVmAria", { vm: vm.name, job: jobName })}
-            title={restoreBlockedReason ?? (allUnreachable ? offlineTip : t("rp.restore"))}
-            className="text-muted-foreground"
-            onClick={onRestore}
-            disabled={restoreDisabled}
-          >
-            <RotateCcw className="h-3.5 w-3.5" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            aria-label={t("backupsTab.deleteVmAria", { vm: vm.name, job: jobName })}
-            title={t("backupsTab.deleteVmTip")}
-            className="text-muted-foreground/70 hover:bg-danger/10 hover:text-danger"
-            onClick={onDelete}
-          >
-            <Trash2 className="h-3.5 w-3.5" />
-          </Button>
+          {canVerify && (
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              aria-label={t("backupsTab.verify.aria", { vm: vm.name, job: jobName })}
+              title={allUnreachable ? offlineTip : t("backupsTab.verify.tip")}
+              className="text-muted-foreground"
+              onClick={onVerify}
+              disabled={allUnreachable || verifying}
+            >
+              {verifying ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <ShieldCheck className="h-3.5 w-3.5" />
+              )}
+            </Button>
+          )}
+          {canSyntheticFull && (
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              aria-label={t("backupsTab.syntheticFull.aria", { vm: vm.name, job: jobName })}
+              title={allUnreachable ? offlineTip : t("backupsTab.syntheticFull.tip")}
+              className="text-muted-foreground"
+              onClick={onSyntheticFull}
+              disabled={allUnreachable}
+            >
+              <Layers className="h-3.5 w-3.5" />
+            </Button>
+          )}
+          {canRestore && (
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              aria-label={t("backupsTab.restoreVmAria", { vm: vm.name, job: jobName })}
+              title={restoreBlockedReason ?? (allUnreachable ? offlineTip : t("rp.restore"))}
+              className="text-muted-foreground"
+              onClick={onRestore}
+              disabled={restoreDisabled}
+            >
+              <RotateCcw className="h-3.5 w-3.5" />
+            </Button>
+          )}
+          {canDelete && (
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              aria-label={t("backupsTab.deleteVmAria", { vm: vm.name, job: jobName })}
+              title={t("backupsTab.deleteVmTip")}
+              className="text-muted-foreground/70 hover:bg-danger/10 hover:text-danger"
+              onClick={onDelete}
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+            </Button>
+          )}
         </div>
       </div>
       {isOpen && (
@@ -258,6 +271,7 @@ function BackupPointRow({
   onRestore: () => void;
 }) {
   const { t } = useTranslation("jobs");
+  const canRestore = useCan("restore.start");
   const offlineTip = t("point.offlineTip");
   const restoreDisabled = unavailable || restoreBlockedReason !== undefined;
   return (
@@ -307,17 +321,19 @@ function BackupPointRow({
           {formatStorage(point.sizeGB, 1)}
         </span>
       )}
-      <Button
-        variant="ghost"
-        size="icon-sm"
-        aria-label={t("point.restoreAria")}
-        title={unavailable ? offlineTip : (restoreBlockedReason ?? t("rp.restore"))}
-        className="shrink-0 text-muted-foreground"
-        onClick={onRestore}
-        disabled={restoreDisabled}
-      >
-        <RotateCcw className="h-3.5 w-3.5" />
-      </Button>
+      {canRestore && (
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          aria-label={t("point.restoreAria")}
+          title={unavailable ? offlineTip : (restoreBlockedReason ?? t("rp.restore"))}
+          className="shrink-0 text-muted-foreground"
+          onClick={onRestore}
+          disabled={restoreDisabled}
+        >
+          <RotateCcw className="h-3.5 w-3.5" />
+        </Button>
+      )}
     </li>
   );
 }

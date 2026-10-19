@@ -13,17 +13,19 @@ import {
 } from "@/components/ui/dropdown-menu";
 import type { BackupJob } from "@/types";
 
+/** Each action is offered only when its handler is given: the caller leaves
+ *  out what the signed-in role does not allow. */
 interface JobActionsMenuProps {
   job: BackupJob;
-  onRun: () => void;
-  onRunFull: () => void;
+  onRun?: () => void;
+  onRunFull?: () => void;
   /** Stop the job's in-flight run. Absent when it has none — the item is then
    *  not offered at all rather than offered disabled, since a job that isn't
    *  running has nothing for it to act on. */
   onStopRun?: () => void;
-  onEdit: () => void;
-  onToggleEnabled: (enabled: boolean) => void;
-  onDelete: () => void;
+  onEdit?: () => void;
+  onToggleEnabled?: (enabled: boolean) => void;
+  onDelete?: () => void;
 }
 
 /** Per-row actions. Clicks stop propagation so the row's navigation doesn't fire. */
@@ -40,6 +42,9 @@ export function JobActionsMenu({
   const disabled = job.state === "disabled";
   const running = job.state === "running";
   const stop = (e: React.MouseEvent | React.KeyboardEvent) => e.stopPropagation();
+  const runFull = job.type === "backup" ? onRunFull : undefined;
+
+  if (!onRun && !runFull && !onStopRun && !onEdit && !onToggleEnabled && !onDelete) return null;
 
   return (
     <DropdownMenu>
@@ -49,22 +54,24 @@ export function JobActionsMenu({
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" onClick={stop}>
-        <DropdownMenuItem
-          disabled={running || disabled}
-          onSelect={(e) => {
-            e.preventDefault();
-            onRun();
-          }}
-        >
-          <Play className="h-4 w-4" />
-          {t("actions.runNow")}
-        </DropdownMenuItem>
-        {job.type === "backup" && (
+        {onRun && (
           <DropdownMenuItem
             disabled={running || disabled}
             onSelect={(e) => {
               e.preventDefault();
-              onRunFull();
+              onRun();
+            }}
+          >
+            <Play className="h-4 w-4" />
+            {t("actions.runNow")}
+          </DropdownMenuItem>
+        )}
+        {runFull && (
+          <DropdownMenuItem
+            disabled={running || disabled}
+            onSelect={(e) => {
+              e.preventDefault();
+              runFull();
             }}
           >
             <DatabaseBackup className="h-4 w-4" />
@@ -82,37 +89,45 @@ export function JobActionsMenu({
             {t("common:cancelRun.action")}
           </DropdownMenuItem>
         )}
-        <DropdownMenuItem
-          onSelect={(e) => {
-            e.preventDefault();
-            onEdit();
-          }}
-        >
-          <Pencil className="h-4 w-4" />
-          {t("common:actions.edit")}
-        </DropdownMenuItem>
-        <DropdownMenuItem
-          onSelect={(e) => {
-            e.preventDefault();
-            onToggleEnabled(disabled);
-          }}
-        >
-          {/* Power, not Play/Pause: transport belongs to "Run now" / "Stop run"
-              above, and this menu used to draw Play for both of them. */}
-          <Power className="h-4 w-4" />
-          {disabled ? t("common:actions.enable") : t("common:actions.disable")}
-        </DropdownMenuItem>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem
-          destructive
-          onSelect={(e) => {
-            e.preventDefault();
-            onDelete();
-          }}
-        >
-          <Trash2 className="h-4 w-4" />
-          {t("common:actions.delete")}
-        </DropdownMenuItem>
+        {onEdit && (
+          <DropdownMenuItem
+            onSelect={(e) => {
+              e.preventDefault();
+              onEdit();
+            }}
+          >
+            <Pencil className="h-4 w-4" />
+            {t("common:actions.edit")}
+          </DropdownMenuItem>
+        )}
+        {onToggleEnabled && (
+          <DropdownMenuItem
+            onSelect={(e) => {
+              e.preventDefault();
+              onToggleEnabled(disabled);
+            }}
+          >
+            {/* Power, not Play/Pause: transport belongs to "Run now" / "Stop run"
+                above, and this menu used to draw Play for both of them. */}
+            <Power className="h-4 w-4" />
+            {disabled ? t("common:actions.enable") : t("common:actions.disable")}
+          </DropdownMenuItem>
+        )}
+        {onDelete && (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              destructive
+              onSelect={(e) => {
+                e.preventDefault();
+                onDelete();
+              }}
+            >
+              <Trash2 className="h-4 w-4" />
+              {t("common:actions.delete")}
+            </DropdownMenuItem>
+          </>
+        )}
       </DropdownMenuContent>
     </DropdownMenu>
   );

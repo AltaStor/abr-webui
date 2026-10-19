@@ -18,7 +18,8 @@ import { AppearanceSection } from "./components/sections/AppearanceSection";
 import { NotificationsSection } from "./components/sections/NotificationsSection";
 import { SecuritySection } from "./components/sections/SecuritySection";
 import { AboutSection } from "./components/sections/AboutSection";
-import { SECTIONS, resolveSection, type SectionKey } from "./lib";
+import { NotPermitted } from "@/components/FeatureUnavailable";
+import { SECTIONS, resolveSection, useVisibleSections, type SectionKey } from "./lib";
 
 const SECTION_VIEW: Record<SectionKey, React.ComponentType> = {
   appearance: AppearanceSection,
@@ -50,7 +51,8 @@ export default function SettingsPage() {
   const unreachable = useSettingsStore((s) => s.syncStatus === "unreachable");
 
   const meta = SECTIONS.find((s) => s.key === active);
-  const View = SECTION_VIEW[active];
+  const permitted = useVisibleSections().some((s) => s.key === active);
+  const View = permitted ? SECTION_VIEW[active] : NotPermitted;
 
   return (
     <div>

@@ -27,6 +27,7 @@ import { NotificationsBell } from "./NotificationsBell";
 import { useUiStore } from "@/store/ui";
 import { useWorldStore } from "@/store/world";
 import { useAuthStore } from "@/store/auth";
+import { usePermissionsStore } from "@/store/permissions";
 import { switchWorldMode } from "@/lib/worldMode";
 
 /** "Alex Rivera" → "AR"; "admin" → "AD". Falls back to "?" for an empty name. */
@@ -48,6 +49,7 @@ export function Topbar() {
   const ready = useWorldStore((s) => s.ready);
   const authUser = useAuthStore((s) => s.user);
   const logout = useAuthStore((s) => s.logout);
+  const role = usePermissionsStore((s) => s.role);
   const themeAction = t(theme === "dark" ? "cmdPalette.switchToLight" : "cmdPalette.switchToDark");
 
   // The signed-in operator, live or demo (the sim answers its own login form —
@@ -154,6 +156,11 @@ export function Topbar() {
             <div className="flex flex-col">
               <span className="truncate text-sm font-medium text-foreground">{accountName}</span>
               <span className="truncate text-xs text-muted-foreground">{accountHandle}</span>
+              {authUser && role && (
+                <span className="mt-1 truncate text-xs font-normal text-muted-foreground">
+                  {t("topbar.role", { role: role.name })}
+                </span>
+              )}
             </div>
           </DropdownMenuLabel>
           <DropdownMenuSeparator />

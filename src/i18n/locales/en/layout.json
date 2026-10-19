@@ -42,7 +42,8 @@
     "reconnecting": "Reconnecting…",
     "reconnectingTip": "Lost the appliance event stream — reconnecting.",
     "demoSimulation": "Demo simulation",
-    "liveAppliance": "Live appliance"
+    "liveAppliance": "Live appliance",
+    "role": "Role: {{role}}"
   },
   "notifications": {
     "aria": "Notifications",

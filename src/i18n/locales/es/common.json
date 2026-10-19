@@ -90,6 +90,10 @@
     "replication": {
       "title": "La replicación no está disponible en esta appliance",
       "description": "Esta versión hace copias de seguridad y restauraciones; no mantiene una réplica activa en un segundo host. El enlace que ha seguido procede de una consola que sí lo hace. No hay nada roto ni perdido: sus trabajos de copia y sus puntos de restauración no se ven afectados."
+    },
+    "notPermitted": {
+      "title": "Tu rol no incluye esta página",
+      "description": "La appliance solo permite a cada rol las funciones que tiene asignadas, y nada de lo que muestra esta página está asignado al tuyo. Si lo necesitas, pide a un administrador que cambie tu rol."
     }
   },
   "resize": {
@@ -99,5 +103,8 @@
     "whitespace": "Un nombre no puede empezar ni terminar con un espacio: quítelo o use otro carácter.",
     "tooLong": "Use como máximo 125 caracteres.",
     "charset": "Empiece por una letra o un número y use solo letras latinas, números, espacios, puntos, guiones bajos o guiones."
+  },
+  "permission": {
+    "notAllowed": "Tu rol no lo permite."
   }
 }

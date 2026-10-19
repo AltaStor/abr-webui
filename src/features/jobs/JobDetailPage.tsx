@@ -36,6 +36,7 @@ import { toast } from "@/components/ui/sonner";
 import { formatDateTime, formatRelative } from "@/lib/format";
 import { lastRunMeta, rateTone } from "@/lib/status";
 import { apiErrorMessage } from "@/services/api.http";
+import { useCan } from "@/store/permissions";
 import { useWorldStore } from "@/store/world";
 import { REPO_TYPE_META } from "@/features/repositories/components/repoMeta";
 import { fullScheduleLabel, jobTypeMeta, retentionLabel, scheduleLabel } from "./lib";
@@ -64,6 +65,10 @@ export default function JobDetailPage() {
   const runJob = useWorldStore((s) => s.runJob);
   const setJobEnabled = useWorldStore((s) => s.setJobEnabled);
   const deleteJob = useWorldStore((s) => s.deleteJob);
+  const canStart = useCan("job.start");
+  const canEdit = useCan("job.edit");
+  const canDelete = useCan("job.delete");
+  const canRetention = useCan("job.retention");
 
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [retentionOpen, setRetentionOpen] = useState(false);
@@ -199,7 +204,7 @@ export default function JobDetailPage() {
         }
         actions={
           <>
-            {job.type === "backup" ? (
+            {!canStart ? null : job.type === "backup" ? (
               <div className="flex">
                 <Button
                   variant="default"
@@ -226,10 +231,12 @@ export default function JobDetailPage() {
                       <DatabaseBackup className="h-4 w-4" />
                       {t("actions.runFull")}
                     </DropdownMenuItem>
-                    <DropdownMenuItem onSelect={() => setRetentionOpen(true)}>
-                      <Layers className="h-4 w-4" />
-                      {t("actions.applyRetention")}
-                    </DropdownMenuItem>
+                    {canRetention && (
+                      <DropdownMenuItem onSelect={() => setRetentionOpen(true)}>
+                        <Layers className="h-4 w-4" />
+                        {t("actions.applyRetention")}
+                      </DropdownMenuItem>
+                    )}
                   </DropdownMenuContent>
                 </DropdownMenu>
               </div>
@@ -239,21 +246,27 @@ export default function JobDetailPage() {
                 {t("actions.runNow")}
               </Button>
             )}
-            <Button asChild variant="outline">
-              <Link to={`/jobs/${job.id}/edit`}>
-                <Pencil className="h-4 w-4" />
-                {t("common:actions.edit")}
-              </Link>
-            </Button>
-            <Button variant="outline" onClick={handleToggle}>
-              {/* Power, not Play/Pause: transport belongs to "Run now" / "Stop run".
-                  The wire protocol has always called this enable/disable. */}
-              <Power className="h-4 w-4" />
-              {disabled ? t("common:actions.enable") : t("common:actions.disable")}
-            </Button>
-            <Button variant="ghost" size="icon" aria-label={t("actions.deleteJob")} className="text-danger hover:text-danger" onClick={() => setDeleteOpen(true)}>
-              <Trash2 className="h-4 w-4" />
-            </Button>
+            {canEdit && (
+              <Button asChild variant="outline">
+                <Link to={`/jobs/${job.id}/edit`}>
+                  <Pencil className="h-4 w-4" />
+                  {t("common:actions.edit")}
+                </Link>
+              </Button>
+            )}
+            {canEdit && (
+              <Button variant="outline" onClick={handleToggle}>
+                {/* Power, not Play/Pause: transport belongs to "Run now" / "Stop run".
+                    The wire protocol has always called this enable/disable. */}
+                <Power className="h-4 w-4" />
+                {disabled ? t("common:actions.enable") : t("common:actions.disable")}
+              </Button>
+            )}
+            {canDelete && (
+              <Button variant="ghost" size="icon" aria-label={t("actions.deleteJob")} className="text-danger hover:text-danger" onClick={() => setDeleteOpen(true)}>
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            )}
           </>
         }
       />
@@ -400,7 +413,7 @@ export default function JobDetailPage() {
           <JobSettingsTab
             job={job}
             repository={repository}
-            onApplyRetention={job.type === "backup" ? () => setRetentionOpen(true) : undefined}
+            onApplyRetention={job.type === "backup" && canRetention ? () => setRetentionOpen(true) : undefined}
           />
         </TabsContent>
       </Tabs>

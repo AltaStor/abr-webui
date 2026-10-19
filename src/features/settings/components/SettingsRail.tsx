@@ -10,7 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { SECTIONS, type SectionKey } from "../lib";
+import { useVisibleSections, type SectionKey } from "../lib";
 
 interface SettingsRailProps {
   active: SectionKey;
@@ -23,6 +23,7 @@ interface SettingsRailProps {
  */
 export function SettingsRail({ active, onSelect }: SettingsRailProps) {
   const { t } = useTranslation("settings");
+  const sections = useVisibleSections();
   return (
     <>
       {/* Mobile: compact Select */}
@@ -32,7 +33,7 @@ export function SettingsRail({ active, onSelect }: SettingsRailProps) {
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            {SECTIONS.map((s) => (
+            {sections.map((s) => (
               <SelectItem key={s.key} value={s.key}>
                 {s.label}
               </SelectItem>
@@ -44,7 +45,7 @@ export function SettingsRail({ active, onSelect }: SettingsRailProps) {
       {/* Tablet: horizontal scroll strip */}
       <div className="hidden sm:block md:hidden">
         <div className="-mx-1 flex gap-1 overflow-x-auto px-1 pb-1">
-          {SECTIONS.map((s) => {
+          {sections.map((s) => {
             const Icon = s.icon;
             const isActive = s.key === active;
             return (
@@ -71,7 +72,7 @@ export function SettingsRail({ active, onSelect }: SettingsRailProps) {
       {/* Desktop: sticky vertical rail */}
       <nav aria-label={t("rail.sectionsNav")} className="hidden md:block">
         <div className="sticky top-4 space-y-1">
-          {SECTIONS.map((s) => {
+          {sections.map((s) => {
             const Icon = s.icon;
             const isActive = s.key === active;
             return (

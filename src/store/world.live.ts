@@ -30,6 +30,7 @@ import { retentionRefused } from "@/store/world.types";
 import { applyReadState, persistAllAlertsRead, persistAlertRead } from "@/store/notifications.persist";
 import { segmentChainPoints } from "@/lib/restore-points";
 import { restoreRunName } from "@/lib/format";
+import { can, usePermissionsStore } from "@/store/permissions";
 
 /** Debounce window for per-(event, id) fetch coalescing. */
 const COALESCE_MS = 300;
@@ -182,6 +183,29 @@ function toJobPatchPayload(patch: Partial<BackupJob>): Partial<api.CreateJobPayl
   return out;
 }
 
+/** `fetch()` when the signed-in user's role allows `functionId`, `empty`
+ *  otherwise — a read the role does not allow is never sent, so it can neither
+ *  fail the hydrate nor fill the appliance's audit log with denials. */
+function ifAllowed<T>(functionId: string, fetch: () => Promise<T>, empty: T): Promise<T> {
+  return can(functionId) ? fetch() : Promise.resolve(empty);
+}
+
+const NO_SESSIONS: api.SessionPage = { items: [], total: 0, hasNext: false, page: 1, pages: 0 };
+
+/** Refresh what the signed-in user's role allows from the appliance, so a
+ *  role an Administrator just changed shows on the next poll. Keeps the last
+ *  answer when this one fails: the hydrate's own requests report that. */
+async function refreshGrants(): Promise<void> {
+  try {
+    const me = await api.whoami();
+    usePermissionsStore
+      .getState()
+      .setGrants(me ? me.permissions : null, me ? (me.role ?? null) : null);
+  } catch {
+    /* unreachable or signed out — the hydrate below says which */
+  }
+}
+
 /* -------------------------------- driver -------------------------------- */
 export function createLiveDriver(handle: WorldHandle): WorldDriver {
   let stopped = false;
@@ -331,6 +355,7 @@ export function createLiveDriver(handle: WorldHandle): WorldDriver {
 
   /* ------------------------------ hydrate ------------------------------- */
   const hydrate = async (): Promise<void> => {
+    await refreshGrants();
     const [
       environments,
       hosts,
@@ -345,14 +370,14 @@ export function createLiveDriver(handle: WorldHandle): WorldDriver {
       metricsHistory,
       replicas,
     ] = await Promise.all([
-      api.listEnvironments(),
-      api.listHosts(),
-      api.listVms(),
-      api.listJobs(),
-      api.listSessionsPage(),
-      api.listRestorePoints(),
-      api.listRepositories(),
-      api.listAlerts(),
+      ifAllowed("inventory.view", api.listEnvironments, []),
+      ifAllowed("inventory.view", api.listHosts, []),
+      ifAllowed("inventory.view", api.listVms, []),
+      ifAllowed("job.view", api.listJobs, []),
+      ifAllowed("session.view", () => api.listSessionsPage(), NO_SESSIONS),
+      ifAllowed("backup.view", () => api.listRestorePoints(), []),
+      ifAllowed("repository.view", api.listRepositories, []),
+      ifAllowed("dashboard.view", api.listAlerts, []),
       api.listThreats(),
       api.listAuditEvents({ limit: 500 }).catch(() => []),
       api.getMetricsHistory(90).catch(() => []),
@@ -429,6 +454,7 @@ export function createLiveDriver(handle: WorldHandle): WorldDriver {
   /* ----------------------------- refreshers ----------------------------- */
   const refreshSession = async (sessionId: string): Promise<void> => {
     try {
+      if (!can("session.view")) return;
       const rawSession = await api.getSession(sessionId);
       noteFetchOk();
       if (stopped) return;
@@ -453,6 +479,7 @@ export function createLiveDriver(handle: WorldHandle): WorldDriver {
 
   const refreshJob = async (jobId: string): Promise<void> => {
     try {
+      if (!can("job.view")) return;
       const job = await api.getJob(jobId);
       noteFetchOk();
       if (stopped) return;
@@ -479,6 +506,7 @@ export function createLiveDriver(handle: WorldHandle): WorldDriver {
 
   const refreshVm = async (vmId: string): Promise<void> => {
     try {
+      if (!can("inventory.view")) return;
       const vm = await api.getVM(vmId);
       noteFetchOk();
       if (stopped) return;
@@ -498,6 +526,7 @@ export function createLiveDriver(handle: WorldHandle): WorldDriver {
   /** Replace one VM's restore points; every other VM's stay untouched. */
   const refreshVmRestorePoints = async (vmId: string): Promise<void> => {
     try {
+      if (!can("backup.view")) return;
       const points = await api.listRestorePoints(vmId);
       noteFetchOk();
       if (stopped) return;
@@ -512,6 +541,7 @@ export function createLiveDriver(handle: WorldHandle): WorldDriver {
 
   const refreshRepositories = async (): Promise<void> => {
     try {
+      if (!can("repository.view")) return;
       const repositories = await api.listRepositories();
       noteFetchOk();
       if (stopped) return;
@@ -524,6 +554,7 @@ export function createLiveDriver(handle: WorldHandle): WorldDriver {
 
   const refreshAlerts = async (): Promise<void> => {
     try {
+      if (!can("dashboard.view")) return;
       const alerts = await api.listAlerts();
       noteFetchOk();
       if (stopped) return;
@@ -572,6 +603,7 @@ export function createLiveDriver(handle: WorldHandle): WorldDriver {
 
   const refreshEnvironments = async (): Promise<void> => {
     try {
+      if (!can("inventory.view")) return;
       const [environments, hosts] = await Promise.all([api.listEnvironments(), api.listHosts()]);
       noteFetchOk();
       if (stopped) return;
@@ -585,6 +617,7 @@ export function createLiveDriver(handle: WorldHandle): WorldDriver {
   /** Refresh everything derived from inventory: environments, hosts, and VMs. */
   const refreshInventory = async (): Promise<void> => {
     try {
+      if (!can("inventory.view")) return;
       const [environments, hosts, vms] = await Promise.all([
         api.listEnvironments(),
         api.listHosts(),

@@ -19,6 +19,9 @@ API and renders no data of its own.
 - **Logs** — local log viewer
 - **Settings**, **Auth**, **Setup** — appliance configuration, authentication, and first-run setup
 
+What each user sees and can do follows their role on the appliance (see
+`doc/RBAC.md` in `abr-core`); the appliance enforces it either way.
+
 ## Tech stack
 
 - [React 18](https://react.dev/) + [TypeScript](https://www.typescriptlang.org/)

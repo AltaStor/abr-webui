@@ -42,7 +42,8 @@
     "reconnecting": "Verbindung wird wiederhergestellt…",
     "reconnectingTip": "Der Ereignisstream der Appliance ist unterbrochen – Verbindung wird wiederhergestellt.",
     "demoSimulation": "Demo-Simulation",
-    "liveAppliance": "Live-Appliance"
+    "liveAppliance": "Live-Appliance",
+    "role": "Rolle: {{role}}"
   },
   "notifications": {
     "aria": "Benachrichtigungen",

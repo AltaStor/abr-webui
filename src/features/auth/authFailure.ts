@@ -32,6 +32,8 @@ export type AuthFailure =
   | "currentWrong"
   /** Locked out after repeated failures (the appliance's 429). */
   | "locked"
+  /** Sign-in: the account is disabled, or holds no valid role (the appliance's 403). */
+  | "disabled"
   /** The new password fails the appliance's length policy. */
   | "policy"
   /** The request never reached the appliance — the only "unreachable" case. */
@@ -76,6 +78,9 @@ function classify(error: string | null, screen: "login" | "changePassword"): Cla
   if (/too many/i.test(text)) return { failure: "locked", detail: text };
   if (screen === "login" && /invalid username or password/i.test(text)) {
     return { failure: "credentials", detail: text };
+  }
+  if (screen === "login" && /account is disabled|account has no valid role/i.test(text)) {
+    return { failure: "disabled", detail: text };
   }
   if (screen === "changePassword") {
     if (/current password is incorrect/i.test(text)) return { failure: "currentWrong", detail: text };

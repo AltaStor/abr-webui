@@ -20,6 +20,7 @@ import { EditRepositoryDialog } from "./components/EditRepositoryDialog";
 import { DeleteRepositoryDialog } from "./components/DeleteRepositoryDialog";
 import type { RepositoryActions } from "./components/RepositoryActionsMenu";
 import { useRepositoryManagement } from "./useRepositoryManagement";
+import { useCan } from "@/store/permissions";
 
 export default function RepositoriesPage() {
   const { t } = useTranslation("repositories");
@@ -29,6 +30,10 @@ export default function RepositoriesPage() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
   const mgmt = useRepositoryManagement();
+  const canEdit = useCan("repository.edit");
+  const canRescan = useCan("repository.rescan");
+  const canVerify = useCan("repository.verify");
+  const canDelete = useCan("repository.delete");
   const threatLocks = useThreatLockedRepos();
 
   // Per-repository live counts.
@@ -73,12 +78,13 @@ export default function RepositoriesPage() {
   const selected: Repository | null =
     repositories.find((r) => r.id === selectedId) ?? null;
 
-  // Build the shared action bundle for a given repo.
+  // Build the shared action bundle for a given repo: only what the signed-in
+  // role may do, so the menus and the detail footer offer nothing it can't.
   const actionsFor = (repo: Repository): RepositoryActions => ({
-    onEdit: () => mgmt.openEdit(repo),
-    onRescan: () => mgmt.rescan(repo),
-    onVerify: () => void mgmt.verify(repo),
-    onDelete: () => mgmt.openDelete(repo),
+    onEdit: canEdit ? () => mgmt.openEdit(repo) : undefined,
+    onRescan: canRescan ? () => mgmt.rescan(repo) : undefined,
+    onVerify: canVerify ? () => void mgmt.verify(repo) : undefined,
+    onDelete: canDelete ? () => mgmt.openDelete(repo) : undefined,
   });
 
   const dialogRepo: Repository | null =
@@ -198,12 +204,7 @@ export default function RepositoriesPage() {
   );
 }
 
-const NO_ACTIONS: RepositoryActions = {
-  onEdit: () => {},
-  onRescan: () => {},
-  onVerify: () => {},
-  onDelete: () => {},
-};
+const NO_ACTIONS: RepositoryActions = {};
 
 function HealthChip({
   icon: Icon,

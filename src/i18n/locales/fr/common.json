@@ -90,6 +90,10 @@
     "replication": {
       "title": "La réplication n’est pas disponible sur cette appliance",
       "description": "Cette version sauvegarde et restaure ; elle ne maintient pas de réplique active sur un second hôte. Le lien que vous avez suivi provient d’une console qui le fait. Rien n’est cassé ni perdu : vos travaux de sauvegarde et vos points de restauration sont intacts."
+    },
+    "notPermitted": {
+      "title": "Votre rôle n’inclut pas cette page",
+      "description": "L’appliance ne permet à chaque rôle que les fonctions qui lui sont attribuées, et rien de ce que montre cette page n’est attribué au vôtre. Si vous en avez besoin, demandez à un administrateur de changer votre rôle."
     }
   },
   "resize": {
@@ -99,5 +103,8 @@
     "whitespace": "Un nom ne peut pas commencer ni se terminer par une espace — supprimez-la ou utilisez un autre caractère.",
     "tooLong": "Utilisez au maximum 125 caractères.",
     "charset": "Commencez par une lettre ou un chiffre, puis n’utilisez que des lettres latines, des chiffres, des espaces, des points, des tirets bas ou des traits d’union."
+  },
+  "permission": {
+    "notAllowed": "Votre rôle ne le permet pas."
   }
 }

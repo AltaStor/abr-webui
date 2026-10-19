@@ -5,6 +5,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Bell, Info, Palette, ShieldCheck, type LucideIcon } from "@/lib/icons";
 import type { AccentKey } from "@/types";
 import i18n from "@/i18n";
+import { usePermissionsStore } from "@/store/permissions";
 
 /* ----------------------------------- nav ---------------------------------- */
 
@@ -15,6 +16,8 @@ export interface SectionDef {
   label: string;
   icon: LucideIcon;
   blurb: string;
+  /** Offered only when the signed-in role allows one of these function IDs. */
+  functions?: string[];
 }
 
 /** `label`/`blurb` are getters so they resolve through i18next at access time. */
@@ -28,6 +31,14 @@ export const SECTIONS: SectionDef[] = [
 export function resolveSection(raw: string | undefined): SectionKey {
   const found = SECTIONS.find((s) => s.key === raw);
   return found ? found.key : "appearance";
+}
+
+/** The sections the signed-in role has a use for. */
+export function useVisibleSections(): SectionDef[] {
+  const grants = usePermissionsStore((s) => s.grants);
+  return SECTIONS.filter(
+    (section) => !section.functions || grants === "all" || section.functions.some((id) => grants.has(id)),
+  );
 }
 
 /* ----------------------------- accent swatches ---------------------------- */

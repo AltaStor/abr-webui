@@ -45,6 +45,7 @@ import { JobDisabledMark } from "./components/JobDisabledMark";
 import { ClockAheadMark } from "./components/ClockAheadMark";
 import { LastRunCounts } from "./components/RunOutcome";
 import { apiErrorMessage } from "@/services/api.http";
+import { useCan } from "@/store/permissions";
 import { useWorldStore } from "@/store/world";
 import type { BackupJob, Repository, Session, SessionStatus } from "@/types";
 import { DatabaseBackup } from "@/lib/icons";
@@ -107,12 +108,20 @@ export default function JobsPage() {
   const runJob = useWorldStore((s) => s.runJob);
   const setJobEnabled = useWorldStore((s) => s.setJobEnabled);
   const deleteJob = useWorldStore((s) => s.deleteJob);
+  const canViewJobs = useCan("job.view");
+  const canViewBackups = useCan("backup.view");
+  const canCreate = useCan("job.create");
+  const canStart = useCan("job.start");
+  const canEdit = useCan("job.edit");
+  const canDelete = useCan("job.delete");
+  const canStop = useCan("session.stop");
 
   // Two views on one page: the schedules ("Backup jobs") and the stored restore
   // points independent of any job ("Backups", formerly its own /backups page).
   // The tab lives in the URL so it survives reloads and is deep-linkable.
   const [searchParams, setSearchParams] = useSearchParams();
-  const tab: TabValue = searchParams.get("tab") === "backups" ? "backups" : "jobs";
+  // A role that reads only one of the two gets that one, whatever the URL says.
+  const tab: TabValue = (searchParams.get("tab") === "backups" && canViewBackups) || !canViewJobs ? "backups" : "jobs";
   const setTab = (v: string) => {
     const next = new URLSearchParams(searchParams);
     if (v === "jobs") next.delete("tab");
@@ -496,17 +505,17 @@ export default function JobsPage() {
           <div className="flex justify-end">
             <JobActionsMenu
               job={row.original}
-              onRun={() => handleRun(row.original)}
-              onRunFull={() => handleRun(row.original, true)}
+              onRun={canStart ? () => handleRun(row.original) : undefined}
+              onRunFull={canStart ? () => handleRun(row.original, true) : undefined}
               onStopRun={
                 // Offered only against a real in-flight session: `job.state`
                 // alone would put a stop on a job whose run the appliance has
                 // already closed but whose row hasn't caught up.
-                running ? () => setCancelTarget(running) : undefined
+                running && canStop ? () => setCancelTarget(running) : undefined
               }
-              onEdit={() => navigate(`/jobs/${row.original.id}/edit`)}
-              onToggleEnabled={(enabled) => handleToggle(row.original, enabled)}
-              onDelete={() => setDeleteTarget(row.original)}
+              onEdit={canEdit ? () => navigate(`/jobs/${row.original.id}/edit`) : undefined}
+              onToggleEnabled={canEdit ? (enabled) => handleToggle(row.original, enabled) : undefined}
+              onDelete={canDelete ? () => setDeleteTarget(row.original) : undefined}
             />
           </div>
           );
@@ -515,7 +524,7 @@ export default function JobsPage() {
     ];
     return cols;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [repoById, lastRunByJob, runningByJob, t]);
+  }, [repoById, lastRunByJob, runningByJob, t, canStart, canStop, canEdit, canDelete]);
 
   return (
     <div className="space-y-4">
@@ -523,7 +532,7 @@ export default function JobsPage() {
         title={t("page.title")}
         description={t("page.description")}
         actions={
-          tab === "jobs" ? (
+          tab === "jobs" && canCreate ? (
             <AddJobButton blockedReason={addJobBlockedReason} onClick={() => navigate("/jobs/new/backup")} />
           ) : undefined
         }
@@ -531,14 +540,18 @@ export default function JobsPage() {
 
       <Tabs value={tab} onValueChange={setTab}>
         <TabsList>
-          <TabsTrigger value="jobs">
-            {t("tabs.jobs")}
-            <TabCount value={jobs.length} active={tab === "jobs"} />
-          </TabsTrigger>
-          <TabsTrigger value="backups">
-            {t("tabs.backups")}
-            <TabCount value={restorePoints.length} active={tab === "backups"} />
-          </TabsTrigger>
+          {canViewJobs && (
+            <TabsTrigger value="jobs">
+              {t("tabs.jobs")}
+              <TabCount value={jobs.length} active={tab === "jobs"} />
+            </TabsTrigger>
+          )}
+          {canViewBackups && (
+            <TabsTrigger value="backups">
+              {t("tabs.backups")}
+              <TabCount value={restorePoints.length} active={tab === "backups"} />
+            </TabsTrigger>
+          )}
         </TabsList>
 
         <TabsContent value="jobs" className="space-y-4">
@@ -621,19 +634,25 @@ export default function JobsPage() {
             {t("bulk.selected", { count: selectedIds.length })}
           </span>
           <span className="h-4 w-px bg-border" />
-          <Button variant="ghost" size="sm" onClick={bulkRun}>
-            <Play className="h-3.5 w-3.5" />
-            {t("bulk.run")}
-          </Button>
-          <BulkDisableButton
-            blockedCount={alreadyDisabled.length}
-            selectedCount={selectedIds.length}
-            onClick={bulkDisable}
-          />
-          <Button variant="ghost" size="sm" className="text-danger hover:text-danger" onClick={() => setBulkDeleteOpen(true)}>
-            <Trash2 className="h-3.5 w-3.5" />
-            {t("common:actions.delete")}
-          </Button>
+          {canStart && (
+            <Button variant="ghost" size="sm" onClick={bulkRun}>
+              <Play className="h-3.5 w-3.5" />
+              {t("bulk.run")}
+            </Button>
+          )}
+          {canEdit && (
+            <BulkDisableButton
+              blockedCount={alreadyDisabled.length}
+              selectedCount={selectedIds.length}
+              onClick={bulkDisable}
+            />
+          )}
+          {canDelete && (
+            <Button variant="ghost" size="sm" className="text-danger hover:text-danger" onClick={() => setBulkDeleteOpen(true)}>
+              <Trash2 className="h-3.5 w-3.5" />
+              {t("common:actions.delete")}
+            </Button>
+          )}
           <Button variant="ghost" size="icon-sm" className="ml-auto" aria-label={t("bulk.clearSelection")} onClick={() => setRowSelection({})}>
             <X className="h-4 w-4" />
           </Button>
@@ -651,7 +670,7 @@ export default function JobsPage() {
            a job does not rewrite the history of its runs. */
         rowClassName={(j) => (j.state === "disabled" ? "text-muted-foreground" : undefined)}
         globalFilter={search}
-        enableRowSelection
+        enableRowSelection={canStart || canEdit || canDelete}
         rowSelection={rowSelection}
         onRowSelectionChange={setRowSelection}
         initialSorting={[{ id: "status", desc: false }]}
@@ -666,11 +685,13 @@ export default function JobsPage() {
               title={t("empty.noJobs.title")}
               description={t("empty.noJobs.description")}
               action={
-                <AddJobButton
-                  blockedReason={addJobBlockedReason}
-                  onClick={() => navigate("/jobs/new/backup")}
-                  label={t("empty.noJobs.action")}
-                />
+                canCreate ? (
+                  <AddJobButton
+                    blockedReason={addJobBlockedReason}
+                    onClick={() => navigate("/jobs/new/backup")}
+                    label={t("empty.noJobs.action")}
+                  />
+                ) : undefined
               }
             />
           ) : (

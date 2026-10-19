@@ -213,6 +213,10 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     [API_VERSION_HEADER]: `${__ABR_API_MAJOR__}.${__ABR_API_MINOR__}`,
   };
   if (authToken) headers.authorization = `Bearer ${authToken}`;
+  // Every read the console makes is a page load the live driver repeats on a
+  // timer, not a command, so the appliance's audit log leaves it out (a read
+  // the role does not allow is still logged as denied). Actions are audited.
+  if ((init?.method ?? "GET").toUpperCase() === "GET") headers["x-abr-refresh"] = "1";
   const res = await fetch(`${BASE}/api/v1${path}`, { ...init, headers });
   checkApiVersion(res);
   if (res.status === 401 && authToken) {
@@ -919,6 +923,10 @@ export interface AuthUser {
   id: string;
   name: string;
   fullName: string;
+  /** The user's one role, by role ID ("backup_operator"). Null from an
+   *  appliance that predates roles. */
+  role: string | null;
+  enabled: boolean;
   createdAt: string | null;
   /** True when the account's password fails the security policy (e.g. the
    * bootstrap admin's default password) — the console forces a change before
@@ -930,6 +938,9 @@ export interface LoginResult {
   token: string;
   expiresAt: string;
   user: AuthUser;
+  /** The function IDs the user's role allows; null from an appliance that
+   *  predates roles, where everything is allowed. */
+  permissions: string[] | null;
 }
 
 function mapAuthUser(u: Dict): AuthUser {
@@ -937,16 +948,64 @@ function mapAuthUser(u: Dict): AuthUser {
     id: str(u.id),
     name: str(u.name),
     fullName: str(u.fullName),
+    role: strOrNull(u.role),
+    enabled: u.enabled !== false,
     createdAt: strOrNull(u.created_at),
     passwordPolicyExempt: Boolean(u.passwordPolicyExempt),
   };
 }
 
+const strListOrNull = (v: unknown): string[] | null =>
+  Array.isArray(v) ? v.filter((item): item is string => typeof item === "string") : null;
+
 export async function login(name: string, password: string, durationSeconds?: number): Promise<LoginResult> {
   const body: Dict = { name, password };
   if (durationSeconds !== undefined) body.duration_seconds = durationSeconds;
   const res = asDict(await request<Dict>("/auth/login", { method: "POST", body: JSON.stringify(body) }));
-  return { token: str(res.token), expiresAt: str(res.expires_at), user: mapAuthUser(asDict(res.user)) };
+  return {
+    token: str(res.token),
+    expiresAt: str(res.expires_at),
+    user: mapAuthUser(asDict(res.user)),
+    permissions: strListOrNull(res.permissions),
+  };
+}
+
+export interface RoleSummary {
+  id: string;
+  name: string;
+  description: string;
+}
+
+export interface WhoAmI {
+  user: AuthUser;
+  role: RoleSummary | null;
+  permissions: string[];
+}
+
+function mapRoleSummary(r: Dict): RoleSummary {
+  return { id: str(r.id), name: str(r.name), description: str(r.description) };
+}
+
+/** The signed-in user, their role and what it allows (GET /auth/me). Null
+ *  from an appliance that predates roles (404), where everything is allowed. */
+export async function whoami(): Promise<WhoAmI | null> {
+  try {
+    const res = asDict(await request<Dict>("/auth/me"));
+    return {
+      user: mapAuthUser(asDict(res.user)),
+      role: res.role ? mapRoleSummary(asDict(res.role)) : null,
+      permissions: strListOrNull(res.permissions) ?? [],
+    };
+  } catch (err) {
+    if (err instanceof ApiError && err.status === 404) return null;
+    throw err;
+  }
+}
+
+/** True when the appliance refused the request because the signed-in user's
+ *  role does not allow it. */
+export function isPermissionDenied(err: unknown): boolean {
+  return apiErrorCode(err) === "permission_denied";
 }
 
 export const logout = () => request<void>("/auth/logout", { method: "POST", body: "{}" });

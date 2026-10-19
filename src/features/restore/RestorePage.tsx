@@ -29,6 +29,7 @@ import {
   type RestoreRefusal,
 } from "./refusals";
 import { RESTORE_POINT_PARAM, RESTORE_VM_PARAM } from "./link";
+import { useCan } from "@/store/permissions";
 
 export default function RestorePage() {
   const { t } = useTranslation("restore");
@@ -52,6 +53,7 @@ export default function RestorePage() {
   const repositories = useWorldStore((s) => s.repositories);
   const environments = useWorldStore((s) => s.environments);
   const startRestore = useWorldStore((s) => s.startRestore);
+  const mayRestore = useCan("restore.start");
 
   const offlineRepoIds = useMemo(
     () => new Set(repositories.filter((r) => r.status === "offline").map((r) => r.id)),
@@ -419,7 +421,11 @@ export default function RestorePage() {
               <ArrowRight className="h-4 w-4" />
             </Button>
           ) : (
-            <Button onClick={handleStart} disabled={!canStart}>
+            <Button
+              onClick={handleStart}
+              disabled={!canStart || !mayRestore}
+              title={mayRestore ? undefined : t("common:permission.notAllowed")}
+            >
               <Rocket className="h-4 w-4" />
               {t("cta.startRestore")}
             </Button>
