@@ -28,6 +28,10 @@
       "label": "Security",
       "blurb": "Access, sessions & HTTPS"
     },
+    "users": {
+      "label": "Users",
+      "blurb": "Users, roles & permissions"
+    },
     "about": {
       "label": "About",
       "blurb": "Version, license & links"
@@ -380,5 +384,68 @@
     "email": "Email",
     "role": "Role",
     "send": "Send invite"
+  },
+  "users": {
+    "title": "Users",
+    "description": "Who can sign in, and the one role each of them holds.",
+    "add": "Add user",
+    "loading": "Loading users…",
+    "loadFailed": "The users couldn't be loaded.",
+    "column": {
+      "user": "User",
+      "role": "Role",
+      "enabled": "Enabled",
+      "created": "Created"
+    },
+    "you": "you",
+    "roleFor": "Role of {{name}}",
+    "noRole": "No valid role",
+    "enabledFor": "{{name}} can sign in",
+    "state": {
+      "enabled": "Enabled",
+      "disabled": "Disabled"
+    },
+    "deleteUser": "Delete {{name}}",
+    "lastAdminNote": "Disabling a user signs them out everywhere. The last enabled Administrator can't be demoted, disabled or deleted, so someone can always manage users.",
+    "toast": {
+      "updated": "{{name}} updated",
+      "updateFailed": "The user wasn't changed",
+      "created": "{{name}} added",
+      "createFailed": "The user wasn't added.",
+      "deleted": "{{name}} deleted",
+      "deleteFailed": "The user wasn't deleted"
+    },
+    "form": {
+      "title": "Add user",
+      "description": "The user signs in with this name and password, and can do what the role allows.",
+      "name": "User name",
+      "fullName": "Full name (optional)",
+      "role": "Role",
+      "rolePlaceholder": "Choose a role",
+      "password": "Password",
+      "passwordHint": "At least {{count}} characters.",
+      "confirm": "Confirm password",
+      "submit": "Add user",
+      "nameRequired": "Enter a user name.",
+      "roleRequired": "Choose the user's role.",
+      "passwordTooShort": "Must be at least {{count}} characters.",
+      "mismatch": "Passwords don't match."
+    },
+    "deleteDialog": {
+      "title": "Delete {{name}}?",
+      "description": "The user is signed out everywhere and can no longer sign in. Their entries in the audit log stay."
+    }
+  },
+  "roles": {
+    "title": "Roles & permissions",
+    "description": "What each built-in role allows, function by function. Anything not allowed is disabled.",
+    "loading": "Loading roles…",
+    "loadFailed": "The roles couldn't be loaded.",
+    "column": {
+      "function": "Function"
+    },
+    "allowed": "Allowed",
+    "disabled": "Disabled",
+    "builtInNote": "The roles are built in and can't be changed or deleted."
   }
 }

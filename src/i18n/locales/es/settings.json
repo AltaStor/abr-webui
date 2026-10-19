@@ -28,6 +28,10 @@
       "label": "Seguridad",
       "blurb": "Acceso, sesiones y HTTPS"
     },
+    "users": {
+      "label": "Usuarios",
+      "blurb": "Usuarios, roles y permisos"
+    },
     "about": {
       "label": "Acerca de",
       "blurb": "Versión, licencia y enlaces"
@@ -380,5 +384,68 @@
     "email": "Correo",
     "role": "Rol",
     "send": "Enviar invitación"
+  },
+  "users": {
+    "title": "Usuarios",
+    "description": "Quién puede iniciar sesión y el único rol que tiene cada uno.",
+    "add": "Añadir usuario",
+    "loading": "Cargando usuarios…",
+    "loadFailed": "No se pudieron cargar los usuarios.",
+    "column": {
+      "user": "Usuario",
+      "role": "Rol",
+      "enabled": "Habilitado",
+      "created": "Creado"
+    },
+    "you": "tú",
+    "roleFor": "Rol de {{name}}",
+    "noRole": "Sin rol válido",
+    "enabledFor": "{{name}} puede iniciar sesión",
+    "state": {
+      "enabled": "Habilitado",
+      "disabled": "Deshabilitado"
+    },
+    "deleteUser": "Eliminar {{name}}",
+    "lastAdminNote": "Deshabilitar a un usuario cierra todas sus sesiones. El último administrador habilitado no se puede degradar, deshabilitar ni eliminar, para que siempre haya alguien que gestione los usuarios.",
+    "toast": {
+      "updated": "{{name}} actualizado",
+      "updateFailed": "El usuario no se modificó",
+      "created": "{{name}} añadido",
+      "createFailed": "El usuario no se añadió.",
+      "deleted": "{{name}} eliminado",
+      "deleteFailed": "El usuario no se eliminó"
+    },
+    "form": {
+      "title": "Añadir usuario",
+      "description": "El usuario inicia sesión con este nombre y contraseña, y puede hacer lo que permita el rol.",
+      "name": "Nombre de usuario",
+      "fullName": "Nombre completo (opcional)",
+      "role": "Rol",
+      "rolePlaceholder": "Elige un rol",
+      "password": "Contraseña",
+      "passwordHint": "Al menos {{count}} caracteres.",
+      "confirm": "Confirmar contraseña",
+      "submit": "Añadir usuario",
+      "nameRequired": "Introduce un nombre de usuario.",
+      "roleRequired": "Elige el rol del usuario.",
+      "passwordTooShort": "Debe tener al menos {{count}} caracteres.",
+      "mismatch": "Las contraseñas no coinciden."
+    },
+    "deleteDialog": {
+      "title": "¿Eliminar {{name}}?",
+      "description": "El usuario se desconecta en todas partes y ya no puede iniciar sesión. Sus entradas en el registro de auditoría se conservan."
+    }
+  },
+  "roles": {
+    "title": "Roles y permisos",
+    "description": "Lo que permite cada rol integrado, función por función. Todo lo que no está permitido está deshabilitado.",
+    "loading": "Cargando roles…",
+    "loadFailed": "No se pudieron cargar los roles.",
+    "column": {
+      "function": "Función"
+    },
+    "allowed": "Permitido",
+    "disabled": "Deshabilitado",
+    "builtInNote": "Los roles son integrados y no se pueden modificar ni eliminar."
   }
 }

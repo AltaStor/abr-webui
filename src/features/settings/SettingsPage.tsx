@@ -18,6 +18,7 @@ import { AppearanceSection } from "./components/sections/AppearanceSection";
 import { NotificationsSection } from "./components/sections/NotificationsSection";
 import { SecuritySection } from "./components/sections/SecuritySection";
 import { AboutSection } from "./components/sections/AboutSection";
+import { UsersSection } from "./components/sections/UsersSection";
 import { NotPermitted } from "@/components/FeatureUnavailable";
 import { SECTIONS, resolveSection, useVisibleSections, type SectionKey } from "./lib";
 
@@ -25,6 +26,7 @@ const SECTION_VIEW: Record<SectionKey, React.ComponentType> = {
   appearance: AppearanceSection,
   notifications: NotificationsSection,
   security: SecuritySection,
+  users: UsersSection,
   about: AboutSection,
 };
 

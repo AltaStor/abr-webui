@@ -17,7 +17,7 @@ API and renders no data of its own.
 - **Inventory** — vCenter/ESXi topology and protected VM inventory
 - **Repositories** — backup repository management
 - **Logs** — local log viewer
-- **Settings**, **Auth**, **Setup** — appliance configuration, authentication, and first-run setup
+- **Settings**, **Auth**, **Setup** — appliance configuration, users and roles, authentication, and first-run setup
 
 What each user sees and can do follows their role on the appliance (see
 `doc/RBAC.md` in `abr-core`); the appliance enforces it either way.

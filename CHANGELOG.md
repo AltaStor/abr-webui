@@ -11,6 +11,9 @@ All notable changes to the AltaStor WebUI are documented in this file.
   every poll; a page the role has no use for explains so, and the console
   never requests data the role may not read. The account menu shows the role,
   and a disabled account's sign-in says so.
+- Settings → Users: add users with a role, change a user's role, enable or
+  disable them, delete them, and see the permission matrix of the built-in
+  roles. Read-only for an Auditor.
 - Hyper-V support: back up and restore Hyper-V VMs from the console.
   - Register Hyper-V hosts and failover clusters.
   - VM detail shows a Hyper-V VM's generation, placement, checkpoints, disks

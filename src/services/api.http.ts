@@ -1002,6 +1002,60 @@ export async function whoami(): Promise<WhoAmI | null> {
   }
 }
 
+/* ---- Users and roles (Settings -> Users) ---- */
+
+export async function listUsers(): Promise<AuthUser[]> {
+  return (await collection<Dict>("/users")).map(mapAuthUser);
+}
+
+export interface CreateUserInput {
+  name: string;
+  fullName: string;
+  role: string;
+  password: string;
+}
+
+export async function createUser(input: CreateUserInput): Promise<AuthUser> {
+  return mapAuthUser(asDict(await request<Dict>("/users", { method: "POST", body: JSON.stringify(input) })));
+}
+
+export async function updateUser(
+  id: string,
+  patch: Partial<Pick<AuthUser, "fullName" | "role" | "enabled">>,
+): Promise<AuthUser> {
+  return mapAuthUser(
+    asDict(await request<Dict>(`/users/${encodeURIComponent(id)}`, { method: "PATCH", body: JSON.stringify(patch) })),
+  );
+}
+
+export const deleteUser = (id: string) => request<Dict>(`/users/${encodeURIComponent(id)}`, { method: "DELETE" });
+
+export interface RoleInfo extends RoleSummary {
+  /** Function IDs this role allows; every other function is disabled. */
+  allowedFunctions: string[];
+}
+
+export interface ProductFunction {
+  id: string;
+  name: string;
+  category: string;
+}
+
+export async function listRoles(): Promise<RoleInfo[]> {
+  return (await collection<Dict>("/roles")).map((r) => ({
+    ...mapRoleSummary(r),
+    allowedFunctions: strListOrNull(r.allowed_functions) ?? [],
+  }));
+}
+
+export async function listFunctions(): Promise<ProductFunction[]> {
+  return (await collection<Dict>("/functions")).map((f) => ({
+    id: str(f.id),
+    name: str(f.name),
+    category: str(f.category),
+  }));
+}
+
 /** True when the appliance refused the request because the signed-in user's
  *  role does not allow it. */
 export function isPermissionDenied(err: unknown): boolean {

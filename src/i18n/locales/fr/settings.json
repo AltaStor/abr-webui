@@ -28,6 +28,10 @@
       "label": "Sécurité",
       "blurb": "Accès, sessions et HTTPS"
     },
+    "users": {
+      "label": "Utilisateurs",
+      "blurb": "Utilisateurs, rôles et autorisations"
+    },
     "about": {
       "label": "À propos",
       "blurb": "Version, licence et liens"
@@ -380,5 +384,68 @@
     "email": "E-mail",
     "role": "Rôle",
     "send": "Envoyer l’invitation"
+  },
+  "users": {
+    "title": "Utilisateurs",
+    "description": "Qui peut se connecter, et le rôle unique de chacun.",
+    "add": "Ajouter un utilisateur",
+    "loading": "Chargement des utilisateurs…",
+    "loadFailed": "Les utilisateurs n’ont pas pu être chargés.",
+    "column": {
+      "user": "Utilisateur",
+      "role": "Rôle",
+      "enabled": "Activé",
+      "created": "Créé"
+    },
+    "you": "vous",
+    "roleFor": "Rôle de {{name}}",
+    "noRole": "Aucun rôle valide",
+    "enabledFor": "{{name}} peut se connecter",
+    "state": {
+      "enabled": "Activé",
+      "disabled": "Désactivé"
+    },
+    "deleteUser": "Supprimer {{name}}",
+    "lastAdminNote": "Désactiver un utilisateur le déconnecte partout. Le dernier administrateur activé ne peut être ni rétrogradé, ni désactivé, ni supprimé, afin que quelqu’un puisse toujours gérer les utilisateurs.",
+    "toast": {
+      "updated": "{{name}} mis à jour",
+      "updateFailed": "L’utilisateur n’a pas été modifié",
+      "created": "{{name}} ajouté",
+      "createFailed": "L’utilisateur n’a pas été ajouté.",
+      "deleted": "{{name}} supprimé",
+      "deleteFailed": "L’utilisateur n’a pas été supprimé"
+    },
+    "form": {
+      "title": "Ajouter un utilisateur",
+      "description": "L’utilisateur se connecte avec ce nom et ce mot de passe, et peut faire ce que le rôle permet.",
+      "name": "Nom d’utilisateur",
+      "fullName": "Nom complet (facultatif)",
+      "role": "Rôle",
+      "rolePlaceholder": "Choisir un rôle",
+      "password": "Mot de passe",
+      "passwordHint": "Au moins {{count}} caractères.",
+      "confirm": "Confirmer le mot de passe",
+      "submit": "Ajouter l’utilisateur",
+      "nameRequired": "Saisissez un nom d’utilisateur.",
+      "roleRequired": "Choisissez le rôle de l’utilisateur.",
+      "passwordTooShort": "Doit comporter au moins {{count}} caractères.",
+      "mismatch": "Les mots de passe ne correspondent pas."
+    },
+    "deleteDialog": {
+      "title": "Supprimer {{name}} ?",
+      "description": "L’utilisateur est déconnecté partout et ne peut plus se connecter. Ses entrées dans le journal d’audit sont conservées."
+    }
+  },
+  "roles": {
+    "title": "Rôles et autorisations",
+    "description": "Ce que chaque rôle intégré permet, fonction par fonction. Tout ce qui n’est pas permis est désactivé.",
+    "loading": "Chargement des rôles…",
+    "loadFailed": "Les rôles n’ont pas pu être chargés.",
+    "column": {
+      "function": "Fonction"
+    },
+    "allowed": "Autorisé",
+    "disabled": "Désactivé",
+    "builtInNote": "Les rôles sont intégrés et ne peuvent être ni modifiés ni supprimés."
   }
 }
