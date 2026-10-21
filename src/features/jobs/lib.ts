@@ -96,6 +96,12 @@ function fullSchedulePattern(schedule: FullBackupSchedule): string {
 
 /** Friendly retention label: "14 days" (+ GFS tail when present). */
 export function retentionLabel(retention: Retention): string {
+  const label = daysAndGfsLabel(retention);
+  const minFulls = retention.minFulls ?? 0;
+  return minFulls > 0 ? i18n.t("jobs:retention.minFulls", { base: label, count: minFulls }) : label;
+}
+
+function daysAndGfsLabel(retention: Retention): string {
   const base = i18n.t("jobs:retention.days", { count: retention.keepDays });
   if (!retention.gfs) return base;
   const { weekly, monthly, yearly, enabled } = retention.gfs;

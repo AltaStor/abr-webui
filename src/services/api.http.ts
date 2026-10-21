@@ -67,6 +67,7 @@ import type {
   RestorePlacementOptions,
   RestorePoint,
   RetentionRunResult,
+  SystemClockStatus,
   Retention,
   S3ConnectionCheck,
   S3ConnectionTestResult,
@@ -572,7 +573,7 @@ function mapJobOptions(params: Dict, compressionLevel?: unknown, encryption?: Di
 function mapRetention(job: Dict): Retention {
   const gfs = asDict(job.gfs);
   const keep = num(job.retention_days, 7);
-  const out: Retention = { keepDays: keep };
+  const out: Retention = { keepDays: keep, minFulls: num(job.retention_min_fulls, 0) };
   if (gfs.weekly || gfs.monthly || gfs.yearly) {
     out.gfs = {
       weekly: num(gfs.weekly),
@@ -1592,6 +1593,7 @@ function createJobBody(payload: Partial<CreateJobPayload>): Dict {
     // Archiving on/off is a separate switch from the counts on both endpoints:
     // create reads it inside the nested object, PATCH as a flat `gfs_enabled`.
     body.gfs_enabled = gfs.enabled;
+    if (payload.retention.minFulls !== undefined) body.retention_min_fulls = payload.retention.minFulls;
   }
   if (payload.options) body.task_parameters = optionsToTaskParams(payload.options);
   return body;
@@ -1682,6 +1684,8 @@ function mapRetentionRun(res: Dict): RetentionRunResult {
     jobName: str(res.job_name),
     dryRun: Boolean(res.dry_run),
     retentionDays: num(res.retention_days),
+    retentionMinFulls: num(res.retention_min_fulls),
+    clockBlocked: str(res.clock_blocked) || null,
     summary: {
       chains: num(summary.chains),
       points: num(summary.points),
@@ -1689,6 +1693,7 @@ function mapRetentionRun(res: Dict): RetentionRunResult {
       held: num(summary.held),
       failed: num(summary.failed),
       skipped: num(summary.skipped),
+      keptMinFulls: num(summary.kept_min_fulls),
     },
     chains: chains.map((chain) => ({
       vmId: str(chain.vm_id),
@@ -1704,6 +1709,8 @@ function mapRetentionRun(res: Dict): RetentionRunResult {
       failed: ids(chain.failed),
       keptForChain: ids(chain.kept_for_chain),
       skippedReason: str(chain.skipped_reason) || null,
+      keptMinFulls: ids(chain.kept_min_fulls),
+      clockBlocked: str(chain.clock_blocked) || null,
     })),
     ranAt: str(res.ran_at),
   };
@@ -2543,6 +2550,30 @@ export interface ApplianceManifest {
   };
   hypervisors: Array<{ type: EnvironmentType; endpoint: string; username: string; credentialRef: string }>;
   defaultPolicy: { scheduleAt: string; keepPoints: number; tag?: string } | null;
+}
+
+function mapSystemClock(res: Dict): SystemClockStatus {
+  return {
+    blocked: res.blocked === true,
+    serverTime: str(res.server_time),
+    lastKnownAt: str(res.last_known_at) || null,
+    detectedAt: str(res.detected_at) || null,
+    lastTrustedAt: str(res.last_trusted_at) || null,
+    jumpSeconds: num(res.jump_seconds),
+    source: str(res.source) || null,
+    thresholdHours: num(res.threshold_hours),
+    confirmedAt: str(res.confirmed_at) || null,
+    confirmedBy: str(res.confirmed_by) || null,
+    message: str(res.message) || null,
+  };
+}
+
+export async function getSystemClock(): Promise<SystemClockStatus> {
+  return mapSystemClock(asDict(await request<Dict>("/system/clock")));
+}
+
+export async function confirmSystemClock(): Promise<SystemClockStatus> {
+  return mapSystemClock(asDict(await request<Dict>("/system/clock/confirm", { method: "POST" })));
 }
 
 export async function getSystemInfo(): Promise<ApplianceInfo> {

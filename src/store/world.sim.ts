@@ -1204,9 +1204,15 @@ export function createSimDriver(handle: WorldHandle): WorldDriver {
         const key = `${point.vmId}::${point.repositoryId}`;
         chains.set(key, [...(chains.get(key) ?? []), point]);
       }
+      const minFulls = job.retention.minFulls ?? 0;
       const reports: RetentionChainReport[] = [...chains.values()].map((points) => {
         const removed: string[] = [];
-        for (const segment of segmentChainPoints(points)) {
+        const keptMinFulls: string[] = [];
+        const segments = segmentChainPoints(points);
+        const floor = new Set(
+          (minFulls > 0 ? segments.slice(-minFulls) : []).flatMap((segment) => segment.points.map((point) => point.id)),
+        );
+        for (const segment of segments) {
           const all = segment.points;
           const incrementals = all.filter((point) => point.type !== "full");
           if (segment.full?.gfsProtected) {
@@ -1217,6 +1223,9 @@ export function createSimDriver(handle: WorldHandle): WorldDriver {
             removed.push(...all.map((point) => point.id));
           }
         }
+        keptMinFulls.push(...removed.filter((id) => floor.has(id)));
+        const kept = new Set(keptMinFulls);
+        removed.splice(0, removed.length, ...removed.filter((id) => !kept.has(id)));
         const first = points[0];
         return {
           vmId: first.vmId,
@@ -1229,6 +1238,8 @@ export function createSimDriver(handle: WorldHandle): WorldDriver {
           failed: [],
           keptForChain: [],
           skippedReason: null,
+          keptMinFulls,
+          clockBlocked: null,
         };
       });
       const removedIds = new Set(reports.flatMap((report) => report.removed));
@@ -1244,6 +1255,8 @@ export function createSimDriver(handle: WorldHandle): WorldDriver {
         jobName: job.name,
         dryRun,
         retentionDays: job.retention.keepDays,
+        retentionMinFulls: minFulls,
+        clockBlocked: null,
         summary: {
           chains: reports.length,
           points: reports.reduce((sum, report) => sum + report.points, 0),
@@ -1251,6 +1264,7 @@ export function createSimDriver(handle: WorldHandle): WorldDriver {
           held: 0,
           failed: 0,
           skipped: 0,
+          keptMinFulls: reports.reduce((sum, report) => sum + report.keptMinFulls.length, 0),
         },
         chains: reports,
         ranAt: nowIso(),

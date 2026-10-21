@@ -83,5 +83,23 @@
   "offline": {
     "title": "Lost contact with the appliance.",
     "body": "Nothing on this page is updating — runs, capacity and alerts are whatever they were when the connection dropped. Reconnecting in the background."
+  },
+  "clockJump": {
+    "title": "Retention is paused: the server clock jumped forward.",
+    "body": "Restore points would look older than they are, so retention deletes nothing until an Administrator confirms the server time.",
+    "confirm": "Confirm server time",
+    "dialog": {
+      "title": "Confirm the server time",
+      "lead": "Retention measures the age of every restore point from this clock. Confirm only if the server time below is correct: restore points removed on a wrong clock cannot be brought back.",
+      "serverTime": "Server time now",
+      "lastTrusted": "Last trusted time",
+      "jump": "Jump",
+      "threshold": "Allowed drift",
+      "thresholdValue_one": "{{count}} hour",
+      "thresholdValue_other": "{{count}} hours",
+      "confirm": "The time is correct",
+      "done": "Server time confirmed; retention removes expired restore points again.",
+      "failed": "Could not confirm the server time"
+    }
   }
 }

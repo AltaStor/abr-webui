@@ -180,6 +180,7 @@ export interface FullBackupSchedule {
 export interface Retention {
   /** Days of short-term backups to keep before they age out (sent to the API as `retention_days`). */
   keepDays: number;
+  minFulls?: number;
   gfs?: {
     weekly: number;
     monthly: number;
@@ -239,6 +240,8 @@ export interface RetentionChainReport {
   keptForChain: string[];
   /** Set when the chain was left alone, e.g. a backup of the VM is running. */
   skippedReason: string | null;
+  keptMinFulls: string[];
+  clockBlocked: string | null;
 }
 
 /** POST /jobs/{id}/retention — what a retention pass removed or would remove. */
@@ -250,9 +253,33 @@ export interface RetentionRunResult {
   jobName: string;
   dryRun: boolean;
   retentionDays: number;
-  summary: { chains: number; points: number; removed: number; held: number; failed: number; skipped: number };
+  retentionMinFulls: number;
+  clockBlocked: string | null;
+  summary: {
+    chains: number;
+    points: number;
+    removed: number;
+    held: number;
+    failed: number;
+    skipped: number;
+    keptMinFulls: number;
+  };
   chains: RetentionChainReport[];
   ranAt: string;
+}
+
+export interface SystemClockStatus {
+  blocked: boolean;
+  serverTime: string;
+  lastKnownAt: string | null;
+  detectedAt: string | null;
+  lastTrustedAt: string | null;
+  jumpSeconds: number;
+  source: string | null;
+  thresholdHours: number;
+  confirmedAt: string | null;
+  confirmedBy: string | null;
+  message: string | null;
 }
 
 export type JobType = "backup" | "replication" | "backup-copy";

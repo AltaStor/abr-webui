@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   AlertTriangle,
+  Clock,
   Cpu,
   ExternalLink,
   FileText,
@@ -21,8 +22,10 @@ import type { LucideIcon } from "@/lib/icons";
 import i18n from "@/i18n";
 import { useSettingsStore } from "@/store/settings";
 import { useWorldStore } from "@/store/world";
-import { getSystemInfo } from "@/services/api.http";
+import { getSystemClock, getSystemInfo } from "@/services/api.http";
 import type { ApplianceInfo } from "@/services/api.http";
+import { formatDateTime } from "@/lib/format";
+import type { SystemClockStatus } from "@/types";
 import { SettingsSection } from "../SettingsSection";
 
 const APP_VERSION = "v0.5.0";
@@ -64,6 +67,25 @@ export function AboutSection() {
   // Bumped by the Retry button to re-run the probe effect.
   const [probeAttempt, setProbeAttempt] = useState(0);
   const retryProbe = () => setProbeAttempt((n) => n + 1);
+  const [clock, setClock] = useState<SystemClockStatus | null>(null);
+
+  useEffect(() => {
+    if (mode !== "live") {
+      setClock(null);
+      return;
+    }
+    let cancelled = false;
+    getSystemClock()
+      .then((data) => {
+        if (!cancelled) setClock(data);
+      })
+      .catch(() => {
+        if (!cancelled) setClock(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [mode, probeAttempt]);
 
   useEffect(() => {
     if (mode !== "live") {
@@ -117,6 +139,15 @@ export function AboutSection() {
       label: t("about.appliance.uptime"),
       value: pending ?? (info ? formatUptime(info.uptimeSec) : UNKNOWN),
       mono: true,
+    },
+    {
+      icon: Clock,
+      label: t("about.appliance.serverClock"),
+      value: clock
+        ? t(clock.blocked ? "about.appliance.clockBlocked" : "about.appliance.clockOk", {
+            time: formatDateTime(clock.serverTime),
+          })
+        : pending ?? UNKNOWN,
     },
     {
       icon: Cpu,

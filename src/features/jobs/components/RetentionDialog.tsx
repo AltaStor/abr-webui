@@ -3,7 +3,7 @@
 
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { AlertTriangle, CheckCircle2, Layers, Loader2, Lock } from "@/lib/icons";
+import { AlertTriangle, CheckCircle2, Clock, Layers, Loader2, Lock, ShieldCheck } from "@/lib/icons";
 import {
   Dialog,
   DialogContent,
@@ -61,6 +61,7 @@ export function RetentionDialog({ job, open, onOpenChange }: RetentionDialogProp
 
   const shown = applied ?? preview;
   const removable = preview?.ok ? preview.summary.removed : 0;
+  const clockBlocked = preview?.ok ? preview.clockBlocked : null;
 
   async function handleApply() {
     setBusy(true);
@@ -100,7 +101,19 @@ export function RetentionDialog({ job, open, onOpenChange }: RetentionDialogProp
             {shown.message}
           </p>
         ) : shown ? (
-          <RetentionReport result={shown} />
+          <>
+            {clockBlocked && (
+              <p
+                role="alert"
+                data-testid="retention-clock-blocked"
+                className="flex items-start gap-2 border border-warning/40 bg-warning/10 px-3 py-2.5 text-xs text-warning-text"
+              >
+                <Clock className="mt-px h-4 w-4 shrink-0" />
+                {t("retentionRun.clockBlocked")}
+              </p>
+            )}
+            <RetentionReport result={shown} />
+          </>
         ) : null}
 
         <DialogFooter>
@@ -108,11 +121,13 @@ export function RetentionDialog({ job, open, onOpenChange }: RetentionDialogProp
             {applied ? t("common:actions.close") : t("common:actions.cancel")}
           </Button>
           {!applied && (
-            <Button variant="destructive" onClick={handleApply} disabled={busy || removable === 0}>
+            <Button variant="destructive" onClick={handleApply} disabled={busy || removable === 0 || Boolean(clockBlocked)}>
               {busy && preview ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-              {removable === 0
-                ? t("retentionRun.nothingToRemove")
-                : t("retentionRun.apply", { count: removable })}
+              {clockBlocked
+                ? t("retentionRun.blockedByClock")
+                : removable === 0
+                  ? t("retentionRun.nothingToRemove")
+                  : t("retentionRun.apply", { count: removable })}
             </Button>
           )}
         </DialogFooter>
@@ -124,11 +139,14 @@ export function RetentionDialog({ job, open, onOpenChange }: RetentionDialogProp
 function RetentionReport({ result }: { result: RetentionRunResult }) {
   const { t } = useTranslation("jobs");
   const { summary } = result;
-  const headline = result.dryRun
-    ? summary.removed === 0
-      ? t("retentionRun.previewNone", { count: summary.points })
-      : t("retentionRun.previewSome", { count: summary.removed, total: summary.points })
-    : t("retentionRun.doneSome", { count: summary.removed, total: summary.points });
+  const headline =
+    summary.removed === 0 && summary.keptMinFulls > 0
+      ? t("retentionRun.keptAll", { count: summary.keptMinFulls, total: summary.points })
+      : result.dryRun
+        ? summary.removed === 0
+          ? t("retentionRun.previewNone", { count: summary.points })
+          : t("retentionRun.previewSome", { count: summary.removed, total: summary.points })
+        : t("retentionRun.doneSome", { count: summary.removed, total: summary.points });
 
   if (result.chains.length === 0) {
     return <p className="py-4 text-sm text-muted-foreground">{t("retentionRun.noPoints")}</p>;
@@ -176,6 +194,12 @@ function RetentionReport({ result }: { result: RetentionRunResult }) {
           {t("retentionRun.heldExplained")}
         </p>
       )}
+      {summary.keptMinFulls > 0 && (
+        <p className="flex items-start gap-2 text-xs text-muted-foreground">
+          <ShieldCheck className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+          {t("retentionRun.keptMinFullsExplained")}
+        </p>
+      )}
     </div>
   );
 }
@@ -183,7 +207,9 @@ function RetentionReport({ result }: { result: RetentionRunResult }) {
 function ChainNote({ chain }: { chain: RetentionChainReport }) {
   const { t } = useTranslation("jobs");
   const notes: string[] = [];
-  if (chain.skippedReason) notes.push(t("retentionRun.note.skipped", { reason: chain.skippedReason }));
+  if (chain.skippedReason && chain.skippedReason !== chain.clockBlocked) {
+    notes.push(t("retentionRun.note.skipped", { reason: chain.skippedReason }));
+  }
   if (chain.held.length > 0) {
     const until = chain.held.map((item) => item.until).sort().at(-1) ?? "";
     notes.push(
@@ -192,6 +218,9 @@ function ChainNote({ chain }: { chain: RetentionChainReport }) {
         until: until ? formatDateTime(until) : "—",
       }),
     );
+  }
+  if (chain.keptMinFulls.length > 0) {
+    notes.push(t("retentionRun.note.keptMinFulls", { count: chain.keptMinFulls.length }));
   }
   if (chain.failed.length > 0) notes.push(t("retentionRun.note.failed", { count: chain.failed.length }));
   return <>{notes.length ? notes.join(" · ") : "—"}</>;

@@ -389,7 +389,9 @@ export function retentionRefused(jobId: string, dryRun: boolean, message: string
     jobName: "",
     dryRun,
     retentionDays: 0,
-    summary: { chains: 0, points: 0, removed: 0, held: 0, failed: 0, skipped: 0 },
+    retentionMinFulls: 0,
+    clockBlocked: null,
+    summary: { chains: 0, points: 0, removed: 0, held: 0, failed: 0, skipped: 0, keptMinFulls: 0 },
     chains: [],
     ranAt: new Date().toISOString(),
   };

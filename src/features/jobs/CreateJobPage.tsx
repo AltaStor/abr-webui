@@ -173,6 +173,7 @@ interface FormState {
    *  question look like two different questions on one page. */
   daysOfWeek: number[];
   keepDays: number;
+  minFulls: number;
   /** Backup jobs only: full backups on their own schedules, next to `preset`. */
   activeFull: FullScheduleForm;
   syntheticFull: FullScheduleForm;
@@ -349,6 +350,7 @@ function JobWizard({
         atTime,
         daysOfWeek: existingJob.schedule.daysOfWeek?.length ? [...existingJob.schedule.daysOfWeek] : [0],
         keepDays: existingJob.retention.keepDays,
+        minFulls: existingJob.retention.minFulls ?? 0,
         activeFull: fullScheduleForm(existingJob.activeFullSchedule, activeDefaults),
         syntheticFull: fullScheduleForm(existingJob.syntheticFullSchedule, syntheticDefaults),
         repositoryId: existingJob.repositoryId,
@@ -370,6 +372,7 @@ function JobWizard({
       atTime,
       daysOfWeek: [0],
       keepDays: 14,
+      minFulls: 0,
       activeFull: activeDefaults,
       syntheticFull: syntheticDefaults,
       repositoryId: "repo-immutable",
@@ -668,7 +671,7 @@ function JobWizard({
       schedule,
       activeFullSchedule: fullScheduleInput(form.activeFull, existingJob?.activeFullSchedule),
       syntheticFullSchedule: fullScheduleInput(form.syntheticFull, existingJob?.syntheticFullSchedule),
-      retention: { keepDays: form.keepDays, gfs },
+      retention: isReplication ? { keepDays: form.keepDays, gfs } : { keepDays: form.keepDays, gfs, minFulls: form.minFulls },
       // The key rides with the options only when the operator entered one — see
       // `optionsToTaskParams`, where omitting it is what carries a job's stored
       // key through an edit untouched.
@@ -745,6 +748,7 @@ function JobWizard({
       ? replicaPointsLabel
       : retentionLabel({
           keepDays: form.keepDays,
+          minFulls: form.minFulls,
           gfs:
             form.gfsWeekly || form.gfsMonthly || form.gfsYearly
               ? {
@@ -1135,6 +1139,33 @@ function JobWizard({
                   ? t("create.keepReplicaNote", { count: form.keepDays })
                   : t("create.keepBackupNote", { count: form.keepDays })}
               </p>
+              {!isReplication && (
+                <div className="space-y-2 border-t border-border pt-4" data-testid="retention-min-fulls">
+                  <Label htmlFor="retention-min-fulls">{t("create.minFulls")}</Label>
+                  <div className="flex items-center gap-3">
+                    <Input
+                      id="retention-min-fulls"
+                      type="number"
+                      inputMode="numeric"
+                      min={0}
+                      max={100}
+                      step={1}
+                      value={form.minFulls}
+                      onChange={(event) => {
+                        const value = Math.trunc(Number(event.target.value));
+                        set("minFulls", Number.isFinite(value) ? Math.min(100, Math.max(0, value)) : 0);
+                      }}
+                      className="w-24"
+                      aria-label={t("create.minFullsAria")}
+                    />
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    {form.minFulls > 0
+                      ? t("create.minFullsOn", { count: form.minFulls })
+                      : t("create.minFullsOff")}
+                  </p>
+                </div>
+              )}
             </CardContent>
           </Card>
 

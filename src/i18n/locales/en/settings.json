@@ -333,7 +333,10 @@
       "uptime": "Uptime",
       "cpu": "CPU",
       "memory": "Memory",
-      "probeFailed": "Couldn't read hardware details from the appliance. Fields it reports are shown as “—”."
+      "probeFailed": "Couldn't read hardware details from the appliance. Fields it reports are shown as “—”.",
+      "serverClock": "Server clock",
+      "clockOk": "In step · {{time}}",
+      "clockBlocked": "Jumped forward, retention paused · {{time}}"
     },
     "license": {
       "title": "Resources"

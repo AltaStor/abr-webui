@@ -53,7 +53,9 @@
     "days_one": "{{count}} day",
     "days_other": "{{count}} days",
     "withGfs": "{{base}} · GFS {{tail}}",
-    "withGfsSuspended": "{{base}} · GFS {{tail}} (suspended)"
+    "withGfsSuspended": "{{base}} · GFS {{tail}} (suspended)",
+    "minFulls_one": "{{base}} · always the newest full",
+    "minFulls_other": "{{base}} · always the {{count}} newest fulls"
   },
   "fullSchedule": {
     "active": "Active full",
@@ -913,6 +915,11 @@
     "keepReplicaNote_other": "Keep {{count}} recovery points on the replica — snapshots you can roll back to before failing over.",
     "keepBackupNote_one": "Keep backups for {{count}} day before they are automatically deleted.",
     "keepBackupNote_other": "Keep backups for {{count}} days before they are automatically deleted.",
+    "minFulls": "Always keep the newest full backups",
+    "minFullsAria": "Number of newest full backups to always keep",
+    "minFullsOff": "Off: retention goes by days alone, and a VM whose backups stopped can lose every restore point.",
+    "minFullsOn_one": "The newest full backup of each VM, with its incrementals, is never removed, however old it gets.",
+    "minFullsOn_other": "The {{count}} newest full backups of each VM, with their incrementals, are never removed, however old they get.",
     "full": {
       "title": "Full backups",
       "term": "full backups",
@@ -1028,6 +1035,8 @@
     "previewSome_other": "{{count}} of {{total}} restore points have expired and would be removed.",
     "doneSome_one": "Removed {{count}} of {{total}} restore points.",
     "doneSome_other": "Removed {{count}} of {{total}} restore points.",
+    "keptAll_one": "Nothing to remove: {{count}} of {{total}} restore points has expired but is kept as one of the newest full backups.",
+    "keptAll_other": "Nothing to remove: {{count}} of {{total}} restore points have expired but are kept as the newest full backups.",
     "noPoints": "This job has no restore points yet.",
     "heldExplained": "Held restore points are expired but still under S3 Object Lock; they go on a later pass, once the lock ends. Older points they depend on stay with them.",
     "col": {
@@ -1043,7 +1052,9 @@
       "held_one": "{{count}} held by Object Lock until {{until}}",
       "held_other": "{{count}} held by Object Lock until {{until}}",
       "failed_one": "{{count}} could not be removed; kept for the next pass",
-      "failed_other": "{{count}} could not be removed; kept for the next pass"
+      "failed_other": "{{count}} could not be removed; kept for the next pass",
+      "keptMinFulls_one": "{{count}} kept as the newest full",
+      "keptMinFulls_other": "{{count}} kept as the newest fulls"
     },
     "toast": {
       "failed": "Retention of {{name}} did not run",
@@ -1051,7 +1062,10 @@
       "partial_other": "Retention of {{name}} could not remove {{count}} restore points; they are kept for the next pass",
       "done_one": "Retention of {{name}} removed {{count}} restore point",
       "done_other": "Retention of {{name}} removed {{count}} restore points"
-    }
+    },
+    "clockBlocked": "Retention is blocked: the server clock jumped forward. It deletes nothing until an Administrator confirms the server time.",
+    "blockedByClock": "Blocked by the server clock",
+    "keptMinFullsExplained": "Some expired restore points stay because they belong to the newest full backups this job always keeps."
   },
   "clock": {
     "title": "This job's last run is ahead of the server clock",

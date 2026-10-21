@@ -8,6 +8,7 @@ import { motion } from "framer-motion";
 import { DesktopSidebar } from "@/components/layout/Sidebar";
 import { Topbar } from "@/components/layout/Topbar";
 import { CommandPalette } from "@/components/layout/CommandPalette";
+import { ClockJumpBanner } from "@/components/layout/ClockJumpBanner";
 import { ConnectionLostBanner } from "@/components/layout/ConnectionLostBanner";
 import { IntroOverlay } from "@/components/brand/IntroOverlay";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -137,6 +138,7 @@ export function AppShell() {
       <div className="flex min-w-0 flex-1 flex-col">
         <Topbar />
         <ConnectionLostBanner />
+        <ClockJumpBanner />
         <main className="flex-1 overflow-y-auto scroll-smooth">
           {/* The content rail: flush with the viewport below the max width, a
               pair of hairlines bounding the column above it. */}
