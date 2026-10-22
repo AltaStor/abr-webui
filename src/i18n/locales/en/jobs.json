@@ -841,7 +841,7 @@
       "targetEnv": "Pick a target environment for the replica.",
       "repository": "Pick a repository to store backups in.",
       "scheduleDays": "Pick at least one day for the backup schedule.",
-      "hypervRepository": "Hyper-V VMs need an S3 repository, or a local one shared to the hosts over SMB: abr-vhdx-tool writes their disks from the Hyper-V host, which cannot reach {{repository}}. Give it its share under Repositories → Edit."
+      "hypervRepository": "Hyper-V VMs need an S3 or SMB repository: abr-vhdx-tool writes their disks from the Hyper-V host, which cannot reach {{repository}}, a folder of this appliance. Pick an S3 or SMB repository, or add one under Repositories."
     },
     "scope": {
       "filesSummary_one": "{{count}} path on {{servers}}",

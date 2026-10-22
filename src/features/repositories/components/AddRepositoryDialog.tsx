@@ -51,13 +51,13 @@ import {
 import { useCan } from "@/store/permissions";
 
 /**
- * The only two backends the orchestrator can create: `createRepository` maps
- * the console type onto the wire type, and only "s3" and "local" have a
- * complete form here. "nfs" is on the wire but has no share/credential fields
- * in this dialog, and "hardened-immutable" has no wire type at all — it would
- * be sent as a plain "local" and read straight back as one.
+ * The backends the orchestrator can create and back up to: `createRepository`
+ * maps the console type onto the wire type, and "s3", "local" and "smb" have a
+ * complete form here. "nfs" is on the wire but cannot hold backups, and
+ * "hardened-immutable" has no wire type at all — it would be sent as a plain
+ * "local" and read straight back as one.
  */
-const TYPE_OPTIONS = ["object-lock-s3", "local"] as const satisfies readonly RepositoryType[];
+const TYPE_OPTIONS = ["object-lock-s3", "local", "smb"] as const satisfies readonly RepositoryType[];
 type OfferedRepositoryType = (typeof TYPE_OPTIONS)[number];
 
 /** Keyed on what's actually offered — a placeholder for a type the dialog
@@ -65,9 +65,10 @@ type OfferedRepositoryType = (typeof TYPE_OPTIONS)[number];
 const PATH_PLACEHOLDER: Record<OfferedRepositoryType, string> = {
   "object-lock-s3": "s3://your-bucket-name",
   local: "/var/vault/backups",
+  smb: "/mnt/hyperv",
 };
 
-/** Local storage has no way to report real capacity up front — the appliance
+/** A folder has no way to report real capacity up front — the appliance
  *  reads it from the filesystem once the repository exists — so creation
  *  just seeds a placeholder that gets replaced on the first scan. */
 const LOCAL_DEFAULT_CAPACITY_GB = 500;
@@ -103,6 +104,7 @@ function AddRepositoryDialogBody() {
   const [name, setName] = useState("");
   const [type, setType] = useState<OfferedRepositoryType>("object-lock-s3");
   const [path, setPath] = useState("");
+  const [pathTouched, setPathTouched] = useState(false);
   const [shareDraft, setShareDraft] = useState<ShareDraft>(EMPTY_SHARE_DRAFT);
   const [submitting, setSubmitting] = useState(false);
 
@@ -140,6 +142,11 @@ function AddRepositoryDialogBody() {
   const [endpointTouched, setEndpointTouched] = useState(false);
 
   const isS3 = type === "object-lock-s3";
+  const isSmb = type === "smb";
+  // An SMB repository's folder has no default to fall back on: it is where
+  // this appliance already mounts the share, which only the operator knows.
+  const mountPathValid = !isSmb || path.trim() !== "";
+  const showMountPathError = pathTouched && !mountPathValid;
   const bucketValid = bucket.trim().length > 0;
   const regionValid = region.trim().length > 0;
   const accessKeyValid = accessKey.trim().length > 0;
@@ -170,7 +177,7 @@ function AddRepositoryDialogBody() {
   // isn't asked for; local capacity is read from the filesystem after creation.
   const formValid = isS3
     ? bucketValid && regionValid && accessKeyValid && secretKeyValid && endpointWellFormed && lockDaysOk
-    : shareDraftProblem(shareDraft) === null;
+    : !isSmb || (mountPathValid && shareDraftProblem(shareDraft) === null);
   const canSubmit = formValid && nameValid && !submitting;
   // The pre-create test goes through the same server-side validation, so it
   // needs the same fields before it can say anything useful.
@@ -180,6 +187,7 @@ function AddRepositoryDialogBody() {
     setName("");
     setType("object-lock-s3");
     setPath("");
+    setPathTouched(false);
     setShareDraft(EMPTY_SHARE_DRAFT);
     setSubmitting(false);
     setBucket("");
@@ -251,7 +259,7 @@ function AddRepositoryDialogBody() {
             immutability,
           }
         : undefined,
-      share: isS3 ? undefined : (draftToShare(shareDraft) ?? undefined),
+      share: isSmb ? (draftToShare(shareDraft) ?? undefined) : undefined,
     });
     setSubmitting(false);
     if (!result.ok) {
@@ -512,18 +520,25 @@ function AddRepositoryDialogBody() {
             </div>
           ) : (
             <>
+              {isSmb && <ShareFields idPrefix="repo" draft={shareDraft} onChange={setShareDraft} />}
               <div className="space-y-1.5">
-                <Label htmlFor="repo-path">{t("add.pathLabel")}</Label>
+                <Label htmlFor="repo-path">{isSmb ? t("add.mountPathLabel") : t("add.pathLabel")}</Label>
                 <Input
                   id="repo-path"
                   value={path}
                   onChange={(e) => setPath(e.target.value)}
+                  onBlur={() => setPathTouched(true)}
                   placeholder={PATH_PLACEHOLDER[type]}
-                  className="nums"
+                  aria-invalid={showMountPathError}
+                  className={cn("nums", showMountPathError && "border-danger")}
                   spellCheck={false}
                 />
+                {showMountPathError ? (
+                  <p className="text-xs text-danger">{t("add.mountPathRequired")}</p>
+                ) : (
+                  isSmb && <p className="text-xs text-muted-foreground">{t("add.mountPathHint")}</p>
+                )}
               </div>
-              <ShareFields idPrefix="repo" draft={shareDraft} onChange={setShareDraft} />
             </>
           )}
 

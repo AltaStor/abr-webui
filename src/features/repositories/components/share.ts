@@ -3,7 +3,7 @@
 
 import type { RepositoryShare, RepositoryShareInput } from "@/types";
 
-/** A local repository's SMB share as the form holds it: one UNC path rather
+/** An SMB repository's share as the form holds it: one UNC path rather
  *  than the appliance's server and share fields, because that is how the
  *  path is written everywhere else on Windows. */
 export interface ShareDraft {
@@ -30,7 +30,7 @@ export function shareToDraft(share: RepositoryShare | null | undefined): ShareDr
   return share ? { unc: formatUnc(share), username: share.username ?? "", password: "" } : EMPTY_SHARE_DRAFT;
 }
 
-/** What the draft would save; null for no share at all. */
+/** What the draft would save; null while it names no share. */
 export function draftToShare(draft: ShareDraft): RepositoryShareInput | null {
   const parsed = parseUnc(draft.unc);
   if (!parsed) return null;
@@ -42,18 +42,20 @@ export function draftToShare(draft: ShareDraft): RepositoryShareInput | null {
 }
 
 /**
- * Why the draft cannot be saved, or null. A path that is not a UNC path is
- * refused, and so is an account without its password — unless it is the
- * account already saved, whose stored password an empty field keeps.
+ * Why the draft cannot be saved, or null. An SMB repository needs its share,
+ * so an empty path is refused as well as one that is not a UNC path, and so
+ * is an account without its password — unless it is the account already
+ * saved, whose stored password an empty field keeps.
  */
 export function shareDraftProblem(
   draft: ShareDraft,
   saved?: RepositoryShare | null,
-): "unc" | "password" | null {
-  if (draft.unc.trim() && !parseUnc(draft.unc)) return "unc";
+): "uncRequired" | "unc" | "password" | null {
+  if (!draft.unc.trim()) return "uncRequired";
+  if (!parseUnc(draft.unc)) return "unc";
   const username = draft.username.trim();
   const keepsSavedPassword = Boolean(saved?.username) && saved?.username === username;
-  if (draft.unc.trim() && username && !draft.password && !keepsSavedPassword) return "password";
+  if (username && !draft.password && !keepsSavedPassword) return "password";
   return null;
 }
 

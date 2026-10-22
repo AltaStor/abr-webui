@@ -173,7 +173,7 @@ function RepositoryDetailBody({
       <ScrollArea className="max-h-[62vh]">
         <div className="space-y-5 p-6 pt-5">
           {/* Path */}
-          <Field icon={ServerCog} label={t("detail.storagePath")}>
+          <Field icon={ServerCog} label={repo.type === "smb" ? t("detail.mountPath") : t("detail.storagePath")}>
             <code className="nums bg-muted/60 px-2 py-1 text-xs">{repo.path}</code>
           </Field>
 

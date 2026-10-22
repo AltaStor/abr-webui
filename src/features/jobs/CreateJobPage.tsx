@@ -535,8 +535,8 @@ function JobWizard({
     errors.push(isReplication ? t("create.errors.scopeReplication") : t("create.vm.scopeError"));
   if (isReplication && !form.targetEnvironmentId) errors.push(t("create.errors.targetEnv"));
   if (!isReplication && !repository) errors.push(t("create.errors.repository"));
-  // abr-vhdx-tool moves Hyper-V disks on the host itself, which reaches S3, and
-  // a folder of the appliance only through the SMB share the repository names.
+  // abr-vhdx-tool moves Hyper-V disks on the host itself, which reaches S3 and
+  // SMB repositories (through the share they name), never a local folder.
   if (hypervSelected && repository && repository.type !== "object-lock-s3" && !repository.share)
     errors.push(t("create.errors.hypervRepository", { repository: repository.name }));
 

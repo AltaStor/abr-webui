@@ -836,7 +836,7 @@
       "targetEnv": "Elige un entorno de destino para la réplica.",
       "repository": "Elige un repositorio donde guardar las copias de seguridad.",
       "scheduleDays": "Elija al menos un día para la planificación de copias.",
-      "hypervRepository": "Las VMs de Hyper-V necesitan un repositorio S3, o uno local compartido con los hosts por SMB: abr-vhdx-tool escribe sus discos desde el host de Hyper-V, que no puede llegar a {{repository}}. Indique su recurso compartido en Repositorios → Editar."
+      "hypervRepository": "Las VMs de Hyper-V necesitan un repositorio S3 o SMB: abr-vhdx-tool escribe sus discos desde el host de Hyper-V, que no puede llegar a {{repository}}, una carpeta de este appliance. Elija un repositorio S3 o SMB, o añada uno en Repositorios."
     },
     "scope": {
       "filesSummary_one": "{{count}} ruta en {{servers}}",

@@ -664,6 +664,7 @@ export type RepositoryType =
   | "hardened-immutable"
   | "object-lock-s3"
   | "local"
+  | "smb"
   | "nfs";
 
 export interface Repository {
@@ -715,13 +716,13 @@ export interface Repository {
    *  authority for which repositories the dialog may offer. Undefined for a
    *  world that doesn't report it (the demo simulation). */
   supportsSyntheticFull?: boolean;
-  /** Local repositories only: the SMB share Hyper-V hosts reach its folder by
-   *  (abr-vhdx-tool writes Hyper-V backups there from the host). Null when it
-   *  has none, which leaves the repository to VMware jobs. */
+  /** SMB repositories only: the share Hyper-V hosts reach its folder by
+   *  (abr-vhdx-tool writes Hyper-V backups there from the host), while the
+   *  appliance reaches the same storage at `path`, where it mounts it. */
   share?: RepositoryShare | null;
 }
 
-/** A local repository's folder as Windows sees it: \\server\share, where
+/** An SMB repository's folder as Windows sees it: \\server\share, where
  *  `share` may go on into a folder of the share. */
 export interface RepositoryShare {
   server: string;
@@ -788,7 +789,7 @@ export interface CreateRepositoryInput {
   capacityGB: number;
   /** Present only when type is "object-lock-s3". */
   s3?: S3RepositoryConfig;
-  /** Local repositories only: the share Hyper-V hosts write through. */
+  /** SMB repositories only: the share Hyper-V hosts write through. */
   share?: RepositoryShareInput;
 }
 

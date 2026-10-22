@@ -8,6 +8,7 @@ import {
   HardDrive,
   HelpCircle,
   Loader2,
+  Network,
   Server,
   ShieldCheck,
   type LucideIcon,
@@ -42,6 +43,11 @@ export const REPO_TYPE_META: Record<
     get label() { return i18n.t("repositories:type.local.label"); },
     get short() { return i18n.t("repositories:type.local.short"); },
     icon: HardDrive,
+  },
+  smb: {
+    get label() { return i18n.t("repositories:type.smb.label"); },
+    get short() { return i18n.t("repositories:type.smb.short"); },
+    icon: Network,
   },
 };
 

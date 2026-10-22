@@ -61,7 +61,7 @@ interface EditRepositoryDialogProps {
 
 /**
  * Edit an existing repository — its name, (for object storage) its Object
- * Lock configuration, and (for a local folder) the SMB share Hyper-V hosts
+ * Lock configuration, and (for an SMB repository) the share Hyper-V hosts
  * reach it by.
  *
  * Immutability used to be write-once: it could be set while creating a
@@ -139,9 +139,9 @@ function EditRepositoryForm({
   const nameErrorKey = resourceNameErrorKey(nameProblem);
   const nameDirty = name !== "" && name !== repo.name;
   const lockValid = draftValid(lock);
-  const isLocal = repo.type === "local";
-  const shareDirty = isLocal && shareDraftChanged(shareDraft, repo.share);
-  const shareValid = shareDraftProblem(shareDraft, repo.share) === null;
+  const isSmb = repo.type === "smb";
+  const shareDirty = isSmb && shareDraftChanged(shareDraft, repo.share);
+  const shareValid = !isSmb || shareDraftProblem(shareDraft, repo.share) === null;
   const dirty = nameDirty || lockDirty || shareDirty;
   const canSave = dirty && lockValid && shareValid && nameProblem === null && !saving;
   /* Placing stored backups under the lock only makes sense once the lock is
@@ -206,7 +206,7 @@ function EditRepositoryForm({
     const patch: RepositoryEdit = {};
     if (nameDirty) patch.name = name;
     if (lockDirty) patch.immutability = next;
-    if (shareDirty) patch.share = draftToShare(shareDraft);
+    if (shareDirty) patch.share = draftToShare(shareDraft) ?? undefined;
 
     setSaving(true);
     setSaveError(null);
@@ -278,7 +278,7 @@ function EditRepositoryForm({
             {nameErrorKey && <p className="text-xs text-danger">{tCommon(nameErrorKey)}</p>}
           </div>
 
-          {isLocal && (
+          {isSmb && (
             <ShareFields
               idPrefix="edit-repo"
               draft={shareDraft}

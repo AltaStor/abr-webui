@@ -1104,9 +1104,7 @@ export function createSimDriver(handle: WorldHandle): WorldDriver {
         ...(patch.ioThrottleMBps !== undefined && { ioThrottleMBps: patch.ioThrottleMBps }),
         ...(patch.maxConcurrentTasks !== undefined && { maxConcurrentTasks: patch.maxConcurrentTasks }),
         ...(patch.share !== undefined && {
-          share: patch.share
-            ? { server: patch.share.server, share: patch.share.share, username: patch.share.username }
-            : null,
+          share: { server: patch.share.server, share: patch.share.share, username: patch.share.username },
         }),
         ...(patch.maintenanceMode !== undefined && { maintenanceMode: patch.maintenanceMode }),
         ...(patch.immutability !== undefined && { immutability: patch.immutability }),
@@ -1442,7 +1440,7 @@ export function createSimDriver(handle: WorldHandle): WorldDriver {
             ? (input.s3?.immutability ?? { mode: "none", retentionDays: 0 })
             : null,
         share:
-          input.type === "local" && input.share
+          input.type === "smb" && input.share
             ? { server: input.share.server, share: input.share.share, username: input.share.username }
             : null,
       };

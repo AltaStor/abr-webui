@@ -836,7 +836,7 @@
       "targetEnv": "Choisissez un environnement cible pour la réplique.",
       "repository": "Choisissez un référentiel où stocker les sauvegardes.",
       "scheduleDays": "Choisissez au moins un jour pour la planification des sauvegardes.",
-      "hypervRepository": "Les VMs Hyper-V ont besoin d’un référentiel S3, ou d’un référentiel local partagé avec les hôtes en SMB : abr-vhdx-tool écrit leurs disques depuis l’hôte Hyper-V, qui ne peut pas atteindre {{repository}}. Indiquez son partage dans Référentiels → Modifier."
+      "hypervRepository": "Les VMs Hyper-V ont besoin d’un référentiel S3 ou SMB : abr-vhdx-tool écrit leurs disques depuis l’hôte Hyper-V, qui ne peut pas atteindre {{repository}}, un dossier de cette appliance. Choisissez un référentiel S3 ou SMB, ou ajoutez-en un dans Référentiels."
     },
     "scope": {
       "filesSummary_one": "{{count}} chemin sur {{servers}}",

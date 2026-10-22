@@ -299,8 +299,9 @@ function repoTypeOf(t: string): RepositoryType {
     case "s3":
       return "object-lock-s3";
     case "nfs":
-    case "smb":
       return "nfs";
+    case "smb":
+      return "smb";
     default:
       return "local";
   }
@@ -737,7 +738,7 @@ function mapRepository(r: Dict): Repository {
     supportsImmutability: Boolean(asDict(r.capabilities).supports_immutability),
     supportsSyntheticFull: Boolean(asDict(r.capabilities).supports_synthetic_full),
     share:
-      str(r.type) === "local" && str(r.server) && str(r.share)
+      str(r.type) === "smb" && str(r.server) && str(r.share)
         ? { server: str(r.server), share: str(r.share), username: strOrNull(r.username) }
         : null,
   };
@@ -2085,13 +2086,19 @@ function mapImmutabilityEffect(raw: unknown): ImmutabilityEffect | null {
 export async function createRepository(
   input: CreateRepositoryInput,
 ): Promise<{ repository: Repository; immutabilityEffect: ImmutabilityEffect | null }> {
-  const wireType = input.type === "object-lock-s3" ? "s3" : input.type === "nfs" ? "nfs" : "local";
+  const wireType =
+    input.type === "object-lock-s3" ? "s3" : input.type === "nfs" || input.type === "smb" ? input.type : "local";
   const body: Dict = { name: input.name, type: wireType, address: input.path, description: "" };
   // Without it the backend rejects the create with "S3 bucket is required".
   if (wireType === "s3" && input.s3) {
     body.s3 = s3ConfigWireBody(input.s3);
   }
-  if (wireType === "local" && input.share) Object.assign(body, shareWireFields(input.share));
+  // An SMB repository's address is its share; the path is where the
+  // appliance mounts it.
+  if (wireType === "smb" && input.share) {
+    delete body.address;
+    Object.assign(body, { path: input.path }, shareWireFields(input.share));
+  }
   const created = asDict(await request<Dict>("/repositories", { method: "POST", body: JSON.stringify(body) }));
   // Creating an S3 repository with Object Lock on comes back with the same
   // effect report an edit does — what the setting does to data written from
@@ -2151,15 +2158,15 @@ export interface RepositoryPatch {
   /** Object Lock. Sent as the appliance's strictly-paired block — mode "none"
    *  with 0 days turns it off, any other mode needs at least 1 day. */
   immutability?: RepositoryImmutability;
-  /** A local repository's SMB share; null removes it. */
-  share?: RepositoryShareInput | null;
+  /** An SMB repository's share. */
+  share?: RepositoryShareInput;
 }
 
-/** A local repository's share as the appliance takes it: its server, share,
- *  username and password fields, where "" clears one. The password goes only
- *  when one was typed, so an edit that leaves it blank keeps the stored one. */
-function shareWireFields(share: RepositoryShareInput | null): Dict {
-  if (!share) return { server: "", share: "", username: "" };
+/** An SMB repository's share as the appliance takes it: its server, share,
+ *  username and password fields, where an empty username leaves the share to
+ *  the inventory's account. The password goes only when one was typed, so an
+ *  edit that leaves it blank keeps the stored one. */
+function shareWireFields(share: RepositoryShareInput): Dict {
   const fields: Dict = { server: share.server, share: share.share, username: share.username ?? "" };
   if (share.password) fields.password = share.password;
   return fields;

@@ -182,14 +182,15 @@ export function resolveSyntheticFullChain(
  * (`capabilities.supports_synthetic_full`) and is trusted whenever it is
  * present. The demo simulation doesn't report capabilities, so it falls back to
  * the same rule the appliance applies by default (`is_abr_repository`): the
- * .abr-format repositories — local-file and object storage — can merge a
- * chain, and a plain NFS/SMB target cannot.
+ * .abr-format repositories — local and SMB folders and object storage — can
+ * merge a chain, and a plain NFS target cannot.
  */
 export function repositorySupportsSyntheticFull(repository: Repository | undefined): boolean {
   if (!repository) return false;
   if (typeof repository.supportsSyntheticFull === "boolean") return repository.supportsSyntheticFull;
   return (
     repository.type === "local" ||
+    repository.type === "smb" ||
     repository.type === "object-lock-s3" ||
     repository.type === "hardened-immutable"
   );

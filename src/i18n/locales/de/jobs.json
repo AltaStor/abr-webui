@@ -836,7 +836,7 @@
       "targetEnv": "Wählen Sie eine Zielumgebung für das Replikat.",
       "repository": "Wählen Sie ein Repository für die Backups aus.",
       "scheduleDays": "Wählen Sie mindestens einen Tag für den Sicherungsplan.",
-      "hypervRepository": "Hyper-V-VMs benötigen ein S3-Repository oder ein lokales, das den Hosts per SMB freigegeben ist: abr-vhdx-tool schreibt ihre Datenträger vom Hyper-V-Host aus, der {{repository}} nicht erreichen kann. Tragen Sie die Freigabe unter Repositorys → Bearbeiten ein."
+      "hypervRepository": "Hyper-V-VMs benötigen ein S3- oder SMB-Repository: abr-vhdx-tool schreibt ihre Datenträger vom Hyper-V-Host aus, der {{repository}}, einen Ordner dieser Appliance, nicht erreichen kann. Wählen Sie ein S3- oder SMB-Repository oder legen Sie eines unter Repositorys an."
     },
     "scope": {
       "filesSummary_one": "{{count}} Pfad auf {{servers}}",
