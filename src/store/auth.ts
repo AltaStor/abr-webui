@@ -78,6 +78,9 @@ interface AuthState {
   login: (name: string, password: string, durationSeconds?: number) => Promise<boolean>;
   logout: () => Promise<void>;
   changePassword: (currentPassword: string, newPassword: string) => Promise<boolean>;
+  /** Takes the signed-in user as the appliance answered it after an edit
+   *  elsewhere (Settings → Users renaming them), so the shell shows it. */
+  adoptUser: (user: AuthUser) => void;
   clearError: () => void;
 }
 
@@ -170,6 +173,13 @@ export const useAuthStore = create<AuthState>((set) => ({
       set({ pending: false, error: apiErrorMessage(err) ?? "Couldn't change the password. Try again." });
       return false;
     }
+  },
+
+  adoptUser: (user) => {
+    const stored = readStoredSession();
+    if (stored?.user.id !== user.id) return;
+    writeStoredSession({ ...stored, user });
+    set({ user });
   },
 
   clearError: () => set({ error: null }),

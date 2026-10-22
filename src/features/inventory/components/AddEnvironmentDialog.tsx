@@ -24,6 +24,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -365,9 +366,8 @@ export function AddEnvironmentDialog({
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="env-pass">{t("addEnvironment.passwordLabel")}</Label>
-              <Input
+              <PasswordInput
                 id="env-pass"
-                type="password"
                 value={form.password}
                 onChange={(e) => set("password", e.target.value)}
                 placeholder="••••••••"

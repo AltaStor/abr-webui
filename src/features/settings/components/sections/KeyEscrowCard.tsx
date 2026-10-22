@@ -24,7 +24,7 @@ import { useState, type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { AlertTriangle, Download, KeyRound, Loader2 } from "@/lib/icons";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import { toast } from "@/components/ui/sonner";
 import { downloadBlob } from "@/lib/download";
@@ -96,9 +96,8 @@ export function KeyEscrowCard() {
 
         <div className="space-y-1.5">
           <Label htmlFor="escrow-password">{t("security.keyEscrow.passwordLabel")}</Label>
-          <Input
+          <PasswordInput
             id="escrow-password"
-            type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             autoComplete="new-password"
@@ -112,9 +111,8 @@ export function KeyEscrowCard() {
 
         <div className="space-y-1.5">
           <Label htmlFor="escrow-confirm">{t("security.keyEscrow.confirmLabel")}</Label>
-          <Input
+          <PasswordInput
             id="escrow-confirm"
-            type="password"
             value={confirm}
             onChange={(e) => setConfirm(e.target.value)}
             autoComplete="new-password"

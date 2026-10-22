@@ -106,5 +106,9 @@
   },
   "permission": {
     "notAllowed": "Ihre Rolle erlaubt dies nicht."
+  },
+  "passwordInput": {
+    "show": "Passwort anzeigen",
+    "hide": "Passwort verbergen"
   }
 }

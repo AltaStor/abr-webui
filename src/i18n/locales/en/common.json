@@ -106,5 +106,9 @@
   },
   "permission": {
     "notAllowed": "Your role doesn't allow this."
+  },
+  "passwordInput": {
+    "show": "Show password",
+    "hide": "Hide password"
   }
 }

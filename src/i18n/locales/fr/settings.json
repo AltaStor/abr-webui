@@ -406,7 +406,8 @@
       "disabled": "Désactivé"
     },
     "deleteUser": "Supprimer {{name}}",
-    "lastAdminNote": "Désactiver un utilisateur le déconnecte partout. Le dernier administrateur activé ne peut être ni rétrogradé, ni désactivé, ni supprimé, afin que quelqu’un puisse toujours gérer les utilisateurs.",
+    "editUser": "Modifier {{name}}",
+    "lastAdminNote": "Désactiver un utilisateur ou lui donner un nouveau mot de passe le déconnecte partout. Le dernier administrateur activé ne peut être ni rétrogradé, ni désactivé, ni supprimé, afin que quelqu’un puisse toujours gérer les utilisateurs.",
     "toast": {
       "updated": "{{name}} mis à jour",
       "updateFailed": "L’utilisateur n’a pas été modifié",
@@ -430,6 +431,16 @@
       "roleRequired": "Choisissez le rôle de l’utilisateur.",
       "passwordTooShort": "Doit comporter au moins {{count}} caractères.",
       "mismatch": "Les mots de passe ne correspondent pas."
+    },
+    "edit": {
+      "title": "Modifier {{name}}",
+      "description": "Modifiez le nom avec lequel l’utilisateur se connecte, et son mot de passe. Le rôle, et s’il peut se connecter, se règlent dans la liste.",
+      "renameHint": "L’utilisateur se connecte avec le nouveau nom et garde son mot de passe.",
+      "password": "Nouveau mot de passe",
+      "passwordHint": "Laissez vide pour garder l’actuel. Un nouveau mot de passe compte au moins {{count}} caractères et déconnecte l’utilisateur partout.",
+      "passwordUnchanged": "Inchangé",
+      "ownPassword": "Votre propre mot de passe se change dans Paramètres → Sécurité, qui demande l’actuel.",
+      "submit": "Enregistrer"
     },
     "deleteDialog": {
       "title": "Supprimer {{name}} ?",

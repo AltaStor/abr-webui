@@ -23,7 +23,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { formatFullDateTime, formatRelative } from "@/lib/format";
@@ -479,9 +479,8 @@ function ReplaceCertificateForm({
 
       <div className="max-w-sm space-y-1.5">
         <Label htmlFor="tls-passphrase">{t("security.certificate.form.passphraseLabel")}</Label>
-        <Input
+        <PasswordInput
           id="tls-passphrase"
-          type="password"
           autoComplete="off"
           value={passphrase}
           disabled={submitting}

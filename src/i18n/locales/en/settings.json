@@ -409,7 +409,8 @@
       "disabled": "Disabled"
     },
     "deleteUser": "Delete {{name}}",
-    "lastAdminNote": "Disabling a user signs them out everywhere. The last enabled Administrator can't be demoted, disabled or deleted, so someone can always manage users.",
+    "editUser": "Edit {{name}}",
+    "lastAdminNote": "Disabling a user or giving them a new password signs them out everywhere. The last enabled Administrator can't be demoted, disabled or deleted, so someone can always manage users.",
     "toast": {
       "updated": "{{name}} updated",
       "updateFailed": "The user wasn't changed",
@@ -433,6 +434,16 @@
       "roleRequired": "Choose the user's role.",
       "passwordTooShort": "Must be at least {{count}} characters.",
       "mismatch": "Passwords don't match."
+    },
+    "edit": {
+      "title": "Edit {{name}}",
+      "description": "Change the name the user signs in with, and their password. The role, and whether they can sign in, are set in the list.",
+      "renameHint": "The user signs in with the new name and keeps their password.",
+      "password": "New password",
+      "passwordHint": "Leave empty to keep the current one. A new password needs at least {{count}} characters and signs the user out everywhere.",
+      "passwordUnchanged": "Unchanged",
+      "ownPassword": "Your own password is changed under Settings → Security, which asks for the current one.",
+      "submit": "Save changes"
     },
     "deleteDialog": {
       "title": "Delete {{name}}?",

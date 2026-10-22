@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import {
@@ -436,14 +437,15 @@ function AddRepositoryDialogBody() {
                 </div>
                 <div className="space-y-1.5">
                   <Label htmlFor="repo-secret-key">{t("add.s3.secretKeyLabel")}</Label>
-                  <Input
+                  <PasswordInput
                     id="repo-secret-key"
-                    type="password"
                     value={secretKey}
                     onChange={(e) => withResultCleared(setSecretKey)(e.target.value)}
                     onBlur={touch("secretKey")}
                     placeholder="••••••••"
                     autoComplete="off"
+                    showLabel={t("add.s3.secretKeyShow")}
+                    hideLabel={t("add.s3.secretKeyHide")}
                     aria-invalid={showRequiredError("secretKey", secretKeyValid)}
                     className={cn("nums", showRequiredError("secretKey", secretKeyValid) && "border-danger")}
                   />

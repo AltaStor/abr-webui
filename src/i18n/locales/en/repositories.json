@@ -308,6 +308,8 @@
       "accessKeyLabel": "Access key ID",
       "accessKeyRequired": "Enter an access key ID.",
       "secretKeyLabel": "Secret access key",
+      "secretKeyShow": "Show secret access key",
+      "secretKeyHide": "Hide secret access key",
       "secretKeyRequired": "Enter a secret access key.",
       "verifyTlsLabel": "Verify TLS certificate",
       "verifyTlsAria": "Verify the endpoint’s TLS certificate",

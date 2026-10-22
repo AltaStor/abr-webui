@@ -308,6 +308,8 @@
       "accessKeyLabel": "Zugriffsschlüssel-ID",
       "accessKeyRequired": "Geben Sie eine Zugriffsschlüssel-ID ein.",
       "secretKeyLabel": "Geheimer Zugriffsschlüssel",
+      "secretKeyShow": "Geheimen Zugriffsschlüssel anzeigen",
+      "secretKeyHide": "Geheimen Zugriffsschlüssel verbergen",
       "secretKeyRequired": "Geben Sie einen geheimen Zugriffsschlüssel ein.",
       "verifyTlsLabel": "TLS-Zertifikat prüfen",
       "verifyTlsAria": "TLS-Zertifikat des Endpunkts prüfen",

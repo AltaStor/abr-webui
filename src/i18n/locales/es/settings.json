@@ -406,7 +406,8 @@
       "disabled": "Deshabilitado"
     },
     "deleteUser": "Eliminar {{name}}",
-    "lastAdminNote": "Deshabilitar a un usuario cierra todas sus sesiones. El último administrador habilitado no se puede degradar, deshabilitar ni eliminar, para que siempre haya alguien que gestione los usuarios.",
+    "editUser": "Editar {{name}}",
+    "lastAdminNote": "Deshabilitar a un usuario o darle una contraseña nueva cierra todas sus sesiones. El último administrador habilitado no se puede degradar, deshabilitar ni eliminar, para que siempre haya alguien que gestione los usuarios.",
     "toast": {
       "updated": "{{name}} actualizado",
       "updateFailed": "El usuario no se modificó",
@@ -430,6 +431,16 @@
       "roleRequired": "Elige el rol del usuario.",
       "passwordTooShort": "Debe tener al menos {{count}} caracteres.",
       "mismatch": "Las contraseñas no coinciden."
+    },
+    "edit": {
+      "title": "Editar {{name}}",
+      "description": "Cambia el nombre con el que el usuario inicia sesión y su contraseña. El rol, y si puede iniciar sesión, se eligen en la lista.",
+      "renameHint": "El usuario inicia sesión con el nombre nuevo y conserva su contraseña.",
+      "password": "Contraseña nueva",
+      "passwordHint": "Déjala vacía para conservar la actual. Una contraseña nueva necesita al menos {{count}} caracteres y cierra todas las sesiones del usuario.",
+      "passwordUnchanged": "Sin cambios",
+      "ownPassword": "Tu propia contraseña se cambia en Configuración → Seguridad, que pide la actual.",
+      "submit": "Guardar cambios"
     },
     "deleteDialog": {
       "title": "¿Eliminar {{name}}?",

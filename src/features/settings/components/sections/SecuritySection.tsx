@@ -6,7 +6,7 @@ import { useTranslation } from "react-i18next";
 import { AlertTriangle, Loader2, ShieldCheck, Timer } from "@/lib/icons";
 import { toast } from "@/components/ui/sonner";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { apiErrorMessage, extendSession } from "@/services/api.http";
@@ -222,9 +222,8 @@ function PasswordField({
   return (
     <div className="space-y-1.5">
       <Label htmlFor={id}>{label}</Label>
-      <Input
+      <PasswordInput
         id={id}
-        type="password"
         value={value}
         onChange={(e) => onChange(e.target.value)}
         autoComplete={autoComplete}

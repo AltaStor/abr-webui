@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "@/components/ui/sonner";
@@ -215,9 +216,8 @@ function EditEnvironmentForm({ environment, onClose }: { environment: Environmen
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="edit-env-pass">{t("editEnvironment.passwordLabel")}</Label>
-            <Input
+            <PasswordInput
               id="edit-env-pass"
-              type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder={t("editEnvironment.passwordPlaceholder")}

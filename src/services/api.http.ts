@@ -1021,10 +1021,12 @@ export async function createUser(input: CreateUserInput): Promise<AuthUser> {
   return mapAuthUser(asDict(await request<Dict>("/users", { method: "POST", body: JSON.stringify(input) })));
 }
 
-export async function updateUser(
-  id: string,
-  patch: Partial<Pick<AuthUser, "fullName" | "role" | "enabled">>,
-): Promise<AuthUser> {
+/** A change to a user. A new `name` keeps the password; a `password` signs
+ *  the user out everywhere, and is refused for the caller's own, which needs
+ *  the current one (`changePassword`). */
+export type UserPatch = Partial<Pick<AuthUser, "name" | "fullName" | "role" | "enabled">> & { password?: string };
+
+export async function updateUser(id: string, patch: UserPatch): Promise<AuthUser> {
   return mapAuthUser(
     asDict(await request<Dict>(`/users/${encodeURIComponent(id)}`, { method: "PATCH", body: JSON.stringify(patch) })),
   );

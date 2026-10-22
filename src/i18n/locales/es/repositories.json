@@ -308,6 +308,8 @@
       "accessKeyLabel": "ID de clave de acceso",
       "accessKeyRequired": "Introduzca un ID de clave de acceso.",
       "secretKeyLabel": "Clave de acceso secreta",
+      "secretKeyShow": "Mostrar la clave de acceso secreta",
+      "secretKeyHide": "Ocultar la clave de acceso secreta",
       "secretKeyRequired": "Introduzca una clave de acceso secreta.",
       "verifyTlsLabel": "Verificar el certificado TLS",
       "verifyTlsAria": "Verificar el certificado TLS del endpoint",

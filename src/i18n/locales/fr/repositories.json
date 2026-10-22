@@ -308,6 +308,8 @@
       "accessKeyLabel": "ID de clé d’accès",
       "accessKeyRequired": "Saisissez un ID de clé d’accès.",
       "secretKeyLabel": "Clé d’accès secrète",
+      "secretKeyShow": "Afficher la clé d’accès secrète",
+      "secretKeyHide": "Masquer la clé d’accès secrète",
       "secretKeyRequired": "Saisissez une clé d’accès secrète.",
       "verifyTlsLabel": "Vérifier le certificat TLS",
       "verifyTlsAria": "Vérifier le certificat TLS du point de terminaison",

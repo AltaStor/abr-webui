@@ -12,7 +12,7 @@ import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Loader2, LogOut } from "@/lib/icons";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import { toast } from "@/components/ui/sonner";
 import { useAuthStore } from "@/store/auth";
@@ -82,9 +82,8 @@ export default function ChangePasswordPage() {
 
         <div className="space-y-1.5">
           <Label htmlFor="change-current">{t("changePassword.currentLabel")}</Label>
-          <Input
+          <PasswordInput
             id="change-current"
-            type="password"
             value={current}
             onChange={(e) => {
               setCurrent(e.target.value);
@@ -104,9 +103,8 @@ export default function ChangePasswordPage() {
 
         <div className="space-y-1.5">
           <Label htmlFor="change-new">{t("changePassword.newLabel")}</Label>
-          <Input
+          <PasswordInput
             id="change-new"
-            type="password"
             value={next}
             onChange={(e) => {
               setNext(e.target.value);
@@ -129,9 +127,8 @@ export default function ChangePasswordPage() {
 
         <div className="space-y-1.5">
           <Label htmlFor="change-confirm">{t("changePassword.confirmLabel")}</Label>
-          <Input
+          <PasswordInput
             id="change-confirm"
-            type="password"
             value={confirm}
             onChange={(e) => {
               setConfirm(e.target.value);

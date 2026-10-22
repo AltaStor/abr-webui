@@ -4,6 +4,7 @@
 import { useTranslation } from "react-i18next";
 import { Network } from "@/lib/icons";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import type { RepositoryShare } from "@/types";
@@ -73,9 +74,8 @@ export function ShareFields({
           </div>
           <div className="space-y-1.5">
             <Label htmlFor={`${idPrefix}-share-password`}>{t("share.passwordLabel")}</Label>
-            <Input
+            <PasswordInput
               id={`${idPrefix}-share-password`}
-              type="password"
               value={draft.password}
               disabled={disabled}
               onChange={(e) => onChange({ ...draft, password: e.target.value })}

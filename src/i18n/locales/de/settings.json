@@ -406,7 +406,8 @@
       "disabled": "Deaktiviert"
     },
     "deleteUser": "{{name}} löschen",
-    "lastAdminNote": "Das Deaktivieren eines Benutzers meldet ihn überall ab. Der letzte aktivierte Administrator kann weder herabgestuft, deaktiviert noch gelöscht werden, damit immer jemand Benutzer verwalten kann.",
+    "editUser": "{{name}} bearbeiten",
+    "lastAdminNote": "Das Deaktivieren eines Benutzers oder ein neues Passwort meldet ihn überall ab. Der letzte aktivierte Administrator kann weder herabgestuft, deaktiviert noch gelöscht werden, damit immer jemand Benutzer verwalten kann.",
     "toast": {
       "updated": "{{name}} aktualisiert",
       "updateFailed": "Der Benutzer wurde nicht geändert",
@@ -430,6 +431,16 @@
       "roleRequired": "Wählen Sie die Rolle des Benutzers.",
       "passwordTooShort": "Muss mindestens {{count}} Zeichen lang sein.",
       "mismatch": "Die Passwörter stimmen nicht überein."
+    },
+    "edit": {
+      "title": "{{name}} bearbeiten",
+      "description": "Ändern Sie den Namen, mit dem sich der Benutzer anmeldet, und sein Passwort. Die Rolle und ob er sich anmelden kann, legen Sie in der Liste fest.",
+      "renameHint": "Der Benutzer meldet sich mit dem neuen Namen an und behält sein Passwort.",
+      "password": "Neues Passwort",
+      "passwordHint": "Leer lassen, um das aktuelle zu behalten. Ein neues Passwort braucht mindestens {{count}} Zeichen und meldet den Benutzer überall ab.",
+      "passwordUnchanged": "Unverändert",
+      "ownPassword": "Ihr eigenes Passwort ändern Sie unter Einstellungen → Sicherheit, wo das aktuelle abgefragt wird.",
+      "submit": "Änderungen speichern"
     },
     "deleteDialog": {
       "title": "{{name}} löschen?",

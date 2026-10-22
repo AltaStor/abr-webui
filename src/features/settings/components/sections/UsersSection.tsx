@@ -13,7 +13,7 @@
 import { useMemo, useState, type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { AlertTriangle, Check, Loader2, Minus, Plus, ShieldCheck, Trash2, Users } from "@/lib/icons";
+import { AlertTriangle, Check, Loader2, Minus, Pencil, Plus, ShieldCheck, Trash2, Users } from "@/lib/icons";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -25,6 +25,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "@/components/ui/sonner";
@@ -44,6 +45,7 @@ import {
   type AuthUser,
   type ProductFunction,
   type RoleInfo,
+  type UserPatch,
 } from "@/services/api.http";
 import { useAuthStore } from "@/store/auth";
 import { ROLE_NAMES, useCan } from "@/store/permissions";
@@ -82,10 +84,11 @@ function UsersCard() {
   const users = useQuery({ queryKey: qk.users, queryFn: listUsers, enabled: live });
   const roles = useQuery({ queryKey: qk.roles, queryFn: listRoles, enabled: live, staleTime: Infinity });
   const [adding, setAdding] = useState(false);
+  const [editing, setEditing] = useState<AuthUser | null>(null);
   const [deleting, setDeleting] = useState<AuthUser | null>(null);
 
   const update = useMutation({
-    mutationFn: ({ id, patch }: { id: string; patch: Parameters<typeof updateUser>[1] }) => updateUser(id, patch),
+    mutationFn: ({ id, patch }: { id: string; patch: UserPatch }) => updateUser(id, patch),
     onSuccess: (user) => {
       toast.success(t("users.toast.updated", { name: user.name }));
       void queryClient.invalidateQueries({ queryKey: qk.users });
@@ -133,7 +136,7 @@ function UsersCard() {
               <TableHead>{t("users.column.role")}</TableHead>
               <TableHead>{t("users.column.enabled")}</TableHead>
               <TableHead className="hidden md:table-cell">{t("users.column.created")}</TableHead>
-              {canDelete && <TableHead className="w-12" />}
+              {(canEdit || canDelete) && <TableHead className="w-20" />}
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -188,17 +191,31 @@ function UsersCard() {
                   <TableCell className="hidden text-muted-foreground md:table-cell">
                     {formatDateTime(user.createdAt)}
                   </TableCell>
-                  {canDelete && (
-                    <TableCell className="text-right">
-                      <Button
-                        variant="ghost"
-                        size="icon-sm"
-                        aria-label={t("users.deleteUser", { name: user.name })}
-                        className="text-muted-foreground/70 hover:bg-danger/10 hover:text-danger"
-                        onClick={() => setDeleting(user)}
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </Button>
+                  {(canEdit || canDelete) && (
+                    <TableCell className="whitespace-nowrap text-right">
+                      {canEdit && (
+                        <Button
+                          variant="ghost"
+                          size="icon-sm"
+                          aria-label={t("users.editUser", { name: user.name })}
+                          title={t("users.editUser", { name: user.name })}
+                          className="text-muted-foreground/70 hover:text-foreground"
+                          onClick={() => setEditing(user)}
+                        >
+                          <Pencil className="h-3.5 w-3.5" />
+                        </Button>
+                      )}
+                      {canDelete && (
+                        <Button
+                          variant="ghost"
+                          size="icon-sm"
+                          aria-label={t("users.deleteUser", { name: user.name })}
+                          className="text-muted-foreground/70 hover:bg-danger/10 hover:text-danger"
+                          onClick={() => setDeleting(user)}
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
+                      )}
                     </TableCell>
                   )}
                 </TableRow>
@@ -210,6 +227,7 @@ function UsersCard() {
       <p className="border-t border-border/50 px-5 py-3 text-xs text-muted-foreground">{t("users.lastAdminNote")}</p>
 
       <AddUserDialog open={adding} onOpenChange={setAdding} roles={roles.data} />
+      <EditUserDialog user={editing} self={editing?.id === me?.id} onOpenChange={(open) => !open && setEditing(null)} />
       <DeleteUserDialog user={deleting} onOpenChange={(open) => !open && setDeleting(null)} />
     </SettingsSection>
   );
@@ -319,18 +337,16 @@ function AddUserDialog({
             error={touched ? errors.password : null}
             hint={t("users.form.passwordHint", { count: MIN_PASSWORD_LENGTH })}
           >
-            <Input
+            <PasswordInput
               id="new-user-password"
-              type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               autoComplete="new-password"
             />
           </Field>
           <Field id="new-user-confirm" label={t("users.form.confirm")} error={touched ? errors.confirm : null}>
-            <Input
+            <PasswordInput
               id="new-user-confirm"
-              type="password"
               value={confirm}
               onChange={(e) => setConfirm(e.target.value)}
               autoComplete="new-password"
@@ -349,6 +365,150 @@ function AddUserDialog({
         </form>
       </DialogContent>
     </Dialog>
+  );
+}
+
+/**
+ * An Administrator's edit of a user's sign-in: their name, full name and
+ * password. The role and whether they may sign in stay in the table, where
+ * they are one click each. A new name keeps the password; a new password
+ * signs the user out everywhere. Your own password is not set here: the
+ * appliance wants the current one for that, which Change password asks for.
+ */
+function EditUserDialog({
+  user,
+  self,
+  onOpenChange,
+}: {
+  user: AuthUser | null;
+  self: boolean;
+  onOpenChange: (open: boolean) => void;
+}) {
+  return (
+    <Dialog open={user !== null} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-md">
+        {/* Keyed on the user, so the form is seeded from each user afresh and
+            never shows the previous one's password. */}
+        {user && <EditUserForm key={user.id} user={user} self={self} onClose={() => onOpenChange(false)} />}
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function EditUserForm({ user, self, onClose }: { user: AuthUser; self: boolean; onClose: () => void }) {
+  const { t } = useTranslation("settings");
+  const queryClient = useQueryClient();
+  const adoptUser = useAuthStore((s) => s.adoptUser);
+  const [name, setName] = useState(user.name);
+  const [fullName, setFullName] = useState(user.fullName);
+  const [password, setPassword] = useState("");
+  const [confirm, setConfirm] = useState("");
+  const [touched, setTouched] = useState(false);
+
+  const save = useMutation({
+    mutationFn: (patch: UserPatch) => updateUser(user.id, patch),
+    onSuccess: (updated) => {
+      toast.success(t("users.toast.updated", { name: updated.name }));
+      if (self) adoptUser(updated);
+      void queryClient.invalidateQueries({ queryKey: qk.users });
+      onClose();
+    },
+  });
+
+  const patch: UserPatch = {
+    ...(name.trim() !== user.name && { name: name.trim() }),
+    ...(fullName.trim() !== user.fullName && { fullName: fullName.trim() }),
+    ...(password !== "" && { password }),
+  };
+  const dirty = Object.keys(patch).length > 0;
+  const errors = {
+    name: name.trim() === "" ? t("users.form.nameRequired") : null,
+    password:
+      password !== "" && password.length < MIN_PASSWORD_LENGTH
+        ? t("users.form.passwordTooShort", { count: MIN_PASSWORD_LENGTH })
+        : null,
+    confirm: password !== "" && confirm !== password ? t("users.form.mismatch") : null,
+  };
+  const valid = Object.values(errors).every((e) => e === null);
+
+  const onSubmit = (e: FormEvent) => {
+    e.preventDefault();
+    setTouched(true);
+    if (!valid || !dirty) return;
+    save.mutate(patch);
+  };
+
+  const close = () => {
+    if (!save.isPending) onClose();
+  };
+
+  return (
+    <form onSubmit={onSubmit} noValidate className="space-y-4">
+      <DialogHeader>
+        <DialogTitle>{t("users.edit.title", { name: user.name })}</DialogTitle>
+        <DialogDescription>{t("users.edit.description")}</DialogDescription>
+      </DialogHeader>
+
+      {save.isError && (
+        <div className="flex items-center gap-2 border border-danger/30 bg-danger-subtle px-3 py-2 text-sm text-danger-text">
+          <AlertTriangle className="h-4 w-4 shrink-0" />
+          <span className="min-w-0">{apiErrorMessage(save.error) ?? t("users.toast.updateFailed")}</span>
+        </div>
+      )}
+
+      <Field
+        id="edit-user-name"
+        label={t("users.form.name")}
+        error={touched ? errors.name : null}
+        hint={name.trim() !== user.name ? t("users.edit.renameHint") : undefined}
+      >
+        <Input id="edit-user-name" value={name} onChange={(e) => setName(e.target.value)} autoComplete="off" />
+      </Field>
+      <Field id="edit-user-full-name" label={t("users.form.fullName")}>
+        <Input id="edit-user-full-name" value={fullName} onChange={(e) => setFullName(e.target.value)} />
+      </Field>
+
+      {self ? (
+        <p className="border-t border-border pt-3 text-xs text-muted-foreground">{t("users.edit.ownPassword")}</p>
+      ) : (
+        <div className="space-y-4 border-t border-border pt-3">
+          <Field
+            id="edit-user-password"
+            label={t("users.edit.password")}
+            error={touched ? errors.password : null}
+            hint={t("users.edit.passwordHint", { count: MIN_PASSWORD_LENGTH })}
+          >
+            <PasswordInput
+              id="edit-user-password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder={t("users.edit.passwordUnchanged")}
+              autoComplete="new-password"
+            />
+          </Field>
+          {password !== "" && (
+            <Field id="edit-user-confirm" label={t("users.form.confirm")} error={touched ? errors.confirm : null}>
+              <PasswordInput
+                id="edit-user-confirm"
+                value={confirm}
+                onChange={(e) => setConfirm(e.target.value)}
+                autoComplete="new-password"
+              />
+            </Field>
+          )}
+        </div>
+      )}
+
+      <DialogFooter>
+        <Button type="button" variant="outline" onClick={close} disabled={save.isPending}>
+          {t("common:actions.cancel")}
+        </Button>
+        <Button type="submit" disabled={save.isPending || !dirty}>
+          {save.isPending && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+          {t("users.edit.submit")}
+        </Button>
+      </DialogFooter>
+    </form>
   );
 }
 
