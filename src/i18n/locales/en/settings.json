@@ -410,7 +410,10 @@
     },
     "deleteUser": "Delete {{name}}",
     "editUser": "Edit {{name}}",
-    "lastAdminNote": "Disabling a user or giving them a new password signs them out everywhere. The last enabled Administrator can't be demoted, disabled or deleted, so someone can always manage users.",
+    "lastAdminNote": "Disabling a user or giving them a new password signs them out everywhere. Nobody can change their own role, nor give a role or change a user allowing more than their own role. The last enabled Administrator can't be demoted, disabled or deleted, so someone can always manage users.",
+    "ownRole": "You can't change your own role: another user who may manage users has to.",
+    "roleBeyondYours": "This role allows functions yours doesn't, so you can't give it.",
+    "userBeyondYours": "{{name}}'s role allows functions yours doesn't, so you can't change or delete them.",
     "toast": {
       "updated": "{{name}} updated",
       "updateFailed": "The user wasn't changed",
@@ -452,14 +455,88 @@
   },
   "roles": {
     "title": "Roles & permissions",
-    "description": "What each built-in role allows, function by function. Anything not allowed is disabled.",
+    "description": "The roles a user can hold, built-in and custom.",
+    "add": "New role",
     "loading": "Loading roles…",
     "loadFailed": "The roles couldn't be loaded.",
     "column": {
-      "function": "Function"
+      "function": "Function",
+      "role": "Role",
+      "type": "Type",
+      "users": "Users",
+      "allowed": "Allowed"
     },
     "allowed": "Allowed",
     "disabled": "Disabled",
-    "builtInNote": "The roles are built in and can't be changed or deleted."
+    "builtIn": "Built-in",
+    "custom": "Custom",
+    "yours": "yours",
+    "allowedCount": "{{count}} of {{total}}",
+    "clonedFrom": "Cloned from {{name}}",
+    "cloneRole": "Clone {{name}}",
+    "editRole": "Edit {{name}}",
+    "deleteRole": "Delete {{name}}",
+    "matrixTitle": "Permissions by function",
+    "matrixDescription": "What each role allows, function by function. Anything a role doesn't allow is disabled.",
+    "reason": {
+      "builtIn": "Built-in roles can't be changed or deleted. Clone one to make your own.",
+      "ownRole": "This is your own role: another user who may manage roles has to change it.",
+      "beyondYours": "This role allows functions yours doesn't, so you can't change or delete it.",
+      "beyondYoursClone": "This role allows functions yours doesn't, so you can't clone it."
+    },
+    "builtInNote": "Built-in roles can't be changed, renamed or deleted; clone one to make a custom role. Every role allows signing in and out and changing one's own password. A change to a custom role applies to its users on their next action, without signing in again.",
+    "area": {
+      "auth": "Sign-in & session",
+      "dashboard": "Dashboard",
+      "system": "Appliance",
+      "tls": "HTTPS certificate",
+      "user": "Users",
+      "role": "Roles",
+      "audit": "Audit log",
+      "repository": "Repositories",
+      "inventory": "Inventories",
+      "job": "Jobs",
+      "session": "Sessions",
+      "backup": "Backups",
+      "restore": "Restore"
+    },
+    "editor": {
+      "titleCreate": "New role",
+      "titleClone": "Clone {{name}}",
+      "titleEdit": "Edit {{name}}",
+      "description": "The role allows exactly the functions ticked here; everything else is disabled. You can only grant what your own role allows.",
+      "name": "Name",
+      "descriptionLabel": "Description (optional)",
+      "nameRequired": "Enter a name for the role.",
+      "nameTaken": "A role named “{{name}}” already exists.",
+      "tooLong": "At most {{count}} characters.",
+      "permissions": "Permissions",
+      "count": "{{count}} of {{total}} functions allowed",
+      "filter": "Filter functions",
+      "noMatch": "No function matches “{{query}}”.",
+      "alwaysAllowed": "Every role allows this.",
+      "beyondYours": "Your role doesn't allow this, so you can't grant it.",
+      "areaToggle": "Every function in {{area}}",
+      "submitCreate": "Create role",
+      "submitEdit": "Save changes",
+      "usersHint_one": "{{count}} user holds this role and gets the change on their next action.",
+      "usersHint_other": "{{count}} users hold this role and get the change on their next action."
+    },
+    "toast": {
+      "created": "{{name}} created",
+      "createFailed": "The role wasn't created",
+      "updated": "{{name}} updated",
+      "updateFailed": "The role wasn't changed",
+      "deleted": "{{name}} deleted",
+      "deleteFailed": "The role wasn't deleted"
+    },
+    "deleteDialog": {
+      "title": "Delete {{name}}?",
+      "description": "Nobody can be given this role any more. Its entries in the audit log stay.",
+      "inUse_one": "{{name}} is held by {{names}}. Give them another role first, then delete it.",
+      "inUse_other": "{{name}} is held by {{count}} users: {{names}}. Give them another role first, then delete it.",
+      "inUseNoNames_one": "{{count}} user holds {{name}}. Give them another role first, then delete it.",
+      "inUseNoNames_other": "{{count}} users hold {{name}}. Give them another role first, then delete it."
+    }
   }
 }

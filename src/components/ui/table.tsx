@@ -4,9 +4,15 @@
 import * as React from "react";
 import { cn } from "@/lib/utils";
 
-export const Table = React.forwardRef<HTMLTableElement, React.HTMLAttributes<HTMLTableElement>>(
-  ({ className, ...props }, ref) => (
-    <div className="relative w-full overflow-auto">
+interface TableProps extends React.HTMLAttributes<HTMLTableElement> {
+  /** For the scrolling wrapper: a max height turns it into a viewport whose
+   *  `sticky` header cells stay in view. */
+  containerProps?: React.HTMLAttributes<HTMLDivElement>;
+}
+
+export const Table = React.forwardRef<HTMLTableElement, TableProps>(
+  ({ className, containerProps, ...props }, ref) => (
+    <div {...containerProps} className={cn("relative w-full overflow-auto", containerProps?.className)}>
       <table ref={ref} className={cn("w-full caption-bottom text-sm", className)} {...props} />
     </div>
   ),

@@ -407,7 +407,10 @@
     },
     "deleteUser": "Supprimer {{name}}",
     "editUser": "Modifier {{name}}",
-    "lastAdminNote": "Désactiver un utilisateur ou lui donner un nouveau mot de passe le déconnecte partout. Le dernier administrateur activé ne peut être ni rétrogradé, ni désactivé, ni supprimé, afin que quelqu’un puisse toujours gérer les utilisateurs.",
+    "lastAdminNote": "Désactiver un utilisateur ou lui donner un nouveau mot de passe le déconnecte partout. Personne ne peut changer son propre rôle, ni attribuer un rôle ou modifier un utilisateur qui permet plus que son propre rôle. Le dernier administrateur activé ne peut être ni rétrogradé, ni désactivé, ni supprimé, afin que quelqu’un puisse toujours gérer les utilisateurs.",
+    "ownRole": "Vous ne pouvez pas changer votre propre rôle : un autre utilisateur autorisé à gérer les utilisateurs doit le faire.",
+    "roleBeyondYours": "Ce rôle permet des fonctions que le vôtre ne permet pas : vous ne pouvez donc pas l’attribuer.",
+    "userBeyondYours": "Le rôle de {{name}} permet des fonctions que le vôtre ne permet pas : vous ne pouvez donc ni modifier ni supprimer cet utilisateur.",
     "toast": {
       "updated": "{{name}} mis à jour",
       "updateFailed": "L’utilisateur n’a pas été modifié",
@@ -449,14 +452,88 @@
   },
   "roles": {
     "title": "Rôles et autorisations",
-    "description": "Ce que chaque rôle intégré permet, fonction par fonction. Tout ce qui n’est pas permis est désactivé.",
+    "description": "Les rôles qu’un utilisateur peut avoir, intégrés et personnalisés.",
+    "add": "Nouveau rôle",
     "loading": "Chargement des rôles…",
     "loadFailed": "Les rôles n’ont pas pu être chargés.",
     "column": {
-      "function": "Fonction"
+      "function": "Fonction",
+      "role": "Rôle",
+      "type": "Type",
+      "users": "Utilisateurs",
+      "allowed": "Autorisées"
     },
     "allowed": "Autorisé",
     "disabled": "Désactivé",
-    "builtInNote": "Les rôles sont intégrés et ne peuvent être ni modifiés ni supprimés."
+    "builtIn": "Intégré",
+    "custom": "Personnalisé",
+    "yours": "le vôtre",
+    "allowedCount": "{{count}} sur {{total}}",
+    "clonedFrom": "Cloné à partir de {{name}}",
+    "cloneRole": "Cloner {{name}}",
+    "editRole": "Modifier {{name}}",
+    "deleteRole": "Supprimer {{name}}",
+    "matrixTitle": "Autorisations par fonction",
+    "matrixDescription": "Ce que chaque rôle permet, fonction par fonction. Tout ce qu’un rôle ne permet pas est désactivé.",
+    "reason": {
+      "builtIn": "Les rôles intégrés ne peuvent être ni modifiés ni supprimés. Clonez-en un pour créer le vôtre.",
+      "ownRole": "C’est votre propre rôle : un autre utilisateur autorisé à gérer les rôles doit le modifier.",
+      "beyondYours": "Ce rôle permet des fonctions que le vôtre ne permet pas : vous ne pouvez donc ni le modifier ni le supprimer.",
+      "beyondYoursClone": "Ce rôle permet des fonctions que le vôtre ne permet pas : vous ne pouvez donc pas le cloner."
+    },
+    "builtInNote": "Les rôles intégrés ne peuvent être ni modifiés, ni renommés, ni supprimés ; clonez-en un pour créer un rôle personnalisé. Chaque rôle permet de se connecter, de se déconnecter et de changer son propre mot de passe. Une modification d’un rôle personnalisé s’applique à ses utilisateurs dès leur prochaine action, sans nouvelle connexion.",
+    "area": {
+      "auth": "Connexion et session",
+      "dashboard": "Tableau de bord",
+      "system": "Appliance",
+      "tls": "Certificat HTTPS",
+      "user": "Utilisateurs",
+      "role": "Rôles",
+      "audit": "Journal d’audit",
+      "repository": "Référentiels",
+      "inventory": "Inventaires",
+      "job": "Tâches",
+      "session": "Sessions",
+      "backup": "Sauvegardes",
+      "restore": "Restauration"
+    },
+    "editor": {
+      "titleCreate": "Nouveau rôle",
+      "titleClone": "Cloner {{name}}",
+      "titleEdit": "Modifier {{name}}",
+      "description": "Le rôle permet exactement les fonctions cochées ici ; tout le reste est désactivé. Vous ne pouvez accorder que ce que votre propre rôle permet.",
+      "name": "Nom",
+      "descriptionLabel": "Description (facultative)",
+      "nameRequired": "Saisissez un nom pour le rôle.",
+      "nameTaken": "Un rôle nommé « {{name}} » existe déjà.",
+      "tooLong": "{{count}} caractères au maximum.",
+      "permissions": "Autorisations",
+      "count": "{{count}} fonctions autorisées sur {{total}}",
+      "filter": "Filtrer les fonctions",
+      "noMatch": "Aucune fonction ne correspond à « {{query}} ».",
+      "alwaysAllowed": "Chaque rôle permet ceci.",
+      "beyondYours": "Votre rôle ne permet pas ceci : vous ne pouvez donc pas l’accorder.",
+      "areaToggle": "Toutes les fonctions de {{area}}",
+      "submitCreate": "Créer le rôle",
+      "submitEdit": "Enregistrer les modifications",
+      "usersHint_one": "{{count}} utilisateur a ce rôle et reçoit la modification dès sa prochaine action.",
+      "usersHint_other": "{{count}} utilisateurs ont ce rôle et reçoivent la modification dès leur prochaine action."
+    },
+    "toast": {
+      "created": "{{name}} créé",
+      "createFailed": "Le rôle n’a pas été créé",
+      "updated": "{{name}} mis à jour",
+      "updateFailed": "Le rôle n’a pas été modifié",
+      "deleted": "{{name}} supprimé",
+      "deleteFailed": "Le rôle n’a pas été supprimé"
+    },
+    "deleteDialog": {
+      "title": "Supprimer {{name}} ?",
+      "description": "Ce rôle ne pourra plus être attribué à personne. Ses entrées dans le journal d’audit restent.",
+      "inUse_one": "{{name}} est attribué à {{names}}. Attribuez-lui d’abord un autre rôle, puis supprimez celui-ci.",
+      "inUse_other": "{{name}} est attribué à {{count}} utilisateurs : {{names}}. Attribuez-leur d’abord un autre rôle, puis supprimez celui-ci.",
+      "inUseNoNames_one": "{{name}} est attribué à {{count}} utilisateur. Attribuez-lui d’abord un autre rôle, puis supprimez celui-ci.",
+      "inUseNoNames_other": "{{name}} est attribué à {{count}} utilisateurs. Attribuez-leur d’abord un autre rôle, puis supprimez celui-ci."
+    }
   }
 }

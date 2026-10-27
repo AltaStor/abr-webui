@@ -35,7 +35,8 @@ interface PermissionsState {
 export const ALL_GRANTS: Grants = "all";
 
 /** Readable names for the built-in roles, for when only the ID is known (the
- *  sign-in answer carries the ID; `/auth/me` adds the name). */
+ *  sign-in answer carries the ID; `/auth/me` adds the name, a custom role's
+ *  too). */
 export const ROLE_NAMES: Record<string, string> = {
   administrator: "Administrator",
   backup_administrator: "Backup Administrator",
@@ -55,8 +56,9 @@ export const usePermissionsStore = create<PermissionsState>((set) => ({
     set((s) => {
       const grants: Grants = permissions ? new Set(permissions) : ALL_GRANTS;
       const nextRole = role === undefined ? s.role : role;
-      // Refreshed before every hydrate: only a real change notifies anyone.
-      if (sameGrants(s.grants, grants) && s.role?.id === nextRole?.id) return s;
+      // Refreshed before every hydrate: only a real change notifies anyone. A
+      // custom role can be renamed under the same ID, so the name counts too.
+      if (sameGrants(s.grants, grants) && s.role?.id === nextRole?.id && s.role?.name === nextRole?.name) return s;
       return { grants, role: nextRole };
     }),
   clear: () => set({ grants: new Set<string>(), role: null }),
@@ -85,4 +87,16 @@ export function useCan(functionId: string): boolean {
 /** Whether the role allows any of `functionIds`. */
 export function useCanAny(...functionIds: string[]): boolean {
   return usePermissionsStore((s) => functionIds.some((id) => allows(s.grants, id)));
+}
+
+/** What the signed-in user's role allows, for comparing with another role. */
+export function useGrants(): Grants {
+  return usePermissionsStore((s) => s.grants);
+}
+
+/** Those of `functionIds` that `grants` does not allow. The appliance refuses
+ *  to let anyone grant, assign or take over more than their own role allows;
+ *  the console uses this to say so before it asks. */
+export function beyondGrants(grants: Grants, functionIds: readonly string[]): string[] {
+  return grants === "all" ? [] : functionIds.filter((id) => !grants.has(id));
 }

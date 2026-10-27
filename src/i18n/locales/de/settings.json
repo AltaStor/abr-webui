@@ -407,7 +407,10 @@
     },
     "deleteUser": "{{name}} löschen",
     "editUser": "{{name}} bearbeiten",
-    "lastAdminNote": "Das Deaktivieren eines Benutzers oder ein neues Passwort meldet ihn überall ab. Der letzte aktivierte Administrator kann weder herabgestuft, deaktiviert noch gelöscht werden, damit immer jemand Benutzer verwalten kann.",
+    "lastAdminNote": "Das Deaktivieren eines Benutzers oder ein neues Passwort meldet ihn überall ab. Niemand kann die eigene Rolle ändern, eine Rolle vergeben oder einen Benutzer ändern, die bzw. dessen Rolle mehr erlaubt als die eigene. Der letzte aktivierte Administrator kann weder herabgestuft, deaktiviert noch gelöscht werden, damit immer jemand Benutzer verwalten kann.",
+    "ownRole": "Sie können Ihre eigene Rolle nicht ändern – das muss ein anderer Benutzer tun, der Benutzer verwalten darf.",
+    "roleBeyondYours": "Diese Rolle erlaubt Funktionen, die Ihre nicht erlaubt; Sie können sie daher nicht vergeben.",
+    "userBeyondYours": "Die Rolle von {{name}} erlaubt Funktionen, die Ihre nicht erlaubt; Sie können diesen Benutzer daher weder ändern noch löschen.",
     "toast": {
       "updated": "{{name}} aktualisiert",
       "updateFailed": "Der Benutzer wurde nicht geändert",
@@ -449,14 +452,88 @@
   },
   "roles": {
     "title": "Rollen & Berechtigungen",
-    "description": "Was jede integrierte Rolle erlaubt, Funktion für Funktion. Alles nicht Erlaubte ist deaktiviert.",
+    "description": "Die Rollen, die ein Benutzer haben kann, integrierte und benutzerdefinierte.",
+    "add": "Neue Rolle",
     "loading": "Rollen werden geladen…",
     "loadFailed": "Die Rollen konnten nicht geladen werden.",
     "column": {
-      "function": "Funktion"
+      "function": "Funktion",
+      "role": "Rolle",
+      "type": "Typ",
+      "users": "Benutzer",
+      "allowed": "Erlaubt"
     },
     "allowed": "Erlaubt",
     "disabled": "Deaktiviert",
-    "builtInNote": "Die Rollen sind integriert und können weder geändert noch gelöscht werden."
+    "builtIn": "Integriert",
+    "custom": "Benutzerdefiniert",
+    "yours": "Ihre",
+    "allowedCount": "{{count}} von {{total}}",
+    "clonedFrom": "Geklont aus {{name}}",
+    "cloneRole": "{{name}} klonen",
+    "editRole": "{{name}} bearbeiten",
+    "deleteRole": "{{name}} löschen",
+    "matrixTitle": "Berechtigungen nach Funktion",
+    "matrixDescription": "Was jede Rolle erlaubt, Funktion für Funktion. Alles, was eine Rolle nicht erlaubt, ist deaktiviert.",
+    "reason": {
+      "builtIn": "Integrierte Rollen können weder geändert noch gelöscht werden. Klonen Sie eine, um eine eigene zu erstellen.",
+      "ownRole": "Das ist Ihre eigene Rolle: Ein anderer Benutzer, der Rollen verwalten darf, muss sie ändern.",
+      "beyondYours": "Diese Rolle erlaubt Funktionen, die Ihre nicht erlaubt; Sie können sie daher weder ändern noch löschen.",
+      "beyondYoursClone": "Diese Rolle erlaubt Funktionen, die Ihre nicht erlaubt; Sie können sie daher nicht klonen."
+    },
+    "builtInNote": "Integrierte Rollen können weder geändert, umbenannt noch gelöscht werden; klonen Sie eine, um eine benutzerdefinierte Rolle zu erstellen. Jede Rolle erlaubt das An- und Abmelden und das Ändern des eigenen Passworts. Eine Änderung an einer benutzerdefinierten Rolle gilt für ihre Benutzer ab der nächsten Aktion, ohne erneute Anmeldung.",
+    "area": {
+      "auth": "Anmeldung & Sitzung",
+      "dashboard": "Dashboard",
+      "system": "Appliance",
+      "tls": "HTTPS-Zertifikat",
+      "user": "Benutzer",
+      "role": "Rollen",
+      "audit": "Audit-Log",
+      "repository": "Repositories",
+      "inventory": "Inventare",
+      "job": "Jobs",
+      "session": "Sitzungen",
+      "backup": "Backups",
+      "restore": "Wiederherstellung"
+    },
+    "editor": {
+      "titleCreate": "Neue Rolle",
+      "titleClone": "{{name}} klonen",
+      "titleEdit": "{{name}} bearbeiten",
+      "description": "Die Rolle erlaubt genau die hier angehakten Funktionen; alles andere ist deaktiviert. Sie können nur vergeben, was Ihre eigene Rolle erlaubt.",
+      "name": "Name",
+      "descriptionLabel": "Beschreibung (optional)",
+      "nameRequired": "Geben Sie einen Namen für die Rolle ein.",
+      "nameTaken": "Eine Rolle namens „{{name}}“ gibt es bereits.",
+      "tooLong": "Höchstens {{count}} Zeichen.",
+      "permissions": "Berechtigungen",
+      "count": "{{count}} von {{total}} Funktionen erlaubt",
+      "filter": "Funktionen filtern",
+      "noMatch": "Keine Funktion passt zu „{{query}}“.",
+      "alwaysAllowed": "Jede Rolle erlaubt dies.",
+      "beyondYours": "Ihre Rolle erlaubt dies nicht; Sie können es daher nicht vergeben.",
+      "areaToggle": "Alle Funktionen in {{area}}",
+      "submitCreate": "Rolle erstellen",
+      "submitEdit": "Änderungen speichern",
+      "usersHint_one": "{{count}} Benutzer hat diese Rolle und erhält die Änderung ab der nächsten Aktion.",
+      "usersHint_other": "{{count}} Benutzer haben diese Rolle und erhalten die Änderung ab der nächsten Aktion."
+    },
+    "toast": {
+      "created": "{{name}} erstellt",
+      "createFailed": "Die Rolle wurde nicht erstellt",
+      "updated": "{{name}} aktualisiert",
+      "updateFailed": "Die Rolle wurde nicht geändert",
+      "deleted": "{{name}} gelöscht",
+      "deleteFailed": "Die Rolle wurde nicht gelöscht"
+    },
+    "deleteDialog": {
+      "title": "{{name}} löschen?",
+      "description": "Niemandem kann diese Rolle mehr zugewiesen werden. Ihre Einträge im Audit-Log bleiben erhalten.",
+      "inUse_one": "{{name}} ist {{names}} zugewiesen. Weisen Sie zuerst eine andere Rolle zu und löschen Sie diese dann.",
+      "inUse_other": "{{name}} ist {{count}} Benutzern zugewiesen: {{names}}. Weisen Sie ihnen zuerst eine andere Rolle zu und löschen Sie diese dann.",
+      "inUseNoNames_one": "{{name}} ist {{count}} Benutzer zugewiesen. Weisen Sie zuerst eine andere Rolle zu und löschen Sie diese dann.",
+      "inUseNoNames_other": "{{name}} ist {{count}} Benutzern zugewiesen. Weisen Sie ihnen zuerst eine andere Rolle zu und löschen Sie diese dann."
+    }
   }
 }

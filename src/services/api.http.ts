@@ -1036,21 +1036,38 @@ export async function updateUser(id: string, patch: UserPatch): Promise<AuthUser
 export const deleteUser = (id: string) => request<Dict>(`/users/${encodeURIComponent(id)}`, { method: "DELETE" });
 
 export interface RoleInfo extends RoleSummary {
+  /** False for a role an Administrator made; the built-in ones can't be
+   *  changed or deleted. */
+  builtIn: boolean;
   /** Function IDs this role allows; every other function is disabled. */
   allowedFunctions: string[];
+  /** How many users hold it; null from an appliance that doesn't say. */
+  userCount: number | null;
+  clonedFrom: { id: string; name: string } | null;
 }
 
 export interface ProductFunction {
   id: string;
   name: string;
   category: string;
+  /** Every role allows it, a custom one too (signing in and out, one's own
+   *  password and session). */
+  alwaysAllowed: boolean;
+}
+
+function mapRoleInfo(r: Dict): RoleInfo {
+  const source = r.cloned_from ? asDict(r.cloned_from) : null;
+  return {
+    ...mapRoleSummary(r),
+    builtIn: r.built_in !== false,
+    allowedFunctions: strListOrNull(r.allowed_functions) ?? [],
+    userCount: typeof r.user_count === "number" ? r.user_count : null,
+    clonedFrom: source ? { id: str(source.id), name: str(source.name) } : null,
+  };
 }
 
 export async function listRoles(): Promise<RoleInfo[]> {
-  return (await collection<Dict>("/roles")).map((r) => ({
-    ...mapRoleSummary(r),
-    allowedFunctions: strListOrNull(r.allowed_functions) ?? [],
-  }));
+  return (await collection<Dict>("/roles")).map(mapRoleInfo);
 }
 
 export async function listFunctions(): Promise<ProductFunction[]> {
@@ -1058,8 +1075,42 @@ export async function listFunctions(): Promise<ProductFunction[]> {
     id: str(f.id),
     name: str(f.name),
     category: str(f.category),
+    alwaysAllowed: f.always_allowed === true,
   }));
 }
+
+/** A new custom role: from scratch with `allowedFunctions`, or a clone of
+ *  `cloneFrom`, whose functions and description are then the defaults. */
+export interface RoleInput {
+  name?: string;
+  description?: string;
+  allowedFunctions?: string[];
+  cloneFrom?: string;
+}
+
+function roleBody(input: RoleInput): Dict {
+  const body: Dict = {};
+  if (input.name !== undefined) body.name = input.name;
+  if (input.description !== undefined) body.description = input.description;
+  if (input.allowedFunctions !== undefined) body.allowed_functions = input.allowedFunctions;
+  if (input.cloneFrom !== undefined) body.clone_from = input.cloneFrom;
+  return body;
+}
+
+export async function createRole(input: RoleInput): Promise<RoleInfo> {
+  return mapRoleInfo(asDict(await request<Dict>("/roles", { method: "POST", body: JSON.stringify(roleBody(input)) })));
+}
+
+/** A change to a custom role; `allowedFunctions` is the whole new list. */
+export async function updateRole(id: string, patch: Omit<RoleInput, "cloneFrom">): Promise<RoleInfo> {
+  return mapRoleInfo(
+    asDict(
+      await request<Dict>(`/roles/${encodeURIComponent(id)}`, { method: "PATCH", body: JSON.stringify(roleBody(patch)) }),
+    ),
+  );
+}
+
+export const deleteRole = (id: string) => request<Dict>(`/roles/${encodeURIComponent(id)}`, { method: "DELETE" });
 
 /* ---- Audit log (Logs -> Audit) ---- */
 

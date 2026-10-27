@@ -19,8 +19,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { formatDateTime, formatInt } from "@/lib/format";
 import { qk } from "@/lib/query";
-import { apiErrorMessage, listAuditRecords, type AuditRecord, type AuditResult } from "@/services/api.http";
-import { ROLE_NAMES } from "@/store/permissions";
+import { apiErrorMessage, listAuditRecords, listRoles, type AuditRecord, type AuditResult } from "@/services/api.http";
+import { ROLE_NAMES, useCan } from "@/store/permissions";
 import { useWorldStore } from "@/store/world";
 
 const PAGE_SIZE = 100;
@@ -77,6 +77,11 @@ export function AuditLogTab() {
     placeholderData: keepPreviousData,
     enabled: live,
   });
+  /* A record names the role by ID; a custom role's ID means nothing to a
+   * reader, so it is looked up. One deleted since keeps its ID. */
+  const canViewRoles = useCan("role.view");
+  const roles = useQuery({ queryKey: qk.roles, queryFn: listRoles, enabled: live && canViewRoles });
+  const roleLabel = (id: string) => roles.data?.find((role) => role.id === id)?.name ?? ROLE_NAMES[id] ?? id;
 
   const total = audit.data?.total ?? 0;
   const items = audit.data?.items ?? [];
@@ -189,7 +194,7 @@ export function AuditLogTab() {
                   <TableCell>
                     <div className="font-medium">{record.user}</div>
                     <div className="text-xs text-muted-foreground">
-                      {record.role ? (ROLE_NAMES[record.role] ?? record.role) : "—"}
+                      {record.role ? roleLabel(record.role) : "—"}
                     </div>
                   </TableCell>
                   <TableCell className="font-mono text-xs">{record.functionId}</TableCell>

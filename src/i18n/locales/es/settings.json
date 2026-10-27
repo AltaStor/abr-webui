@@ -407,7 +407,10 @@
     },
     "deleteUser": "Eliminar {{name}}",
     "editUser": "Editar {{name}}",
-    "lastAdminNote": "Deshabilitar a un usuario o darle una contraseña nueva cierra todas sus sesiones. El último administrador habilitado no se puede degradar, deshabilitar ni eliminar, para que siempre haya alguien que gestione los usuarios.",
+    "lastAdminNote": "Deshabilitar a un usuario o darle una contraseña nueva cierra todas sus sesiones. Nadie puede cambiar su propio rol, ni asignar un rol o modificar a un usuario que permita más que su propio rol. El último administrador habilitado no se puede degradar, deshabilitar ni eliminar, para que siempre haya alguien que gestione los usuarios.",
+    "ownRole": "No puedes cambiar tu propio rol: debe hacerlo otro usuario que pueda gestionar usuarios.",
+    "roleBeyondYours": "Este rol permite funciones que el tuyo no permite, así que no puedes asignarlo.",
+    "userBeyondYours": "El rol de {{name}} permite funciones que el tuyo no permite, así que no puedes modificar ni eliminar a este usuario.",
     "toast": {
       "updated": "{{name}} actualizado",
       "updateFailed": "El usuario no se modificó",
@@ -449,14 +452,88 @@
   },
   "roles": {
     "title": "Roles y permisos",
-    "description": "Lo que permite cada rol integrado, función por función. Todo lo que no está permitido está deshabilitado.",
+    "description": "Los roles que puede tener un usuario, integrados y personalizados.",
+    "add": "Nuevo rol",
     "loading": "Cargando roles…",
     "loadFailed": "No se pudieron cargar los roles.",
     "column": {
-      "function": "Función"
+      "function": "Función",
+      "role": "Rol",
+      "type": "Tipo",
+      "users": "Usuarios",
+      "allowed": "Permitidas"
     },
     "allowed": "Permitido",
     "disabled": "Deshabilitado",
-    "builtInNote": "Los roles son integrados y no se pueden modificar ni eliminar."
+    "builtIn": "Integrado",
+    "custom": "Personalizado",
+    "yours": "el tuyo",
+    "allowedCount": "{{count}} de {{total}}",
+    "clonedFrom": "Clonado de {{name}}",
+    "cloneRole": "Clonar {{name}}",
+    "editRole": "Editar {{name}}",
+    "deleteRole": "Eliminar {{name}}",
+    "matrixTitle": "Permisos por función",
+    "matrixDescription": "Lo que permite cada rol, función por función. Todo lo que un rol no permite está deshabilitado.",
+    "reason": {
+      "builtIn": "Los roles integrados no se pueden modificar ni eliminar. Clona uno para crear el tuyo.",
+      "ownRole": "Es tu propio rol: debe modificarlo otro usuario que pueda gestionar roles.",
+      "beyondYours": "Este rol permite funciones que el tuyo no permite, así que no puedes modificarlo ni eliminarlo.",
+      "beyondYoursClone": "Este rol permite funciones que el tuyo no permite, así que no puedes clonarlo."
+    },
+    "builtInNote": "Los roles integrados no se pueden modificar, renombrar ni eliminar; clona uno para crear un rol personalizado. Todos los roles permiten iniciar y cerrar sesión y cambiar la propia contraseña. Un cambio en un rol personalizado se aplica a sus usuarios en su siguiente acción, sin volver a iniciar sesión.",
+    "area": {
+      "auth": "Inicio de sesión y sesión",
+      "dashboard": "Panel",
+      "system": "Appliance",
+      "tls": "Certificado HTTPS",
+      "user": "Usuarios",
+      "role": "Roles",
+      "audit": "Registro de auditoría",
+      "repository": "Repositorios",
+      "inventory": "Inventarios",
+      "job": "Trabajos",
+      "session": "Sesiones",
+      "backup": "Copias de seguridad",
+      "restore": "Restauración"
+    },
+    "editor": {
+      "titleCreate": "Nuevo rol",
+      "titleClone": "Clonar {{name}}",
+      "titleEdit": "Editar {{name}}",
+      "description": "El rol permite exactamente las funciones marcadas aquí; todo lo demás está deshabilitado. Solo puedes conceder lo que permite tu propio rol.",
+      "name": "Nombre",
+      "descriptionLabel": "Descripción (opcional)",
+      "nameRequired": "Escribe un nombre para el rol.",
+      "nameTaken": "Ya existe un rol llamado «{{name}}».",
+      "tooLong": "Como máximo {{count}} caracteres.",
+      "permissions": "Permisos",
+      "count": "{{count}} de {{total}} funciones permitidas",
+      "filter": "Filtrar funciones",
+      "noMatch": "Ninguna función coincide con «{{query}}».",
+      "alwaysAllowed": "Todos los roles permiten esto.",
+      "beyondYours": "Tu rol no permite esto, así que no puedes concederlo.",
+      "areaToggle": "Todas las funciones de {{area}}",
+      "submitCreate": "Crear rol",
+      "submitEdit": "Guardar cambios",
+      "usersHint_one": "{{count}} usuario tiene este rol y recibe el cambio en su siguiente acción.",
+      "usersHint_other": "{{count}} usuarios tienen este rol y reciben el cambio en su siguiente acción."
+    },
+    "toast": {
+      "created": "{{name}} creado",
+      "createFailed": "No se creó el rol",
+      "updated": "{{name}} actualizado",
+      "updateFailed": "No se modificó el rol",
+      "deleted": "{{name}} eliminado",
+      "deleteFailed": "No se eliminó el rol"
+    },
+    "deleteDialog": {
+      "title": "¿Eliminar {{name}}?",
+      "description": "Ya no se podrá asignar este rol a nadie. Sus entradas en el registro de auditoría se conservan.",
+      "inUse_one": "{{name}} está asignado a {{names}}. Asígnale otro rol primero y luego elimínalo.",
+      "inUse_other": "{{name}} está asignado a {{count}} usuarios: {{names}}. Asígnales otro rol primero y luego elimínalo.",
+      "inUseNoNames_one": "{{name}} está asignado a {{count}} usuario. Asígnale otro rol primero y luego elimínalo.",
+      "inUseNoNames_other": "{{name}} está asignado a {{count}} usuarios. Asígnales otro rol primero y luego elimínalo."
+    }
   }
 }

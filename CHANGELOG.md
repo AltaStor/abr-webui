@@ -14,6 +14,14 @@ All notable changes to the AltaStor WebUI are documented in this file.
 - Settings → Users: add users with a role, change a user's role, enable or
   disable them, delete them, and see the permission matrix of the built-in
   roles. Read-only for an Auditor.
+- Custom roles under Settings → Users → Roles & permissions: create a role
+  from a checklist of the appliance's functions, clone any role into a new
+  one, rename it, change what it allows, and delete it once nobody holds it.
+  Custom roles are offered wherever a role is chosen. What the appliance
+  would refuse is greyed out with the reason: built-in roles, your own role,
+  roles or users allowing more than yours, and functions your role can't
+  grant. The permission matrix scrolls in its own frame with the role names
+  and function names kept in view.
 - Logs → Audit log: the appliance's audit log of every command and user
   change, from every interface, filterable by user, area and result.
 - Hyper-V support: back up and restore Hyper-V VMs from the console.

@@ -4,16 +4,18 @@
 /**
  * Settings -> Users: the appliance's users and the roles they hold.
  *
- * Every user holds exactly one built-in role. The roles themselves cannot be
- * changed, so the second card is a read-only view of what each one allows.
- * The appliance enforces all of it — including that the last enabled
- * Administrator can be neither demoted, disabled nor deleted — and this page
- * says what it answered rather than second-guessing it.
+ * Every user holds exactly one role, built-in or custom; the second card
+ * (RolesCard) manages the roles themselves. The appliance enforces all of it —
+ * that the last enabled Administrator can be neither demoted, disabled nor
+ * deleted, that nobody changes their own role, and that nobody assigns a role
+ * or changes a user allowing more than their own role — and this page greys
+ * out what it would refuse, then says what it answered rather than
+ * second-guessing it.
  */
 import { useMemo, useState, type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { AlertTriangle, Check, Loader2, Minus, Pencil, Plus, ShieldCheck, Trash2, Users } from "@/lib/icons";
+import { AlertTriangle, Loader2, Pencil, Plus, Trash2, Users } from "@/lib/icons";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -26,7 +28,6 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { PasswordInput } from "@/components/ui/password-input";
-import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "@/components/ui/sonner";
 import { Switch } from "@/components/ui/switch";
@@ -38,22 +39,22 @@ import {
   apiErrorMessage,
   createUser,
   deleteUser,
-  listFunctions,
   listRoles,
   listUsers,
   updateUser,
   type AuthUser,
-  type ProductFunction,
   type RoleInfo,
   type UserPatch,
 } from "@/services/api.http";
 import { useAuthStore } from "@/store/auth";
-import { ROLE_NAMES, useCan } from "@/store/permissions";
+import { ROLE_NAMES, beyondGrants, useCan, useGrants, type Grants } from "@/store/permissions";
 import { useWorldStore } from "@/store/world";
+import { Field } from "../FormField";
 import { SettingsSection } from "../SettingsSection";
+import { RolesCard } from "./RolesCard";
+import { roleName, sortRoles } from "./roles";
 
 const MIN_PASSWORD_LENGTH = 8;
-const ROLE_ORDER = Object.keys(ROLE_NAMES);
 
 export function UsersSection() {
   const canViewUsers = useCan("user.view");
@@ -66,9 +67,40 @@ export function UsersSection() {
   );
 }
 
-function roleName(roles: RoleInfo[] | undefined, id: string | null): string {
-  if (!id) return "—";
-  return roles?.find((role) => role.id === id)?.name ?? ROLE_NAMES[id] ?? id;
+/** The roles a user can be given, built-in first. Without `role.view` the
+ *  appliance won't list them, so the built-in ones are all there is to offer
+ *  (and it still decides which of them the caller may give). */
+function assignable(roles: RoleInfo[] | undefined): { id: string; name: string; functions: string[] | null }[] {
+  if (roles) return sortRoles(roles).map((role) => ({ id: role.id, name: role.name, functions: role.allowedFunctions }));
+  return Object.entries(ROLE_NAMES).map(([id, name]) => ({ id, name, functions: null }));
+}
+
+/** Whether the caller's role allows everything `functions` does: the
+ *  appliance refuses to assign, or let anyone change a user holding, a role
+ *  that allows more. Unknown (null) is left to the appliance. */
+function within(grants: Grants, functions: string[] | null): boolean {
+  return functions === null || beyondGrants(grants, functions).length === 0;
+}
+
+function RoleOptions({ roles, grants }: { roles: RoleInfo[] | undefined; grants: Grants }) {
+  const { t } = useTranslation("settings");
+  return (
+    <>
+      {assignable(roles).map((role) => {
+        const allowed = within(grants, role.functions);
+        return (
+          <SelectItem
+            key={role.id}
+            value={role.id}
+            disabled={!allowed}
+            title={allowed ? undefined : t("users.roleBeyondYours")}
+          >
+            {role.name}
+          </SelectItem>
+        );
+      })}
+    </>
+  );
 }
 
 /* -------------------------------------------------------------------- users -- */
@@ -80,9 +112,11 @@ function UsersCard() {
   const canCreate = useCan("user.create");
   const canEdit = useCan("user.edit");
   const canDelete = useCan("user.delete");
+  const canViewRoles = useCan("role.view");
+  const grants = useGrants();
   const queryClient = useQueryClient();
   const users = useQuery({ queryKey: qk.users, queryFn: listUsers, enabled: live });
-  const roles = useQuery({ queryKey: qk.roles, queryFn: listRoles, enabled: live, staleTime: Infinity });
+  const roles = useQuery({ queryKey: qk.roles, queryFn: listRoles, enabled: live && canViewRoles });
   const [adding, setAdding] = useState(false);
   const [editing, setEditing] = useState<AuthUser | null>(null);
   const [deleting, setDeleting] = useState<AuthUser | null>(null);
@@ -92,9 +126,17 @@ function UsersCard() {
     onSuccess: (user) => {
       toast.success(t("users.toast.updated", { name: user.name }));
       void queryClient.invalidateQueries({ queryKey: qk.users });
+      void queryClient.invalidateQueries({ queryKey: qk.roles });
     },
     onError: (err) => toast.error(t("users.toast.updateFailed"), { description: apiErrorMessage(err) ?? undefined }),
   });
+
+  /** Why the caller may not change this user at all, or null: a user whose
+   *  role allows more than the caller's is out of reach. */
+  const outOfReach = (user: AuthUser): string | null => {
+    const held = roles.data?.find((role) => role.id === user.role);
+    return held && !within(grants, held.allowedFunctions) ? t("users.userBeyondYours", { name: user.name }) : null;
+  };
 
   const sorted = useMemo(
     () => [...(users.data ?? [])].sort((a, b) => a.name.localeCompare(b.name)),
@@ -143,6 +185,7 @@ function UsersCard() {
             {sorted.map((user) => {
               const self = user.id === me?.id;
               const busy = update.isPending && update.variables?.id === user.id;
+              const refusal = outOfReach(user);
               return (
                 <TableRow key={user.id} className={cn(!user.enabled && "text-muted-foreground")}>
                   <TableCell>
@@ -154,22 +197,21 @@ function UsersCard() {
                   </TableCell>
                   <TableCell>
                     {canEdit ? (
-                      <Select
-                        value={user.role ?? undefined}
-                        onValueChange={(role) => update.mutate({ id: user.id, patch: { role } })}
-                        disabled={busy}
-                      >
-                        <SelectTrigger className="h-8 w-48" aria-label={t("users.roleFor", { name: user.name })}>
-                          <SelectValue placeholder={t("users.noRole")} />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {ROLE_ORDER.map((id) => (
-                            <SelectItem key={id} value={id}>
-                              {roleName(roles.data, id)}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      // The wrapper carries the reason: a disabled trigger gets no pointer events.
+                      <span title={self ? t("users.ownRole") : (refusal ?? undefined)} className="inline-flex">
+                        <Select
+                          value={user.role ?? undefined}
+                          onValueChange={(role) => update.mutate({ id: user.id, patch: { role } })}
+                          disabled={busy || self || refusal !== null}
+                        >
+                          <SelectTrigger className="h-8 w-48" aria-label={t("users.roleFor", { name: user.name })}>
+                            <SelectValue placeholder={t("users.noRole")}>{roleName(roles.data, user.role)}</SelectValue>
+                          </SelectTrigger>
+                          <SelectContent>
+                            <RoleOptions roles={roles.data} grants={grants} />
+                          </SelectContent>
+                        </Select>
+                      </span>
                     ) : (
                       roleName(roles.data, user.role)
                     )}
@@ -179,7 +221,8 @@ function UsersCard() {
                       <Switch
                         checked={user.enabled}
                         onCheckedChange={(enabled) => update.mutate({ id: user.id, patch: { enabled } })}
-                        disabled={busy}
+                        disabled={busy || refusal !== null}
+                        title={refusal ?? undefined}
                         aria-label={t("users.enabledFor", { name: user.name })}
                       />
                     ) : user.enabled ? (
@@ -194,27 +237,32 @@ function UsersCard() {
                   {(canEdit || canDelete) && (
                     <TableCell className="whitespace-nowrap text-right">
                       {canEdit && (
-                        <Button
-                          variant="ghost"
-                          size="icon-sm"
-                          aria-label={t("users.editUser", { name: user.name })}
-                          title={t("users.editUser", { name: user.name })}
-                          className="text-muted-foreground/70 hover:text-foreground"
-                          onClick={() => setEditing(user)}
-                        >
-                          <Pencil className="h-3.5 w-3.5" />
-                        </Button>
+                        <span title={refusal ?? t("users.editUser", { name: user.name })} className="inline-flex">
+                          <Button
+                            variant="ghost"
+                            size="icon-sm"
+                            aria-label={t("users.editUser", { name: user.name })}
+                            className="text-muted-foreground/70 hover:text-foreground"
+                            disabled={refusal !== null}
+                            onClick={() => setEditing(user)}
+                          >
+                            <Pencil className="h-3.5 w-3.5" />
+                          </Button>
+                        </span>
                       )}
                       {canDelete && (
-                        <Button
-                          variant="ghost"
-                          size="icon-sm"
-                          aria-label={t("users.deleteUser", { name: user.name })}
-                          className="text-muted-foreground/70 hover:bg-danger/10 hover:text-danger"
-                          onClick={() => setDeleting(user)}
-                        >
-                          <Trash2 className="h-3.5 w-3.5" />
-                        </Button>
+                        <span title={refusal ?? t("users.deleteUser", { name: user.name })} className="inline-flex">
+                          <Button
+                            variant="ghost"
+                            size="icon-sm"
+                            aria-label={t("users.deleteUser", { name: user.name })}
+                            className="text-muted-foreground/70 hover:bg-danger/10 hover:text-danger"
+                            disabled={refusal !== null}
+                            onClick={() => setDeleting(user)}
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </Button>
+                        </span>
                       )}
                     </TableCell>
                   )}
@@ -226,7 +274,7 @@ function UsersCard() {
       )}
       <p className="border-t border-border/50 px-5 py-3 text-xs text-muted-foreground">{t("users.lastAdminNote")}</p>
 
-      <AddUserDialog open={adding} onOpenChange={setAdding} roles={roles.data} />
+      <AddUserDialog open={adding} onOpenChange={setAdding} roles={roles.data} grants={grants} />
       <EditUserDialog user={editing} self={editing?.id === me?.id} onOpenChange={(open) => !open && setEditing(null)} />
       <DeleteUserDialog user={deleting} onOpenChange={(open) => !open && setDeleting(null)} />
     </SettingsSection>
@@ -237,10 +285,12 @@ function AddUserDialog({
   open,
   onOpenChange,
   roles,
+  grants,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   roles: RoleInfo[] | undefined;
+  grants: Grants;
 }) {
   const { t } = useTranslation("settings");
   const queryClient = useQueryClient();
@@ -265,6 +315,7 @@ function AddUserDialog({
     onSuccess: (user) => {
       toast.success(t("users.toast.created", { name: user.name }));
       void queryClient.invalidateQueries({ queryKey: qk.users });
+      void queryClient.invalidateQueries({ queryKey: qk.roles });
       reset();
       onOpenChange(false);
     },
@@ -323,11 +374,7 @@ function AddUserDialog({
                 <SelectValue placeholder={t("users.form.rolePlaceholder")} />
               </SelectTrigger>
               <SelectContent>
-                {ROLE_ORDER.map((id) => (
-                  <SelectItem key={id} value={id}>
-                    {roleName(roles, id)}
-                  </SelectItem>
-                ))}
+                <RoleOptions roles={roles} grants={grants} />
               </SelectContent>
             </Select>
           </Field>
@@ -526,6 +573,7 @@ function DeleteUserDialog({
     onSuccess: () => {
       toast.success(t("users.toast.deleted", { name: user?.name ?? "" }));
       void queryClient.invalidateQueries({ queryKey: qk.users });
+      void queryClient.invalidateQueries({ queryKey: qk.roles });
       onOpenChange(false);
     },
     onError: (err) => toast.error(t("users.toast.deleteFailed"), { description: apiErrorMessage(err) ?? undefined }),
@@ -552,111 +600,5 @@ function DeleteUserDialog({
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  );
-}
-
-function Field({
-  id,
-  label,
-  error,
-  hint,
-  children,
-}: {
-  id: string;
-  label: string;
-  error?: string | null;
-  hint?: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="space-y-1.5">
-      <Label htmlFor={id}>{label}</Label>
-      {children}
-      {error ? (
-        <p className="text-xs text-danger-text">{error}</p>
-      ) : hint ? (
-        <p className="text-xs text-muted-foreground">{hint}</p>
-      ) : null}
-    </div>
-  );
-}
-
-/* -------------------------------------------------------------------- roles -- */
-
-/** One row per product function, one column per role: allowed or disabled. */
-function RolesCard() {
-  const { t } = useTranslation("settings");
-  const live = useWorldStore((s) => s.mode) === "live";
-  const roles = useQuery({ queryKey: qk.roles, queryFn: listRoles, enabled: live, staleTime: Infinity });
-  const functions = useQuery({ queryKey: qk.functions, queryFn: listFunctions, enabled: live, staleTime: Infinity });
-
-  const areas = useMemo(() => {
-    const grouped = new Map<string, ProductFunction[]>();
-    for (const fn of functions.data ?? []) {
-      const area = fn.id.split(".")[0];
-      grouped.set(area, [...(grouped.get(area) ?? []), fn]);
-    }
-    return [...grouped.entries()];
-  }, [functions.data]);
-
-  const ordered = useMemo(
-    () => [...(roles.data ?? [])].sort((a, b) => ROLE_ORDER.indexOf(a.id) - ROLE_ORDER.indexOf(b.id)),
-    [roles.data],
-  );
-
-  return (
-    <SettingsSection title={t("roles.title")} description={t("roles.description")} icon={ShieldCheck} flush>
-      {!live ? (
-        <p className="px-5 py-3.5 text-sm text-muted-foreground">{t("toast.connectLive")}</p>
-      ) : roles.isLoading || functions.isLoading ? (
-        <p className="flex items-center gap-2 px-5 py-3.5 text-sm text-muted-foreground">
-          <Loader2 className="h-4 w-4 animate-spin" />
-          {t("roles.loading")}
-        </p>
-      ) : roles.isError || functions.isError ? (
-        <p className="flex items-start gap-2 px-5 py-3.5 text-sm text-warning-text">
-          <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
-          {apiErrorMessage(roles.error ?? functions.error) ?? t("roles.loadFailed")}
-        </p>
-      ) : (
-        <Table>
-          <TableHeader>
-            <TableRow className="hover:bg-transparent">
-              <TableHead>{t("roles.column.function")}</TableHead>
-              {ordered.map((role) => (
-                <TableHead key={role.id} className="text-center" title={role.description}>
-                  {role.name}
-                </TableHead>
-              ))}
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {areas.map(([, fns]) =>
-              fns.map((fn, index) => (
-                <TableRow key={fn.id} className={cn(index === 0 && "border-t-2 border-t-border")}>
-                  <TableCell className="py-1.5">
-                    <div className="font-mono text-xs">{fn.id}</div>
-                    <div className="text-xs text-muted-foreground">{fn.name}</div>
-                  </TableCell>
-                  {ordered.map((role) => {
-                    const allowed = role.allowedFunctions.includes(fn.id);
-                    return (
-                      <TableCell key={role.id} className="py-1.5 text-center">
-                        {allowed ? (
-                          <Check className="mx-auto h-4 w-4 text-success" aria-label={t("roles.allowed")} />
-                        ) : (
-                          <Minus className="mx-auto h-4 w-4 text-muted-foreground/50" aria-label={t("roles.disabled")} />
-                        )}
-                      </TableCell>
-                    );
-                  })}
-                </TableRow>
-              )),
-            )}
-          </TableBody>
-        </Table>
-      )}
-      <p className="border-t border-border/50 px-5 py-3 text-xs text-muted-foreground">{t("roles.builtInNote")}</p>
-    </SettingsSection>
   );
 }
