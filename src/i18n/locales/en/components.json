@@ -38,9 +38,13 @@
       "errors": "Errors"
     },
     "live": "live",
-    "pauseAutoScroll": "Pause auto-scroll",
-    "resumeAutoScroll": "Resume auto-scroll",
-    "scrollToLatest": "Scroll to latest",
+    "autoScroll": "Auto-scroll",
+    "autoScrollOn": "Auto-scroll is on: the view follows the newest entries. Click, or scroll up, to stop it here.",
+    "autoScrollOff": "Auto-scroll is off: the view stays where it is while entries keep arriving. Click, or scroll to the bottom, to follow the newest entries again.",
+    "stateOn": "on",
+    "stateOff": "off",
+    "newEntries_one": "{{count}} new entry",
+    "newEntries_other": "{{count}} new entries",
     "empty": {
       "title": "No log output yet",
       "description": "Lines will stream here once the run starts."

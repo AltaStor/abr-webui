@@ -53,6 +53,15 @@ All notable changes to the AltaStor WebUI are documented in this file.
   platform.
 
 ### Fixed
+- A job can no longer be deleted while it runs: Delete is disabled, with the
+  reason, in the job's row menu, the bulk bar and the job page, and an open
+  confirmation disables itself when a run starts.
+- The job page's Delete is a labelled button like Edit and Enable beside it.
+- Logs: the log view no longer jumps to the bottom on every refresh. It
+  follows new entries only while scrolled to the end; scrolled up, it stays
+  put (also when old entries are trimmed) and shows "N new entries ↓". The
+  Auto-scroll toggle says whether it is on, and scrolling back to the end
+  turns it on again.
 - A synthetic full on a chain with no incrementals is refused using the
   appliance's own wording, so the run's banner, its VM row and its log agree.
 - An active full is flagged against the synthetic full merge whenever their

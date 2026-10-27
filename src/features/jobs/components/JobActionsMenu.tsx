@@ -26,6 +26,8 @@ interface JobActionsMenuProps {
   onEdit?: () => void;
   onToggleEnabled?: (enabled: boolean) => void;
   onDelete?: () => void;
+  /** The job has a run in flight: Delete is shown but disabled, saying why. */
+  deleteBlocked?: boolean;
 }
 
 /** Per-row actions. Clicks stop propagation so the row's navigation doesn't fire. */
@@ -37,6 +39,7 @@ export function JobActionsMenu({
   onEdit,
   onToggleEnabled,
   onDelete,
+  deleteBlocked = false,
 }: JobActionsMenuProps) {
   const { t } = useTranslation("jobs");
   const disabled = job.state === "disabled";
@@ -118,13 +121,19 @@ export function JobActionsMenu({
             <DropdownMenuSeparator />
             <DropdownMenuItem
               destructive
+              disabled={deleteBlocked}
               onSelect={(e) => {
                 e.preventDefault();
-                onDelete();
+                if (!deleteBlocked) onDelete();
               }}
             >
               <Trash2 className="h-4 w-4" />
-              {t("common:actions.delete")}
+              <span className="flex flex-col">
+                {t("common:actions.delete")}
+                {deleteBlocked && (
+                  <span className="text-[11px] font-normal text-muted-foreground">{t("delete.blockedShort")}</span>
+                )}
+              </span>
             </DropdownMenuItem>
           </>
         )}

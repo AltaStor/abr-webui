@@ -47,9 +47,13 @@
       "errors": "Erreurs"
     },
     "live": "en direct",
-    "pauseAutoScroll": "Suspendre le défilement automatique",
-    "resumeAutoScroll": "Reprendre le défilement automatique",
-    "scrollToLatest": "Défiler jusqu’au dernier",
+    "autoScroll": "Défilement auto",
+    "autoScrollOn": "Le défilement automatique est activé : la vue suit les entrées les plus récentes. Cliquez, ou faites défiler vers le haut, pour l’arrêter ici.",
+    "autoScrollOff": "Le défilement automatique est désactivé : la vue reste en place pendant que les entrées continuent d’arriver. Cliquez, ou faites défiler jusqu’en bas, pour suivre à nouveau les plus récentes.",
+    "stateOn": "activé",
+    "stateOff": "désactivé",
+    "newEntries_one": "{{count}} nouvelle entrée",
+    "newEntries_other": "{{count}} nouvelles entrées",
     "empty": {
       "title": "Aucune sortie de journal pour le moment",
       "description": "Les lignes s’afficheront ici en continu une fois l’exécution démarrée."

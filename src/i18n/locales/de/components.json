@@ -47,9 +47,13 @@
       "errors": "Fehler"
     },
     "live": "live",
-    "pauseAutoScroll": "Auto-Scroll pausieren",
-    "resumeAutoScroll": "Auto-Scroll fortsetzen",
-    "scrollToLatest": "Zum neuesten Eintrag scrollen",
+    "autoScroll": "Auto-Scroll",
+    "autoScrollOn": "Auto-Scroll ist an: Die Ansicht folgt den neuesten Einträgen. Klicken oder nach oben scrollen, um hier anzuhalten.",
+    "autoScrollOff": "Auto-Scroll ist aus: Die Ansicht bleibt stehen, während weiter Einträge eintreffen. Klicken oder ans Ende scrollen, um wieder den neuesten Einträgen zu folgen.",
+    "stateOn": "an",
+    "stateOff": "aus",
+    "newEntries_one": "{{count}} neuer Eintrag",
+    "newEntries_other": "{{count}} neue Einträge",
     "empty": {
       "title": "Noch keine Log-Ausgabe",
       "description": "Sobald der Lauf startet, werden hier Zeilen gestreamt."

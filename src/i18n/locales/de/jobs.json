@@ -247,7 +247,11 @@
     "disableAllAlreadyDisabled_one": "Der ausgewählte Auftrag ist bereits deaktiviert",
     "disableAllAlreadyDisabled_other": "Alle ausgewählten Aufträge sind bereits deaktiviert",
     "disableSomeAlreadyDisabled_one": "{{count}} der {{total}} ausgewählten Aufträge ist bereits deaktiviert – heben Sie die Auswahl auf, um die übrigen zu deaktivieren",
-    "disableSomeAlreadyDisabled_other": "{{count}} der {{total}} ausgewählten Aufträge sind bereits deaktiviert – heben Sie deren Auswahl auf, um die übrigen zu deaktivieren"
+    "disableSomeAlreadyDisabled_other": "{{count}} der {{total}} ausgewählten Aufträge sind bereits deaktiviert – heben Sie deren Auswahl auf, um die übrigen zu deaktivieren",
+    "deleteAllRunning_one": "Der ausgewählte Auftrag wird gerade ausgeführt – stoppen Sie den Lauf oder warten Sie, bis er fertig ist",
+    "deleteAllRunning_other": "Alle ausgewählten Aufträge werden gerade ausgeführt – stoppen Sie die Läufe oder warten Sie, bis sie fertig sind",
+    "deleteSomeRunning_one": "{{count}} der {{total}} ausgewählten Aufträge wird gerade ausgeführt – heben Sie die Auswahl auf oder warten Sie, bis der Lauf fertig ist",
+    "deleteSomeRunning_other": "{{count}} der {{total}} ausgewählten Aufträge werden gerade ausgeführt – heben Sie deren Auswahl auf oder warten Sie, bis die Läufe fertig sind"
   },
   "empty": {
     "noJobs": {
@@ -312,7 +316,12 @@
     "leadMany": "Sie sind dabei, {{count}} Jobs zu löschen.",
     "body": "Vorhandene Wiederherstellungspunkte bleiben sicher in Ihren Repositories – nur der Zeitplan wird entfernt. Dies kann nicht rückgängig gemacht werden.",
     "confirmOne": "Job löschen",
-    "confirmMany": "Jobs löschen"
+    "confirmMany": "Jobs löschen",
+    "runningOne": "Dieser Job wird gerade ausgeführt. Stoppen Sie den Lauf oder warten Sie, bis er fertig ist, und löschen Sie den Job dann.",
+    "runningMany_one": "{{count}} dieser Jobs wird gerade ausgeführt. Stoppen Sie den Lauf oder warten Sie, bis er fertig ist.",
+    "runningMany_other": "{{count}} dieser Jobs werden gerade ausgeführt. Stoppen Sie die Läufe oder warten Sie, bis sie fertig sind.",
+    "blocked": "Ein Lauf dieses Jobs ist im Gange. Stoppen Sie ihn oder warten Sie, bis er fertig ist, und löschen Sie den Job dann.",
+    "blockedShort": "Nicht während eines Laufs"
   },
   "notFound": {
     "title": "Job nicht gefunden",

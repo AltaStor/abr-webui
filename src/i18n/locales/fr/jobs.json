@@ -247,7 +247,11 @@
     "disableAllAlreadyDisabled_one": "La tâche sélectionnée est déjà désactivée",
     "disableAllAlreadyDisabled_other": "Toutes les tâches sélectionnées sont déjà désactivées",
     "disableSomeAlreadyDisabled_one": "{{count}} des {{total}} tâches sélectionnées est déjà désactivée — désélectionnez-la pour désactiver les autres",
-    "disableSomeAlreadyDisabled_other": "{{count}} des {{total}} tâches sélectionnées sont déjà désactivées — désélectionnez-les pour désactiver les autres"
+    "disableSomeAlreadyDisabled_other": "{{count}} des {{total}} tâches sélectionnées sont déjà désactivées — désélectionnez-les pour désactiver les autres",
+    "deleteAllRunning_one": "La tâche sélectionnée a une exécution en cours — arrêtez-la ou attendez qu’elle se termine",
+    "deleteAllRunning_other": "Toutes les tâches sélectionnées ont des exécutions en cours — arrêtez-les ou attendez qu’elles se terminent",
+    "deleteSomeRunning_one": "{{count}} des {{total}} tâches sélectionnées a une exécution en cours — désélectionnez-la ou attendez qu’elle se termine",
+    "deleteSomeRunning_other": "{{count}} des {{total}} tâches sélectionnées ont des exécutions en cours — désélectionnez-les ou attendez qu’elles se terminent"
   },
   "empty": {
     "noJobs": {
@@ -312,7 +316,12 @@
     "leadMany": "Vous êtes sur le point de supprimer {{count}} tâches.",
     "body": "Les points de restauration existants restent en sécurité dans vos référentiels — seule la planification est supprimée. Cette action est irréversible.",
     "confirmOne": "Supprimer la tâche",
-    "confirmMany": "Supprimer les tâches"
+    "confirmMany": "Supprimer les tâches",
+    "runningOne": "Cette tâche a une exécution en cours. Arrêtez-la ou attendez qu’elle se termine, puis supprimez la tâche.",
+    "runningMany_one": "{{count}} de ces tâches a une exécution en cours. Arrêtez-la ou attendez qu’elle se termine.",
+    "runningMany_other": "{{count}} de ces tâches ont des exécutions en cours. Arrêtez-les ou attendez qu’elles se terminent.",
+    "blocked": "Une exécution de cette tâche est en cours. Arrêtez-la ou attendez qu’elle se termine, puis supprimez la tâche.",
+    "blockedShort": "Pas pendant une exécution"
   },
   "notFound": {
     "title": "Tâche introuvable",

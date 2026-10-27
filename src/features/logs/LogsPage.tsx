@@ -95,11 +95,17 @@ export default function LogsPage() {
     [live, revision, alerts, liveLogs, sessions, logs],
   );
 
+  /* Mapped once per answer from the appliance, not per world refresh: the
+   * query keeps the same `data` when a poll brings back the same log, so the
+   * view below gets the very same array and has nothing to redraw or scroll.
+   * This used to be rebuilt whenever `derived` changed — every poll — and the
+   * log view took each rebuild for new lines and jumped to the bottom. */
+  const serverEntries = useMemo(() => serverLog.data?.entries.map(toSystemEntry), [serverLog.data]);
+
   const system = useMemo(() => {
     if (!live) return logs.system;
-    const rows = serverLog.data?.entries;
-    return rows ? rows.map(toSystemEntry) : derived;
-  }, [live, logs.system, derived, serverLog.data]);
+    return serverEntries ?? derived;
+  }, [live, logs.system, derived, serverEntries]);
 
   /* Two honest counts off whatever `system` holds. The page used to tile "agent
    * events", which only meant anything while the log was assembled from session

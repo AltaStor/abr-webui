@@ -32,6 +32,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Hint } from "@/components/ui/tooltip";
 import { toast } from "@/components/ui/sonner";
 import { formatDateTime, formatRelative } from "@/lib/format";
 import { lastRunMeta, rateTone } from "@/lib/status";
@@ -39,7 +40,7 @@ import { apiErrorMessage } from "@/services/api.http";
 import { useCan } from "@/store/permissions";
 import { useWorldStore } from "@/store/world";
 import { REPO_TYPE_META } from "@/features/repositories/components/repoMeta";
-import { fullScheduleLabel, jobTypeMeta, retentionLabel, scheduleLabel } from "./lib";
+import { fullScheduleLabel, jobHasActiveRun, jobTypeMeta, retentionLabel, scheduleLabel } from "./lib";
 import { ActiveRunPanel } from "./components/ActiveRunPanel";
 import { LastRunSummary } from "./components/LastRunSummary";
 import { LastRunProblems, lastRunAsSession } from "./components/RunOutcome";
@@ -134,6 +135,9 @@ export default function JobDetailPage() {
   const repository = repositories.find((r) => r.id === job.repositoryId);
   const disabled = job.state === "disabled";
   const running = job.state === "running";
+  // Wider than `running`: also the last run the page shows as Running, and a
+  // session of this job that is queued or running but not yet counted.
+  const deleteBlocked = jobHasActiveRun(job, jobSessions);
   const { icon: TypeIcon, label: typeLabel } = jobTypeMeta(job.type);
 
   /* ------------------------------- actions ------------------------------- */
@@ -263,9 +267,11 @@ export default function JobDetailPage() {
               </Button>
             )}
             {canDelete && (
-              <Button variant="ghost" size="icon" aria-label={t("actions.deleteJob")} className="text-danger hover:text-danger" onClick={() => setDeleteOpen(true)}>
-                <Trash2 className="h-4 w-4" />
-              </Button>
+              /* A labelled outline button like Edit and Enable beside it — same
+                 height, padding and border — in danger ink. Disabled while a run
+                 is in flight; the wrapper carries the reason, since a disabled
+                 button gets no pointer events. */
+              <DeleteJobButton blocked={deleteBlocked} onClick={() => setDeleteOpen(true)} />
             )}
           </>
         }
@@ -418,7 +424,13 @@ export default function JobDetailPage() {
         </TabsContent>
       </Tabs>
 
-      <DeleteJobDialog open={deleteOpen} onOpenChange={setDeleteOpen} label={job.name} onConfirm={handleDelete} />
+      <DeleteJobDialog
+        open={deleteOpen}
+        onOpenChange={setDeleteOpen}
+        label={job.name}
+        runningCount={deleteBlocked ? 1 : 0}
+        onConfirm={handleDelete}
+      />
       {job.type === "backup" && (
         <RetentionDialog job={job} open={retentionOpen} onOpenChange={setRetentionOpen} />
       )}
@@ -432,5 +444,29 @@ function Detail({ label, value }: { label: string; value: string }) {
       <span className="text-muted-foreground">{label}</span>
       <span className="truncate font-medium">{value}</span>
     </div>
+  );
+}
+
+function DeleteJobButton({ blocked, onClick }: { blocked: boolean; onClick: () => void }) {
+  const { t } = useTranslation("jobs");
+  const button = (
+    <Button
+      variant="outline"
+      className="text-danger-text hover:border-danger hover:text-danger"
+      disabled={blocked}
+      aria-label={t("actions.deleteJob")}
+      onClick={onClick}
+    >
+      <Trash2 className="h-4 w-4" />
+      {t("common:actions.delete")}
+    </Button>
+  );
+  if (!blocked) return button;
+  return (
+    <Hint label={t("delete.blocked")}>
+      <span tabIndex={0} className="inline-flex cursor-not-allowed">
+        {button}
+      </span>
+    </Hint>
   );
 }

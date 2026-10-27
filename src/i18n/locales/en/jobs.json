@@ -249,7 +249,11 @@
     "disableAllAlreadyDisabled_one": "The selected job is already disabled",
     "disableAllAlreadyDisabled_other": "Every selected job is already disabled",
     "disableSomeAlreadyDisabled_one": "{{count}} of the {{total}} selected jobs is already disabled — deselect it to disable the rest",
-    "disableSomeAlreadyDisabled_other": "{{count}} of the {{total}} selected jobs are already disabled — deselect them to disable the rest"
+    "disableSomeAlreadyDisabled_other": "{{count}} of the {{total}} selected jobs are already disabled — deselect them to disable the rest",
+    "deleteAllRunning_one": "The selected job has a run in progress — stop it or wait for it to finish first",
+    "deleteAllRunning_other": "Every selected job has a run in progress — stop them or wait for them to finish first",
+    "deleteSomeRunning_one": "{{count}} of the {{total}} selected jobs has a run in progress — deselect it or wait for it to finish",
+    "deleteSomeRunning_other": "{{count}} of the {{total}} selected jobs have runs in progress — deselect them or wait for them to finish"
   },
   "empty": {
     "noJobs": {
@@ -314,7 +318,12 @@
     "leadMany": "You're about to delete {{count}} jobs.",
     "body": "Existing restore points stay safe in your repositories — only the schedule is removed. This can't be undone.",
     "confirmOne": "Delete job",
-    "confirmMany": "Delete jobs"
+    "confirmMany": "Delete jobs",
+    "runningOne": "This job has a run in progress. Stop the run or wait for it to finish, then delete the job.",
+    "runningMany_one": "{{count}} of these jobs has a run in progress. Stop it or wait for it to finish first.",
+    "runningMany_other": "{{count}} of these jobs have runs in progress. Stop them or wait for them to finish first.",
+    "blocked": "A run of this job is in progress. Stop it or wait for it to finish, then delete the job.",
+    "blockedShort": "Not while it runs"
   },
   "notFound": {
     "title": "Job not found",

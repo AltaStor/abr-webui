@@ -7,8 +7,26 @@ import {
   HardDriveDownload,
   type LucideIcon,
 } from "@/lib/icons";
-import type { AccentKey, FullBackupSchedule, JobType, Retention, Schedule } from "@/types";
+import type { AccentKey, BackupJob, FullBackupSchedule, JobType, Retention, Schedule, Session } from "@/types";
 import i18n from "@/i18n";
+
+/**
+ * Whether a job has a run in flight: the appliance counts an active session
+ * for it, its last run is still going, or one of its sessions is queued or
+ * running and not finished. Any one is enough — they arrive on different polls,
+ * and the job's own page reads "Last run: Running" from the second.
+ *
+ * The appliance refuses to delete such a job (409 job_has_active_sessions), so
+ * every Delete — row menu, bulk bar, job header and the confirmation itself —
+ * is disabled while this holds.
+ */
+export function jobHasActiveRun(job: BackupJob, sessions: readonly Session[]): boolean {
+  return (
+    job.state === "running" ||
+    job.lastStatus === "running" ||
+    sessions.some((s) => s.jobId === job.id && !s.finishedAt && (s.status === "running" || s.status === "queued"))
+  );
+}
 
 const DAY_KEYS = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
 

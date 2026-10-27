@@ -47,9 +47,13 @@
       "errors": "Errores"
     },
     "live": "en vivo",
-    "pauseAutoScroll": "Pausar el desplazamiento automático",
-    "resumeAutoScroll": "Reanudar el desplazamiento automático",
-    "scrollToLatest": "Desplazar al más reciente",
+    "autoScroll": "Autodesplazamiento",
+    "autoScrollOn": "El autodesplazamiento está activado: la vista sigue las entradas más recientes. Haz clic, o desplázate hacia arriba, para detenerla aquí.",
+    "autoScrollOff": "El autodesplazamiento está desactivado: la vista se queda donde está mientras siguen llegando entradas. Haz clic, o desplázate hasta el final, para volver a seguir las más recientes.",
+    "stateOn": "activado",
+    "stateOff": "desactivado",
+    "newEntries_one": "{{count}} entrada nueva",
+    "newEntries_other": "{{count}} entradas nuevas",
     "empty": {
       "title": "Aún no hay salida de registro",
       "description": "Las líneas se transmitirán aquí una vez que comience la ejecución."

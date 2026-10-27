@@ -247,7 +247,11 @@
     "disableAllAlreadyDisabled_one": "El trabajo seleccionado ya está deshabilitado",
     "disableAllAlreadyDisabled_other": "Todos los trabajos seleccionados ya están deshabilitados",
     "disableSomeAlreadyDisabled_one": "{{count}} de los {{total}} trabajos seleccionados ya está deshabilitado: deselecciónalo para deshabilitar el resto",
-    "disableSomeAlreadyDisabled_other": "{{count}} de los {{total}} trabajos seleccionados ya están deshabilitados: deselecciónalos para deshabilitar el resto"
+    "disableSomeAlreadyDisabled_other": "{{count}} de los {{total}} trabajos seleccionados ya están deshabilitados: deselecciónalos para deshabilitar el resto",
+    "deleteAllRunning_one": "El trabajo seleccionado tiene una ejecución en curso: detenla o espera a que termine",
+    "deleteAllRunning_other": "Todos los trabajos seleccionados tienen ejecuciones en curso: detenlas o espera a que terminen",
+    "deleteSomeRunning_one": "{{count}} de los {{total}} trabajos seleccionados tiene una ejecución en curso: deselecciónalo o espera a que termine",
+    "deleteSomeRunning_other": "{{count}} de los {{total}} trabajos seleccionados tienen ejecuciones en curso: deselecciónalos o espera a que terminen"
   },
   "empty": {
     "noJobs": {
@@ -312,7 +316,12 @@
     "leadMany": "Estás a punto de eliminar {{count}} trabajos.",
     "body": "Los puntos de restauración existentes permanecen a salvo en tus repositorios; solo se elimina la programación. Esta acción no se puede deshacer.",
     "confirmOne": "Eliminar trabajo",
-    "confirmMany": "Eliminar trabajos"
+    "confirmMany": "Eliminar trabajos",
+    "runningOne": "Este trabajo tiene una ejecución en curso. Detenla o espera a que termine y luego elimina el trabajo.",
+    "runningMany_one": "{{count}} de estos trabajos tiene una ejecución en curso. Detenla o espera a que termine.",
+    "runningMany_other": "{{count}} de estos trabajos tienen ejecuciones en curso. Detenlas o espera a que terminen.",
+    "blocked": "Hay una ejecución de este trabajo en curso. Detenla o espera a que termine y luego elimina el trabajo.",
+    "blockedShort": "No mientras se ejecuta"
   },
   "notFound": {
     "title": "Trabajo no encontrado",

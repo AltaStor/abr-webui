@@ -49,7 +49,7 @@ import { useCan } from "@/store/permissions";
 import { useWorldStore } from "@/store/world";
 import type { BackupJob, Repository, Session, SessionStatus } from "@/types";
 import { DatabaseBackup } from "@/lib/icons";
-import { accentColor, jobTypeMeta, scheduleLabel } from "./lib";
+import { accentColor, jobHasActiveRun, jobTypeMeta, scheduleLabel } from "./lib";
 import { JobActionsMenu } from "./components/JobActionsMenu";
 import { CancelRunDialog } from "@/components/CancelRunButton";
 import { DeleteJobDialog } from "./components/DeleteJobDialog";
@@ -250,6 +250,9 @@ export default function JobsPage() {
 
   const selectedIds = Object.keys(rowSelection).filter((id) => rowSelection[id]);
   const selectedJobs = jobs.filter((j) => selectedIds.includes(j.id));
+  // Read live, so a run that starts while a confirmation is open still blocks it.
+  const runningSelected = selectedJobs.filter((j) => jobHasActiveRun(j, sessions)).length;
+  const liveDeleteTarget = deleteTarget ? (jobs.find((j) => j.id === deleteTarget.id) ?? deleteTarget) : null;
 
   const bulkRun = async () => {
     let started = 0;
@@ -279,6 +282,7 @@ export default function JobsPage() {
     setRowSelection({});
   };
   const bulkDelete = async () => {
+    if (runningSelected > 0) return;
     const results = await Promise.allSettled(selectedJobs.map((job) => deleteJob(job.id)));
     const deleted = results.filter((r) => r.status === "fulfilled").length;
     if (deleted === selectedJobs.length) {
@@ -516,6 +520,7 @@ export default function JobsPage() {
               onEdit={canEdit ? () => navigate(`/jobs/${row.original.id}/edit`) : undefined}
               onToggleEnabled={canEdit ? (enabled) => handleToggle(row.original, enabled) : undefined}
               onDelete={canDelete ? () => setDeleteTarget(row.original) : undefined}
+              deleteBlocked={jobHasActiveRun(row.original, sessions)}
             />
           </div>
           );
@@ -648,10 +653,11 @@ export default function JobsPage() {
             />
           )}
           {canDelete && (
-            <Button variant="ghost" size="sm" className="text-danger hover:text-danger" onClick={() => setBulkDeleteOpen(true)}>
-              <Trash2 className="h-3.5 w-3.5" />
-              {t("common:actions.delete")}
-            </Button>
+            <BulkDeleteButton
+              runningCount={runningSelected}
+              selectedCount={selectedIds.length}
+              onClick={() => setBulkDeleteOpen(true)}
+            />
           )}
           <Button variant="ghost" size="icon-sm" className="ml-auto" aria-label={t("bulk.clearSelection")} onClick={() => setRowSelection({})}>
             <X className="h-4 w-4" />
@@ -715,6 +721,7 @@ export default function JobsPage() {
         open={!!deleteTarget}
         onOpenChange={(o) => !o && setDeleteTarget(null)}
         label={deleteTarget?.name ?? ""}
+        runningCount={liveDeleteTarget && jobHasActiveRun(liveDeleteTarget, sessions) ? 1 : 0}
         onConfirm={() => deleteTarget && handleDelete(deleteTarget)}
       />
       <DeleteJobDialog
@@ -722,6 +729,7 @@ export default function JobsPage() {
         onOpenChange={setBulkDeleteOpen}
         label={selectedJobs.length === 1 ? selectedJobs[0].name : ""}
         count={selectedIds.length}
+        runningCount={runningSelected}
         onConfirm={bulkDelete}
       />
       <CancelRunDialog
@@ -769,6 +777,40 @@ function BulkDisableButton({
     blockedCount === selectedCount
       ? t("bulk.disableAllAlreadyDisabled", { count: selectedCount })
       : t("bulk.disableSomeAlreadyDisabled", { count: blockedCount, total: selectedCount });
+  return (
+    <Hint label={reason}>
+      <span tabIndex={0} className="inline-flex cursor-not-allowed">
+        {button}
+      </span>
+    </Hint>
+  );
+}
+
+/** Delete for the selection, greyed out with the reason while any selected
+ *  job has a run in flight — the appliance would refuse those, and a bulk
+ *  delete that silently skips some would report a count nobody asked for. */
+function BulkDeleteButton({
+  runningCount,
+  selectedCount,
+  onClick,
+}: {
+  runningCount: number;
+  selectedCount: number;
+  onClick: () => void;
+}) {
+  const { t } = useTranslation("jobs");
+  const blocked = runningCount > 0;
+  const button = (
+    <Button variant="ghost" size="sm" className="text-danger hover:text-danger" onClick={onClick} disabled={blocked}>
+      <Trash2 className="h-3.5 w-3.5" />
+      {t("common:actions.delete")}
+    </Button>
+  );
+  if (!blocked) return button;
+  const reason =
+    runningCount === selectedCount
+      ? t("bulk.deleteAllRunning", { count: selectedCount })
+      : t("bulk.deleteSomeRunning", { count: runningCount, total: selectedCount });
   return (
     <Hint label={reason}>
       <span tabIndex={0} className="inline-flex cursor-not-allowed">
