@@ -28,6 +28,7 @@
  * is a polling loop (see the bottom of the file).
  */
 import { fileStamp } from "@/lib/download";
+import { userTimeZone } from "@/lib/time";
 import { deleteRunName, restoreRunName, verifyRunName } from "@/lib/format";
 import { useWorldStore } from "@/store/world";
 import type {
@@ -499,19 +500,20 @@ function daysOfWeekOf(sched: Dict): number[] {
 function mapSchedule(sched: Dict): Schedule {
   const kind = str(sched.type) || str(sched.kind);
   const time = str(sched.time) || str(sched.start_time) || "00:00";
+  const zone = str(sched.timezone) ? { timezone: str(sched.timezone) } : {};
   switch (kind) {
     case "weekly":
-      return { frequency: "weekly", atTime: time, daysOfWeek: daysOfWeekOf(sched) };
+      return { frequency: "weekly", atTime: time, daysOfWeek: daysOfWeekOf(sched), ...zone };
     case "periodic": {
       const mins = num(sched.interval_minutes, 60);
-      return { frequency: "hourly", everyHours: Math.max(1, Math.round(mins / 60)) };
+      return { frequency: "hourly", everyHours: Math.max(1, Math.round(mins / 60)), ...zone };
     }
     case "monthly":
-      return { frequency: "custom", atTime: time };
+      return { frequency: "custom", atTime: time, ...zone };
     case "cron":
-      return { frequency: "custom", cron: str(sched.expression) };
+      return { frequency: "custom", cron: str(sched.expression), ...zone };
     default:
-      return { frequency: "daily", atTime: time };
+      return { frequency: "daily", atTime: time, ...zone };
   }
 }
 
@@ -1516,7 +1518,9 @@ export interface CreateJobPayload {
 
 /** Domain Schedule → orchestrator schedule dict. */
 function scheduleToWire(s: Schedule): Dict {
-  const timezone = "UTC";
+  // The form always names one; the browser's zone is what a time typed
+  // without one means to the person who typed it.
+  const timezone = s.timezone || userTimeZone();
   switch (s.frequency) {
     case "weekly":
       // The API validates weekdays as "Mon".."Sun" names (DAY_ALIASES in
@@ -1541,7 +1545,7 @@ function scheduleToWire(s: Schedule): Dict {
 
 /** Domain full schedule → the dict `normalize_schedule_payload` reads. */
 function fullScheduleToWire(s: FullBackupSchedule): Dict {
-  const common = { enabled: s.enabled, timezone: s.timezone || "UTC" };
+  const common = { enabled: s.enabled, timezone: s.timezone || userTimeZone() };
   const time = s.atTime ?? "00:00";
   switch (s.frequency) {
     case "weekly":
@@ -2625,6 +2629,7 @@ function mapSystemClock(res: Dict): SystemClockStatus {
     confirmedAt: str(res.confirmed_at) || null,
     confirmedBy: str(res.confirmed_by) || null,
     message: str(res.message) || null,
+    timezone: strOrNull(res.timezone),
   };
 }
 

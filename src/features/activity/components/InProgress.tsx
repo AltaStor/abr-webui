@@ -17,6 +17,7 @@ import { cn } from "@/lib/utils";
 import { useWorldStore } from "@/store/world";
 import type { Session } from "@/types";
 import { currentVmName, isRestore, isVerify, runKind, runKindIcon } from "../lib";
+import { utcTitle } from "@/lib/time";
 
 /**
  * Prominent "In progress" section. Each running session renders a rich live card
@@ -69,7 +70,7 @@ export function InProgress() {
             <span>
               {t("inProgress.idle")}
               {nextRunMs && (
-                <span className="ml-1 text-foreground/80">
+                <span className="ml-1 text-foreground/80" title={utcTitle(nextRunMs)}>
                   {t("inProgress.nextScheduled", {
                     when: formatRelative(new Date(nextRunMs).toISOString()),
                     abs: formatDateTime(new Date(nextRunMs).toISOString()),

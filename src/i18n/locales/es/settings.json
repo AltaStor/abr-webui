@@ -89,6 +89,11 @@
     "autoCollapse": {
       "label": "Contraer barra lateral automáticamente",
       "description": "Reducir la barra de navegación a iconos en ventanas más estrechas."
+    },
+    "timeZone": {
+      "label": "Zona horaria",
+      "value": "{{zone}} ({{offset}})",
+      "description": "Todas las horas de la consola se muestran en la zona horaria de su navegador, con su desfase (GMT+3); pase el puntero por encima para verlas en UTC. La programación de un trabajo se muestra en la zona del trabajo, con su hora al lado cuando difieren. La zona del navegador la fija su sistema operativo."
     }
   },
   "notifications": {
@@ -333,7 +338,9 @@
       "uptime": "Tiempo de actividad",
       "cpu": "CPU",
       "memory": "Memoria",
-      "probeFailed": "No se pudieron leer los detalles de hardware del dispositivo. Los campos que él reporta se muestran como «—»."
+      "probeFailed": "No se pudieron leer los detalles de hardware del dispositivo. Los campos que él reporta se muestran como «—».",
+      "timezone": "Zona horaria",
+      "timezoneValue": "{{zone}}, fijada en el appliance"
     },
     "license": {
       "title": "Recursos"

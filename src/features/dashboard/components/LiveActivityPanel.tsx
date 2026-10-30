@@ -14,6 +14,7 @@ import { SESSION_META, toneFg } from "@/lib/status";
 import { formatDateTime, formatDuration, formatRelative, formatStorage, formatThroughput } from "@/lib/format";
 import { useWorldStore } from "@/store/world";
 import { isVerify, runKind } from "@/features/activity/lib";
+import { utcTitle } from "@/lib/time";
 
 export function LiveActivityPanel() {
   const { t } = useTranslation("dashboard");
@@ -74,7 +75,7 @@ export function LiveActivityPanel() {
               <span>
                 {t("live.emptyNoRuns")}
                 {nextRun && (
-                  <span className="ml-1">
+                  <span className="ml-1" title={utcTitle(nextRun)}>
                     {t("live.emptyNextScheduled", {
                       when: formatRelative(new Date(nextRun).toISOString()),
                       abs: formatDateTime(new Date(nextRun).toISOString()),

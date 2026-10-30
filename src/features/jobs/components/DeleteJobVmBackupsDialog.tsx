@@ -17,6 +17,7 @@ import { toast } from "@/components/ui/sonner";
 import { formatDateTime, formatStorage } from "@/lib/format";
 import { useWorldStore } from "@/store/world";
 import type { RestorePointJobVmGroup } from "@/lib/restore-points";
+import { utcTitle } from "@/lib/time";
 
 export interface DeleteJobVmBackupsTarget {
   jobName: string;
@@ -123,7 +124,7 @@ export function DeleteJobVmBackupsDialog({
               <span className="nums text-muted-foreground">{formatStorage(vm.storedGB, 1)}</span>
             )}
           </div>
-          <p className="mt-0.5 text-xs text-muted-foreground">
+          <p className="mt-0.5 text-xs text-muted-foreground" title={utcTitle(newest.createdAt)}>
             {oldest.createdAt === newest.createdAt
               ? formatDateTime(newest.createdAt)
               : `${formatDateTime(oldest.createdAt)} – ${formatDateTime(newest.createdAt)}`}

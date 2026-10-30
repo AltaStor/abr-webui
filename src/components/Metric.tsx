@@ -28,6 +28,8 @@ interface MetricProps {
    * the vertical room a table cell does not.
    */
   sub?: string;
+  /** Hover text for `sub`, when a time there should show its UTC reading. */
+  subTitle?: string;
   /**
    * `bare` (default) borrows the parent's frame and padding, which is what a
    * supporting figure inside a card wants. `inset` draws the recessed box used
@@ -58,6 +60,7 @@ export function Metric({
   tone,
   hint,
   sub,
+  subTitle,
   surface = "bare",
   className,
 }: MetricProps) {
@@ -83,7 +86,7 @@ export function Metric({
         {hint && <span className="truncate text-[11px] text-muted-foreground">{hint}</span>}
       </div>
       {sub && (
-        <div className="nums text-[11px] leading-tight text-muted-foreground" title={sub}>
+        <div className="nums text-[11px] leading-tight text-muted-foreground" title={subTitle ?? sub}>
           {sub}
         </div>
       )}

@@ -19,6 +19,7 @@ import { Button } from "@/components/ui/button";
 import { formatDuration, formatStorage } from "@/lib/format";
 import type { Repository } from "@/types";
 import { compressionSpeedFactor } from "../lib";
+import { cn } from "@/lib/utils";
 
 /** Present only for replication jobs; drives the target-host recap on the right rail. */
 export interface SummaryReplication {
@@ -95,22 +96,22 @@ export function JobSummaryPanel({ data, editMode, submitting, onCreate, onCreate
           <span className="nums font-medium">{estSeconds > 0 ? `~${formatDuration(estSeconds)}` : t("common:generic.na")}</span>
         </Row>
 
-        <Row icon={Clock} label={t("summary.schedule")}>
+        <Row icon={Clock} label={t("summary.schedule")} wrap>
           <span className="font-medium">{data.scheduleLabel}</span>
         </Row>
 
         {data.fullBackups && (
           <>
-            <Row icon={DatabaseBackup} label={t("fullSchedule.active")}>
+            <Row icon={DatabaseBackup} label={t("fullSchedule.active")} wrap>
               <span className="font-medium">{data.fullBackups.active}</span>
             </Row>
-            <Row icon={Layers} label={t("fullSchedule.synthetic")}>
+            <Row icon={Layers} label={t("fullSchedule.synthetic")} wrap>
               <span className="font-medium">{data.fullBackups.synthetic}</span>
             </Row>
           </>
         )}
 
-        <Row icon={Play} label={t("summary.firstRun")}>
+        <Row icon={Play} label={t("summary.firstRun")} wrap>
           <span className="font-medium">{data.firstRunLabel}</span>
         </Row>
 
@@ -189,14 +190,26 @@ export function JobSummaryPanel({ data, editMode, submitting, onCreate, onCreate
   );
 }
 
-function Row({ icon: Icon, label, children }: { icon: typeof Clock; label: string; children: React.ReactNode }) {
+/** `wrap`: a value that must be read whole (a time with its zone and the
+ *  viewer's equivalent) wraps instead of being cut off. */
+function Row({
+  icon: Icon,
+  label,
+  children,
+  wrap,
+}: {
+  icon: typeof Clock;
+  label: string;
+  children: React.ReactNode;
+  wrap?: boolean;
+}) {
   return (
-    <div className="flex items-center justify-between gap-3 text-sm">
-      <span className="flex items-center gap-1.5 text-muted-foreground">
+    <div className={cn("flex justify-between gap-3 text-sm", wrap ? "items-start" : "items-center")}>
+      <span className="flex shrink-0 items-center gap-1.5 text-muted-foreground">
         <Icon className="h-3.5 w-3.5" />
         {label}
       </span>
-      <span className="min-w-0 truncate text-right">{children}</span>
+      <span className={cn("min-w-0 text-right", wrap ? "break-words" : "truncate")}>{children}</span>
     </div>
   );
 }

@@ -15,6 +15,7 @@ import {
 import type { BackupJob, RestorePoint } from "@/types";
 import { accentColor, jobTypeMeta } from "../lib";
 import { BackupJobVmRow } from "./BackupJobVmRow";
+import { utcTitle } from "@/lib/time";
 
 /**
  * One job in the Backups tree: header (job identity, orphan badge, aggregate
@@ -122,7 +123,7 @@ export function BackupJobRow({
                 </>
               )}
               <span aria-hidden>·</span>
-              <span>
+              <span title={utcTitle(group.latest)}>
                 {t("rp.latest", {
                   rel: formatRelative(group.latest),
                   abs: formatDateTime(group.latest),

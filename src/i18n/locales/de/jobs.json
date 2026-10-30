@@ -47,7 +47,10 @@
     "upcomingRuns": "Anstehende Ausführungen",
     "disabledNote": "Zeitplan deaktiviert – aktivieren Sie den Job, um automatische Ausführungen fortzusetzen.",
     "customSchedule": "Benutzerdefinierter Zeitplan",
-    "noRunsProjected": "Keine Ausführungen projiziert."
+    "noRunsProjected": "Keine Ausführungen projiziert.",
+    "withViewerTime": "{{label}} ({{viewer}})",
+    "nextDay": "{{time}}, Folgetag",
+    "previousDay": "{{time}}, Vortag"
   },
   "retention": {
     "days_one": "{{count}} Tag",
@@ -834,8 +837,6 @@
     "firstRun": {
       "hourly": "innerhalb der Stunde",
       "every4h": "innerhalb von 4 Stunden",
-      "weekly": "nächsten {{day}} um {{time}}",
-      "daily": "heute Abend um {{time}}",
       "weeklyNoDay": "sobald Sie einen Tag wählen"
     },
     "errors": {
@@ -1009,6 +1010,17 @@
         "application": "Ein laufender Gast wird über VSS stillgelegt; gelingt das nicht, ist der Prüfpunkt absturzkonsistent, und die Ausführung meldet es.",
         "crash": "Der Gast wird nie einbezogen — als würde im Moment des Prüfpunkts der Stecker gezogen."
       }
+    },
+    "timezone": {
+      "label": "Zeitzone",
+      "suggested": "Vorschläge",
+      "all": "Alle Zeitzonen",
+      "yours": "Ihre Zeitzone",
+      "appliance": "die der Appliance",
+      "explain": "{{time}} ist auf Ihrer Uhr {{viewer}}.",
+      "explainSame": "{{time}} ist auf Ihrer Uhr dieselbe Uhrzeit.",
+      "explainNextDay": "{{time}} ist auf Ihrer Uhr {{viewer}} am Folgetag.",
+      "explainPreviousDay": "{{time}} ist auf Ihrer Uhr {{viewer}} am Vortag."
     }
   },
   "hyperv": {

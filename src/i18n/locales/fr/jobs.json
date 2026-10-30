@@ -47,7 +47,10 @@
     "upcomingRuns": "Exécutions à venir",
     "disabledNote": "Planification désactivée — activez la tâche pour reprendre les exécutions automatiques.",
     "customSchedule": "Planification personnalisée",
-    "noRunsProjected": "Aucune exécution projetée."
+    "noRunsProjected": "Aucune exécution projetée.",
+    "withViewerTime": "{{label}} ({{viewer}})",
+    "nextDay": "{{time}}, le lendemain",
+    "previousDay": "{{time}}, la veille"
   },
   "retention": {
     "days_one": "{{count}} jour",
@@ -834,8 +837,6 @@
     "firstRun": {
       "hourly": "dans l’heure",
       "every4h": "dans les 4 heures",
-      "weekly": "{{day}} prochain à {{time}}",
-      "daily": "ce soir à {{time}}",
       "weeklyNoDay": "dès que vous choisissez un jour"
     },
     "errors": {
@@ -1009,6 +1010,17 @@
         "application": "Un invité en cours d’exécution est mis au repos via VSS ; si c’est impossible, le point de contrôle est cohérent en cas de panne, et l’exécution le signale.",
         "crash": "L’invité n’intervient jamais — comme si l’on débranchait la machine au moment du point de contrôle."
       }
+    },
+    "timezone": {
+      "label": "Fuseau horaire",
+      "suggested": "Suggestions",
+      "all": "Tous les fuseaux horaires",
+      "yours": "votre fuseau",
+      "appliance": "celui de l’appliance",
+      "explain": "{{time}} correspond à {{viewer}} sur votre horloge.",
+      "explainSame": "{{time}} est la même heure sur votre horloge.",
+      "explainNextDay": "{{time}} correspond à {{viewer}} le lendemain sur votre horloge.",
+      "explainPreviousDay": "{{time}} correspond à {{viewer}} la veille sur votre horloge."
     }
   },
   "hyperv": {

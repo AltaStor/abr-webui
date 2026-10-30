@@ -7,6 +7,7 @@ import { useTranslation } from "react-i18next";
 import { AlertOctagon, AlertTriangle, Bell, CheckCircle2, Info, ShieldAlert } from "@/lib/icons";
 import { cn } from "@/lib/utils";
 import { formatDateTime, formatRelative } from "@/lib/format";
+import { utcTitle } from "@/lib/time";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { EmptyState } from "@/components/EmptyState";
@@ -126,7 +127,7 @@ export function NotificationsBell() {
                     {!duplicated && body !== "" && (
                       <p className="mt-0.5 line-clamp-2 text-xs text-muted-foreground">{body}</p>
                     )}
-                    <p className="nums mt-1 text-[11px] text-muted-foreground">
+                    <p className="nums mt-1 text-[11px] text-muted-foreground" title={utcTitle(a.createdAt)}>
                       {formatRelative(a.createdAt)} · {formatDateTime(a.createdAt)}
                     </p>
                   </div>

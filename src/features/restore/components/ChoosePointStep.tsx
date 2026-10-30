@@ -4,7 +4,6 @@
 import { useMemo } from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { useListMaxHeight } from "../useListMaxHeight";
-import { format } from "date-fns";
 import { Clock, History, Lock, ServerOff, ShieldCheck } from "@/lib/icons";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -12,7 +11,7 @@ import { ConsistencyBadge } from "@/components/ConsistencyBadge";
 import { EmptyState } from "@/components/EmptyState";
 import { cn } from "@/lib/utils";
 import { formatRelative, formatStorage } from "@/lib/format";
-import { useSettingsStore } from "@/store/settings";
+import { dayKeyIn, daysAgo, formatDate, formatTime, userTimeZone, utcTitle, zoneLabel } from "@/lib/time";
 import { compressionRatioLabel, pointTypeTooltip } from "@/lib/restore-points";
 import { useWorldStore } from "@/store/world";
 import i18n from "@/i18n";
@@ -24,23 +23,15 @@ interface ChoosePointStepProps {
   onSelect: (point: RestorePoint) => void;
 }
 
-/** Stable day-bucket KEY for grouping — always ISO, never displayed. */
-function dayKey(iso: string): string {
-  return format(new Date(iso), "yyyy-MM-dd");
-}
-
-/** date-fns date pattern honouring the user's "Date format" preference. */
-const DATE_PATTERNS = { iso: "yyyy-MM-dd", us: "MM/dd/yyyy", eu: "dd.MM.yyyy" } as const;
-
-/** The DISPLAYED group heading. "Today"/"Yesterday" stay verbal; older days use
- *  the user's configured date format (read live from the settings snapshot). */
+/** The group heading: the calendar day in the display zone, "Today" and
+ *  "Yesterday" by that zone's midnight, with the date beside them so two
+ *  people in different zones can still tell which day is meant. */
 function dayLabel(iso: string): string {
-  const d = new Date(iso);
-  const today = new Date();
-  const yesterday = new Date(Date.now() - 86_400_000);
-  if (dayKey(iso) === dayKey(today.toISOString())) return i18n.t("restore:point.today");
-  if (dayKey(iso) === dayKey(yesterday.toISOString())) return i18n.t("restore:point.yesterday");
-  return format(d, DATE_PATTERNS[useSettingsStore.getState().general.dateFormat]);
+  const ago = daysAgo(iso);
+  const date = formatDate(iso);
+  if (ago === 0) return `${i18n.t("restore:point.today")} · ${date}`;
+  if (ago === 1) return `${i18n.t("restore:point.yesterday")} · ${date}`;
+  return date;
 }
 
 /** Step 2 — timeline picker of the chosen VM's restore points, grouped by day. */
@@ -66,12 +57,16 @@ export function ChoosePointStep({ vm, selectedId, onSelect }: ChoosePointStepPro
   const groups = useMemo(() => {
     const map = new Map<string, RestorePoint[]>();
     for (const p of points) {
-      const k = dayKey(p.createdAt);
+      const k = dayKeyIn(p.createdAt);
       const arr = map.get(k) ?? [];
       arr.push(p);
       map.set(k, arr);
     }
-    return Array.from(map.entries()).map(([, pts]) => ({ label: dayLabel(pts[0].createdAt), points: pts }));
+    return Array.from(map.entries()).map(([, pts]) => ({
+      label: dayLabel(pts[0].createdAt),
+      zone: zoneLabel(userTimeZone(), new Date(pts[0].createdAt)),
+      points: pts,
+    }));
   }, [points]);
 
   const unreachableCount = points.filter((p) => offlineRepoIds.has(p.repositoryId)).length;
@@ -127,6 +122,7 @@ export function ChoosePointStep({ vm, selectedId, onSelect }: ChoosePointStepPro
                 <div key={group.label}>
                   <p className="label-overline mb-2">
                     {group.label}
+                    <span className="ml-1.5 normal-case tracking-normal text-muted-foreground/80">({group.zone})</span>
                   </p>
                   <ol className="relative space-y-1.5">
                     {/* Continuous rail behind the markers — lives inside the row gutter so it
@@ -171,9 +167,13 @@ export function ChoosePointStep({ vm, selectedId, onSelect }: ChoosePointStepPro
                           >
                             <span className="flex items-center gap-2 text-sm">
                               <Clock className="h-3.5 w-3.5 text-muted-foreground" />
-                              <span className="nums font-medium tabular-nums">
-                                {format(new Date(p.createdAt), "HH:mm")}
-                              </span>
+                              <time
+                                dateTime={p.createdAt}
+                                title={utcTitle(p.createdAt)}
+                                className="nums font-medium tabular-nums"
+                              >
+                                {formatTime(p.createdAt)}
+                              </time>
                             </span>
                             <span className="min-w-0 flex-1">
                               <span className="flex flex-wrap items-center gap-1.5">

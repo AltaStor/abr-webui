@@ -32,13 +32,14 @@ import { StatusPill } from "@/components/StatusPill";
 import { Sparkline } from "@/components/Sparkline";
 import { cn } from "@/lib/utils";
 import { useCapacityLevel } from "@/lib/capacity";
-import { formatDateTime, formatInt, formatRelative, formatStorage, usagePercent } from "@/lib/format";
+import { formatInt, formatRelative, formatStorage, usagePercent } from "@/lib/format";
 import type { RepoThreatLock } from "@/lib/threatLock";
 import type { BackupJob, Repository, RepositoryValidationResult } from "@/types";
 import { immutabilityLabel, REPO_STATUS_META, REPO_TYPE_META } from "./repoMeta";
 import { RepositoryActionsMenu, type RepositoryActions } from "./RepositoryActionsMenu";
 import { ValidationResultPanel } from "./ValidationResultPanel";
 import { formatUnc } from "./share";
+import { DateTime } from "@/components/DateTime";
 
 interface RepositoryDetailDialogProps {
   repo: Repository | null;
@@ -288,7 +289,7 @@ function RepositoryDetailBody({
             <span className="nums text-right text-xs text-muted-foreground">
               {formatRelative(repo.lastScanAt ?? null)}
               {repo.lastScanAt && (
-                <span className="block text-[11px]">{formatDateTime(repo.lastScanAt)}</span>
+                <DateTime value={repo.lastScanAt} className="block text-[11px]" />
               )}
             </span>
           </Field>

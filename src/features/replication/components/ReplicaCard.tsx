@@ -18,6 +18,7 @@ import { PLATFORM_META } from "@/lib/platform";
 import type { Replica } from "@/types";
 import { ReplicaStateBadge } from "./ReplicaStateBadge";
 import { ReplicaActionsMenu, type ReplicaActions } from "./ReplicaActionsMenu";
+import { utcTitle } from "@/lib/time";
 
 interface ReplicaCardProps {
   replica: Replica;
@@ -125,6 +126,7 @@ export function ReplicaCard({ replica, actions }: ReplicaCardProps) {
             label={t("card.lastSync")}
             value={formatRelative(replica.lastSyncAt)}
             sub={replica.lastSyncAt ? formatDateTime(replica.lastSyncAt) : undefined}
+            subTitle={utcTitle(replica.lastSyncAt)}
           />
           <Metric icon={Layers} label={t("card.recoveryPoints")} value={replica.points.length.toString()} />
           <Metric icon={Server} label={t("card.replicaSize")} value={formatStorage(replica.sizeGB, 0)} />

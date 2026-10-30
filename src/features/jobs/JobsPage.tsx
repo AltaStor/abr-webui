@@ -54,6 +54,7 @@ import { JobActionsMenu } from "./components/JobActionsMenu";
 import { CancelRunDialog } from "@/components/CancelRunButton";
 import { DeleteJobDialog } from "./components/DeleteJobDialog";
 import { BackupsTab } from "./components/BackupsTab";
+import { utcTitle } from "@/lib/time";
 
 type TabValue = "jobs" | "backups";
 
@@ -416,6 +417,7 @@ export default function JobsPage() {
                   label={
                     <span className="block space-y-0.5">
                       <span className="block">{t("table.lastRunStarted", { value: formatFullDateTime(startedAt) })}</span>
+                      <span className="block text-muted-foreground">{utcTitle(startedAt)}</span>
                       <span className="block">{t("table.lastRunInProgress")}</span>
                     </span>
                   }
@@ -445,6 +447,7 @@ export default function JobsPage() {
                   <span className="block space-y-0.5">
                     <span className="block">{t("table.lastRunStarted", { value: formatFullDateTime(session?.startedAt) })}</span>
                     <span className="block">{t("table.lastRunFinished", { value: formatFullDateTime(job.lastRunAt) })}</span>
+                    <span className="block text-muted-foreground">{utcTitle(job.lastRunAt)}</span>
                     {session && (
                       <span className="block">{t("table.lastRunDuration", { value: formatDuration(session.durationSec) })}</span>
                     )}
@@ -587,6 +590,7 @@ export default function JobsPage() {
               ? t("stats.scheduled", { abs: formatDateTime(new Date(nextRunAt).toISOString()) })
               : t("stats.nothingQueued")
           }
+          hintTitle={nextRunAt ? utcTitle(nextRunAt) : undefined}
         />
       </KpiBand>
 

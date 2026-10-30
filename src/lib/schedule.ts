@@ -2,6 +2,7 @@
 // Copyright © 2026 Norvitex OÜ
 
 import { addDays, format, isBefore, startOfDay } from "date-fns";
+import { instantAt, scheduleZoneName, userTimeZone, wallTime, zoneLabel } from "@/lib/time";
 import type { FullBackupSchedule, Schedule } from "@/types";
 
 /**
@@ -87,27 +88,11 @@ export function upcomingRuns(schedule: Schedule, from: Date, count = 5, maxDays 
   return out;
 }
 
-/** Whether a daily/weekly/monthly full schedule fires on the calendar day `day`. */
-function fullRunsOnDay(schedule: FullBackupSchedule, day: Date): boolean {
-  switch (schedule.frequency) {
-    case "weekly":
-      return (schedule.daysOfWeek ?? []).includes(day.getDay());
-    case "monthly": {
-      // The appliance runs a day the month doesn't have (31 in April) on the
-      // month's last day instead of skipping the month.
-      const lastDay = new Date(day.getFullYear(), day.getMonth() + 1, 0).getDate();
-      return day.getDate() === Math.min(schedule.dayOfMonth ?? 1, lastDay);
-    }
-    default:
-      return true;
-  }
-}
-
 /**
  * The next time a full backup schedule fires after `from`, or null when it is
- * suspended or can't be projected (cron). Like `runsOnDay`, this only
- * illustrates the schedule. The appliance's own `*_full_next_run_at` is the
- * real value.
+ * suspended or can't be projected (cron). Read in the schedule's own zone
+ * (UTC when it names none). Like `runsOnDay`, this only illustrates the
+ * schedule. The appliance's own `*_full_next_run_at` is the real value.
  */
 export function nextFullBackupRun(schedule: FullBackupSchedule, from: Date): Date | null {
   if (!schedule.enabled) return null;
@@ -116,18 +101,96 @@ export function nextFullBackupRun(schedule: FullBackupSchedule, from: Date): Dat
       return null;
     case "periodic":
       return new Date(from.getTime() + Math.max(1, schedule.everyMinutes ?? 60) * 60_000);
-    default: {
-      const [h, m] = parseTime(schedule.atTime, "00:00");
-      // Two months covers the widest gap a monthly schedule can have.
-      for (let i = 0, day = startOfDay(from); i <= 62; i++, day = addDays(day, 1)) {
-        if (!fullRunsOnDay(schedule, day)) continue;
-        const run = new Date(day);
-        run.setHours(h, m, 0, 0);
-        if (isBefore(from, run)) return run;
-      }
-      return null;
-    }
+    case "weekly":
+      return nextWallClockRun(schedule.atTime ?? "00:00", schedule.timezone || "UTC", { daysOfWeek: schedule.daysOfWeek ?? [] }, from);
+    case "monthly":
+      return nextWallClockRun(schedule.atTime ?? "00:00", schedule.timezone || "UTC", { dayOfMonth: schedule.dayOfMonth ?? 1 }, from);
+    default:
+      return nextWallClockRun(schedule.atTime ?? "00:00", schedule.timezone || "UTC", {}, from);
   }
+}
+
+/* ------------------------------------------------------- schedule zones -- */
+
+/** Which calendar days a wall-clock schedule fires on. */
+export interface ScheduleDays {
+  /** 0 (Sun) – 6 (Sat); absent: every day. */
+  daysOfWeek?: number[];
+  /** 1–31; a month without that day fires on its last day. */
+  dayOfMonth?: number;
+}
+
+/**
+ * The next moment a schedule that fires at `atTime` ("HH:mm") on the clock of
+ * `zone` fires after `from`. This is the console's own projection, read the
+ * way the appliance reads a schedule (see `instantAt` for the DST hours); the
+ * appliance's next run is the authority where it has one.
+ */
+export function nextWallClockRun(atTime: string, zone: string, days: ScheduleDays, from: Date = new Date()): Date | null {
+  const [h, m] = parseTime(atTime, "00:00");
+  const start = wallTime(from, zone);
+  // Two months covers the widest gap a monthly schedule can have.
+  for (let i = 0; i <= 62; i++) {
+    const day = new Date(Date.UTC(start.year, start.month - 1, start.day + i));
+    const year = day.getUTCFullYear();
+    const month = day.getUTCMonth() + 1;
+    const date = day.getUTCDate();
+    if (days.daysOfWeek?.length && !days.daysOfWeek.includes(day.getUTCDay())) continue;
+    if (days.dayOfMonth !== undefined) {
+      const lastDay = new Date(Date.UTC(year, month, 0)).getUTCDate();
+      if (date !== Math.min(days.dayOfMonth, lastDay)) continue;
+    }
+    const at = instantAt({ year, month, day: date, hour: h, minute: m }, zone);
+    if (at.getTime() > from.getTime()) return at;
+  }
+  return null;
+}
+
+/** How a schedule's time reads on the job's clock, and on the viewer's. */
+export interface ZonedScheduleTime {
+  /** "22:00 UTC", "22:00 Europe/Berlin". */
+  time: string;
+  /** The schedule's days as the viewer's clock sees them, when that moves
+   *  them (weekly only). */
+  viewerDays?: number[];
+  /** "01:00 GMT+3": the same moment on the viewer's clock; null when it reads
+   *  the same there. */
+  viewerTime: string | null;
+  /** Days the viewer's clock is ahead (+1) or behind (−1) the job's at the
+   *  next run. */
+  dayShift: number;
+}
+
+/**
+ * A schedule time in its own zone, plus the viewer's reading of the same
+ * moment. The two are compared at the schedule's next run, so a DST change in
+ * either zone is reflected from the run it first affects.
+ */
+export function zonedScheduleTime(
+  atTime: string,
+  zone: string | null | undefined,
+  days: ScheduleDays = {},
+  viewerZone: string = userTimeZone(),
+): ZonedScheduleTime {
+  const jobZone = zone || "UTC";
+  const time = `${atTime} ${scheduleZoneName(jobZone)}`;
+  const next = nextWallClockRun(atTime, jobZone, days);
+  if (!next) return { time, viewerTime: null, dayShift: 0 };
+  const job = wallTime(next, jobZone);
+  const viewer = wallTime(next, viewerZone);
+  const dayShift = Math.round(
+    (Date.UTC(viewer.year, viewer.month - 1, viewer.day) - Date.UTC(job.year, job.month - 1, job.day)) / 86_400_000,
+  );
+  if (dayShift === 0 && viewer.hour === job.hour && viewer.minute === job.minute) {
+    return { time, viewerTime: null, dayShift: 0 };
+  }
+  const clock = `${String(viewer.hour).padStart(2, "0")}:${String(viewer.minute).padStart(2, "0")}`;
+  return {
+    time,
+    viewerDays: days.daysOfWeek?.map((d) => (((d + dayShift) % 7) + 7) % 7),
+    viewerTime: `${clock} ${zoneLabel(viewerZone, next)}`,
+    dayShift,
+  };
 }
 
 /** Stable local-day key ("yyyy-MM-dd") for bucketing events into calendar cells. */

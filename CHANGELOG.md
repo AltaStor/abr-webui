@@ -5,6 +5,15 @@ All notable changes to the AltaStor WebUI are documented in this file.
 ## Unreleased
 
 ### Added
+- Time zones: every absolute time shows its zone ("Oct 23, 01:00 GMT+3") in
+  one format across the console, with UTC on hover; schedules show the job's
+  zone and the viewer's equivalent ("Daily · 22:00 UTC (01:00 GMT+3, next
+  day)", weekday shifts included); the job form shows and sets the job's time
+  zone (new jobs start on the browser's instead of a hard-coded UTC),
+  explains the entered time on the viewer's clock, and gives the first run as
+  a dated moment; restore point groups say which day and zone they mean; log
+  lines carry their date; About shows the appliance's zone and its clock in
+  it; Settings → Appearance names the display zone. See `doc/TimeZones.md`.
 - Roles: the console shows each user what their role allows. The sidebar, the
   pages and every action (run, edit, delete, restore, verify, stop, add, ...)
   follow the signed-in role's permissions from the appliance, refreshed on

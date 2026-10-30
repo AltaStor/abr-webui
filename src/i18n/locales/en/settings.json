@@ -89,6 +89,11 @@
     "autoCollapse": {
       "label": "Auto-collapse sidebar",
       "description": "Collapse the navigation rail to icons on narrower windows."
+    },
+    "timeZone": {
+      "label": "Time zone",
+      "value": "{{zone}} ({{offset}})",
+      "description": "Every time in the console is shown in your browser's time zone, with its offset (GMT+3); hover one to see it in UTC. A job's schedule is shown in the job's own time zone, with your time beside it when the two differ. The browser's zone is set by your operating system."
     }
   },
   "notifications": {
@@ -336,7 +341,9 @@
       "probeFailed": "Couldn't read hardware details from the appliance. Fields it reports are shown as “—”.",
       "serverClock": "Server clock",
       "clockOk": "In step · {{time}}",
-      "clockBlocked": "Jumped forward, retention paused · {{time}}"
+      "clockBlocked": "Jumped forward, retention paused · {{time}}",
+      "timezone": "Time zone",
+      "timezoneValue": "{{zone}}, set on the appliance"
     },
     "license": {
       "title": "Resources"

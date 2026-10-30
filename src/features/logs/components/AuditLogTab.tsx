@@ -17,11 +17,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { formatDateTime, formatInt } from "@/lib/format";
+import { formatInt } from "@/lib/format";
 import { qk } from "@/lib/query";
 import { apiErrorMessage, listAuditRecords, listRoles, type AuditRecord, type AuditResult } from "@/services/api.http";
 import { ROLE_NAMES, useCan } from "@/store/permissions";
 import { useWorldStore } from "@/store/world";
+import { DateTime } from "@/components/DateTime";
 
 const PAGE_SIZE = 100;
 /** The product areas a function ID starts with, for the area filter. */
@@ -188,8 +189,8 @@ export function AuditLogTab() {
             <TableBody>
               {items.map((record) => (
                 <TableRow key={record.id} className="align-top">
-                  <TableCell className="whitespace-nowrap text-xs" title={record.timestamp}>
-                    {formatDateTime(record.timestamp)}
+                  <TableCell className="whitespace-nowrap text-xs">
+                    <DateTime value={record.timestamp} seconds />
                   </TableCell>
                   <TableCell>
                     <div className="font-medium">{record.user}</div>

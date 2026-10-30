@@ -89,6 +89,11 @@
     "autoCollapse": {
       "label": "Seitenleiste automatisch einklappen",
       "description": "Die Navigationsleiste in schmaleren Fenstern auf Symbole reduzieren."
+    },
+    "timeZone": {
+      "label": "Zeitzone",
+      "value": "{{zone}} ({{offset}})",
+      "description": "Alle Zeiten in der Konsole erscheinen in der Zeitzone Ihres Browsers, mit ihrem Versatz (GMT+3); fahren Sie mit der Maus darüber, um sie in UTC zu sehen. Der Zeitplan eines Jobs erscheint in der Zeitzone des Jobs, mit Ihrer Uhrzeit daneben, wenn sie abweicht. Die Zeitzone des Browsers legt Ihr Betriebssystem fest."
     }
   },
   "notifications": {
@@ -333,7 +338,9 @@
       "uptime": "Betriebszeit",
       "cpu": "CPU",
       "memory": "Arbeitsspeicher",
-      "probeFailed": "Hardware-Details konnten nicht von der Appliance gelesen werden. Von ihr gemeldete Felder erscheinen als „—“."
+      "probeFailed": "Hardware-Details konnten nicht von der Appliance gelesen werden. Von ihr gemeldete Felder erscheinen als „—“.",
+      "timezone": "Zeitzone",
+      "timezoneValue": "{{zone}}, auf der Appliance festgelegt"
     },
     "license": {
       "title": "Ressourcen"

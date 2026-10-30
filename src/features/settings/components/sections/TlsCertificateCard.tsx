@@ -39,6 +39,7 @@ import {
 import { useWorldStore } from "@/store/world";
 import { SettingsSection } from "../SettingsSection";
 import { useCan } from "@/store/permissions";
+import { DateTime } from "@/components/DateTime";
 
 /** Mirrors the appliance's MAX_PEM_CHARS — a file bigger than this is the wrong file. */
 const MAX_PEM_FILE_BYTES = 100_000;
@@ -242,9 +243,7 @@ function CertificateDetails({ cert }: { cert: TlsCertificate }) {
           )}
         </DetailRow>
         <DetailRow label={t("security.certificate.validUntil")}>
-          <span className={cn("font-medium", cert.expired && "text-danger-text")}>
-            {formatFullDateTime(cert.notAfter)}
-          </span>{" "}
+          <DateTime value={cert.notAfter} weekday className={cn("font-medium", cert.expired && "text-danger-text")} />{" "}
           <span className={cn("text-muted-foreground", cert.expired && "text-danger-text")}>
             {cert.expired
               ? t("security.certificate.expiredAgo", { rel: formatRelative(cert.notAfter) })

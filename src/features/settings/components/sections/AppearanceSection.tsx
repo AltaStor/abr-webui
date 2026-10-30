@@ -15,6 +15,7 @@ import { SettingRow } from "../SettingRow";
 import { Switch } from "@/components/ui/switch";
 import { Segmented, SaveBar } from "../controls";
 import { ACCENT_SWATCHES, useDraft } from "../../lib";
+import { userTimeZone, zoneLabel } from "@/lib/time";
 
 export function AppearanceSection() {
   const { t } = useTranslation("settings");
@@ -66,6 +67,16 @@ export function AppearanceSection() {
             {languageMeta(language).nativeName}
           </span>
         )}
+      </SettingRow>
+
+      <SettingDivider />
+
+      {/* Read-only: the console prints every time in the browser's zone
+          (doc/TimeZones.md); this says which one, and where UTC is. */}
+      <SettingRow label={t("appearance.timeZone.label")} description={t("appearance.timeZone.description")}>
+        <div className="nums text-sm font-medium" data-testid="display-time-zone">
+          {t("appearance.timeZone.value", { zone: userTimeZone(), offset: zoneLabel(userTimeZone()) })}
+        </div>
       </SettingRow>
       <SettingDivider />
 

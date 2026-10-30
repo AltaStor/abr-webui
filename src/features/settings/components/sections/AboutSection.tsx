@@ -24,7 +24,7 @@ import { useSettingsStore } from "@/store/settings";
 import { useWorldStore } from "@/store/world";
 import { getSystemClock, getSystemInfo } from "@/services/api.http";
 import type { ApplianceInfo } from "@/services/api.http";
-import { formatDateTime } from "@/lib/format";
+import { formatDateTime, scheduleZoneName, utcTitle, zoneLabel } from "@/lib/time";
 import type { SystemClockStatus } from "@/types";
 import { SettingsSection } from "../SettingsSection";
 
@@ -118,7 +118,7 @@ export function AboutSection() {
   // While the live fetch is in flight, render a subtle placeholder rather than
   // flashing UNKNOWN for a probe that is about to answer.
   const pending = loading ? "…" : null;
-  const identity: { icon: LucideIcon; label: string; value: string; mono?: boolean }[] = [
+  const identity: { icon: LucideIcon; label: string; value: string; mono?: boolean; title?: string }[] = [
     // Name and hostname are configuration, not hardware: the appliance's own
     // hostname wins, the configured one stands in, UNKNOWN if neither is set.
     { icon: Server, label: t("about.appliance.applianceName"), value: general.applianceName || UNKNOWN },
@@ -143,9 +143,23 @@ export function AboutSection() {
     {
       icon: Clock,
       label: t("about.appliance.serverClock"),
+      // The appliance's clock, read on the appliance's own zone.
       value: clock
         ? t(clock.blocked ? "about.appliance.clockBlocked" : "about.appliance.clockOk", {
-            time: formatDateTime(clock.serverTime),
+            time: formatDateTime(clock.serverTime, { zone: clock.timezone ?? undefined, seconds: true }),
+          })
+        : pending ?? UNKNOWN,
+      title: clock ? utcTitle(clock.serverTime) : undefined,
+    },
+    {
+      icon: Globe,
+      label: t("about.appliance.timezone"),
+      value: clock?.timezone
+        ? t("about.appliance.timezoneValue", {
+            zone:
+              scheduleZoneName(clock.timezone) === zoneLabel(clock.timezone)
+                ? scheduleZoneName(clock.timezone)
+                : `${scheduleZoneName(clock.timezone)} (${zoneLabel(clock.timezone)})`,
           })
         : pending ?? UNKNOWN,
     },
@@ -187,7 +201,7 @@ export function AboutSection() {
       {/* Identity grid */}
       <SettingsSection title={t("about.appliance.title")} icon={Server}>
         <div className="grid gap-x-8 gap-y-1 py-2 sm:grid-cols-2">
-          {identity.map(({ icon: Icon, label, value, mono }) => (
+          {identity.map(({ icon: Icon, label, value, mono, title }) => (
             <div
               key={label}
               className="flex items-center justify-between gap-3 border-b border-border/40 py-2.5 last:border-b-0 sm:[&:nth-last-child(2)]:border-b-0"
@@ -196,7 +210,9 @@ export function AboutSection() {
                 <Icon className="h-4 w-4 shrink-0 text-muted-foreground/70" />
                 {label}
               </span>
-              <span className={mono ? "nums text-sm font-medium" : "text-sm font-medium"}>{value}</span>
+              <span className={mono ? "nums text-sm font-medium" : "text-sm font-medium"} title={title}>
+                {value}
+              </span>
             </div>
           ))}
         </div>

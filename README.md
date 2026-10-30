@@ -22,6 +22,17 @@ API and renders no data of its own.
 What each user sees and can do follows their role on the appliance (see
 `doc/RBAC.md` in `abr-core`); the appliance enforces it either way.
 
+## Times and time zones
+
+Every time the console prints is in your browser's time zone and says so
+("Oct 23, 01:00 GMT+3"); hover it to see the same moment in UTC. A job's
+schedule is shown in the job's own time zone, with your time beside it when
+the two differ ("Daily · 22:00 UTC (01:00 GMT+3, next day)"). The job form
+shows the job's time zone, lets you choose it (a new job starts on yours), and
+says what the time you enter means on your clock. Settings → Appearance names
+your zone, Settings → About the appliance's. Design and rules:
+[`doc/TimeZones.md`](doc/TimeZones.md).
+
 ## Tech stack
 
 - [React 18](https://react.dev/) + [TypeScript](https://www.typescriptlang.org/)

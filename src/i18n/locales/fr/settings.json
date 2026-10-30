@@ -89,6 +89,11 @@
     "autoCollapse": {
       "label": "Réduire automatiquement la barre latérale",
       "description": "Réduire la barre de navigation à des icônes sur les fenêtres plus étroites."
+    },
+    "timeZone": {
+      "label": "Fuseau horaire",
+      "value": "{{zone}} ({{offset}})",
+      "description": "Toutes les heures de la console s’affichent dans le fuseau de votre navigateur, avec leur décalage (GMT+3) ; survolez-en une pour la voir en UTC. La planification d’une tâche s’affiche dans le fuseau de la tâche, avec votre heure à côté quand elles diffèrent. Le fuseau du navigateur est celui de votre système d’exploitation."
     }
   },
   "notifications": {
@@ -333,7 +338,9 @@
       "uptime": "Temps de fonctionnement",
       "cpu": "CPU",
       "memory": "Mémoire",
-      "probeFailed": "Impossible de lire les détails matériels depuis l'appliance. Les champs qu'elle rapporte s'affichent en « — »."
+      "probeFailed": "Impossible de lire les détails matériels depuis l'appliance. Les champs qu'elle rapporte s'affichent en « — ».",
+      "timezone": "Fuseau horaire",
+      "timezoneValue": "{{zone}}, défini sur l’appliance"
     },
     "license": {
       "title": "Ressources"
