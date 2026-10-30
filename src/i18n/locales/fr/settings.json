@@ -125,19 +125,21 @@
       "description": "Modifiez le mot de passe de votre compte."
     },
     "session": {
-      "title": "Durée de session",
-      "description": "Durée pendant laquelle une connexion reste active avant de devoir vous reconnecter.",
-      "label": "Rester connecté pendant",
-      "hint": "S’applique immédiatement à cette session, et aux futures connexions sur ce navigateur.",
-      "savedDescription": "Durée de session mise à jour.",
+      "title": "Déconnexion après inactivité",
+      "description": "Combien de temps la console reste connectée pendant votre absence. Un clic, une frappe, un défilement ou un changement de page comptent comme activité ; les actualisations en arrière-plan de la console et un pointeur qui bouge seulement ne comptent pas.",
+      "label": "Se déconnecter après",
+      "hint": "S’applique immédiatement à cette session et aux prochaines connexions sur ce navigateur. Une minute avant, la console demande si vous êtes toujours là.",
+      "savedDescription": "Délai d’inactivité mis à jour.",
       "applyFailed": {
-        "title": "Durée de session non appliquée",
+        "title": "Délai d’inactivité non appliqué",
         "description": "Enregistrée localement, mais l'appliance était injoignable — elle s'appliquera à la prochaine connexion."
       },
       "hours_one": "{{count}} heure",
       "hours_other": "{{count}} heures",
       "minutes_one": "{{count}} minute",
-      "minutes_other": "{{count}} minutes"
+      "minutes_other": "{{count}} minutes",
+      "limit": "Quelle que soit l’activité, cette session se termine à {{time}} : la limite de l’appliance depuis la connexion.",
+      "noLimit": "L’appliance ne fixe aucune limite depuis la connexion : une session active reste connectée."
     },
     "certificate": {
       "title": "Certificat HTTPS",

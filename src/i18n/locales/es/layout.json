@@ -83,5 +83,21 @@
   "offline": {
     "title": "Se perdió el contacto con la appliance.",
     "body": "Nada de esta página se está actualizando: ejecuciones, capacidad y alertas son las del momento de la caída. Reconectando en segundo plano."
+  },
+  "session": {
+    "idle": {
+      "title": "¿Sigue ahí?",
+      "body": "La consola cierra la sesión tras {{duration}} sin un clic, una tecla o un desplazamiento. Mantenga la sesión para seguir trabajando.",
+      "bodyNoDuration": "La consola cierra la sesión tras un rato sin un clic, una tecla o un desplazamiento. Mantenga la sesión para seguir trabajando.",
+      "countdownLabel": "Cierre de sesión en",
+      "stay": "Mantener la sesión",
+      "signOut": "Cerrar sesión"
+    },
+    "limit": {
+      "title": "Su sesión termina en {{countdown}}",
+      "body": "Toda sesión termina un tiempo fijo después de iniciarla, haya actividad o no: esta a las {{time}}. Guarde su trabajo y vuelva a iniciar sesión.",
+      "keepWorking": "Seguir trabajando",
+      "signInAgain": "Volver a iniciar sesión ahora"
+    }
   }
 }

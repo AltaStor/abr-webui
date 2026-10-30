@@ -33,6 +33,15 @@ says what the time you enter means on your clock. Settings → Appearance names
 your zone, Settings → About the appliance's. Design and rules:
 [`doc/TimeZones.md`](doc/TimeZones.md).
 
+## Signing out
+
+The console signs you out after the inactivity time set in Settings →
+Security (a click, key press, scroll or page change counts as activity; the
+console's own background refreshes don't), warns a minute before, and says on
+the sign-in page why the session ended. A session also ends a fixed time after
+sign-in, whatever the activity (the appliance's `ABR_WEB_SESSION_LIFETIME_SECONDS`),
+with a warning five minutes before.
+
 ## Tech stack
 
 - [React 18](https://react.dev/) + [TypeScript](https://www.typescriptlang.org/)

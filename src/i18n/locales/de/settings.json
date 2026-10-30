@@ -125,19 +125,21 @@
       "description": "Ändern Sie das Passwort für Ihr Konto."
     },
     "session": {
-      "title": "Sitzungsdauer",
-      "description": "Wie lange eine Anmeldung aktiv bleibt, bevor Sie sich erneut anmelden müssen.",
-      "label": "Angemeldet bleiben für",
-      "hint": "Gilt sofort für diese Sitzung und für künftige Anmeldungen in diesem Browser.",
-      "savedDescription": "Sitzungsdauer aktualisiert.",
+      "title": "Abmeldung bei Inaktivität",
+      "description": "Wie lange die Konsole angemeldet bleibt, während Sie nicht da sind. Ein Klick, ein Tastendruck, Scrollen oder ein Seitenwechsel zählen als Aktivität; die Hintergrundaktualisierungen der Konsole und ein bloß bewegter Mauszeiger nicht.",
+      "label": "Abmelden nach",
+      "hint": "Gilt sofort für diese Sitzung und für künftige Anmeldungen in diesem Browser. Eine Minute vorher fragt die Konsole, ob Sie noch da sind.",
+      "savedDescription": "Inaktivitäts-Zeitlimit aktualisiert.",
       "applyFailed": {
-        "title": "Sitzungsdauer nicht angewendet",
+        "title": "Inaktivitäts-Zeitlimit nicht übernommen",
         "description": "Lokal gespeichert, aber das Gerät war nicht erreichbar — wird bei der nächsten Anmeldung angewendet."
       },
       "hours_one": "{{count}} Stunde",
       "hours_other": "{{count}} Stunden",
       "minutes_one": "{{count}} Minute",
-      "minutes_other": "{{count}} Minuten"
+      "minutes_other": "{{count}} Minuten",
+      "limit": "Unabhängig von der Aktivität endet diese Sitzung um {{time}}: das Limit der Appliance ab der Anmeldung.",
+      "noLimit": "Die Appliance setzt kein Limit ab der Anmeldung: Eine aktive Sitzung bleibt angemeldet."
     },
     "certificate": {
       "title": "HTTPS-Zertifikat",

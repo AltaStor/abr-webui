@@ -18,7 +18,8 @@ import { useAuthStore } from "@/store/auth";
 import { INTRO_FLAG } from "@/components/brand/IntroOverlay";
 import { useSettingsStore } from "@/store/settings";
 import { useWorldStore } from "@/store/world";
-import { AuthFailureNotice, AuthLayout } from "./components/AuthLayout";
+import { AuthFailureNotice, AuthLayout, SignedOutNotice } from "./components/AuthLayout";
+import { sessionDurationLabel } from "@/lib/session";
 import { DEMO_PASSWORD } from "@/mock/auth";
 import { authFailureKey, classifyLoginError } from "./authFailure";
 
@@ -37,6 +38,7 @@ export default function LoginPage() {
   const error = useAuthStore((s) => s.error);
   const login = useAuthStore((s) => s.login);
   const clearError = useAuthStore((s) => s.clearError);
+  const signOutNotice = useAuthStore((s) => s.signOutNotice);
 
   // Session length lives in Settings → Security now, not on the login form —
   // this reads whatever the operator (or its shipped 1-hour default) last set.
@@ -104,6 +106,19 @@ export default function LoginPage() {
             <span className="font-mono">henry.morgan@altastor.com</span>) with the password{" "}
             <span className="font-mono">{DEMO_PASSWORD}</span>.
           </p>
+        )}
+
+        {signOutNotice && !failure && mode === "live" && (
+          <SignedOutNotice
+            title={
+              signOutNotice.reason === "inactivity"
+                ? signOutNotice.idleTimeoutSec
+                  ? t("signedOut.inactivity.title", { duration: sessionDurationLabel(signOutNotice.idleTimeoutSec) })
+                  : t("signedOut.inactivity.titleNoDuration")
+                : t(`signedOut.${signOutNotice.reason}.title`)
+            }
+            body={t(`signedOut.${signOutNotice.reason}.desc`)}
+          />
         )}
 
         {failure && (

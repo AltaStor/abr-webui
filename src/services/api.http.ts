@@ -171,6 +171,60 @@ export function setUnauthorizedHandler(handler: (() => void) | null): void {
   unauthorizedHandler = handler;
 }
 
+let sessionExpiryHandler: ((expiry: SessionExpiry) => void) | null = null;
+
+/** Registered once by the auth store: every `/auth/me` answer (the live
+ *  driver asks on each poll, flagged so it does not renew anything) reports
+ *  the session's expiries through it, so a renewal by any other request, or
+ *  by another tab holding the same session, reaches the countdown. */
+export function setSessionExpiryHandler(handler: ((expiry: SessionExpiry) => void) | null): void {
+  sessionExpiryHandler = handler;
+}
+
+/* ------------------------- background (refresh) reads ------------------------ */
+let backgroundDepth = 0;
+
+/**
+ * Runs `work` as a background refresh: every GET it sends while it runs carries
+ * `X-ABR-Refresh: 1`. The appliance neither renews a web session for such a
+ * read (only what the user causes keeps them signed in) nor records it in the
+ * audit log. For the poll loops only — a read the user's own click caused
+ * goes out unflagged.
+ *
+ * The scope is a counter, not a property of each call, because a browser has
+ * no async context to carry one through `await`s. A read the user causes
+ * while a refresh is in flight is therefore flagged too; that only means it
+ * neither renews the session (the keep-alive does, see useSessionKeepAlive)
+ * nor lands in the audit log. The other way round — a poll left unflagged —
+ * would keep an idle console signed in forever, which is why the counter
+ * errs this way.
+ */
+export async function inBackground<T>(work: () => Promise<T>): Promise<T> {
+  backgroundDepth++;
+  try {
+    return await work();
+  } finally {
+    backgroundDepth--;
+  }
+}
+
+/* ------------------------------- server clock -------------------------------- */
+let serverClockOffsetMs = 0;
+
+/** The appliance's clock now, as far as the last response's `Date` header
+ *  says (1 s resolution). Session expiries are the appliance's times, so a
+ *  countdown to one must not run on a browser clock that is minutes off. */
+export function serverNow(): number {
+  return Date.now() + serverClockOffsetMs;
+}
+
+function noteServerClock(res: Response): void {
+  const date = Date.parse(res.headers.get("date") ?? "");
+  // The header truncates to the second: on average the server was half a
+  // second further along than it says.
+  if (Number.isFinite(date)) serverClockOffsetMs = date + 500 - Date.now();
+}
+
 const API_VERSION_HEADER = "x-abr-api-version";
 let apiVersionChecked = false;
 
@@ -216,11 +270,12 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     [API_VERSION_HEADER]: `${__ABR_API_MAJOR__}.${__ABR_API_MINOR__}`,
   };
   if (authToken) headers.authorization = `Bearer ${authToken}`;
-  // Every read the console makes is a page load the live driver repeats on a
-  // timer, not a command, so the appliance's audit log leaves it out (a read
-  // the role does not allow is still logged as denied). Actions are audited.
-  if ((init?.method ?? "GET").toUpperCase() === "GET") headers["x-abr-refresh"] = "1";
+  // A read a poll loop repeats on its own (see inBackground) neither keeps the
+  // session alive nor goes into the appliance's audit log (a read the role
+  // does not allow is still logged as denied). What the user causes does both.
+  if (backgroundDepth > 0 && (init?.method ?? "GET").toUpperCase() === "GET") headers["x-abr-refresh"] = "1";
   const res = await fetch(`${BASE}/api/v1${path}`, { ...init, headers });
+  noteServerClock(res);
   checkApiVersion(res);
   if (res.status === 401 && authToken) {
     // A previously-valid session no longer is (expired or revoked elsewhere) —
@@ -939,9 +994,20 @@ export interface AuthUser {
   passwordPolicyExempt: boolean;
 }
 
-export interface LoginResult {
-  token: string;
+/** When a session ends: `expiresAt` if it stays idle (each request the user
+ *  causes moves it), `absoluteExpiresAt` whatever the activity (null: no
+ *  such limit). Both are the appliance's clock — compare with `serverNow()`. */
+export interface SessionExpiry {
   expiresAt: string;
+  absoluteExpiresAt: string | null;
+}
+
+function mapSessionExpiry(res: Dict): SessionExpiry {
+  return { expiresAt: str(res.expires_at), absoluteExpiresAt: strOrNull(res.absolute_expires_at) };
+}
+
+export interface LoginResult extends SessionExpiry {
+  token: string;
   user: AuthUser;
   /** The function IDs the user's role allows; null from an appliance that
    *  predates roles, where everything is allowed. */
@@ -969,7 +1035,7 @@ export async function login(name: string, password: string, durationSeconds?: nu
   const res = asDict(await request<Dict>("/auth/login", { method: "POST", body: JSON.stringify(body) }));
   return {
     token: str(res.token),
-    expiresAt: str(res.expires_at),
+    ...mapSessionExpiry(res),
     user: mapAuthUser(asDict(res.user)),
     permissions: strListOrNull(res.permissions),
   };
@@ -985,6 +1051,8 @@ export interface WhoAmI {
   user: AuthUser;
   role: RoleSummary | null;
   permissions: string[];
+  /** Null from an appliance that does not report it. */
+  session: SessionExpiry | null;
 }
 
 function mapRoleSummary(r: Dict): RoleSummary {
@@ -996,11 +1064,14 @@ function mapRoleSummary(r: Dict): RoleSummary {
 export async function whoami(): Promise<WhoAmI | null> {
   try {
     const res = asDict(await request<Dict>("/auth/me"));
-    return {
+    const me: WhoAmI = {
       user: mapAuthUser(asDict(res.user)),
       role: res.role ? mapRoleSummary(asDict(res.role)) : null,
       permissions: strListOrNull(res.permissions) ?? [],
+      session: res.expires_at ? mapSessionExpiry(res) : null,
     };
+    if (me.session) sessionExpiryHandler?.(me.session);
+    return me;
   } catch (err) {
     if (err instanceof ApiError && err.status === 404) return null;
     throw err;
@@ -1190,17 +1261,23 @@ export function isPermissionDenied(err: unknown): boolean {
 
 export const logout = () => request<void>("/auth/logout", { method: "POST", body: "{}" });
 
-/** Adjusts the current session's absolute expiry in place (Settings ->
- *  Security's token-lifetime slider) -- takes effect immediately rather than
- *  waiting for the next login. Resolves the new `expiresAt` ISO timestamp. */
-export async function extendSession(durationSeconds: number): Promise<string> {
+/** Changes the current session's inactivity timeout in place (Settings ->
+ *  Security's slider) -- takes effect immediately rather than waiting for the
+ *  next login. The limit from sign-in does not move. */
+export async function extendSession(durationSeconds: number): Promise<SessionExpiry> {
   const res = asDict(
     await request<Dict>("/auth/session/duration", {
       method: "PUT",
       body: JSON.stringify({ duration_seconds: durationSeconds }),
     }),
   );
-  return str(res.expires_at);
+  return mapSessionExpiry(res);
+}
+
+/** The keep-alive: renews the session after a user action that sent no
+ *  request of its own (switching views reads only what the store holds). */
+export async function touchSession(): Promise<SessionExpiry> {
+  return mapSessionExpiry(asDict(await request<Dict>("/auth/session/touch", { method: "POST", body: "{}" })));
 }
 
 export async function changePassword(currentPassword: string, newPassword: string): Promise<AuthUser> {

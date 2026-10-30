@@ -125,19 +125,21 @@
       "description": "Change the password for your account."
     },
     "session": {
-      "title": "Session duration",
-      "description": "How long a sign-in stays active before you're asked to sign in again.",
-      "label": "Stay signed in for",
-      "hint": "Applies immediately to this session, and to future sign-ins on this browser.",
-      "savedDescription": "Session duration updated.",
+      "title": "Sign-out after inactivity",
+      "description": "How long the console stays signed in while you are away. A click, a key press, a scroll or a page change counts as activity; the console's own background refreshes and a moving pointer do not.",
+      "label": "Sign out after",
+      "hint": "Applies immediately to this session, and to future sign-ins on this browser. A minute before, the console asks whether you are still there.",
+      "savedDescription": "Inactivity timeout updated.",
       "applyFailed": {
-        "title": "Session duration not applied",
+        "title": "Inactivity timeout not applied",
         "description": "Saved locally, but the appliance couldn't be reached — it'll apply next time you sign in."
       },
       "hours_one": "{{count}} hour",
       "hours_other": "{{count}} hours",
       "minutes_one": "{{count}} minute",
-      "minutes_other": "{{count}} minutes"
+      "minutes_other": "{{count}} minutes",
+      "limit": "Whatever the activity, this session ends at {{time}}: the appliance's limit from sign-in.",
+      "noLimit": "The appliance sets no limit from sign-in: an active session stays signed in."
     },
     "certificate": {
       "title": "HTTPS certificate",

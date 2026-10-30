@@ -83,5 +83,21 @@
   "offline": {
     "title": "Verbindung zur Appliance verloren.",
     "body": "Auf dieser Seite wird nichts mehr aktualisiert — Läufe, Kapazität und Warnungen zeigen den Stand vom Verbindungsabbruch. Es wird im Hintergrund neu verbunden."
+  },
+  "session": {
+    "idle": {
+      "title": "Noch da?",
+      "body": "Die Konsole meldet Sie nach {{duration}} ohne Klick, Tastendruck oder Scrollen ab. Bleiben Sie angemeldet, um weiterzuarbeiten.",
+      "bodyNoDuration": "Die Konsole meldet Sie nach einer Weile ohne Klick, Tastendruck oder Scrollen ab. Bleiben Sie angemeldet, um weiterzuarbeiten.",
+      "countdownLabel": "Abmeldung in",
+      "stay": "Angemeldet bleiben",
+      "signOut": "Abmelden"
+    },
+    "limit": {
+      "title": "Ihre Sitzung endet in {{countdown}}",
+      "body": "Jede Sitzung endet eine feste Zeit nach der Anmeldung, ob aktiv oder nicht: diese um {{time}}. Speichern Sie Ihre Arbeit und melden Sie sich erneut an.",
+      "keepWorking": "Weiterarbeiten",
+      "signInAgain": "Jetzt neu anmelden"
+    }
   }
 }

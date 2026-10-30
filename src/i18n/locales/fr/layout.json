@@ -83,5 +83,21 @@
   "offline": {
     "title": "Contact perdu avec l’appliance.",
     "body": "Plus rien ne se met à jour sur cette page : exécutions, capacité et alertes datent de la coupure. Reconnexion en arrière-plan."
+  },
+  "session": {
+    "idle": {
+      "title": "Toujours là ?",
+      "body": "La console vous déconnecte après {{duration}} sans clic, frappe ni défilement. Restez connecté pour continuer.",
+      "bodyNoDuration": "La console vous déconnecte après un moment sans clic, frappe ni défilement. Restez connecté pour continuer.",
+      "countdownLabel": "Déconnexion dans",
+      "stay": "Rester connecté",
+      "signOut": "Se déconnecter"
+    },
+    "limit": {
+      "title": "Votre session se termine dans {{countdown}}",
+      "body": "Chaque session se termine un temps fixe après la connexion, active ou non : celle-ci à {{time}}. Enregistrez votre travail, puis reconnectez-vous.",
+      "keepWorking": "Continuer",
+      "signInAgain": "Se reconnecter maintenant"
+    }
   }
 }

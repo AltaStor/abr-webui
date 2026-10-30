@@ -125,19 +125,21 @@
       "description": "Cambia la contraseña de tu cuenta."
     },
     "session": {
-      "title": "Duración de la sesión",
-      "description": "Cuánto tiempo permanece activa una sesión antes de que debas iniciar sesión de nuevo.",
-      "label": "Mantener sesión iniciada durante",
-      "hint": "Se aplica de inmediato a esta sesión y a los próximos inicios de sesión en este navegador.",
-      "savedDescription": "Duración de la sesión actualizada.",
+      "title": "Cierre de sesión por inactividad",
+      "description": "Cuánto tiempo sigue abierta la sesión de la consola mientras no está. Un clic, una tecla, un desplazamiento o un cambio de página cuentan como actividad; las actualizaciones en segundo plano de la consola y mover el puntero no.",
+      "label": "Cerrar sesión tras",
+      "hint": "Se aplica de inmediato a esta sesión y a los próximos inicios de sesión en este navegador. Un minuto antes, la consola pregunta si sigue ahí.",
+      "savedDescription": "Tiempo de inactividad actualizado.",
       "applyFailed": {
-        "title": "No se aplicó la duración de la sesión",
+        "title": "Tiempo de inactividad no aplicado",
         "description": "Se guardó localmente, pero no se pudo contactar con el equipo — se aplicará en el próximo inicio de sesión."
       },
       "hours_one": "{{count}} hora",
       "hours_other": "{{count}} horas",
       "minutes_one": "{{count}} minuto",
-      "minutes_other": "{{count}} minutos"
+      "minutes_other": "{{count}} minutos",
+      "limit": "Haya actividad o no, esta sesión termina a las {{time}}: el límite del appliance desde el inicio de sesión.",
+      "noLimit": "El appliance no fija un límite desde el inicio de sesión: una sesión activa sigue abierta."
     },
     "certificate": {
       "title": "Certificado HTTPS",

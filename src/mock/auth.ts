@@ -62,6 +62,7 @@ export function simLogin(name: string, password: string, durationSeconds?: numbe
     // Not a credential: nothing verifies it, and the sim driver never sends it.
     token: "demo-session",
     expiresAt: new Date(Date.now() + (durationSeconds ?? 3600) * 1000).toISOString(),
+    absoluteExpiresAt: null,
     user,
     permissions: null,
   };

@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/dialog";
 import { toast } from "@/components/ui/sonner";
 import { formatDateTime, utcTitle } from "@/lib/time";
-import { confirmSystemClock, getSystemClock } from "@/services/api.http";
+import { confirmSystemClock, getSystemClock, inBackground } from "@/services/api.http";
 import { useCan } from "@/store/permissions";
 import { useWorldStore } from "@/store/world";
 import type { SystemClockStatus } from "@/types";
@@ -42,7 +42,7 @@ export function ClockJumpBanner() {
   const live = mode === "live" && ready;
 
   const refresh = useCallback(() => {
-    getSystemClock()
+    inBackground(getSystemClock)
       .then(setStatus)
       .catch(() => undefined);
   }, []);

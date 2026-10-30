@@ -14,7 +14,7 @@
  * would only produce a 401 on the sign-in screen.
  */
 import { useEffect } from "react";
-import { checkForUpdates } from "@/services/api.http";
+import { checkForUpdates, inBackground } from "@/services/api.http";
 import { useAuthStore } from "@/store/auth";
 import { useSettingsStore } from "@/store/settings";
 import { useWorldStore } from "@/store/world";
@@ -43,7 +43,7 @@ export function useAutoUpdateCheck(): void {
       if (inFlight) return; // never overlap an in-flight check
       inFlight = true;
       try {
-        const r = await checkForUpdates();
+        const r = await inBackground(checkForUpdates);
         if (!cancelled) setResult(r);
       } catch {
         /* appliance unreachable — keep the last result; the manual check surfaces errors */

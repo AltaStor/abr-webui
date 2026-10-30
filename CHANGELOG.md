@@ -56,12 +56,31 @@ All notable changes to the AltaStor WebUI are documented in this file.
 ### Changed
 - Enabling or disabling a job is sent as a job-level `enabled` flag instead
   of being nested inside the job's schedule.
-- The console's reads are sent as background refreshes (`X-ABR-Refresh`), so
-  the appliance's audit log records its actions rather than every poll.
+- Only the reads the console repeats on its own (the world poll, the server
+  clock and update checks, the system log's refresh) are sent as background
+  refreshes (`X-ABR-Refresh`), so the appliance neither records them in the
+  audit log nor counts them as activity; the reads a user's action causes are
+  sent as such.
 - The Original location card on restore describes the source VM's own
   platform.
 
 ### Fixed
+- The console no longer signs the user out at a fixed time while they are
+  working. Switching views sends no request of its own, and the polls are
+  background refreshes the appliance does not count, so the console now keeps
+  the session alive itself (`POST /auth/session/touch`) on a click, key press,
+  scroll or page change, at most every 30 seconds. A minute before an idle
+  session ends a panel counts down, with Stay signed in and Sign out, without
+  blocking the page; five minutes before the limit from sign-in it says when
+  the session ends. The sign-in page says why the last session ended
+  (inactivity, the time limit, or the appliance no longer accepting it). The
+  stored session follows each renewal, so a reload no longer signs out a
+  session that is still alive. Settings → Security calls the setting "Sign out
+  after" inactivity, says what counts as activity and when this session ends
+  at the latest.
+- Collapsed sidebar: each icon-only link carries its name (Dashboard, Backup,
+  Activity, ...) for screen readers and speech control, the current page is
+  marked as such, and the name shows as a tooltip on hover and keyboard focus.
 - A job can no longer be deleted while it runs: Delete is disabled, with the
   reason, in the job's row menu, the bulk bar and the job page, and an open
   confirmation disables itself when a run starts.
