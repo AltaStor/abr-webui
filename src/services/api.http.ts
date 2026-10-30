@@ -2915,6 +2915,238 @@ export async function probeAppliance(): Promise<void> {
 /* ====================================================================== */
 /* Live events → polling (no SSE on this backend)                          */
 /* ====================================================================== */
+/* E-mail notifications (Settings -> Notifications)                        */
+/* ====================================================================== */
+
+export type SmtpSecurity = "starttls" | "ssl" | "none";
+export type SmtpAuth = "password" | "oauth2" | "none";
+export type OAuthProvider = "microsoft" | "google" | "custom";
+export type OAuthGrant = "client_credentials" | "refresh_token";
+
+export interface EmailOAuthSettings {
+  provider: OAuthProvider;
+  tenantId: string;
+  clientId: string;
+  clientSecretSet: boolean;
+  grant: OAuthGrant;
+  refreshTokenSet: boolean;
+  tokenUrl: string;
+  scope: string;
+  /** What a Microsoft or Google provider resolves to; empty for custom. */
+  effectiveTokenUrl: string;
+  effectiveScope: string;
+}
+
+export interface EmailSmtpSettings {
+  host: string;
+  port: number;
+  security: SmtpSecurity;
+  verifyTls: boolean;
+  auth: SmtpAuth;
+  username: string;
+  passwordSet: boolean;
+  timeoutSeconds: number;
+  oauth2: EmailOAuthSettings;
+}
+
+export interface NotificationEventSetting {
+  id: string;
+  name: string;
+  description: string;
+  default: boolean;
+  enabled: boolean;
+}
+
+export interface EmailDeliveryError {
+  code: string;
+  message: string;
+  stage: string;
+}
+
+export interface EmailDelivery {
+  id: string;
+  event: string;
+  subject: string;
+  recipients: string[];
+  queuedAt: string | null;
+  sentAt: string | null;
+  status: "queued" | "retrying" | "sent" | "failed" | "cancelled";
+  attempts: number;
+  nextAttemptAt: string | null;
+  refused: string[];
+  error: EmailDeliveryError | null;
+}
+
+export interface EmailNotificationState {
+  enabled: boolean;
+  smtp: EmailSmtpSettings;
+  sender: { address: string; name: string };
+  recipients: string[];
+  repositorySpaceThresholdPercent: number;
+  updatedAt: string | null;
+  updatedBy: string | null;
+  events: NotificationEventSetting[];
+  deliveries: EmailDelivery[];
+}
+
+/** A change to the settings. A secret left undefined keeps the stored one;
+ *  an empty string clears it. */
+export interface EmailNotificationPatch {
+  enabled?: boolean;
+  smtp?: Partial<Omit<EmailSmtpSettings, "passwordSet" | "oauth2">> & {
+    password?: string;
+    oauth2?: Partial<
+      Omit<EmailOAuthSettings, "clientSecretSet" | "refreshTokenSet" | "effectiveTokenUrl" | "effectiveScope">
+    > & { clientSecret?: string; refreshToken?: string };
+  };
+  sender?: { address?: string; name?: string };
+  recipients?: string[];
+  events?: Record<string, boolean>;
+  repositorySpaceThresholdPercent?: number;
+}
+
+function mapNotificationEvent(e: Dict): NotificationEventSetting {
+  return {
+    id: str(e.id),
+    name: str(e.name),
+    description: str(e.description),
+    default: e.default === true,
+    enabled: e.enabled === true,
+  };
+}
+
+function mapEmailState(res: Dict): EmailNotificationState {
+  const smtp = asDict(res.smtp);
+  const oauth = asDict(smtp.oauth2);
+  const sender = asDict(res.sender);
+  return {
+    enabled: res.enabled === true,
+    smtp: {
+      host: str(smtp.host),
+      port: num(smtp.port, 587),
+      security: (["starttls", "ssl", "none"].includes(str(smtp.security)) ? str(smtp.security) : "starttls") as SmtpSecurity,
+      verifyTls: smtp.verify_tls !== false,
+      auth: (["password", "oauth2", "none"].includes(str(smtp.auth)) ? str(smtp.auth) : "password") as SmtpAuth,
+      username: str(smtp.username),
+      passwordSet: smtp.password_set === true,
+      timeoutSeconds: num(smtp.timeout_seconds, 30),
+      oauth2: {
+        provider: (["microsoft", "google", "custom"].includes(str(oauth.provider)) ? str(oauth.provider) : "microsoft") as OAuthProvider,
+        tenantId: str(oauth.tenant_id),
+        clientId: str(oauth.client_id),
+        clientSecretSet: oauth.client_secret_set === true,
+        grant: (str(oauth.grant) === "refresh_token" ? "refresh_token" : "client_credentials") as OAuthGrant,
+        refreshTokenSet: oauth.refresh_token_set === true,
+        tokenUrl: str(oauth.token_url),
+        scope: str(oauth.scope),
+        effectiveTokenUrl: str(oauth.effective_token_url),
+        effectiveScope: str(oauth.effective_scope),
+      },
+    },
+    sender: { address: str(sender.address), name: str(sender.name) },
+    recipients: strList(res.recipients),
+    repositorySpaceThresholdPercent: num(res.repository_space_threshold_percent, 85),
+    updatedAt: strOrNull(res.updated_at),
+    updatedBy: strOrNull(res.updated_by),
+    events: (Array.isArray(res.events) ? res.events : []).map((raw) => mapNotificationEvent(asDict(raw))),
+    deliveries: (Array.isArray(res.deliveries) ? res.deliveries : []).map((raw) => mapEmailDelivery(asDict(raw))),
+  };
+}
+
+function mapEmailDelivery(d: Dict): EmailDelivery {
+  const error = d.error && typeof d.error === "object" ? asDict(d.error) : null;
+  const status = str(d.status);
+  return {
+    id: str(d.id),
+    event: str(d.event),
+    subject: str(d.subject),
+    recipients: strList(d.recipients),
+    queuedAt: strOrNull(d.queued_at),
+    sentAt: strOrNull(d.sent_at),
+    status: (["queued", "retrying", "sent", "failed", "cancelled"].includes(status) ? status : "queued") as EmailDelivery["status"],
+    attempts: num(d.attempts),
+    nextAttemptAt: strOrNull(d.next_attempt_at),
+    refused: strList(d.refused),
+    error: error ? { code: str(error.code), message: str(error.message), stage: str(error.stage) } : null,
+  };
+}
+
+function emailPatchToWire(p: EmailNotificationPatch): Dict {
+  const out: Dict = {};
+  if (p.enabled !== undefined) out.enabled = p.enabled;
+  if (p.smtp) {
+    const { oauth2, verifyTls, timeoutSeconds, ...rest } = p.smtp;
+    const smtp: Dict = { ...rest };
+    if (verifyTls !== undefined) smtp.verify_tls = verifyTls;
+    if (timeoutSeconds !== undefined) smtp.timeout_seconds = timeoutSeconds;
+    if (oauth2) {
+      const { tenantId, clientId, clientSecret, refreshToken, tokenUrl, ...plain } = oauth2;
+      smtp.oauth2 = {
+        ...plain,
+        ...(tenantId !== undefined ? { tenant_id: tenantId } : {}),
+        ...(clientId !== undefined ? { client_id: clientId } : {}),
+        ...(clientSecret !== undefined ? { client_secret: clientSecret } : {}),
+        ...(refreshToken !== undefined ? { refresh_token: refreshToken } : {}),
+        ...(tokenUrl !== undefined ? { token_url: tokenUrl } : {}),
+      };
+    }
+    out.smtp = smtp;
+  }
+  if (p.sender) out.sender = p.sender;
+  if (p.recipients) out.recipients = p.recipients;
+  if (p.events) out.events = p.events;
+  if (p.repositorySpaceThresholdPercent !== undefined) {
+    out.repository_space_threshold_percent = p.repositorySpaceThresholdPercent;
+  }
+  return out;
+}
+
+export async function getEmailNotifications(): Promise<EmailNotificationState> {
+  return mapEmailState(asDict(await request<Dict>("/notifications/email")));
+}
+
+/** Saves the change, or rejects with a 422 whose problems
+ *  `apiErrorFields` returns by field ("smtp.host", "recipients", ...). */
+export async function updateEmailNotifications(patch: EmailNotificationPatch): Promise<EmailNotificationState> {
+  return mapEmailState(
+    asDict(await request<Dict>("/notifications/email", { method: "PUT", body: JSON.stringify(emailPatchToWire(patch)) })),
+  );
+}
+
+export interface EmailTestResult {
+  recipients: string[];
+  refused: string[];
+  durationMs: number;
+}
+
+/** Sends a test e-mail with the stored settings and `patch` over them (not
+ *  saved). A delivery the server did not take rejects with the reason as the
+ *  error code (smtp_auth_failed, ...). */
+export async function testEmailNotifications(patch?: EmailNotificationPatch, to?: string[]): Promise<EmailTestResult> {
+  const body: Dict = {};
+  if (patch) body.settings = emailPatchToWire(patch);
+  if (to?.length) body.to = to;
+  const res = asDict(await request<Dict>("/notifications/email/test", { method: "POST", body: JSON.stringify(body) }));
+  return { recipients: strList(res.recipients), refused: strList(res.refused), durationMs: num(res.duration_ms) };
+}
+
+/** The per-field problems of a 422 (`error.details.fields`). */
+export function apiErrorFields(err: unknown): Record<string, string> | null {
+  if (!(err instanceof ApiError)) return null;
+  const details = asDict(asDict(asDict(err.body).error).details);
+  const fields = asDict(details.fields);
+  const out: Record<string, string> = {};
+  for (const [key, value] of Object.entries(fields)) if (typeof value === "string") out[key] = value;
+  return Object.keys(out).length ? out : null;
+}
+
+/** `error.details.stage` of a failed test e-mail. */
+export function apiErrorStage(err: unknown): string | null {
+  if (!(err instanceof ApiError)) return null;
+  return strOrNull(asDict(asDict(asDict(err.body).error).details).stage);
+}
+
+/* ====================================================================== */
 
 export interface ApplianceEventMessage {
   type: string;

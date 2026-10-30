@@ -22,7 +22,7 @@
     },
     "notifications": {
       "label": "Benachrichtigungen",
-      "blurb": "Wählen Sie, welche Ereignisse Sie benachrichtigen"
+      "blurb": "E-Mail- und Konsolenbenachrichtigungen"
     },
     "security": {
       "label": "Sicherheit",
@@ -99,8 +99,8 @@
   "notifications": {
     "savedDescription": "Benachrichtigungseinstellungen aktualisiert.",
     "events": {
-      "title": "Ereignisse",
-      "description": "Wählen Sie, welche Ereignisse Sie benachrichtigen.",
+      "title": "Benachrichtigungen in der Konsole",
+      "description": "Einblendungen in diesem Browser, solange die Konsole geöffnet ist; nur in diesem Browser gespeichert. E-Mail wird oben eingerichtet.",
       "jobFailure": {
         "label": "Job-Fehler",
         "blurb": "Ein Backup-Lauf schlägt fehl oder verursacht Fehler"
@@ -543,6 +543,170 @@
       "inUse_other": "{{name}} ist {{count}} Benutzern zugewiesen: {{names}}. Weisen Sie ihnen zuerst eine andere Rolle zu und löschen Sie diese dann.",
       "inUseNoNames_one": "{{name}} ist {{count}} Benutzer zugewiesen. Weisen Sie zuerst eine andere Rolle zu und löschen Sie diese dann.",
       "inUseNoNames_other": "{{name}} ist {{count}} Benutzern zugewiesen. Weisen Sie ihnen zuerst eine andere Rolle zu und löschen Sie diese dann."
+    }
+  },
+  "email": {
+    "title": "E-Mail-Benachrichtigungen",
+    "description": "Die Appliance schickt den Empfängern unten über Ihren SMTP-Server eine E-Mail, wenn ein gewähltes Ereignis eintritt.",
+    "enable": "E-Mail-Benachrichtigungen senden",
+    "on": "Ein",
+    "off": "Aus",
+    "liveOnly": "Verbinden Sie sich mit einer Live-Appliance, um E-Mail-Benachrichtigungen einzurichten.",
+    "loading": "E-Mail-Einstellungen werden gelesen …",
+    "loadFailed": "Die E-Mail-Einstellungen konnten nicht von der Appliance gelesen werden.",
+    "saved": "E-Mail-Benachrichtigungen gespeichert.",
+    "saveFailed": "E-Mail-Einstellungen nicht gespeichert",
+    "lastChanged": "Zuletzt geändert von {{user}},",
+    "server": {
+      "title": "SMTP-Server",
+      "host": "Server",
+      "port": "Port",
+      "security": "Verbindungssicherheit",
+      "noEncryption": "Keine",
+      "securityHint": {
+        "starttls": "Verbindet unverschlüsselt und wechselt vor der Anmeldung zu TLS (meist Port 587).",
+        "ssl": "TLS vom ersten Byte an (meist Port 465).",
+        "none": "Nichts wird verschlüsselt, auch das Passwort nicht. Nur für ein Relay in einem vertrauenswürdigen Netz (meist Port 25)."
+      },
+      "verifyTls": "Serverzertifikat prüfen",
+      "verifyTlsOn": "Die Appliance muss dem Zertifikat vertrauen, und es muss diesen Server nennen.",
+      "verifyTlsOff": "Jedes Zertifikat wird akzeptiert, ein Rechner dazwischen könnte also Mails und Anmeldung mitlesen.",
+      "timeout": "Zeitlimit (Sekunden)",
+      "timeoutHint": "Wie lange auf den Server gewartet wird, 5–300."
+    },
+    "auth": {
+      "title": "Authentifizierung",
+      "password": "Benutzername und Passwort",
+      "oauth2": "OAuth 2.0",
+      "none": "Keine",
+      "noneHint": "Für ein Relay, das Mails der Appliance ohne Anmeldung annimmt.",
+      "unencryptedWarning": "Die Verbindung ist nicht verschlüsselt, die Anmeldung geht also im Klartext über das Netz. Wählen Sie STARTTLS oder SSL/TLS.",
+      "username": "Benutzername",
+      "passwordLabel": "Passwort"
+    },
+    "oauth": {
+      "provider": "Anbieter",
+      "providers": {
+        "microsoft": "Microsoft 365 (Exchange Online)",
+        "google": "Google Workspace",
+        "custom": "Anderer OAuth-2.0-Anbieter"
+      },
+      "grant": "Grant",
+      "clientCredentials": "Client Credentials",
+      "refreshToken": "Refresh-Token",
+      "grantHint": {
+        "client_credentials": "Die Anwendung meldet sich selbst an und sendet als das Postfach (Microsoft 365).",
+        "refresh_token": "Ein Benutzer hat einmal zugestimmt; die Appliance erneuert das Zugriffstoken bei Bedarf."
+      },
+      "mailbox": "Postfach",
+      "mailboxHint": "Das Konto, als das das Token sendet.",
+      "tenant": "Verzeichnis-ID (Mandant)",
+      "tokenUrl": "Token-Endpunkt",
+      "clientId": "Anwendungs-ID (Client)",
+      "clientSecret": "Geheimer Clientschlüssel",
+      "refreshTokenLabel": "Refresh-Token",
+      "refreshTokenHint": "Aus dem Zustimmungsablauf; ein vom Anbieter ersetztes Token wird automatisch gespeichert.",
+      "scope": "Bereich (Scope)",
+      "scopeHint": "Leer lassen für den SMTP-Bereich des Anbieters.",
+      "endpoint": "Tokens werden angefordert bei"
+    },
+    "secret": {
+      "stored": "Auf der Appliance gespeichert. Leer lassen, um es zu behalten.",
+      "keepPlaceholder": "•••••••• (gespeichert)",
+      "willClear": "Wird beim Speichern entfernt.",
+      "remove": "Entfernen",
+      "keep": "Behalten",
+      "optional": "{{label}} (falls der Anbieter es verlangt)"
+    },
+    "addresses": {
+      "title": "Absender und Empfänger",
+      "sender": "Absenderadresse",
+      "senderName": "Absendername",
+      "recipients": "Empfänger",
+      "addRecipient": "Empfänger hinzufügen",
+      "recipientsHint": "Jede Benachrichtigung geht an alle. Mit der Eingabetaste fügen Sie eine Adresse hinzu."
+    },
+    "events": {
+      "title": "Ereignisse mit E-Mail",
+      "hint": "Schalten Sie ein Ereignis ein, um den Empfängern beim Eintreten eine E-Mail zu senden.",
+      "threshold": "Senden, wenn ein Repository gefüllt ist zu",
+      "names": {
+        "job.failed": "Sicherungsjob fehlgeschlagen",
+        "job.warning": "Sicherungsjob mit Warnungen beendet",
+        "job.succeeded": "Sicherungsjob erfolgreich",
+        "restore.failed": "Wiederherstellung fehlgeschlagen",
+        "restore.succeeded": "Wiederherstellung abgeschlossen",
+        "repository.low_space": "Repository fast voll",
+        "system.clock_jump": "Serveruhr sprang vor",
+        "tls.certificate_expiring": "HTTPS-Zertifikat läuft ab"
+      },
+      "descriptions": {
+        "job.failed": "Ein Joblauf endete, und die Sicherung mindestens einer VM schlug fehl. Eine Benachrichtigung pro Lauf mit allen VMs.",
+        "job.warning": "Ein Joblauf endete, alle VMs wurden gesichert, und mindestens eine Sicherung meldete eine Warnung.",
+        "job.succeeded": "Ein Joblauf endete, und alle VMs wurden ohne Warnung gesichert.",
+        "restore.failed": "Eine VM-Wiederherstellung schlug fehl.",
+        "restore.succeeded": "Eine VM-Wiederherstellung wurde abgeschlossen.",
+        "repository.low_space": "Nach einer Sicherung ist der Datenträger eines lokalen oder SMB-Repositorys bis zum Schwellenwert oder darüber gefüllt. Erneut, nachdem er darunter fiel und wieder volllief.",
+        "system.clock_jump": "Die Serveruhr sprang weiter vor als erwartet, daher löscht die Aufbewahrung nichts, bis ein Administrator die Zeit bestätigt.",
+        "tls.certificate_expiring": "Ein von einem Administrator installiertes HTTPS-Zertifikat läuft in 14 Tagen ab oder ist abgelaufen. Tägliche Prüfung."
+      }
+    },
+    "test": {
+      "send": "Test-E-Mail senden",
+      "sending": "Wird gesendet …",
+      "to": "Test senden an",
+      "toPlaceholder": "Test an (Standard: die Empfänger)",
+      "unreachable": "Die Appliance antwortete nicht.",
+      "sent": "Test-E-Mail an {{to}} gesendet ({{ms}} ms).",
+      "refused": "Der Server lehnte ab: {{list}}.",
+      "checkInbox": "Prüfen Sie, ob sie ankam; ein Spamfilter kann sie noch zurückhalten. Ungespeicherte Änderungen wurden verwendet, aber nicht gespeichert.",
+      "stage": "fehlgeschlagen bei: {{stage}}",
+      "failure": {
+        "smtp_connection_failed": "Keine Verbindung zum SMTP-Server",
+        "smtp_tls_failed": "Die sichere Verbindung schlug fehl",
+        "smtp_auth_failed": "Der SMTP-Server lehnte die Anmeldung ab",
+        "oauth_token_failed": "Kein OAuth-2.0-Zugriffstoken erhalten",
+        "smtp_sender_refused": "Der SMTP-Server lehnte die Absenderadresse ab",
+        "smtp_recipients_refused": "Der SMTP-Server lehnte die Empfänger ab",
+        "smtp_error": "Der SMTP-Server nahm die Nachricht nicht an",
+        "other": "Die Test-E-Mail wurde nicht gesendet"
+      }
+    },
+    "history": {
+      "title": "Letzte Zustellungen",
+      "empty": "Noch nichts gesendet.",
+      "retryAt": "Nächster Versuch",
+      "status": {
+        "sent": "Gesendet",
+        "failed": "Fehlgeschlagen",
+        "retrying": "Neuer Versuch",
+        "queued": "Wartend",
+        "cancelled": "Abgebrochen"
+      }
+    },
+    "error": {
+      "summary_one": "{{count}} Einstellung muss korrigiert werden, bevor gespeichert oder getestet werden kann.",
+      "summary_other": "{{count}} Einstellungen müssen korrigiert werden, bevor gespeichert oder getestet werden kann.",
+      "host": "Kein Hostname und keine IP-Adresse.",
+      "hostRequired": "Geben Sie Hostname oder IP-Adresse des SMTP-Servers ein.",
+      "port": "Geben Sie einen Port von 1 bis 65535 ein.",
+      "timeout": "Geben Sie 5 bis 300 Sekunden ein.",
+      "usernameRequired": "Geben Sie den Benutzernamen für die Anmeldung ein.",
+      "passwordRequired": "Geben Sie das Passwort dieses Benutzers ein.",
+      "mailboxRequired": "Geben Sie das Postfach ein, als das das Token sendet.",
+      "googleGrant": "Google stellt für Mail keine Client-Credentials-Tokens aus; verwenden Sie ein Refresh-Token.",
+      "tenant": "Geben Sie eine Mandanten-ID (GUID) oder einen Domänennamen ein.",
+      "tenantRequired": "Geben Sie die Verzeichnis-ID (Mandant) ein.",
+      "tokenUrl": "Geben Sie eine https://-URL ein.",
+      "tokenUrlRequired": "Geben Sie die URL des Token-Endpunkts ein.",
+      "clientIdRequired": "Geben Sie die Anwendungs-ID (Client) ein.",
+      "clientSecretRequired": "Geben Sie den geheimen Clientschlüssel ein.",
+      "refreshTokenRequired": "Geben Sie das Refresh-Token ein.",
+      "address": "Keine E-Mail-Adresse.",
+      "senderRequired": "Geben Sie die Absenderadresse der Benachrichtigungen ein.",
+      "recipients": "Keine E-Mail-Adresse: {{list}}.",
+      "recipientsRequired": "Fügen Sie mindestens einen Empfänger hinzu.",
+      "threshold": "Geben Sie 50 bis 99 ein."
     }
   }
 }

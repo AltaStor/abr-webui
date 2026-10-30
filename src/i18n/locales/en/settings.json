@@ -22,7 +22,7 @@
     },
     "notifications": {
       "label": "Notifications",
-      "blurb": "Choose which events notify you"
+      "blurb": "E-mail and in-console notifications"
     },
     "security": {
       "label": "Security",
@@ -99,8 +99,8 @@
   "notifications": {
     "savedDescription": "Notification preferences updated.",
     "events": {
-      "title": "Events",
-      "description": "Choose which events notify you.",
+      "title": "In-console notifications",
+      "description": "Pop-ups in this browser while the console is open; kept in this browser only. E-mail is set above.",
       "jobFailure": {
         "label": "Job failure",
         "blurb": "A backup run fails or errors"
@@ -546,6 +546,170 @@
       "inUse_other": "{{name}} is held by {{count}} users: {{names}}. Give them another role first, then delete it.",
       "inUseNoNames_one": "{{count}} user holds {{name}}. Give them another role first, then delete it.",
       "inUseNoNames_other": "{{count}} users hold {{name}}. Give them another role first, then delete it."
+    }
+  },
+  "email": {
+    "title": "E-mail notifications",
+    "description": "The appliance e-mails the recipients below when a chosen event happens, through your SMTP server.",
+    "enable": "Send e-mail notifications",
+    "on": "On",
+    "off": "Off",
+    "liveOnly": "Connect to a live appliance to set up e-mail notifications.",
+    "loading": "Reading the e-mail settings…",
+    "loadFailed": "Couldn't read the e-mail settings from the appliance.",
+    "saved": "E-mail notification settings saved.",
+    "saveFailed": "E-mail settings not saved",
+    "lastChanged": "Last changed by {{user}},",
+    "server": {
+      "title": "SMTP server",
+      "host": "Server",
+      "port": "Port",
+      "security": "Connection security",
+      "noEncryption": "None",
+      "securityHint": {
+        "starttls": "Connects unencrypted, then switches to TLS before signing in (usually port 587).",
+        "ssl": "TLS from the first byte (usually port 465).",
+        "none": "Nothing is encrypted, the password included. Only for a relay on a trusted network (usually port 25)."
+      },
+      "verifyTls": "Verify the server certificate",
+      "verifyTlsOn": "The certificate must be trusted by the appliance and name this server.",
+      "verifyTlsOff": "Any certificate is accepted, so a machine in between could read the mail and the sign-in.",
+      "timeout": "Timeout (seconds)",
+      "timeoutHint": "How long to wait for the server, 5–300."
+    },
+    "auth": {
+      "title": "Authentication",
+      "password": "Username and password",
+      "oauth2": "OAuth 2.0",
+      "none": "None",
+      "noneHint": "For a relay that accepts mail from the appliance without signing in.",
+      "unencryptedWarning": "The connection is not encrypted, so the sign-in crosses the network in the clear. Choose STARTTLS or SSL/TLS.",
+      "username": "Username",
+      "passwordLabel": "Password"
+    },
+    "oauth": {
+      "provider": "Provider",
+      "providers": {
+        "microsoft": "Microsoft 365 (Exchange Online)",
+        "google": "Google Workspace",
+        "custom": "Other OAuth 2.0 provider"
+      },
+      "grant": "Grant",
+      "clientCredentials": "Client credentials",
+      "refreshToken": "Refresh token",
+      "grantHint": {
+        "client_credentials": "The application signs in on its own and sends as the mailbox (Microsoft 365).",
+        "refresh_token": "A user consented once; the appliance refreshes the access token as needed."
+      },
+      "mailbox": "Mailbox",
+      "mailboxHint": "The account the token sends as.",
+      "tenant": "Directory (tenant) ID",
+      "tokenUrl": "Token endpoint",
+      "clientId": "Application (client) ID",
+      "clientSecret": "Client secret",
+      "refreshTokenLabel": "Refresh token",
+      "refreshTokenHint": "From the consent flow; a token the provider replaces is stored automatically.",
+      "scope": "Scope",
+      "scopeHint": "Leave empty for the provider's SMTP scope.",
+      "endpoint": "Tokens are requested from"
+    },
+    "secret": {
+      "stored": "Stored on the appliance. Leave empty to keep it.",
+      "keepPlaceholder": "•••••••• (stored)",
+      "willClear": "Removed when you save.",
+      "remove": "Remove",
+      "keep": "Keep",
+      "optional": "{{label}} (if the provider asks for one)"
+    },
+    "addresses": {
+      "title": "Sender and recipients",
+      "sender": "Sender address",
+      "senderName": "Sender name",
+      "recipients": "Recipients",
+      "addRecipient": "Add recipient",
+      "recipientsHint": "Every notification goes to all of them. Press Enter to add an address."
+    },
+    "events": {
+      "title": "Events that send e-mail",
+      "hint": "Switch an event on to e-mail the recipients when it happens.",
+      "threshold": "Send when a repository is filled to",
+      "names": {
+        "job.failed": "Backup job failed",
+        "job.warning": "Backup job finished with warnings",
+        "job.succeeded": "Backup job succeeded",
+        "restore.failed": "Restore failed",
+        "restore.succeeded": "Restore finished",
+        "repository.low_space": "Repository running out of space",
+        "system.clock_jump": "Server clock jumped forward",
+        "tls.certificate_expiring": "HTTPS certificate expiring"
+      },
+      "descriptions": {
+        "job.failed": "A job's run finished and the backup of at least one VM failed. One notification per run, covering every VM.",
+        "job.warning": "A job's run finished, every VM was backed up, and at least one backup reported a warning.",
+        "job.succeeded": "A job's run finished and every VM was backed up without a warning.",
+        "restore.failed": "A VM restore failed.",
+        "restore.succeeded": "A VM restore finished.",
+        "repository.low_space": "After a backup, a local or SMB repository's disk is filled to the threshold or beyond. Sent again once it has dropped below and filled up again.",
+        "system.clock_jump": "The server's clock moved further forward than expected, so retention deletes nothing until an Administrator confirms the time.",
+        "tls.certificate_expiring": "An HTTPS certificate an administrator installed expires within 14 days, or has expired. Checked daily."
+      }
+    },
+    "test": {
+      "send": "Send test e-mail",
+      "sending": "Sending…",
+      "to": "Send the test to",
+      "toPlaceholder": "Test to (default: the recipients)",
+      "unreachable": "The appliance didn't answer.",
+      "sent": "Test e-mail sent to {{to}} ({{ms}} ms).",
+      "refused": "The server refused: {{list}}.",
+      "checkInbox": "Check that it arrived; a spam filter can still hold it. Unsaved changes were used but not saved.",
+      "stage": "failed at: {{stage}}",
+      "failure": {
+        "smtp_connection_failed": "Couldn't connect to the SMTP server",
+        "smtp_tls_failed": "The secure connection failed",
+        "smtp_auth_failed": "The SMTP server refused the sign-in",
+        "oauth_token_failed": "Couldn't get an OAuth 2.0 access token",
+        "smtp_sender_refused": "The SMTP server refused the sender address",
+        "smtp_recipients_refused": "The SMTP server refused the recipients",
+        "smtp_error": "The SMTP server didn't accept the message",
+        "other": "The test e-mail was not sent"
+      }
+    },
+    "history": {
+      "title": "Recent deliveries",
+      "empty": "Nothing sent yet.",
+      "retryAt": "Next attempt",
+      "status": {
+        "sent": "Sent",
+        "failed": "Failed",
+        "retrying": "Retrying",
+        "queued": "Queued",
+        "cancelled": "Cancelled"
+      }
+    },
+    "error": {
+      "summary_one": "{{count}} setting needs attention before this can be saved or tested.",
+      "summary_other": "{{count}} settings need attention before this can be saved or tested.",
+      "host": "Not a host name or IP address.",
+      "hostRequired": "Enter the SMTP server's host name or IP address.",
+      "port": "Enter a port from 1 to 65535.",
+      "timeout": "Enter 5 to 300 seconds.",
+      "usernameRequired": "Enter the user name the server signs in.",
+      "passwordRequired": "Enter the password for that user.",
+      "mailboxRequired": "Enter the mailbox the token sends as.",
+      "googleGrant": "Google issues no client-credentials tokens for mail; use a refresh token.",
+      "tenant": "Enter a tenant ID (a GUID) or a domain name.",
+      "tenantRequired": "Enter the directory (tenant) ID.",
+      "tokenUrl": "Enter an https:// URL.",
+      "tokenUrlRequired": "Enter the token endpoint URL.",
+      "clientIdRequired": "Enter the application (client) ID.",
+      "clientSecretRequired": "Enter the client secret.",
+      "refreshTokenRequired": "Enter the refresh token.",
+      "address": "Not an e-mail address.",
+      "senderRequired": "Enter the address notifications are sent from.",
+      "recipients": "Not an e-mail address: {{list}}.",
+      "recipientsRequired": "Add at least one recipient.",
+      "threshold": "Enter 50 to 99."
     }
   }
 }

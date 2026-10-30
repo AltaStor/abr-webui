@@ -5,6 +5,19 @@ All notable changes to the AltaStor WebUI are documented in this file.
 ## Unreleased
 
 ### Added
+- Settings → Notifications → E-mail notifications: the appliance's SMTP
+  server and connection security (STARTTLS, SSL/TLS, none; certificate
+  verification), sign-in with a username and password or OAuth 2.0
+  (Microsoft 365, Google Workspace or any provider; client credentials or
+  refresh token), sender, recipients, the events that send e-mail and the
+  repository space threshold. The appliance's checks run in the form, and
+  whatever it still refuses is shown on the field it concerns. Send test
+  e-mail uses the unsaved changes and says why a message did not go
+  (connection, TLS, sign-in, OAuth token, sender or recipients refused).
+  Secrets are write-only: shown as stored, kept when left empty, removed on
+  request. Recent deliveries, with failures and retries. Read-only for an
+  Auditor. The browser's own pop-up notifications are the card below,
+  "In-console notifications".
 - Time zones: every absolute time shows its zone ("Oct 23, 01:00 GMT+3") in
   one format across the console, with UTC on hover; schedules show the job's
   zone and the viewer's equivalent ("Daily · 22:00 UTC (01:00 GMT+3, next

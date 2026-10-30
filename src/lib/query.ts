@@ -35,4 +35,5 @@ export const qk = {
   functions: ["functions"] as const,
   audit: (query: object) => ["audit", query] as const,
   systemClock: ["system-clock"] as const,
+  emailNotifications: ["email-notifications"] as const,
 };
