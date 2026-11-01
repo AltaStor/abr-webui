@@ -10,6 +10,8 @@ import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { apiErrorMessage, extendSession } from "@/services/api.http";
+import { formatDateTime } from "@/lib/time";
+import { sessionDurationLabel } from "@/lib/session";
 import { useAuthStore } from "@/store/auth";
 import { useSettingsStore } from "@/store/settings";
 import { useWorldStore } from "@/store/world";
@@ -44,6 +46,9 @@ function SessionCard() {
   const sessionDurationSec = useSettingsStore((s) => s.security.sessionDurationSec);
   const updateSecurity = useSettingsStore((s) => s.updateSecurity);
   const mode = useWorldStore((s) => s.mode);
+  const signedIn = useAuthStore((s) => s.status === "signed-in");
+  const absoluteExpiresAt = useAuthStore((s) => s.absoluteExpiresAt);
+  const noteExpiry = useAuthStore((s) => s.noteExpiry);
 
   // Local drag state for live label feedback; committed (persisted + sent to
   // the appliance) only on release via onValueCommit, not on every tick.
@@ -60,7 +65,7 @@ function SessionCard() {
     if (mode !== "live") return;
     setApplying(true);
     try {
-      await extendSession(value);
+      noteExpiry(await extendSession(value), value);
       toast.success(t("saved.title"), { description: t("security.session.savedDescription") });
     } catch (err) {
       toast.error(t("security.session.applyFailed.title"), {
@@ -71,14 +76,7 @@ function SessionCard() {
     }
   };
 
-  const hours = Math.floor(draft / 3600);
-  const minutes = Math.floor((draft % 3600) / 60);
-  const durationLabel = [
-    hours > 0 ? t("security.session.hours", { count: hours }) : null,
-    minutes > 0 ? t("security.session.minutes", { count: minutes }) : null,
-  ]
-    .filter(Boolean)
-    .join(" ");
+  const durationLabel = sessionDurationLabel(draft);
 
   return (
     <SettingsSection title={t("security.session.title")} description={t("security.session.description")} icon={Timer}>
@@ -99,6 +97,13 @@ function SessionCard() {
           aria-label={t("security.session.label")}
         />
         <p className="text-xs text-muted-foreground">{t("security.session.hint")}</p>
+        {mode === "live" && signedIn && (
+          <p className="text-xs text-muted-foreground" data-testid="session-limit">
+            {absoluteExpiresAt
+              ? t("security.session.limit", { time: formatDateTime(absoluteExpiresAt) })
+              : t("security.session.noLimit")}
+          </p>
+        )}
       </div>
     </SettingsSection>
   );

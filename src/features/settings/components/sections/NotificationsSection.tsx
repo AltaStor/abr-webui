@@ -10,6 +10,9 @@ import type { LucideIcon } from "@/lib/icons";
 import i18n from "@/i18n";
 import { SettingsSection } from "../SettingsSection";
 import { OfflineNotice, toastSettingSaved, useSettingsOffline } from "../controls";
+import { EmailNotificationsCard } from "./EmailNotificationsCard";
+import { NotificationScriptCard } from "./NotificationScriptCard";
+import { useCan } from "@/store/permissions";
 
 /* -------------------------------------------------------------------------- */
 
@@ -27,6 +30,7 @@ export function NotificationsSection() {
   const events = useSettingsStore((s) => s.notifications.events);
   const updateEvents = useSettingsStore((s) => s.updateEvents);
   const offline = useSettingsOffline();
+  const canViewChannels = useCan("notification.view");
 
   /* This section is nothing but switches, and a switch IS the commit: by the
      time it has moved the operator has said everything they had to say. The
@@ -41,51 +45,55 @@ export function NotificationsSection() {
   };
 
   return (
-    <SettingsSection
-      title={t("notifications.events.title")}
-      description={t("notifications.events.description")}
-      icon={Bell}
-      // No save bar: there is nothing here that needs one. What the bar did
-      // still matter for is the unreachable appliance, which is all that is
-      // left in the footer — and only when it happens.
-      footer={offline ? <OfflineNotice /> : undefined}
-    >
-      <div className="grid gap-2 py-3 sm:grid-cols-2">
-        {EVENT_META.map(({ key, label, blurb, icon: Icon }) => {
-          const on = events[key];
-          return (
-            <label
-              key={key}
-              htmlFor={`ev-${key}`}
-              className={cn(
-                "flex items-center gap-3 border p-3 transition-colors",
-                offline ? "cursor-not-allowed opacity-60" : "cursor-pointer",
-                on ? "border-primary/30 bg-primary/[0.04]" : "border-border hover:bg-muted/40",
-              )}
-            >
-              <span
+    <div className="space-y-4">
+      {canViewChannels && <EmailNotificationsCard />}
+      {canViewChannels && <NotificationScriptCard />}
+      <SettingsSection
+        title={t("notifications.events.title")}
+        description={t("notifications.events.description")}
+        icon={Bell}
+        // No save bar: there is nothing here that needs one. What the bar did
+        // still matter for is the unreachable appliance, which is all that is
+        // left in the footer — and only when it happens.
+        footer={offline ? <OfflineNotice /> : undefined}
+      >
+        <div className="grid gap-2 py-3 sm:grid-cols-2">
+          {EVENT_META.map(({ key, label, blurb, icon: Icon }) => {
+            const on = events[key];
+            return (
+              <label
+                key={key}
+                htmlFor={`ev-${key}`}
                 className={cn(
-                  "flex h-8 w-8 shrink-0 items-center justify-center",
-                  on ? "bg-primary/12 text-primary" : "bg-muted text-muted-foreground",
+                  "flex items-center gap-3 border p-3 transition-colors",
+                  offline ? "cursor-not-allowed opacity-60" : "cursor-pointer",
+                  on ? "border-primary/30 bg-primary/[0.04]" : "border-border hover:bg-muted/40",
                 )}
               >
-                <Icon className="h-4 w-4" />
-              </span>
-              <div className="min-w-0 flex-1">
-                <div className="text-sm font-medium">{label}</div>
-                <div className="truncate text-xs text-muted-foreground" title={blurb}>{blurb}</div>
-              </div>
-              <Switch
-                id={`ev-${key}`}
-                checked={on}
-                onCheckedChange={(v) => setEvent(key, v)}
-                disabled={offline}
-                aria-label={label}
-              />
-            </label>
-          );
-        })}
-      </div>
-    </SettingsSection>
+                <span
+                  className={cn(
+                    "flex h-8 w-8 shrink-0 items-center justify-center",
+                    on ? "bg-primary/12 text-primary" : "bg-muted text-muted-foreground",
+                  )}
+                >
+                  <Icon className="h-4 w-4" />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <div className="text-sm font-medium">{label}</div>
+                  <div className="truncate text-xs text-muted-foreground" title={blurb}>{blurb}</div>
+                </div>
+                <Switch
+                  id={`ev-${key}`}
+                  checked={on}
+                  onCheckedChange={(v) => setEvent(key, v)}
+                  disabled={offline}
+                  aria-label={label}
+                />
+              </label>
+            );
+          })}
+        </div>
+      </SettingsSection>
+    </div>
   );
 }

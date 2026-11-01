@@ -18,6 +18,7 @@ import { formatDateTime, formatStorage } from "@/lib/format";
 import { segmentChainPoints } from "@/lib/restore-points";
 import { useWorldStore } from "@/store/world";
 import type { RestorePoint } from "@/types";
+import { utcTitle } from "@/lib/time";
 
 interface DeleteRestorePointDialogProps {
   /** The full backup whose delete button was clicked — the segment anchor.
@@ -115,7 +116,7 @@ export function DeleteRestorePointDialog({
             <span className="font-medium">{t("deleteOne.pointCount", { count: segment.length })}</span>
             <span className="nums text-muted-foreground">{formatStorage(sizeGB, 1)}</span>
           </div>
-          <p className="mt-0.5 text-xs text-muted-foreground">
+          <p className="mt-0.5 text-xs text-muted-foreground" title={utcTitle(newest.createdAt)}>
             {oldest.createdAt === newest.createdAt
               ? formatDateTime(newest.createdAt)
               : t("deleteOne.range", {

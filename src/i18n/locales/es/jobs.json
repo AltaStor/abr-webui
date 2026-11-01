@@ -47,7 +47,10 @@
     "upcomingRuns": "Próximas ejecuciones",
     "disabledNote": "Programación deshabilitada; habilita el trabajo para reanudar las ejecuciones automáticas.",
     "customSchedule": "Programación personalizada",
-    "noRunsProjected": "No hay ejecuciones proyectadas."
+    "noRunsProjected": "No hay ejecuciones proyectadas.",
+    "withViewerTime": "{{label}} ({{viewer}})",
+    "nextDay": "{{time}}, día siguiente",
+    "previousDay": "{{time}}, día anterior"
   },
   "retention": {
     "days_one": "{{count}} día",
@@ -834,8 +837,6 @@
     "firstRun": {
       "hourly": "dentro de la hora",
       "every4h": "dentro de 4 horas",
-      "weekly": "el próximo {{day}} a las {{time}}",
-      "daily": "esta noche a las {{time}}",
       "weeklyNoDay": "en cuanto elija un día"
     },
     "errors": {
@@ -1009,6 +1010,17 @@
         "application": "Un invitado en ejecución se pone en reposo mediante VSS; si no es posible, el punto de control es coherente ante fallos y la ejecución lo indica.",
         "crash": "El invitado nunca interviene: como desenchufarlo en el momento del punto de control."
       }
+    },
+    "timezone": {
+      "label": "Zona horaria",
+      "suggested": "Sugeridas",
+      "all": "Todas las zonas horarias",
+      "yours": "su zona horaria",
+      "appliance": "la del appliance",
+      "explain": "{{time}} son las {{viewer}} en su reloj.",
+      "explainSame": "{{time}} es la misma hora en su reloj.",
+      "explainNextDay": "{{time}} son las {{viewer}} del día siguiente en su reloj.",
+      "explainPreviousDay": "{{time}} son las {{viewer}} del día anterior en su reloj."
     }
   },
   "hyperv": {

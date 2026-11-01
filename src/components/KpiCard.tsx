@@ -25,6 +25,9 @@ interface KpiCardProps {
   iconSpin?: boolean;
   tone?: Tone;
   hint?: string;
+  /** Hover text for the hint when it should say more than the hint itself:
+   *  the UTC reading of a time it names. */
+  hintTitle?: string;
   /**
    * Names where the tile goes. It is a destination, not a command: no leading
    * "View"/"Manage" — the arrow already says a trip is involved, and matching
@@ -63,6 +66,7 @@ export function KpiCard({
   iconSpin,
   tone = "neutral",
   hint,
+  hintTitle,
   drillLabel,
   to,
   onClick,
@@ -119,7 +123,7 @@ export function KpiCard({
             {unit && <span className="font-display text-base font-medium text-muted-foreground">{unit}</span>}
           </div>
         )}
-        {hint && !loading && <p className="mt-1 truncate text-xs text-muted-foreground" title={hint}>{hint}</p>}
+        {hint && !loading && <p className="mt-1 truncate text-xs text-muted-foreground" title={hintTitle ?? hint}>{hint}</p>}
       </div>
 
       {(footer || drillLabel) && (

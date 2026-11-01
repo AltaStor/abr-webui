@@ -12,9 +12,10 @@ import { VmIcon } from "@/features/inventory/components/VmIcon";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useListMaxHeight } from "../useListMaxHeight";
 import { cn } from "@/lib/utils";
-import { formatDateTime, formatRelative } from "@/lib/format";
+import { formatRelative } from "@/lib/format";
 import { useWorldStore } from "@/store/world";
 import type { VM } from "@/types";
+import { DateTime } from "@/components/DateTime";
 
 interface ChooseVmStepProps {
   onSelect: (vm: VM) => void;
@@ -131,9 +132,7 @@ export function ChooseVmStep({ onSelect }: ChooseVmStepProps) {
                       {/* Which backup, not just how fresh — this list is sorted by a
                           timestamp the operator otherwise never sees. */}
                       {vm.lastBackupAt && (
-                        <span className="nums text-[11px] text-muted-foreground">
-                          {formatDateTime(vm.lastBackupAt)}
-                        </span>
+                        <DateTime value={vm.lastBackupAt} className="text-[11px] text-muted-foreground" />
                       )}
                     </span>
                     <ArrowRight className="h-4 w-4 shrink-0 text-muted-foreground/50 transition-transform group-hover:translate-x-0.5 group-hover:text-primary" />

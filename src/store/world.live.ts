@@ -443,9 +443,10 @@ export function createLiveDriver(handle: WorldHandle): WorldDriver {
     });
   };
 
-  /** Concurrent hydrate requests (start + first onOpen) share one flight. */
-  const runHydrate = (): Promise<void> => {
-    hydrateInFlight ??= hydrate().finally(() => {
+  /** Concurrent hydrate requests (start + first onOpen) share one flight.
+   *  The poll's are `background`: they must not keep an idle session alive. */
+  const runHydrate = (background = false): Promise<void> => {
+    hydrateInFlight ??= (background ? api.inBackground(hydrate) : hydrate()).finally(() => {
       hydrateInFlight = null;
     });
     return hydrateInFlight;
@@ -743,7 +744,7 @@ export function createLiveDriver(handle: WorldHandle): WorldDriver {
      * operator waits on.) */
     const hydrateIfAuthenticated = (): void => {
       if (!api.hasAuthSession()) return;
-      runHydrate().catch(() => {
+      runHydrate(true).catch(() => {
         if (!stopped) handle.set({ connected: false });
       });
     };

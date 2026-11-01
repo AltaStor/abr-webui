@@ -14,8 +14,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { toast } from "@/components/ui/sonner";
-import { formatDateTime } from "@/lib/format";
-import { confirmSystemClock, getSystemClock } from "@/services/api.http";
+import { formatDateTime, utcTitle } from "@/lib/time";
+import { confirmSystemClock, getSystemClock, inBackground } from "@/services/api.http";
 import { useCan } from "@/store/permissions";
 import { useWorldStore } from "@/store/world";
 import type { SystemClockStatus } from "@/types";
@@ -42,7 +42,7 @@ export function ClockJumpBanner() {
   const live = mode === "live" && ready;
 
   const refresh = useCallback(() => {
-    getSystemClock()
+    inBackground(getSystemClock)
       .then(setStatus)
       .catch(() => undefined);
   }, []);
@@ -116,11 +116,18 @@ function ConfirmClockDialog({ status, open, onOpenChange, onConfirmed }: Confirm
     }
   }
 
-  const rows: { label: string; value: string }[] = [
-    { label: t("clockJump.dialog.serverTime"), value: status.serverTime ? formatDateTime(status.serverTime) : "—" },
+  // The appliance's clock, so in the appliance's zone, labelled as such.
+  const zone = status.timezone ?? undefined;
+  const rows: { label: string; value: string; title?: string }[] = [
+    {
+      label: t("clockJump.dialog.serverTime"),
+      value: formatDateTime(status.serverTime, { zone, seconds: true }),
+      title: utcTitle(status.serverTime),
+    },
     {
       label: t("clockJump.dialog.lastTrusted"),
-      value: status.lastTrustedAt ? formatDateTime(status.lastTrustedAt) : "—",
+      value: formatDateTime(status.lastTrustedAt, { zone, seconds: true }),
+      title: utcTitle(status.lastTrustedAt),
     },
     { label: t("clockJump.dialog.jump"), value: jumpText(status.jumpSeconds) },
     {
@@ -143,7 +150,9 @@ function ConfirmClockDialog({ status, open, onOpenChange, onConfirmed }: Confirm
           {rows.map((row) => (
             <div key={row.label} className="contents">
               <dt className="text-muted-foreground">{row.label}</dt>
-              <dd className="nums font-medium">{row.value}</dd>
+              <dd className="nums font-medium" title={row.title}>
+                {row.value}
+              </dd>
             </div>
           ))}
         </dl>

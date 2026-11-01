@@ -6,12 +6,13 @@ import { Lock, RotateCcw, ServerOff, Trash2 } from "@/lib/icons";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { formatDateTime, formatRelative, formatStorage } from "@/lib/format";
+import { formatRelative, formatStorage } from "@/lib/format";
 import { compressionRatioLabel, pointTypeTooltip } from "@/lib/restore-points";
 import { SyntheticFullBadge } from "@/components/SyntheticFullBadge";
 import { ConsistencyBadge } from "@/components/ConsistencyBadge";
 import type { RestorePoint } from "@/types";
 import { useCan } from "@/store/permissions";
+import { DateTime } from "@/components/DateTime";
 
 /**
  * One restore point row. Shared by the VM detail page and the Backups page so a
@@ -49,7 +50,7 @@ export function RestorePointItem({
       </span>
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-2">
-          <span className="text-sm font-medium">{formatDateTime(point.createdAt)}</span>
+          <DateTime value={point.createdAt} className="text-sm font-medium" />
           <Badge
             variant={point.type === "full" ? "default" : "secondary"}
             className="font-normal capitalize"

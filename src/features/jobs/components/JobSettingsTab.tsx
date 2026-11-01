@@ -21,6 +21,7 @@ import { useWorldStore } from "@/store/world";
 import { formatDateTime, formatStorage, usagePercent } from "@/lib/format";
 import type { BackupJob, Repository } from "@/types";
 import { fullScheduleLabel, retentionLabel, scheduleLabel } from "../lib";
+import { utcTitle } from "@/lib/time";
 
 interface Props {
   job: BackupJob;
@@ -69,12 +70,12 @@ export function JobSettingsTab({ job, repository, onApplyRetention }: Props) {
                     appliance clears it for a suspended schedule and while the
                     job itself is disabled. */}
                 {job.activeFullNextRunAt && (
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-xs text-muted-foreground" title={utcTitle(job.activeFullNextRunAt)}>
                     {t("fullSchedule.nextActive", { when: formatDateTime(job.activeFullNextRunAt) })}
                   </p>
                 )}
                 {job.syntheticFullNextRunAt && (
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-xs text-muted-foreground" title={utcTitle(job.syntheticFullNextRunAt)}>
                     {t("fullSchedule.nextSynthetic", { when: formatDateTime(job.syntheticFullNextRunAt) })}
                   </p>
                 )}

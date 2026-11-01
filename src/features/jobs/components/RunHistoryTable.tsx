@@ -14,10 +14,11 @@ import { History } from "@/lib/icons";
 import { cn } from "@/lib/utils";
 import { syntheticFullFailureMessage } from "@/lib/synthetic-full";
 import { backupTypeLabel } from "@/lib/run-type";
-import { formatDateTime, formatDuration, formatStorage } from "@/lib/format";
+import { formatDuration, formatStorage } from "@/lib/format";
 import { SESSION_META } from "@/lib/status";
 import type { Session, VmRunResult } from "@/types";
 import i18n from "@/i18n";
+import { DateTime } from "@/components/DateTime";
 
 /**
  * Per-object run result → tone + the word we show for it.
@@ -113,7 +114,9 @@ export function RunHistoryTable({ sessions }: { sessions: Session[] }) {
                     <td className="py-2.5 pr-3">
                       <StatusPill meta={SESSION_META[s.status]} size="sm" />
                     </td>
-                    <td className="nums py-2.5 pr-3 text-muted-foreground">{formatDateTime(s.startedAt)}</td>
+                    <td className="nums py-2.5 pr-3 text-muted-foreground">
+                      <DateTime value={s.startedAt} />
+                    </td>
                     <td className="py-2.5 pr-3">
                       {/* A synthetic full IS a full — it just merged the stored
                           chain instead of re-reading the VM, which is the part

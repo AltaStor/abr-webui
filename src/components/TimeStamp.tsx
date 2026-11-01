@@ -3,7 +3,8 @@
 
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
-import { formatDateTime, formatFullDateTime, formatRelative } from "@/lib/format";
+import { formatRelative } from "@/lib/format";
+import { formatDateTime, utcTitle } from "@/lib/time";
 
 interface TimeStampProps {
   value: string | null | undefined;
@@ -28,8 +29,8 @@ interface TimeStampProps {
  * column shipped the pair first; this is that treatment as one component, so
  * every table cell and list row that names a moment reads the same way.
  *
- * The fuller stamp — weekday and year — stays a hover away rather than taking a
- * third line.
+ * The absolute line carries its zone ("Sep 1, 23:29 GMT+3"); the same moment in
+ * UTC is a hover away rather than a third line.
  *
  * Not for durations (`formatDuration`) or for a value whose absolute stamp is
  * already the primary line, as on a restore point row.
@@ -61,14 +62,14 @@ export function TimeStamp({
   return (
     <div
       className={cn("min-w-0", align === "right" && "text-right", className)}
-      title={formatFullDateTime(value)}
+      title={utcTitle(value)}
     >
       <span className={cn("nums block truncate text-muted-foreground", primary)}>
         {formatRelative(value)}
       </span>
-      <span className="nums block truncate text-[11px] text-muted-foreground">
+      <time dateTime={new Date(value).toISOString()} className="nums block truncate text-[11px] text-muted-foreground">
         {formatDateTime(value)}
-      </span>
+      </time>
     </div>
   );
 }

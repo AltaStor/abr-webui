@@ -30,7 +30,8 @@ import { cn } from "@/lib/utils";
 import { SESSION_META } from "@/lib/status";
 import { syntheticFullFailureMessage } from "@/lib/synthetic-full";
 import { backupTypeLabel } from "@/lib/run-type";
-import { formatDateTime, formatDuration, formatStorage, formatThroughput } from "@/lib/format";
+import { formatDuration, formatStorage, formatThroughput } from "@/lib/format";
+import { DateTime } from "@/components/DateTime";
 import { useWorldStore } from "@/store/world";
 import { getSessionLog } from "@/services/api.http";
 import i18n from "@/i18n";
@@ -194,7 +195,7 @@ function RunDetail({ session: s, jobExists, onClose }: { session: Session; jobEx
                 {trigger.label}
               </span>
               <span className="text-muted-foreground/40">·</span>
-              <span className="nums">{formatDateTime(s.startedAt)}</span>
+              <DateTime value={s.startedAt} />
             </SheetDescription>
           </div>
           <StatusPill meta={SESSION_META[s.status]} size="sm" />

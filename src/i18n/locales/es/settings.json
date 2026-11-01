@@ -22,7 +22,7 @@
     },
     "notifications": {
       "label": "Notificaciones",
-      "blurb": "Elige qué eventos te notifican"
+      "blurb": "Notificaciones por correo, script y consola"
     },
     "security": {
       "label": "Seguridad",
@@ -89,13 +89,18 @@
     "autoCollapse": {
       "label": "Contraer barra lateral automáticamente",
       "description": "Reducir la barra de navegación a iconos en ventanas más estrechas."
+    },
+    "timeZone": {
+      "label": "Zona horaria",
+      "value": "{{zone}} ({{offset}})",
+      "description": "Todas las horas de la consola se muestran en la zona horaria de su navegador, con su desfase (GMT+3); pase el puntero por encima para verlas en UTC. La programación de un trabajo se muestra en la zona del trabajo, con su hora al lado cuando difieren. La zona del navegador la fija su sistema operativo."
     }
   },
   "notifications": {
     "savedDescription": "Preferencias de notificación actualizadas.",
     "events": {
-      "title": "Eventos",
-      "description": "Elige qué eventos te notifican.",
+      "title": "Notificaciones en la consola",
+      "description": "Avisos en este navegador mientras la consola está abierta; solo se guardan en este navegador. El correo se configura arriba.",
       "jobFailure": {
         "label": "Fallo de trabajo",
         "blurb": "Una ejecución de copia de seguridad falla o da errores"
@@ -120,19 +125,21 @@
       "description": "Cambia la contraseña de tu cuenta."
     },
     "session": {
-      "title": "Duración de la sesión",
-      "description": "Cuánto tiempo permanece activa una sesión antes de que debas iniciar sesión de nuevo.",
-      "label": "Mantener sesión iniciada durante",
-      "hint": "Se aplica de inmediato a esta sesión y a los próximos inicios de sesión en este navegador.",
-      "savedDescription": "Duración de la sesión actualizada.",
+      "title": "Cierre de sesión por inactividad",
+      "description": "Cuánto tiempo sigue abierta la sesión de la consola mientras no está. Un clic, una tecla, un desplazamiento o un cambio de página cuentan como actividad; las actualizaciones en segundo plano de la consola y mover el puntero no.",
+      "label": "Cerrar sesión tras",
+      "hint": "Se aplica de inmediato a esta sesión y a los próximos inicios de sesión en este navegador. Un minuto antes, la consola pregunta si sigue ahí.",
+      "savedDescription": "Tiempo de inactividad actualizado.",
       "applyFailed": {
-        "title": "No se aplicó la duración de la sesión",
+        "title": "Tiempo de inactividad no aplicado",
         "description": "Se guardó localmente, pero no se pudo contactar con el equipo — se aplicará en el próximo inicio de sesión."
       },
       "hours_one": "{{count}} hora",
       "hours_other": "{{count}} horas",
       "minutes_one": "{{count}} minuto",
-      "minutes_other": "{{count}} minutos"
+      "minutes_other": "{{count}} minutos",
+      "limit": "Haya actividad o no, esta sesión termina a las {{time}}: el límite del appliance desde el inicio de sesión.",
+      "noLimit": "El appliance no fija un límite desde el inicio de sesión: una sesión activa sigue abierta."
     },
     "certificate": {
       "title": "Certificado HTTPS",
@@ -333,7 +340,9 @@
       "uptime": "Tiempo de actividad",
       "cpu": "CPU",
       "memory": "Memoria",
-      "probeFailed": "No se pudieron leer los detalles de hardware del dispositivo. Los campos que él reporta se muestran como «—»."
+      "probeFailed": "No se pudieron leer los detalles de hardware del dispositivo. Los campos que él reporta se muestran como «—».",
+      "timezone": "Zona horaria",
+      "timezoneValue": "{{zone}}, fijada en el appliance"
     },
     "license": {
       "title": "Recursos"
@@ -534,6 +543,228 @@
       "inUse_other": "{{name}} está asignado a {{count}} usuarios: {{names}}. Asígnales otro rol primero y luego elimínalo.",
       "inUseNoNames_one": "{{name}} está asignado a {{count}} usuario. Asígnale otro rol primero y luego elimínalo.",
       "inUseNoNames_other": "{{name}} está asignado a {{count}} usuarios. Asígnales otro rol primero y luego elimínalo."
+    }
+  },
+  "email": {
+    "title": "Notificaciones por correo",
+    "description": "El appliance envía un correo a los destinatarios de abajo, a través de su servidor SMTP, cuando ocurre un evento elegido.",
+    "enable": "Enviar notificaciones por correo",
+    "on": "Activadas",
+    "off": "Desactivadas",
+    "liveOnly": "Conéctese a un appliance real para configurar las notificaciones por correo.",
+    "loading": "Leyendo la configuración de correo…",
+    "loadFailed": "No se pudo leer la configuración de correo del appliance.",
+    "saved": "Notificaciones por correo guardadas.",
+    "saveFailed": "Configuración de correo no guardada",
+    "lastChanged": "Último cambio por {{user}},",
+    "server": {
+      "title": "Servidor SMTP",
+      "host": "Servidor",
+      "port": "Puerto",
+      "security": "Seguridad de la conexión",
+      "noEncryption": "Ninguna",
+      "securityHint": {
+        "starttls": "Conecta sin cifrar y pasa a TLS antes de iniciar sesión (normalmente el puerto 587).",
+        "ssl": "TLS desde el primer byte (normalmente el puerto 465).",
+        "none": "Nada se cifra, tampoco la contraseña. Solo para un relay en una red de confianza (normalmente el puerto 25)."
+      },
+      "verifyTls": "Verificar el certificado del servidor",
+      "verifyTlsOn": "El appliance debe confiar en el certificado y este debe nombrar a este servidor.",
+      "verifyTlsOff": "Se acepta cualquier certificado, así que una máquina intermedia podría leer el correo y el inicio de sesión.",
+      "timeout": "Tiempo de espera (segundos)",
+      "timeoutHint": "Cuánto esperar al servidor, de 5 a 300."
+    },
+    "auth": {
+      "title": "Autenticación",
+      "password": "Usuario y contraseña",
+      "oauth2": "OAuth 2.0",
+      "none": "Ninguna",
+      "noneHint": "Para un relay que acepta correo del appliance sin iniciar sesión.",
+      "unencryptedWarning": "La conexión no está cifrada, así que el inicio de sesión viaja en claro. Elija STARTTLS o SSL/TLS.",
+      "username": "Usuario",
+      "passwordLabel": "Contraseña"
+    },
+    "oauth": {
+      "provider": "Proveedor",
+      "providers": {
+        "microsoft": "Microsoft 365 (Exchange Online)",
+        "google": "Google Workspace",
+        "custom": "Otro proveedor OAuth 2.0"
+      },
+      "grant": "Concesión",
+      "clientCredentials": "Credenciales de cliente",
+      "refreshToken": "Token de actualización",
+      "grantHint": {
+        "client_credentials": "La aplicación inicia sesión por sí misma y envía como el buzón (Microsoft 365).",
+        "refresh_token": "Un usuario dio su consentimiento una vez; el appliance renueva el token de acceso cuando hace falta."
+      },
+      "mailbox": "Buzón",
+      "mailboxHint": "La cuenta como la que envía el token.",
+      "tenant": "Id. de directorio (inquilino)",
+      "tokenUrl": "Endpoint de tokens",
+      "clientId": "Id. de aplicación (cliente)",
+      "clientSecret": "Secreto de cliente",
+      "refreshTokenLabel": "Token de actualización",
+      "refreshTokenHint": "Del flujo de consentimiento; un token que el proveedor sustituye se guarda automáticamente.",
+      "scope": "Ámbito",
+      "scopeHint": "Déjelo vacío para usar el ámbito SMTP del proveedor.",
+      "endpoint": "Los tokens se piden a"
+    },
+    "secret": {
+      "stored": "Guardado en el appliance. Déjelo vacío para conservarlo.",
+      "keepPlaceholder": "•••••••• (guardado)",
+      "willClear": "Se quita al guardar.",
+      "remove": "Quitar",
+      "keep": "Conservar",
+      "optional": "{{label}} (si el proveedor lo pide)"
+    },
+    "addresses": {
+      "title": "Remitente y destinatarios",
+      "sender": "Dirección del remitente",
+      "senderName": "Nombre del remitente",
+      "recipients": "Destinatarios",
+      "addRecipient": "Añadir destinatario",
+      "recipientsHint": "Cada notificación va a todos. Pulse Intro para añadir una dirección."
+    },
+    "events": {
+      "title": "Eventos que envían correo",
+      "hint": "Active un evento para enviar un correo a los destinatarios cuando ocurra.",
+      "threshold": "Enviar cuando un repositorio esté lleno al",
+      "names": {
+        "job.failed": "Trabajo de copia fallido",
+        "job.warning": "Trabajo de copia terminado con advertencias",
+        "job.succeeded": "Trabajo de copia correcto",
+        "restore.failed": "Restauración fallida",
+        "restore.succeeded": "Restauración terminada",
+        "repository.low_space": "Repositorio quedándose sin espacio",
+        "system.clock_jump": "El reloj del servidor saltó hacia delante",
+        "tls.certificate_expiring": "Certificado HTTPS a punto de caducar"
+      },
+      "descriptions": {
+        "job.failed": "Terminó una ejecución de un trabajo y falló la copia de al menos una VM. Una notificación por ejecución con todas las VM.",
+        "job.warning": "Terminó una ejecución, se copiaron todas las VM y al menos una copia dio una advertencia.",
+        "job.succeeded": "Terminó una ejecución y se copiaron todas las VM sin advertencias.",
+        "restore.failed": "Falló la restauración de una VM.",
+        "restore.succeeded": "Terminó la restauración de una VM.",
+        "repository.low_space": "Tras una copia, el disco de un repositorio local o SMB está lleno hasta el umbral o más. Se envía de nuevo cuando baja del umbral y vuelve a llenarse.",
+        "system.clock_jump": "El reloj del servidor avanzó más de lo esperado, así que la retención no borra nada hasta que un administrador confirme la hora.",
+        "tls.certificate_expiring": "Un certificado HTTPS instalado por un administrador caduca en 14 días o ya ha caducado. Se comprueba a diario."
+      }
+    },
+    "test": {
+      "send": "Enviar correo de prueba",
+      "sending": "Enviando…",
+      "to": "Enviar la prueba a",
+      "toPlaceholder": "Prueba a (por defecto: los destinatarios)",
+      "unreachable": "El appliance no respondió.",
+      "sent": "Correo de prueba enviado a {{to}} ({{ms}} ms).",
+      "refused": "El servidor rechazó: {{list}}.",
+      "checkInbox": "Compruebe que llegó; un filtro de spam aún podría retenerlo. Se usaron los cambios sin guardar, pero no se guardaron.",
+      "stage": "falló en: {{stage}}",
+      "failure": {
+        "smtp_connection_failed": "No se pudo conectar con el servidor SMTP",
+        "smtp_tls_failed": "Falló la conexión segura",
+        "smtp_auth_failed": "El servidor SMTP rechazó el inicio de sesión",
+        "oauth_token_failed": "No se obtuvo un token de acceso OAuth 2.0",
+        "smtp_sender_refused": "El servidor SMTP rechazó la dirección del remitente",
+        "smtp_recipients_refused": "El servidor SMTP rechazó a los destinatarios",
+        "smtp_error": "El servidor SMTP no aceptó el mensaje",
+        "other": "No se envió el correo de prueba"
+      }
+    },
+    "history": {
+      "title": "Envíos recientes",
+      "empty": "Aún no se ha enviado nada.",
+      "retryAt": "Próximo intento",
+      "status": {
+        "sent": "Enviado",
+        "failed": "Fallido",
+        "retrying": "Reintentando",
+        "queued": "En cola",
+        "cancelled": "Cancelado"
+      }
+    },
+    "error": {
+      "summary_one": "{{count}} ajuste necesita corrección antes de guardar o probar.",
+      "summary_other": "{{count}} ajustes necesitan corrección antes de guardar o probar.",
+      "host": "No es un nombre de host ni una dirección IP.",
+      "hostRequired": "Introduzca el nombre de host o la IP del servidor SMTP.",
+      "port": "Introduzca un puerto de 1 a 65535.",
+      "timeout": "Introduzca de 5 a 300 segundos.",
+      "usernameRequired": "Introduzca el usuario con el que se inicia sesión.",
+      "passwordRequired": "Introduzca la contraseña de ese usuario.",
+      "mailboxRequired": "Introduzca el buzón como el que envía el token.",
+      "googleGrant": "Google no emite tokens de credenciales de cliente para correo; use un token de actualización.",
+      "tenant": "Introduzca un id. de inquilino (GUID) o un nombre de dominio.",
+      "tenantRequired": "Introduzca el id. de directorio (inquilino).",
+      "tokenUrl": "Introduzca una URL https://.",
+      "tokenUrlRequired": "Introduzca la URL del endpoint de tokens.",
+      "clientIdRequired": "Introduzca el id. de aplicación (cliente).",
+      "clientSecretRequired": "Introduzca el secreto de cliente.",
+      "refreshTokenRequired": "Introduzca el token de actualización.",
+      "address": "No es una dirección de correo.",
+      "senderRequired": "Introduzca la dirección desde la que se envían las notificaciones.",
+      "recipients": "No es una dirección de correo: {{list}}.",
+      "recipientsRequired": "Añada al menos un destinatario.",
+      "threshold": "Introduzca de 50 a 99."
+    }
+  },
+  "script": {
+    "title": "Script personalizado",
+    "description": "Ejecute su propio script cuando ocurra un evento elegido, para llegar a un chat, una cola de tickets o cualquier otra cosa a la que el correo no llegue.",
+    "enable": "Ejecutar el script en sus eventos",
+    "warning": "El script se ejecuta en el appliance con la cuenta del servicio de copias, así que puede hacer todo lo que esa cuenta puede: leer el catálogo y las credenciales guardadas, y cambiar o borrar copias. Suba solo código que haya leído y en el que confíe.",
+    "unavailable": "Los scripts están desactivados en este appliance (ABR_NOTIFICATION_SCRIPTS=0). Un script guardado no se ejecuta.",
+    "loadFailed": "No se pudo leer la configuración del script del appliance.",
+    "file": "Archivo del script",
+    "none": "No se ha subido ningún script.",
+    "size": "{{size}} bytes",
+    "uploadedBy": "Subido por {{user}},",
+    "upload": "Subir script",
+    "replace": "Reemplazar",
+    "view": "Ver",
+    "viewDescription": "El script tal como se guarda y se ejecuta. La lectura queda registrada en el registro de auditoría.",
+    "remove": "Quitar",
+    "uploaded": "{{name}} subido.",
+    "uploadFailed": "El appliance no aceptó el script.",
+    "tooLarge": "{{name}} ocupa más de 256 KiB.",
+    "noInterpreter": "{{name}} no empieza con una línea #! que nombre su intérprete, como #!/bin/sh.",
+    "removed": "Script quitado.",
+    "removeFailed": "Script no quitado",
+    "removeDialog": {
+      "title": "¿Quitar este script?",
+      "description": "{{name}} se borra del appliance y deja de ejecutarse. Su historial se conserva."
+    },
+    "saved": "Configuración del script guardada.",
+    "saveFailed": "Configuración del script no guardada",
+    "timeout": "Tiempo límite (segundos)",
+    "timeoutHint": "Una ejecución más larga se detiene, con todo lo que haya iniciado. {{min}}–{{max}}.",
+    "timeoutRange": "Introduzca de {{min}} a {{max}} segundos.",
+    "events": "Eventos que ejecutan el script",
+    "eventsHint": "Se eligen aparte de los eventos que envían correo. El script se ejecuta aunque el correo esté desactivado.",
+    "test": "Ejecutar prueba",
+    "running": "Ejecutando…",
+    "testPassed": "El script terminó sin errores.",
+    "testFailed": "La prueba falló",
+    "exitCode": "salida {{code}}",
+    "duration": "{{ms}} ms",
+    "receives": {
+      "title": "Qué recibe el script",
+      "stdin": "El evento como JSON en la entrada estándar y en el archivo indicado por ABR_EVENT_FILE: event, name, severity, subject, body, time, host, version y details, los datos del evento (por ejemplo el trabajo, sus VM y sus resultados).",
+      "variables": "Los campos principales como variables de entorno. Ninguna variable del servidor llega al script, y el PATH es uno fijo del sistema.",
+      "outcome": "El código de salida 0 cuenta como éxito. Una ejecución fallida se registra y no se repite. Trate cada valor como datos: el nombre de una VM, por ejemplo, viene de fuera del appliance."
+    },
+    "history": {
+      "title": "Ejecuciones recientes",
+      "empty": "El script aún no se ha ejecutado.",
+      "output": "Salida",
+      "status": {
+        "sent": "Correcta",
+        "failed": "Fallida",
+        "retrying": "Reintentando",
+        "queued": "En cola",
+        "cancelled": "Cancelada"
+      }
     }
   }
 }

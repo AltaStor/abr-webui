@@ -26,6 +26,8 @@ import type { RestorePoint } from "@/types";
 import { SyntheticFullBadge } from "@/components/SyntheticFullBadge";
 import { ConsistencyBadge } from "@/components/ConsistencyBadge";
 import { PointEncryptionBadge, VmEncryptionBadge } from "./EncryptionBadge";
+import { utcTitle } from "@/lib/time";
+import { DateTime } from "@/components/DateTime";
 
 /**
  * One VM within a job's expanded tree: a header row (name, stats, verify,
@@ -163,7 +165,7 @@ export function BackupJobVmRow({
                 </>
               )}
               <span aria-hidden>·</span>
-              <span>
+              <span title={utcTitle(vm.latest)}>
                 {t("rp.latest", {
                   rel: formatRelative(vm.latest),
                   abs: formatDateTime(vm.latest),
@@ -286,7 +288,7 @@ function BackupPointRow({
       </span>
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-2">
-          <span className="text-sm font-medium">{formatDateTime(point.createdAt)}</span>
+          <DateTime value={point.createdAt} className="text-sm font-medium" />
           <Badge
             variant={point.type === "full" ? "default" : "secondary"}
             className="font-normal capitalize"

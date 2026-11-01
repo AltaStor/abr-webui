@@ -6,6 +6,7 @@ import { useTranslation } from "react-i18next";
 import { ArrowDown, ArrowDownToLine } from "@/lib/icons";
 import { cn } from "@/lib/utils";
 import { formatClock } from "@/lib/format";
+import { utcTitle } from "@/lib/time";
 import type { LogLine, LogLevel } from "@/types";
 import { Button } from "./ui/button";
 import { EmptyState } from "./EmptyState";
@@ -335,7 +336,13 @@ const LogRow = memo(
             now that the terminal follows the theme: /55 measured 5.6:1 on
             night but only 4.09:1 on white, under the 4.5 floor. /65 gives
             7.5:1 and 5.7:1 while staying well behind the message at /80. */}
-        <span className="shrink-0 select-none text-[hsl(var(--terminal-foreground))]/65">{formatClock(l.ts)}</span>
+        <time
+          dateTime={l.ts}
+          title={utcTitle(l.ts)}
+          className="shrink-0 select-none text-[hsl(var(--terminal-foreground))]/65"
+        >
+          {formatClock(l.ts)}
+        </time>
         <span className={cn("shrink-0 select-none font-semibold", LEVEL_CLASS[l.level])}>{LEVEL_LABEL[l.level]}</span>
         <span className={cn("min-w-0", LEVEL_CLASS[l.level])}>
           {/* The source prefix names which object emitted the line — it is

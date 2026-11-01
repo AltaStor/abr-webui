@@ -22,7 +22,7 @@
     },
     "notifications": {
       "label": "Notifications",
-      "blurb": "Choisissez quels événements vous notifient"
+      "blurb": "Notifications par e-mail, script et console"
     },
     "security": {
       "label": "Sécurité",
@@ -89,13 +89,18 @@
     "autoCollapse": {
       "label": "Réduire automatiquement la barre latérale",
       "description": "Réduire la barre de navigation à des icônes sur les fenêtres plus étroites."
+    },
+    "timeZone": {
+      "label": "Fuseau horaire",
+      "value": "{{zone}} ({{offset}})",
+      "description": "Toutes les heures de la console s’affichent dans le fuseau de votre navigateur, avec leur décalage (GMT+3) ; survolez-en une pour la voir en UTC. La planification d’une tâche s’affiche dans le fuseau de la tâche, avec votre heure à côté quand elles diffèrent. Le fuseau du navigateur est celui de votre système d’exploitation."
     }
   },
   "notifications": {
     "savedDescription": "Préférences de notification mises à jour.",
     "events": {
-      "title": "Événements",
-      "description": "Choisissez quels événements vous notifient.",
+      "title": "Notifications dans la console",
+      "description": "Fenêtres dans ce navigateur tant que la console est ouverte ; enregistrées dans ce navigateur uniquement. L’e-mail se règle plus haut.",
       "jobFailure": {
         "label": "Échec de tâche",
         "blurb": "Une exécution de sauvegarde échoue ou génère des erreurs"
@@ -120,19 +125,21 @@
       "description": "Modifiez le mot de passe de votre compte."
     },
     "session": {
-      "title": "Durée de session",
-      "description": "Durée pendant laquelle une connexion reste active avant de devoir vous reconnecter.",
-      "label": "Rester connecté pendant",
-      "hint": "S’applique immédiatement à cette session, et aux futures connexions sur ce navigateur.",
-      "savedDescription": "Durée de session mise à jour.",
+      "title": "Déconnexion après inactivité",
+      "description": "Combien de temps la console reste connectée pendant votre absence. Un clic, une frappe, un défilement ou un changement de page comptent comme activité ; les actualisations en arrière-plan de la console et un pointeur qui bouge seulement ne comptent pas.",
+      "label": "Se déconnecter après",
+      "hint": "S’applique immédiatement à cette session et aux prochaines connexions sur ce navigateur. Une minute avant, la console demande si vous êtes toujours là.",
+      "savedDescription": "Délai d’inactivité mis à jour.",
       "applyFailed": {
-        "title": "Durée de session non appliquée",
+        "title": "Délai d’inactivité non appliqué",
         "description": "Enregistrée localement, mais l'appliance était injoignable — elle s'appliquera à la prochaine connexion."
       },
       "hours_one": "{{count}} heure",
       "hours_other": "{{count}} heures",
       "minutes_one": "{{count}} minute",
-      "minutes_other": "{{count}} minutes"
+      "minutes_other": "{{count}} minutes",
+      "limit": "Quelle que soit l’activité, cette session se termine à {{time}} : la limite de l’appliance depuis la connexion.",
+      "noLimit": "L’appliance ne fixe aucune limite depuis la connexion : une session active reste connectée."
     },
     "certificate": {
       "title": "Certificat HTTPS",
@@ -333,7 +340,9 @@
       "uptime": "Temps de fonctionnement",
       "cpu": "CPU",
       "memory": "Mémoire",
-      "probeFailed": "Impossible de lire les détails matériels depuis l'appliance. Les champs qu'elle rapporte s'affichent en « — »."
+      "probeFailed": "Impossible de lire les détails matériels depuis l'appliance. Les champs qu'elle rapporte s'affichent en « — ».",
+      "timezone": "Fuseau horaire",
+      "timezoneValue": "{{zone}}, défini sur l’appliance"
     },
     "license": {
       "title": "Ressources"
@@ -534,6 +543,228 @@
       "inUse_other": "{{name}} est attribué à {{count}} utilisateurs : {{names}}. Attribuez-leur d’abord un autre rôle, puis supprimez celui-ci.",
       "inUseNoNames_one": "{{name}} est attribué à {{count}} utilisateur. Attribuez-lui d’abord un autre rôle, puis supprimez celui-ci.",
       "inUseNoNames_other": "{{name}} est attribué à {{count}} utilisateurs. Attribuez-leur d’abord un autre rôle, puis supprimez celui-ci."
+    }
+  },
+  "email": {
+    "title": "Notifications par e-mail",
+    "description": "L’appliance envoie un e-mail aux destinataires ci-dessous, via votre serveur SMTP, quand un événement choisi se produit.",
+    "enable": "Envoyer les notifications par e-mail",
+    "on": "Activées",
+    "off": "Désactivées",
+    "liveOnly": "Connectez-vous à une appliance réelle pour configurer les notifications par e-mail.",
+    "loading": "Lecture des réglages e-mail…",
+    "loadFailed": "Impossible de lire les réglages e-mail sur l’appliance.",
+    "saved": "Notifications par e-mail enregistrées.",
+    "saveFailed": "Réglages e-mail non enregistrés",
+    "lastChanged": "Dernière modification par {{user}},",
+    "server": {
+      "title": "Serveur SMTP",
+      "host": "Serveur",
+      "port": "Port",
+      "security": "Sécurité de la connexion",
+      "noEncryption": "Aucune",
+      "securityHint": {
+        "starttls": "Se connecte en clair puis passe en TLS avant l’authentification (souvent le port 587).",
+        "ssl": "TLS dès le premier octet (souvent le port 465).",
+        "none": "Rien n’est chiffré, pas même le mot de passe. Seulement pour un relais sur un réseau de confiance (souvent le port 25)."
+      },
+      "verifyTls": "Vérifier le certificat du serveur",
+      "verifyTlsOn": "L’appliance doit faire confiance au certificat, qui doit nommer ce serveur.",
+      "verifyTlsOff": "Tout certificat est accepté : une machine intermédiaire pourrait lire les e-mails et l’authentification.",
+      "timeout": "Délai (secondes)",
+      "timeoutHint": "Combien de temps attendre le serveur, de 5 à 300."
+    },
+    "auth": {
+      "title": "Authentification",
+      "password": "Nom d’utilisateur et mot de passe",
+      "oauth2": "OAuth 2.0",
+      "none": "Aucune",
+      "noneHint": "Pour un relais qui accepte les e-mails de l’appliance sans authentification.",
+      "unencryptedWarning": "La connexion n’est pas chiffrée : l’authentification circule en clair. Choisissez STARTTLS ou SSL/TLS.",
+      "username": "Nom d’utilisateur",
+      "passwordLabel": "Mot de passe"
+    },
+    "oauth": {
+      "provider": "Fournisseur",
+      "providers": {
+        "microsoft": "Microsoft 365 (Exchange Online)",
+        "google": "Google Workspace",
+        "custom": "Autre fournisseur OAuth 2.0"
+      },
+      "grant": "Type d’autorisation",
+      "clientCredentials": "Identifiants client",
+      "refreshToken": "Jeton d’actualisation",
+      "grantHint": {
+        "client_credentials": "L’application s’authentifie seule et envoie au nom de la boîte aux lettres (Microsoft 365).",
+        "refresh_token": "Un utilisateur a consenti une fois ; l’appliance renouvelle le jeton d’accès au besoin."
+      },
+      "mailbox": "Boîte aux lettres",
+      "mailboxHint": "Le compte au nom duquel le jeton envoie.",
+      "tenant": "ID de l’annuaire (locataire)",
+      "tokenUrl": "Point de terminaison des jetons",
+      "clientId": "ID d’application (client)",
+      "clientSecret": "Secret client",
+      "refreshTokenLabel": "Jeton d’actualisation",
+      "refreshTokenHint": "Issu du consentement ; un jeton remplacé par le fournisseur est enregistré automatiquement.",
+      "scope": "Portée",
+      "scopeHint": "Laissez vide pour la portée SMTP du fournisseur.",
+      "endpoint": "Les jetons sont demandés à"
+    },
+    "secret": {
+      "stored": "Enregistré sur l’appliance. Laissez vide pour le conserver.",
+      "keepPlaceholder": "•••••••• (enregistré)",
+      "willClear": "Supprimé à l’enregistrement.",
+      "remove": "Supprimer",
+      "keep": "Conserver",
+      "optional": "{{label}} (si le fournisseur l’exige)"
+    },
+    "addresses": {
+      "title": "Expéditeur et destinataires",
+      "sender": "Adresse de l’expéditeur",
+      "senderName": "Nom de l’expéditeur",
+      "recipients": "Destinataires",
+      "addRecipient": "Ajouter un destinataire",
+      "recipientsHint": "Chaque notification est envoyée à tous. Appuyez sur Entrée pour ajouter une adresse."
+    },
+    "events": {
+      "title": "Événements envoyés par e-mail",
+      "hint": "Activez un événement pour envoyer un e-mail aux destinataires quand il se produit.",
+      "threshold": "Envoyer quand un dépôt est rempli à",
+      "names": {
+        "job.failed": "Tâche de sauvegarde en échec",
+        "job.warning": "Tâche de sauvegarde terminée avec avertissements",
+        "job.succeeded": "Tâche de sauvegarde réussie",
+        "restore.failed": "Restauration en échec",
+        "restore.succeeded": "Restauration terminée",
+        "repository.low_space": "Dépôt presque plein",
+        "system.clock_jump": "L’horloge du serveur a avancé brusquement",
+        "tls.certificate_expiring": "Certificat HTTPS bientôt expiré"
+      },
+      "descriptions": {
+        "job.failed": "Une exécution de tâche s’est terminée et la sauvegarde d’au moins une VM a échoué. Une notification par exécution, avec chaque VM.",
+        "job.warning": "Une exécution s’est terminée, toutes les VM ont été sauvegardées et au moins une sauvegarde a signalé un avertissement.",
+        "job.succeeded": "Une exécution s’est terminée et toutes les VM ont été sauvegardées sans avertissement.",
+        "restore.failed": "Une restauration de VM a échoué.",
+        "restore.succeeded": "Une restauration de VM s’est terminée.",
+        "repository.low_space": "Après une sauvegarde, le disque d’un dépôt local ou SMB est rempli jusqu’au seuil ou au-delà. Renvoyé après être repassé sous le seuil puis s’être rempli à nouveau.",
+        "system.clock_jump": "L’horloge du serveur a avancé plus que prévu : la rétention ne supprime rien jusqu’à ce qu’un administrateur confirme l’heure.",
+        "tls.certificate_expiring": "Un certificat HTTPS installé par un administrateur expire dans 14 jours, ou a expiré. Vérifié chaque jour."
+      }
+    },
+    "test": {
+      "send": "Envoyer un e-mail de test",
+      "sending": "Envoi…",
+      "to": "Envoyer le test à",
+      "toPlaceholder": "Test à (par défaut : les destinataires)",
+      "unreachable": "L’appliance n’a pas répondu.",
+      "sent": "E-mail de test envoyé à {{to}} ({{ms}} ms).",
+      "refused": "Le serveur a refusé : {{list}}.",
+      "checkInbox": "Vérifiez qu’il est arrivé ; un filtre anti-spam peut encore le retenir. Les modifications non enregistrées ont été utilisées sans être enregistrées.",
+      "stage": "échec à l’étape : {{stage}}",
+      "failure": {
+        "smtp_connection_failed": "Connexion au serveur SMTP impossible",
+        "smtp_tls_failed": "La connexion sécurisée a échoué",
+        "smtp_auth_failed": "Le serveur SMTP a refusé l’authentification",
+        "oauth_token_failed": "Impossible d’obtenir un jeton d’accès OAuth 2.0",
+        "smtp_sender_refused": "Le serveur SMTP a refusé l’adresse de l’expéditeur",
+        "smtp_recipients_refused": "Le serveur SMTP a refusé les destinataires",
+        "smtp_error": "Le serveur SMTP n’a pas accepté le message",
+        "other": "L’e-mail de test n’a pas été envoyé"
+      }
+    },
+    "history": {
+      "title": "Envois récents",
+      "empty": "Rien n’a encore été envoyé.",
+      "retryAt": "Prochaine tentative",
+      "status": {
+        "sent": "Envoyé",
+        "failed": "Échec",
+        "retrying": "Nouvelle tentative",
+        "queued": "En file",
+        "cancelled": "Annulé"
+      }
+    },
+    "error": {
+      "summary_one": "{{count}} réglage doit être corrigé avant d’enregistrer ou de tester.",
+      "summary_other": "{{count}} réglages doivent être corrigés avant d’enregistrer ou de tester.",
+      "host": "Ce n’est ni un nom d’hôte ni une adresse IP.",
+      "hostRequired": "Saisissez le nom d’hôte ou l’adresse IP du serveur SMTP.",
+      "port": "Saisissez un port de 1 à 65535.",
+      "timeout": "Saisissez de 5 à 300 secondes.",
+      "usernameRequired": "Saisissez le nom d’utilisateur de l’authentification.",
+      "passwordRequired": "Saisissez le mot de passe de cet utilisateur.",
+      "mailboxRequired": "Saisissez la boîte aux lettres au nom de laquelle le jeton envoie.",
+      "googleGrant": "Google ne délivre pas de jetons à identifiants client pour l’e-mail ; utilisez un jeton d’actualisation.",
+      "tenant": "Saisissez un ID de locataire (GUID) ou un nom de domaine.",
+      "tenantRequired": "Saisissez l’ID de l’annuaire (locataire).",
+      "tokenUrl": "Saisissez une URL https://.",
+      "tokenUrlRequired": "Saisissez l’URL du point de terminaison des jetons.",
+      "clientIdRequired": "Saisissez l’ID d’application (client).",
+      "clientSecretRequired": "Saisissez le secret client.",
+      "refreshTokenRequired": "Saisissez le jeton d’actualisation.",
+      "address": "Ce n’est pas une adresse e-mail.",
+      "senderRequired": "Saisissez l’adresse d’envoi des notifications.",
+      "recipients": "Pas une adresse e-mail : {{list}}.",
+      "recipientsRequired": "Ajoutez au moins un destinataire.",
+      "threshold": "Saisissez de 50 à 99."
+    }
+  },
+  "script": {
+    "title": "Script personnalisé",
+    "description": "Exécutez votre propre script quand un événement choisi se produit, pour joindre une messagerie, une file de tickets ou tout ce que l’e-mail n’atteint pas.",
+    "enable": "Exécuter le script sur ses événements",
+    "warning": "Le script s’exécute sur l’appliance avec le compte du service de sauvegarde : il peut faire tout ce que ce compte peut faire, lire le catalogue et les identifiants enregistrés, modifier ou supprimer des sauvegardes. Ne téléversez que du code que vous avez lu et auquel vous faites confiance.",
+    "unavailable": "Les scripts sont désactivés sur cette appliance (ABR_NOTIFICATION_SCRIPTS=0). Un script enregistré ne s’exécute pas.",
+    "loadFailed": "Impossible de lire les réglages du script sur l’appliance.",
+    "file": "Fichier du script",
+    "none": "Aucun script téléversé.",
+    "size": "{{size}} octets",
+    "uploadedBy": "Téléversé par {{user}},",
+    "upload": "Téléverser un script",
+    "replace": "Remplacer",
+    "view": "Voir",
+    "viewDescription": "Le script tel qu’il est enregistré et exécuté. Sa lecture est consignée dans le journal d’audit.",
+    "remove": "Supprimer",
+    "uploaded": "{{name}} téléversé.",
+    "uploadFailed": "L’appliance n’a pas accepté le script.",
+    "tooLarge": "{{name}} dépasse 256 Kio.",
+    "noInterpreter": "{{name}} ne commence pas par une ligne #! nommant son interpréteur, comme #!/bin/sh.",
+    "removed": "Script supprimé.",
+    "removeFailed": "Script non supprimé",
+    "removeDialog": {
+      "title": "Supprimer ce script ?",
+      "description": "{{name}} est supprimé de l’appliance et ne s’exécute plus. Son historique est conservé."
+    },
+    "saved": "Réglages du script enregistrés.",
+    "saveFailed": "Réglages du script non enregistrés",
+    "timeout": "Durée limite (secondes)",
+    "timeoutHint": "Une exécution plus longue est arrêtée, avec tout ce qu’elle a lancé. {{min}}–{{max}}.",
+    "timeoutRange": "Saisissez de {{min}} à {{max}} secondes.",
+    "events": "Événements qui exécutent le script",
+    "eventsHint": "Choisis indépendamment des événements envoyés par e-mail. Le script s’exécute même si l’e-mail est désactivé.",
+    "test": "Lancer un test",
+    "running": "Exécution…",
+    "testPassed": "Le script s’est terminé sans erreur.",
+    "testFailed": "Le test a échoué",
+    "exitCode": "sortie {{code}}",
+    "duration": "{{ms}} ms",
+    "receives": {
+      "title": "Ce que reçoit le script",
+      "stdin": "L’événement en JSON sur l’entrée standard et dans le fichier désigné par ABR_EVENT_FILE : event, name, severity, subject, body, time, host, version et details, les faits de l’événement (par exemple la tâche, ses VM et leurs résultats).",
+      "variables": "Les champs principaux en variables d’environnement. Aucune variable du serveur n’atteint le script, et le PATH est un chemin système fixe.",
+      "outcome": "Le code de sortie 0 vaut succès. Une exécution en échec est consignée et n’est pas répétée. Traitez chaque valeur comme une donnée : le nom d’une VM, par exemple, vient de l’extérieur de l’appliance."
+    },
+    "history": {
+      "title": "Exécutions récentes",
+      "empty": "Le script n’a pas encore été exécuté.",
+      "output": "Sortie",
+      "status": {
+        "sent": "Réussie",
+        "failed": "Échec",
+        "retrying": "Nouvelle tentative",
+        "queued": "En file",
+        "cancelled": "Annulée"
+      }
     }
   }
 }

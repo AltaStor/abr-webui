@@ -32,7 +32,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "@/components/ui/sonner";
 import { Switch } from "@/components/ui/switch";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { formatDateTime } from "@/lib/format";
 import { qk } from "@/lib/query";
 import { cn } from "@/lib/utils";
 import {
@@ -53,6 +52,7 @@ import { Field } from "../FormField";
 import { SettingsSection } from "../SettingsSection";
 import { RolesCard } from "./RolesCard";
 import { roleName, sortRoles } from "./roles";
+import { DateTime } from "@/components/DateTime";
 
 const MIN_PASSWORD_LENGTH = 8;
 
@@ -232,7 +232,7 @@ function UsersCard() {
                     )}
                   </TableCell>
                   <TableCell className="hidden text-muted-foreground md:table-cell">
-                    {formatDateTime(user.createdAt)}
+                    <DateTime value={user.createdAt} />
                   </TableCell>
                   {(canEdit || canDelete) && (
                     <TableCell className="whitespace-nowrap text-right">

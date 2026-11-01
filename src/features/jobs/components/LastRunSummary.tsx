@@ -11,6 +11,7 @@ import { formatDateTime, formatDuration, formatRelative, formatStorage, formatTh
 import { syntheticFullFailureMessage } from "@/lib/synthetic-full";
 import { backupTypeLabel } from "@/lib/run-type";
 import type { Session } from "@/types";
+import { utcTitle } from "@/lib/time";
 
 /**
  * The most recent finished run of a job — shown on the Overview when nothing is
@@ -49,7 +50,7 @@ export function LastRunSummary({ session }: { session: Session }) {
           <Icon className={`h-5 w-5 ${tone}`} />
           <div>
             <h3 className="text-sm font-semibold">{t("lastRun.title")}</h3>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-xs text-muted-foreground" title={utcTitle(session.finishedAt)}>
               {session.finishedAt
                 ? t("lastRun.finishedAt", {
                     rel: formatRelative(session.finishedAt),

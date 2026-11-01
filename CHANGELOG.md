@@ -5,6 +5,35 @@ All notable changes to the AltaStor WebUI are documented in this file.
 ## Unreleased
 
 ### Added
+- Settings → Notifications → E-mail notifications: the appliance's SMTP
+  server and connection security (STARTTLS, SSL/TLS, none; certificate
+  verification), sign-in with a username and password or OAuth 2.0
+  (Microsoft 365, Google Workspace or any provider; client credentials or
+  refresh token), sender, recipients, the events that send e-mail and the
+  repository space threshold. The appliance's checks run in the form, and
+  whatever it still refuses is shown on the field it concerns. Send test
+  e-mail uses the unsaved changes and says why a message did not go
+  (connection, TLS, sign-in, OAuth token, sender or recipients refused).
+  Secrets are write-only: shown as stored, kept when left empty, removed on
+  request. Recent deliveries, with failures and retries. Read-only for an
+  Auditor. The browser's own pop-up notifications are the card below,
+  "In-console notifications".
+- Settings → Notifications → Custom script: upload a script the appliance
+  runs on chosen events, view it, replace or remove it, switch it on, set its
+  time limit and its own events (apart from those that send e-mail), run a test
+  and see its exit code and output, and read its recent runs. The card says
+  plainly that the script runs on the appliance as the service account and what
+  it receives. Read-only for an Auditor, without the output; switched off with
+  an explanation where the appliance has `ABR_NOTIFICATION_SCRIPTS=0`.
+- Time zones: every absolute time shows its zone ("Oct 23, 01:00 GMT+3") in
+  one format across the console, with UTC on hover; schedules show the job's
+  zone and the viewer's equivalent ("Daily · 22:00 UTC (01:00 GMT+3, next
+  day)", weekday shifts included); the job form shows and sets the job's time
+  zone (new jobs start on the browser's instead of a hard-coded UTC),
+  explains the entered time on the viewer's clock, and gives the first run as
+  a dated moment; restore point groups say which day and zone they mean; log
+  lines carry their date; About shows the appliance's zone and its clock in
+  it; Settings → Appearance names the display zone. See `doc/TimeZones.md`.
 - Roles: the console shows each user what their role allows. The sidebar, the
   pages and every action (run, edit, delete, restore, verify, stop, add, ...)
   follow the signed-in role's permissions from the appliance, refreshed on
@@ -47,12 +76,31 @@ All notable changes to the AltaStor WebUI are documented in this file.
 ### Changed
 - Enabling or disabling a job is sent as a job-level `enabled` flag instead
   of being nested inside the job's schedule.
-- The console's reads are sent as background refreshes (`X-ABR-Refresh`), so
-  the appliance's audit log records its actions rather than every poll.
+- Only the reads the console repeats on its own (the world poll, the server
+  clock and update checks, the system log's refresh) are sent as background
+  refreshes (`X-ABR-Refresh`), so the appliance neither records them in the
+  audit log nor counts them as activity; the reads a user's action causes are
+  sent as such.
 - The Original location card on restore describes the source VM's own
   platform.
 
 ### Fixed
+- The console no longer signs the user out at a fixed time while they are
+  working. Switching views sends no request of its own, and the polls are
+  background refreshes the appliance does not count, so the console now keeps
+  the session alive itself (`POST /auth/session/touch`) on a click, key press,
+  scroll or page change, at most every 30 seconds. A minute before an idle
+  session ends a panel counts down, with Stay signed in and Sign out, without
+  blocking the page; five minutes before the limit from sign-in it says when
+  the session ends. The sign-in page says why the last session ended
+  (inactivity, the time limit, or the appliance no longer accepting it). The
+  stored session follows each renewal, so a reload no longer signs out a
+  session that is still alive. Settings → Security calls the setting "Sign out
+  after" inactivity, says what counts as activity and when this session ends
+  at the latest.
+- Collapsed sidebar: each icon-only link carries its name (Dashboard, Backup,
+  Activity, ...) for screen readers and speech control, the current page is
+  marked as such, and the name shows as a tooltip on hover and keyboard focus.
 - A job can no longer be deleted while it runs: Delete is disabled, with the
   reason, in the job's row menu, the bulk bar and the job page, and an open
   confirmation disables itself when a run starts.

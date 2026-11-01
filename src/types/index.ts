@@ -142,11 +142,15 @@ export interface Schedule {
   frequency: ScheduleFrequency;
   /** For hourly: run every N hours. */
   everyHours?: number;
-  /** "HH:mm" 24h local time, for daily/weekly. */
+  /** "HH:mm" 24h on the clock of `timezone`, for daily/weekly. */
   atTime?: string;
   /** 0 (Sun) – 6 (Sat) for weekly. */
   daysOfWeek?: number[];
   cron?: string;
+  /** The IANA zone `atTime` (or a cron expression) is read in, as the
+   *  appliance reports it: never empty from a current appliance, which reports
+   *  its own zone for a job saved without one. Absent only in the demo world. */
+  timezone?: string;
 }
 
 /**
@@ -173,7 +177,8 @@ export interface FullBackupSchedule {
   /** For cron. */
   cron?: string;
   enabled: boolean;
-  /** The timezone the appliance evaluates `atTime` in; absent means UTC. */
+  /** The IANA zone the appliance reads `atTime` in, as it reports it (its own
+   *  zone for a schedule saved without one). */
   timezone?: string;
 }
 
@@ -280,6 +285,9 @@ export interface SystemClockStatus {
   confirmedAt: string | null;
   confirmedBy: string | null;
   message: string | null;
+  /** The appliance's own time zone (IANA), read-only; null from an appliance
+   *  that does not report it. */
+  timezone: string | null;
 }
 
 export type JobType = "backup" | "replication" | "backup-copy";

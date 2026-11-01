@@ -10,7 +10,7 @@
  * every day.
  */
 import type { ReactNode } from "react";
-import { AlertTriangle } from "@/lib/icons";
+import { AlertTriangle, Timer } from "@/lib/icons";
 import { Logo } from "@/components/brand/Logo";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -74,6 +74,24 @@ export function AuthFailureNotice({
         <p className="font-display text-sm font-semibold text-danger-text">{title}</p>
         <p className="text-xs leading-relaxed text-danger-text/90">{body}</p>
         {detail && <p className="text-xs leading-relaxed text-muted-foreground">{detail}</p>}
+      </div>
+    </div>
+  );
+}
+
+/** Why the previous session ended, when it ended on its own: an explanation,
+ *  not a refusal, so it reads in the warning tone rather than the danger one. */
+export function SignedOutNotice({ title, body }: { title: string; body: string }) {
+  return (
+    <div
+      role="status"
+      data-testid="signed-out-notice"
+      className="flex items-start gap-2.5 border border-warning/30 bg-warning-subtle px-3 py-2.5"
+    >
+      <Timer className="mt-0.5 h-4 w-4 shrink-0 text-warning-text" aria-hidden />
+      <div className="min-w-0 space-y-1">
+        <p className="font-display text-sm font-semibold text-warning-text">{title}</p>
+        <p className="text-xs leading-relaxed text-warning-text/90">{body}</p>
       </div>
     </div>
   );

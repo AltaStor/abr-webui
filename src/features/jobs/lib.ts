@@ -9,6 +9,8 @@ import {
 } from "@/lib/icons";
 import type { AccentKey, BackupJob, FullBackupSchedule, JobType, Retention, Schedule, Session } from "@/types";
 import i18n from "@/i18n";
+import { scheduleZoneName } from "@/lib/time";
+import { zonedScheduleTime, type ScheduleDays } from "@/lib/schedule";
 
 /**
  * Whether a job has a run in flight: the appliance counts an active session
@@ -36,8 +38,40 @@ function dayShortLabel(day: number): string {
 }
 
 /**
+ * A wall-clock schedule's label in the job's zone, with the viewer's reading
+ * of it when that differs: "Daily · 22:00 UTC (01:00 GMT+3)",
+ * "Weekly · Sat 22:00 UTC (Sun 01:00 GMT+3)". See doc/TimeZones.md.
+ */
+function zonedLabel(
+  key: "jobs:schedule.daily" | "jobs:schedule.weekly" | "jobs:schedule.monthly",
+  atTime: string,
+  zone: string | undefined,
+  days: ScheduleDays,
+): string {
+  const zoned = zonedScheduleTime(atTime, zone, days);
+  const params = { day: days.daysOfWeek?.map(dayShortLabel).join(", ") ?? days.dayOfMonth, time: zoned.time };
+  const label = i18n.t(key, params);
+  if (!zoned.viewerTime) return label;
+  const viewer =
+    key === "jobs:schedule.weekly" && zoned.viewerDays
+      ? `${zoned.viewerDays.map(dayShortLabel).join(", ")} ${zoned.viewerTime}`
+      : zoned.dayShift > 0
+        ? i18n.t("jobs:schedule.nextDay", { time: zoned.viewerTime })
+        : zoned.dayShift < 0
+          ? i18n.t("jobs:schedule.previousDay", { time: zoned.viewerTime })
+          : zoned.viewerTime;
+  return i18n.t("jobs:schedule.withViewerTime", { label, viewer });
+}
+
+/** A cron schedule names its zone too: the expression is read on that clock. */
+function cronLabel(cron: string, zone: string | undefined): string {
+  return i18n.t("jobs:schedule.customCron", { cron: `${cron} (${scheduleZoneName(zone)})` });
+}
+
+/**
  * Friendly, plain-spoken schedule label.
- * "Daily · 22:00", "Every 1h", "Every 4h", "Weekly · Sun 01:00", "Disabled".
+ * "Daily · 22:00 UTC (01:00 GMT+3)", "Every 1h", "Every 4h",
+ * "Weekly · Sun 01:00 Europe/Berlin", "Disabled".
  */
 export function scheduleLabel(schedule: Schedule, disabled = false): string {
   if (disabled) return i18n.t("jobs:schedule.disabled");
@@ -53,16 +87,14 @@ export function scheduleLabel(schedule: Schedule, disabled = false): string {
       // takes a list now, and showing one of three days back to them would be
       // a summary of a schedule they didn't set.
       return days.length
-        ? i18n.t("jobs:schedule.weekly", { day: days.map(dayShortLabel).join(", "), time })
+        ? zonedLabel("jobs:schedule.weekly", time, schedule.timezone, { daysOfWeek: days })
         : i18n.t("jobs:schedule.weeklyNoDay");
     }
     case "custom":
-      return schedule.cron
-        ? i18n.t("jobs:schedule.customCron", { cron: schedule.cron })
-        : i18n.t("jobs:schedule.custom");
+      return schedule.cron ? cronLabel(schedule.cron, schedule.timezone) : i18n.t("jobs:schedule.custom");
     case "daily":
     default:
-      return i18n.t("jobs:schedule.daily", { time: schedule.atTime ?? "22:00" });
+      return zonedLabel("jobs:schedule.daily", schedule.atTime ?? "22:00", schedule.timezone, {});
   }
 }
 
@@ -91,11 +123,11 @@ function fullSchedulePattern(schedule: FullBackupSchedule): string {
       // accept, and printing "Weekly · 03:30" made an unsaveable form read like
       // a finished one.
       return days.length
-        ? i18n.t("jobs:schedule.weekly", { day: days.map(dayShortLabel).join(", "), time })
+        ? zonedLabel("jobs:schedule.weekly", time, schedule.timezone, { daysOfWeek: days })
         : i18n.t("jobs:schedule.weeklyNoDay");
     }
     case "monthly":
-      return i18n.t("jobs:schedule.monthly", { day: schedule.dayOfMonth ?? 1, time });
+      return zonedLabel("jobs:schedule.monthly", time, schedule.timezone, { dayOfMonth: schedule.dayOfMonth ?? 1 });
     case "periodic": {
       const minutes = schedule.everyMinutes ?? 60;
       return minutes % 60 === 0
@@ -103,12 +135,10 @@ function fullSchedulePattern(schedule: FullBackupSchedule): string {
         : i18n.t("jobs:schedule.everyMinutes", { count: minutes });
     }
     case "cron":
-      return schedule.cron
-        ? i18n.t("jobs:schedule.customCron", { cron: schedule.cron })
-        : i18n.t("jobs:schedule.custom");
+      return schedule.cron ? cronLabel(schedule.cron, schedule.timezone) : i18n.t("jobs:schedule.custom");
     case "daily":
     default:
-      return i18n.t("jobs:schedule.daily", { time });
+      return zonedLabel("jobs:schedule.daily", time, schedule.timezone, {});
   }
 }
 

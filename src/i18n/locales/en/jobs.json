@@ -47,7 +47,10 @@
     "upcomingRuns": "Upcoming runs",
     "disabledNote": "Schedule disabled — enable the job to resume automatic runs.",
     "customSchedule": "Custom schedule",
-    "noRunsProjected": "No runs projected."
+    "noRunsProjected": "No runs projected.",
+    "withViewerTime": "{{label}} ({{viewer}})",
+    "nextDay": "{{time}}, next day",
+    "previousDay": "{{time}}, previous day"
   },
   "retention": {
     "days_one": "{{count}} day",
@@ -839,8 +842,6 @@
     "firstRun": {
       "hourly": "within the hour",
       "every4h": "within 4 hours",
-      "weekly": "next {{day}} at {{time}}",
-      "daily": "tonight at {{time}}",
       "weeklyNoDay": "once you pick a day"
     },
     "errors": {
@@ -1023,6 +1024,17 @@
         "application": "A running guest is quiesced through VSS; if it cannot be, the checkpoint is crash-consistent and the run says so.",
         "crash": "The guest is never involved — like pulling the plug at the moment of the checkpoint."
       }
+    },
+    "timezone": {
+      "label": "Time zone",
+      "suggested": "Suggested",
+      "all": "All time zones",
+      "yours": "your time zone",
+      "appliance": "the appliance's",
+      "explain": "{{time}} is {{viewer}} on your clock.",
+      "explainSame": "{{time}} is the same time on your clock.",
+      "explainNextDay": "{{time}} is {{viewer}} the next day on your clock.",
+      "explainPreviousDay": "{{time}} is {{viewer}} the day before on your clock."
     }
   },
   "hyperv": {

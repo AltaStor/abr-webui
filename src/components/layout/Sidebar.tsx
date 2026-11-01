@@ -29,6 +29,10 @@ function NavLink({ item, collapsed, onNavigate }: { item: NavItem; collapsed: bo
     <Link
       to={item.href}
       onClick={onNavigate}
+      // Collapsed, the link holds only its icon, so it carries its name
+      // itself; expanded, the visible label already names it.
+      aria-label={collapsed ? label : undefined}
+      aria-current={active ? "page" : undefined}
       className={cn(
         // Quiet-to-ink with an accent rule, not a filled slab — the solid
         // accent stays the mark of a primary action. The transparent rule on
@@ -41,6 +45,7 @@ function NavLink({ item, collapsed, onNavigate }: { item: NavItem; collapsed: bo
       )}
     >
       <Icon
+        aria-hidden
         className={cn(
           "h-[18px] w-[18px] shrink-0 transition-colors duration-250",
           active ? "text-foreground" : "text-muted-foreground/80 group-hover:text-foreground",

@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 import { formatDateTime, formatRelative } from "@/lib/format";
 import { PROTECTION_META, toneChip, toneFg } from "@/lib/status";
 import type { VM } from "@/types";
+import { utcTitle } from "@/lib/time";
 
 /** A reassuring at-a-glance protection summary for a single VM. */
 export function ProtectionSummaryCard({
@@ -65,6 +66,7 @@ export function ProtectionSummaryCard({
             label={t("summary.lastBackup")}
             value={formatRelative(vm.lastBackupAt)}
             sub={vm.lastBackupAt ? formatDateTime(vm.lastBackupAt) : undefined}
+            subTitle={utcTitle(vm.lastBackupAt)}
             icon={Clock}
             tone={vm.protection === "warning" ? "warning" : undefined}
             surface="inset"

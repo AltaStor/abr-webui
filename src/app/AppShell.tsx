@@ -9,6 +9,7 @@ import { DesktopSidebar } from "@/components/layout/Sidebar";
 import { Topbar } from "@/components/layout/Topbar";
 import { CommandPalette } from "@/components/layout/CommandPalette";
 import { ClockJumpBanner } from "@/components/layout/ClockJumpBanner";
+import { SessionExpiryWarning } from "@/components/layout/SessionExpiryWarning";
 import { ConnectionLostBanner } from "@/components/layout/ConnectionLostBanner";
 import { IntroOverlay } from "@/components/brand/IntroOverlay";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -22,6 +23,7 @@ import { useLanguageEffects } from "@/i18n/apply";
 import { useSidebarAutoCollapse } from "@/app/useSidebarAutoCollapse";
 import { useAutoUpdateCheck } from "@/app/useAutoUpdateCheck";
 import { useEventNotifications } from "@/app/useEventNotifications";
+import { useSessionKeepAlive } from "@/app/useSessionKeepAlive";
 import { navItemFor } from "@/app/nav";
 import { NotPermitted } from "@/components/FeatureUnavailable";
 import { usePermissionsStore } from "@/store/permissions";
@@ -69,6 +71,8 @@ export function AppShell() {
   useAutoUpdateCheck();
   // Raise the run/capacity notifications enabled in Settings → Notifications.
   useEventNotifications();
+  // Renew a live session when the user acts; polls alone let it run out.
+  useSessionKeepAlive();
 
   /* In live mode, the appliance owns the settings — pull them on connect so the
    * store reflects server truth (and other clients' changes) while keeping the
@@ -162,6 +166,7 @@ export function AppShell() {
         </main>
       </div>
       <CommandPalette />
+      <SessionExpiryWarning />
       <IntroOverlay />
     </div>
   );

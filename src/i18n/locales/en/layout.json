@@ -101,5 +101,21 @@
       "done": "Server time confirmed; retention removes expired restore points again.",
       "failed": "Could not confirm the server time"
     }
+  },
+  "session": {
+    "idle": {
+      "title": "Still there?",
+      "body": "The console signs out after {{duration}} without a click, key press or scroll. Stay signed in to keep working.",
+      "bodyNoDuration": "The console signs out after a stretch without a click, key press or scroll. Stay signed in to keep working.",
+      "countdownLabel": "Signing out in",
+      "stay": "Stay signed in",
+      "signOut": "Sign out"
+    },
+    "limit": {
+      "title": "Your session ends in {{countdown}}",
+      "body": "Every session ends a fixed time after sign-in, active or not: this one at {{time}}. Save what you are working on, then sign in again.",
+      "keepWorking": "Keep working",
+      "signInAgain": "Sign in again now"
+    }
   }
 }

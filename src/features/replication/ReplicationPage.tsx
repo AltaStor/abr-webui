@@ -18,7 +18,7 @@ import { EmptyState } from "@/components/EmptyState";
 import { KpiCard } from "@/components/KpiCard";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { formatDateTime, formatRelative } from "@/lib/format";
+import { formatRelative } from "@/lib/format";
 import { jobTypeMeta } from "@/features/jobs/lib";
 import { useWorldStore } from "@/store/world";
 import type { Replica } from "@/types";
@@ -29,6 +29,7 @@ import {
   type ReplicaConfirmKind,
 } from "./components/ConfirmReplicaActionDialog";
 import { isInSync } from "./lib";
+import { DateTime } from "@/components/DateTime";
 
 export default function ReplicationPage() {
   const { t } = useTranslation("replication");
@@ -167,7 +168,7 @@ export default function ReplicationPage() {
                               {job.lastRunAt && (
                                 <>
                                   <span className="text-muted-foreground/50">·</span>
-                                  <span className="nums">{formatDateTime(job.lastRunAt)}</span>
+                                  <DateTime value={job.lastRunAt} />
                                 </>
                               )}
                             </span>

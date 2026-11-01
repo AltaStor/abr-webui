@@ -28,6 +28,7 @@
  * is a polling loop (see the bottom of the file).
  */
 import { fileStamp } from "@/lib/download";
+import { userTimeZone } from "@/lib/time";
 import { deleteRunName, restoreRunName, verifyRunName } from "@/lib/format";
 import { useWorldStore } from "@/store/world";
 import type {
@@ -170,6 +171,60 @@ export function setUnauthorizedHandler(handler: (() => void) | null): void {
   unauthorizedHandler = handler;
 }
 
+let sessionExpiryHandler: ((expiry: SessionExpiry) => void) | null = null;
+
+/** Registered once by the auth store: every `/auth/me` answer (the live
+ *  driver asks on each poll, flagged so it does not renew anything) reports
+ *  the session's expiries through it, so a renewal by any other request, or
+ *  by another tab holding the same session, reaches the countdown. */
+export function setSessionExpiryHandler(handler: ((expiry: SessionExpiry) => void) | null): void {
+  sessionExpiryHandler = handler;
+}
+
+/* ------------------------- background (refresh) reads ------------------------ */
+let backgroundDepth = 0;
+
+/**
+ * Runs `work` as a background refresh: every GET it sends while it runs carries
+ * `X-ABR-Refresh: 1`. The appliance neither renews a web session for such a
+ * read (only what the user causes keeps them signed in) nor records it in the
+ * audit log. For the poll loops only — a read the user's own click caused
+ * goes out unflagged.
+ *
+ * The scope is a counter, not a property of each call, because a browser has
+ * no async context to carry one through `await`s. A read the user causes
+ * while a refresh is in flight is therefore flagged too; that only means it
+ * neither renews the session (the keep-alive does, see useSessionKeepAlive)
+ * nor lands in the audit log. The other way round — a poll left unflagged —
+ * would keep an idle console signed in forever, which is why the counter
+ * errs this way.
+ */
+export async function inBackground<T>(work: () => Promise<T>): Promise<T> {
+  backgroundDepth++;
+  try {
+    return await work();
+  } finally {
+    backgroundDepth--;
+  }
+}
+
+/* ------------------------------- server clock -------------------------------- */
+let serverClockOffsetMs = 0;
+
+/** The appliance's clock now, as far as the last response's `Date` header
+ *  says (1 s resolution). Session expiries are the appliance's times, so a
+ *  countdown to one must not run on a browser clock that is minutes off. */
+export function serverNow(): number {
+  return Date.now() + serverClockOffsetMs;
+}
+
+function noteServerClock(res: Response): void {
+  const date = Date.parse(res.headers.get("date") ?? "");
+  // The header truncates to the second: on average the server was half a
+  // second further along than it says.
+  if (Number.isFinite(date)) serverClockOffsetMs = date + 500 - Date.now();
+}
+
 const API_VERSION_HEADER = "x-abr-api-version";
 let apiVersionChecked = false;
 
@@ -215,11 +270,12 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     [API_VERSION_HEADER]: `${__ABR_API_MAJOR__}.${__ABR_API_MINOR__}`,
   };
   if (authToken) headers.authorization = `Bearer ${authToken}`;
-  // Every read the console makes is a page load the live driver repeats on a
-  // timer, not a command, so the appliance's audit log leaves it out (a read
-  // the role does not allow is still logged as denied). Actions are audited.
-  if ((init?.method ?? "GET").toUpperCase() === "GET") headers["x-abr-refresh"] = "1";
+  // A read a poll loop repeats on its own (see inBackground) neither keeps the
+  // session alive nor goes into the appliance's audit log (a read the role
+  // does not allow is still logged as denied). What the user causes does both.
+  if (backgroundDepth > 0 && (init?.method ?? "GET").toUpperCase() === "GET") headers["x-abr-refresh"] = "1";
   const res = await fetch(`${BASE}/api/v1${path}`, { ...init, headers });
+  noteServerClock(res);
   checkApiVersion(res);
   if (res.status === 401 && authToken) {
     // A previously-valid session no longer is (expired or revoked elsewhere) —
@@ -499,19 +555,20 @@ function daysOfWeekOf(sched: Dict): number[] {
 function mapSchedule(sched: Dict): Schedule {
   const kind = str(sched.type) || str(sched.kind);
   const time = str(sched.time) || str(sched.start_time) || "00:00";
+  const zone = str(sched.timezone) ? { timezone: str(sched.timezone) } : {};
   switch (kind) {
     case "weekly":
-      return { frequency: "weekly", atTime: time, daysOfWeek: daysOfWeekOf(sched) };
+      return { frequency: "weekly", atTime: time, daysOfWeek: daysOfWeekOf(sched), ...zone };
     case "periodic": {
       const mins = num(sched.interval_minutes, 60);
-      return { frequency: "hourly", everyHours: Math.max(1, Math.round(mins / 60)) };
+      return { frequency: "hourly", everyHours: Math.max(1, Math.round(mins / 60)), ...zone };
     }
     case "monthly":
-      return { frequency: "custom", atTime: time };
+      return { frequency: "custom", atTime: time, ...zone };
     case "cron":
-      return { frequency: "custom", cron: str(sched.expression) };
+      return { frequency: "custom", cron: str(sched.expression), ...zone };
     default:
-      return { frequency: "daily", atTime: time };
+      return { frequency: "daily", atTime: time, ...zone };
   }
 }
 
@@ -937,9 +994,20 @@ export interface AuthUser {
   passwordPolicyExempt: boolean;
 }
 
-export interface LoginResult {
-  token: string;
+/** When a session ends: `expiresAt` if it stays idle (each request the user
+ *  causes moves it), `absoluteExpiresAt` whatever the activity (null: no
+ *  such limit). Both are the appliance's clock — compare with `serverNow()`. */
+export interface SessionExpiry {
   expiresAt: string;
+  absoluteExpiresAt: string | null;
+}
+
+function mapSessionExpiry(res: Dict): SessionExpiry {
+  return { expiresAt: str(res.expires_at), absoluteExpiresAt: strOrNull(res.absolute_expires_at) };
+}
+
+export interface LoginResult extends SessionExpiry {
+  token: string;
   user: AuthUser;
   /** The function IDs the user's role allows; null from an appliance that
    *  predates roles, where everything is allowed. */
@@ -967,7 +1035,7 @@ export async function login(name: string, password: string, durationSeconds?: nu
   const res = asDict(await request<Dict>("/auth/login", { method: "POST", body: JSON.stringify(body) }));
   return {
     token: str(res.token),
-    expiresAt: str(res.expires_at),
+    ...mapSessionExpiry(res),
     user: mapAuthUser(asDict(res.user)),
     permissions: strListOrNull(res.permissions),
   };
@@ -983,6 +1051,8 @@ export interface WhoAmI {
   user: AuthUser;
   role: RoleSummary | null;
   permissions: string[];
+  /** Null from an appliance that does not report it. */
+  session: SessionExpiry | null;
 }
 
 function mapRoleSummary(r: Dict): RoleSummary {
@@ -994,11 +1064,14 @@ function mapRoleSummary(r: Dict): RoleSummary {
 export async function whoami(): Promise<WhoAmI | null> {
   try {
     const res = asDict(await request<Dict>("/auth/me"));
-    return {
+    const me: WhoAmI = {
       user: mapAuthUser(asDict(res.user)),
       role: res.role ? mapRoleSummary(asDict(res.role)) : null,
       permissions: strListOrNull(res.permissions) ?? [],
+      session: res.expires_at ? mapSessionExpiry(res) : null,
     };
+    if (me.session) sessionExpiryHandler?.(me.session);
+    return me;
   } catch (err) {
     if (err instanceof ApiError && err.status === 404) return null;
     throw err;
@@ -1188,17 +1261,23 @@ export function isPermissionDenied(err: unknown): boolean {
 
 export const logout = () => request<void>("/auth/logout", { method: "POST", body: "{}" });
 
-/** Adjusts the current session's absolute expiry in place (Settings ->
- *  Security's token-lifetime slider) -- takes effect immediately rather than
- *  waiting for the next login. Resolves the new `expiresAt` ISO timestamp. */
-export async function extendSession(durationSeconds: number): Promise<string> {
+/** Changes the current session's inactivity timeout in place (Settings ->
+ *  Security's slider) -- takes effect immediately rather than waiting for the
+ *  next login. The limit from sign-in does not move. */
+export async function extendSession(durationSeconds: number): Promise<SessionExpiry> {
   const res = asDict(
     await request<Dict>("/auth/session/duration", {
       method: "PUT",
       body: JSON.stringify({ duration_seconds: durationSeconds }),
     }),
   );
-  return str(res.expires_at);
+  return mapSessionExpiry(res);
+}
+
+/** The keep-alive: renews the session after a user action that sent no
+ *  request of its own (switching views reads only what the store holds). */
+export async function touchSession(): Promise<SessionExpiry> {
+  return mapSessionExpiry(asDict(await request<Dict>("/auth/session/touch", { method: "POST", body: "{}" })));
 }
 
 export async function changePassword(currentPassword: string, newPassword: string): Promise<AuthUser> {
@@ -1516,7 +1595,9 @@ export interface CreateJobPayload {
 
 /** Domain Schedule → orchestrator schedule dict. */
 function scheduleToWire(s: Schedule): Dict {
-  const timezone = "UTC";
+  // The form always names one; the browser's zone is what a time typed
+  // without one means to the person who typed it.
+  const timezone = s.timezone || userTimeZone();
   switch (s.frequency) {
     case "weekly":
       // The API validates weekdays as "Mon".."Sun" names (DAY_ALIASES in
@@ -1541,7 +1622,7 @@ function scheduleToWire(s: Schedule): Dict {
 
 /** Domain full schedule → the dict `normalize_schedule_payload` reads. */
 function fullScheduleToWire(s: FullBackupSchedule): Dict {
-  const common = { enabled: s.enabled, timezone: s.timezone || "UTC" };
+  const common = { enabled: s.enabled, timezone: s.timezone || userTimeZone() };
   const time = s.atTime ?? "00:00";
   switch (s.frequency) {
     case "weekly":
@@ -2625,6 +2706,7 @@ function mapSystemClock(res: Dict): SystemClockStatus {
     confirmedAt: str(res.confirmed_at) || null,
     confirmedBy: str(res.confirmed_by) || null,
     message: str(res.message) || null,
+    timezone: strOrNull(res.timezone),
   };
 }
 
@@ -2832,6 +2914,354 @@ export async function probeAppliance(): Promise<void> {
 
 /* ====================================================================== */
 /* Live events → polling (no SSE on this backend)                          */
+/* ====================================================================== */
+/* E-mail notifications (Settings -> Notifications)                        */
+/* ====================================================================== */
+
+export type SmtpSecurity = "starttls" | "ssl" | "none";
+export type SmtpAuth = "password" | "oauth2" | "none";
+export type OAuthProvider = "microsoft" | "google" | "custom";
+export type OAuthGrant = "client_credentials" | "refresh_token";
+
+export interface EmailOAuthSettings {
+  provider: OAuthProvider;
+  tenantId: string;
+  clientId: string;
+  clientSecretSet: boolean;
+  grant: OAuthGrant;
+  refreshTokenSet: boolean;
+  tokenUrl: string;
+  scope: string;
+  /** What a Microsoft or Google provider resolves to; empty for custom. */
+  effectiveTokenUrl: string;
+  effectiveScope: string;
+}
+
+export interface EmailSmtpSettings {
+  host: string;
+  port: number;
+  security: SmtpSecurity;
+  verifyTls: boolean;
+  auth: SmtpAuth;
+  username: string;
+  passwordSet: boolean;
+  timeoutSeconds: number;
+  oauth2: EmailOAuthSettings;
+}
+
+export interface NotificationEventSetting {
+  id: string;
+  name: string;
+  description: string;
+  default: boolean;
+  enabled: boolean;
+}
+
+export interface EmailDeliveryError {
+  code: string;
+  message: string;
+  stage: string;
+}
+
+export interface EmailDelivery {
+  id: string;
+  event: string;
+  subject: string;
+  recipients: string[];
+  queuedAt: string | null;
+  sentAt: string | null;
+  status: "queued" | "retrying" | "sent" | "failed" | "cancelled";
+  attempts: number;
+  nextAttemptAt: string | null;
+  refused: string[];
+  error: EmailDeliveryError | null;
+}
+
+export interface EmailNotificationState {
+  enabled: boolean;
+  smtp: EmailSmtpSettings;
+  sender: { address: string; name: string };
+  recipients: string[];
+  repositorySpaceThresholdPercent: number;
+  updatedAt: string | null;
+  updatedBy: string | null;
+  events: NotificationEventSetting[];
+  deliveries: EmailDelivery[];
+}
+
+/** A change to the settings. A secret left undefined keeps the stored one;
+ *  an empty string clears it. */
+export interface EmailNotificationPatch {
+  enabled?: boolean;
+  smtp?: Partial<Omit<EmailSmtpSettings, "passwordSet" | "oauth2">> & {
+    password?: string;
+    oauth2?: Partial<
+      Omit<EmailOAuthSettings, "clientSecretSet" | "refreshTokenSet" | "effectiveTokenUrl" | "effectiveScope">
+    > & { clientSecret?: string; refreshToken?: string };
+  };
+  sender?: { address?: string; name?: string };
+  recipients?: string[];
+  events?: Record<string, boolean>;
+  repositorySpaceThresholdPercent?: number;
+}
+
+function mapNotificationEvent(e: Dict): NotificationEventSetting {
+  return {
+    id: str(e.id),
+    name: str(e.name),
+    description: str(e.description),
+    default: e.default === true,
+    enabled: e.enabled === true,
+  };
+}
+
+function mapEmailState(res: Dict): EmailNotificationState {
+  const smtp = asDict(res.smtp);
+  const oauth = asDict(smtp.oauth2);
+  const sender = asDict(res.sender);
+  return {
+    enabled: res.enabled === true,
+    smtp: {
+      host: str(smtp.host),
+      port: num(smtp.port, 587),
+      security: (["starttls", "ssl", "none"].includes(str(smtp.security)) ? str(smtp.security) : "starttls") as SmtpSecurity,
+      verifyTls: smtp.verify_tls !== false,
+      auth: (["password", "oauth2", "none"].includes(str(smtp.auth)) ? str(smtp.auth) : "password") as SmtpAuth,
+      username: str(smtp.username),
+      passwordSet: smtp.password_set === true,
+      timeoutSeconds: num(smtp.timeout_seconds, 30),
+      oauth2: {
+        provider: (["microsoft", "google", "custom"].includes(str(oauth.provider)) ? str(oauth.provider) : "microsoft") as OAuthProvider,
+        tenantId: str(oauth.tenant_id),
+        clientId: str(oauth.client_id),
+        clientSecretSet: oauth.client_secret_set === true,
+        grant: (str(oauth.grant) === "refresh_token" ? "refresh_token" : "client_credentials") as OAuthGrant,
+        refreshTokenSet: oauth.refresh_token_set === true,
+        tokenUrl: str(oauth.token_url),
+        scope: str(oauth.scope),
+        effectiveTokenUrl: str(oauth.effective_token_url),
+        effectiveScope: str(oauth.effective_scope),
+      },
+    },
+    sender: { address: str(sender.address), name: str(sender.name) },
+    recipients: strList(res.recipients),
+    repositorySpaceThresholdPercent: num(res.repository_space_threshold_percent, 85),
+    updatedAt: strOrNull(res.updated_at),
+    updatedBy: strOrNull(res.updated_by),
+    events: (Array.isArray(res.events) ? res.events : []).map((raw) => mapNotificationEvent(asDict(raw))),
+    deliveries: (Array.isArray(res.deliveries) ? res.deliveries : []).map((raw) => mapEmailDelivery(asDict(raw))),
+  };
+}
+
+function mapEmailDelivery(d: Dict): EmailDelivery {
+  const error = d.error && typeof d.error === "object" ? asDict(d.error) : null;
+  const status = str(d.status);
+  return {
+    id: str(d.id),
+    event: str(d.event),
+    subject: str(d.subject),
+    recipients: strList(d.recipients),
+    queuedAt: strOrNull(d.queued_at),
+    sentAt: strOrNull(d.sent_at),
+    status: (["queued", "retrying", "sent", "failed", "cancelled"].includes(status) ? status : "queued") as EmailDelivery["status"],
+    attempts: num(d.attempts),
+    nextAttemptAt: strOrNull(d.next_attempt_at),
+    refused: strList(d.refused),
+    error: error ? { code: str(error.code), message: str(error.message), stage: str(error.stage) } : null,
+  };
+}
+
+function emailPatchToWire(p: EmailNotificationPatch): Dict {
+  const out: Dict = {};
+  if (p.enabled !== undefined) out.enabled = p.enabled;
+  if (p.smtp) {
+    const { oauth2, verifyTls, timeoutSeconds, ...rest } = p.smtp;
+    const smtp: Dict = { ...rest };
+    if (verifyTls !== undefined) smtp.verify_tls = verifyTls;
+    if (timeoutSeconds !== undefined) smtp.timeout_seconds = timeoutSeconds;
+    if (oauth2) {
+      const { tenantId, clientId, clientSecret, refreshToken, tokenUrl, ...plain } = oauth2;
+      smtp.oauth2 = {
+        ...plain,
+        ...(tenantId !== undefined ? { tenant_id: tenantId } : {}),
+        ...(clientId !== undefined ? { client_id: clientId } : {}),
+        ...(clientSecret !== undefined ? { client_secret: clientSecret } : {}),
+        ...(refreshToken !== undefined ? { refresh_token: refreshToken } : {}),
+        ...(tokenUrl !== undefined ? { token_url: tokenUrl } : {}),
+      };
+    }
+    out.smtp = smtp;
+  }
+  if (p.sender) out.sender = p.sender;
+  if (p.recipients) out.recipients = p.recipients;
+  if (p.events) out.events = p.events;
+  if (p.repositorySpaceThresholdPercent !== undefined) {
+    out.repository_space_threshold_percent = p.repositorySpaceThresholdPercent;
+  }
+  return out;
+}
+
+export async function getEmailNotifications(): Promise<EmailNotificationState> {
+  return mapEmailState(asDict(await request<Dict>("/notifications/email")));
+}
+
+/** Saves the change, or rejects with a 422 whose problems
+ *  `apiErrorFields` returns by field ("smtp.host", "recipients", ...). */
+export async function updateEmailNotifications(patch: EmailNotificationPatch): Promise<EmailNotificationState> {
+  return mapEmailState(
+    asDict(await request<Dict>("/notifications/email", { method: "PUT", body: JSON.stringify(emailPatchToWire(patch)) })),
+  );
+}
+
+export interface EmailTestResult {
+  recipients: string[];
+  refused: string[];
+  durationMs: number;
+}
+
+/** Sends a test e-mail with the stored settings and `patch` over them (not
+ *  saved). A delivery the server did not take rejects with the reason as the
+ *  error code (smtp_auth_failed, ...). */
+export async function testEmailNotifications(patch?: EmailNotificationPatch, to?: string[]): Promise<EmailTestResult> {
+  const body: Dict = {};
+  if (patch) body.settings = emailPatchToWire(patch);
+  if (to?.length) body.to = to;
+  const res = asDict(await request<Dict>("/notifications/email/test", { method: "POST", body: JSON.stringify(body) }));
+  return { recipients: strList(res.recipients), refused: strList(res.refused), durationMs: num(res.duration_ms) };
+}
+
+/* ---- The notification script (Settings -> Notifications) ---- */
+
+export interface NotificationScriptFile {
+  name: string;
+  size: number;
+  sha256: string;
+  uploadedAt: string | null;
+  uploadedBy: string | null;
+}
+
+export interface NotificationScriptRun {
+  id: string;
+  event: string;
+  subject: string;
+  queuedAt: string | null;
+  sentAt: string | null;
+  status: EmailDelivery["status"];
+  exitCode: number | null;
+  durationMs: number | null;
+  /** Absent for a role that may not read the script. */
+  output: string | null;
+  error: EmailDeliveryError | null;
+}
+
+export interface NotificationScriptState {
+  /** False where the appliance has the feature switched off. */
+  available: boolean;
+  enabled: boolean;
+  timeoutSeconds: number;
+  file: NotificationScriptFile | null;
+  events: NotificationEventSetting[];
+  runs: NotificationScriptRun[];
+}
+
+export interface NotificationScriptPatch {
+  enabled?: boolean;
+  timeoutSeconds?: number;
+  events?: Record<string, boolean>;
+}
+
+function mapScriptRun(r: Dict): NotificationScriptRun {
+  const delivery = mapEmailDelivery(r);
+  return {
+    id: delivery.id,
+    event: delivery.event,
+    subject: delivery.subject,
+    queuedAt: delivery.queuedAt,
+    sentAt: delivery.sentAt,
+    status: delivery.status,
+    error: delivery.error,
+    exitCode: typeof r.exit_code === "number" ? r.exit_code : null,
+    durationMs: typeof r.duration_ms === "number" ? r.duration_ms : null,
+    output: strOrNull(r.output),
+  };
+}
+
+function mapNotificationScript(res: Dict): NotificationScriptState {
+  const file = res.file && typeof res.file === "object" ? asDict(res.file) : null;
+  return {
+    available: res.available !== false,
+    enabled: res.enabled === true,
+    timeoutSeconds: num(res.timeout_seconds, 60),
+    file: file && {
+      name: str(file.name),
+      size: num(file.size),
+      sha256: str(file.sha256),
+      uploadedAt: strOrNull(file.uploaded_at),
+      uploadedBy: strOrNull(file.uploaded_by),
+    },
+    events: (Array.isArray(res.events) ? res.events : []).map((raw) => mapNotificationEvent(asDict(raw))),
+    runs: (Array.isArray(res.runs) ? res.runs : []).map((raw) => mapScriptRun(asDict(raw))),
+  };
+}
+
+export async function getNotificationScript(): Promise<NotificationScriptState> {
+  return mapNotificationScript(asDict(await request<Dict>("/notifications/script")));
+}
+
+/** Rejects with a 422 whose problems `apiErrorFields` returns by field. */
+export async function updateNotificationScript(patch: NotificationScriptPatch): Promise<NotificationScriptState> {
+  const body: Dict = {};
+  if (patch.enabled !== undefined) body.enabled = patch.enabled;
+  if (patch.timeoutSeconds !== undefined) body.timeout_seconds = patch.timeoutSeconds;
+  if (patch.events) body.events = patch.events;
+  return mapNotificationScript(
+    asDict(await request<Dict>("/notifications/script", { method: "PUT", body: JSON.stringify(body) })),
+  );
+}
+
+/** Stores the script in place of any earlier one. */
+export async function uploadNotificationScript(name: string, content: string): Promise<NotificationScriptState> {
+  return mapNotificationScript(
+    asDict(
+      await request<Dict>("/notifications/script/file", {
+        method: "PUT",
+        body: JSON.stringify({ name, script_content: content }),
+      }),
+    ),
+  );
+}
+
+/** The stored script, to review it. The appliance audits every read. */
+export async function getNotificationScriptContent(): Promise<string> {
+  return str(asDict(await request<Dict>("/notifications/script/file")).script_content);
+}
+
+export async function deleteNotificationScript(): Promise<NotificationScriptState> {
+  return mapNotificationScript(asDict(await request<Dict>("/notifications/script/file", { method: "DELETE" })));
+}
+
+/** Runs the script on a sample event and resolves with how it went, a failed
+ *  script included. */
+export async function testNotificationScript(): Promise<NotificationScriptRun> {
+  return mapScriptRun(asDict(await request<Dict>("/notifications/script/test", { method: "POST", body: "{}" })));
+}
+
+/** The per-field problems of a 422 (`error.details.fields`). */
+export function apiErrorFields(err: unknown): Record<string, string> | null {
+  if (!(err instanceof ApiError)) return null;
+  const details = asDict(asDict(asDict(err.body).error).details);
+  const fields = asDict(details.fields);
+  const out: Record<string, string> = {};
+  for (const [key, value] of Object.entries(fields)) if (typeof value === "string") out[key] = value;
+  return Object.keys(out).length ? out : null;
+}
+
+/** `error.details.stage` of a failed test e-mail. */
+export function apiErrorStage(err: unknown): string | null {
+  if (!(err instanceof ApiError)) return null;
+  return strOrNull(asDict(asDict(asDict(err.body).error).details).stage);
+}
+
 /* ====================================================================== */
 
 export interface ApplianceEventMessage {

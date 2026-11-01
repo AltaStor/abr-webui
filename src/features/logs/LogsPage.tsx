@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 // Copyright © 2026 Norvitex OÜ
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
@@ -15,7 +15,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/components/ui/sonner";
 import { downloadBlob } from "@/lib/download";
 import { qk } from "@/lib/query";
-import { apiErrorMessage, getSupportBundle, listSystemLog, type SystemLogRow } from "@/services/api.http";
+import { apiErrorMessage, getSupportBundle, inBackground, listSystemLog, type SystemLogRow } from "@/services/api.http";
 import { useCan } from "@/store/permissions";
 import { useWorldStore } from "@/store/world";
 import { buildLiveSystemLog, buildLogsWorld } from "./mock";
@@ -78,9 +78,16 @@ export default function LogsPage() {
   /* The appliance's OWN log (GET /system/logs) — the scheduler, TLS, database
    * and API chatter that no other view carries. Polled rather than streamed:
    * a log tail is cheap and there is no push channel for it. */
+  // Opening the page is the user's read; the interval's after it are refreshes.
+  const serverLogOpened = useRef(false);
   const serverLog = useQuery({
     queryKey: qk.systemLog,
-    queryFn: () => listSystemLog({ limit: SYSTEM_LOG_LIMIT }),
+    queryFn: () => {
+      const read = () => listSystemLog({ limit: SYSTEM_LOG_LIMIT });
+      if (serverLogOpened.current) return inBackground(read);
+      serverLogOpened.current = true;
+      return read();
+    },
     enabled: live && canSystemLog,
     refetchInterval: SYSTEM_LOG_REFRESH_MS,
   });

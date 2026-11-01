@@ -25,6 +25,9 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Slider } from "@/components/ui/slider";
 import { TimeField } from "@/components/ui/time-field";
+import { TimeZoneField, ZoneExplanation } from "./components/TimeZoneField";
+import { nextWallClockRun } from "@/lib/schedule";
+import { formatDateTime, userTimeZone } from "@/lib/time";
 import {
   Select,
   SelectContent,
@@ -107,7 +110,7 @@ interface FullScheduleForm {
   timezone?: string;
 }
 
-type FullScheduleDefaults = Pick<FullScheduleForm, "on" | "frequency" | "atTime" | "daysOfWeek" | "dayOfMonth">;
+type FullScheduleDefaults = Pick<FullScheduleForm, "on" | "frequency" | "atTime" | "daysOfWeek" | "dayOfMonth" | "timezone">;
 
 const DAYS_OF_MONTH = Array.from({ length: 31 }, (_, i) => i + 1);
 
@@ -167,6 +170,9 @@ interface FormState {
   name: string;
   preset: Preset;
   atTime: string;
+  /** The zone `atTime` is read in: the job's own, or the viewer's for a new
+   *  job. New full schedules take it too. */
+  timezone: string;
   /** Weekly preset: the days the job runs on. A list, not a single day — the
    *  appliance stores weekdays as a list and the Full backups block below has
    *  always offered several, so offering exactly one here made the same
@@ -194,14 +200,19 @@ interface FormState {
 function presetToSchedule(form: FormState): Schedule {
   switch (form.preset) {
     case "hourly":
-      return { frequency: "hourly", everyHours: 1 };
+      return { frequency: "hourly", everyHours: 1, timezone: form.timezone };
     case "every4h":
-      return { frequency: "hourly", everyHours: 4 };
+      return { frequency: "hourly", everyHours: 4, timezone: form.timezone };
     case "weekly":
-      return { frequency: "weekly", atTime: form.atTime, daysOfWeek: [...form.daysOfWeek].sort((a, b) => a - b) };
+      return {
+        frequency: "weekly",
+        atTime: form.atTime,
+        daysOfWeek: [...form.daysOfWeek].sort((a, b) => a - b),
+        timezone: form.timezone,
+      };
     case "daily":
     default:
-      return { frequency: "daily", atTime: form.atTime };
+      return { frequency: "daily", atTime: form.atTime, timezone: form.timezone };
   }
 }
 
@@ -211,45 +222,31 @@ function scheduleToPreset(schedule: Schedule): Preset {
   return "daily";
 }
 
-/** The soonest of `days` (0 = Sunday) that a run at `atTime` would fall on,
- *  counting today only while that time is still ahead. Null when no day is
- *  picked at all. */
-function nextWeekday(days: number[], atTime: string): number | null {
-  if (!days.length) return null;
-  const now = new Date();
-  const [hh, mm] = atTime.split(":").map(Number);
-  const passedToday =
-    now.getHours() > (hh ?? 0) || (now.getHours() === (hh ?? 0) && now.getMinutes() >= (mm ?? 0));
-  for (let offset = passedToday ? 1 : 0; offset < 8; offset++) {
-    const day = (now.getDay() + offset) % 7;
-    if (days.includes(day)) return day;
-  }
-  return null;
-}
-
+/** The first scheduled run of a daily or weekly job: the moment, on the job's
+ *  clock and, when that reads differently, on the viewer's. */
 function firstRunLabel(form: FormState): string {
   switch (form.preset) {
     case "hourly":
       return i18n.t("jobs:create.firstRun.hourly");
     case "every4h":
       return i18n.t("jobs:create.firstRun.every4h");
-    case "weekly": {
-      // No day picked is not a schedule yet, and saying "next  at 03:30" as if
-      // it were is what let the summary read like a finished setting while the
-      // save button refused it.
-      const next = nextWeekday(form.daysOfWeek, form.atTime);
-      return next === null
-        ? i18n.t("jobs:create.firstRun.weeklyNoDay")
-        : i18n.t("jobs:create.firstRun.weekly", {
-            // The FIRST run, so the soonest of the days picked — listing all of
-            // them would answer a different question than the row asks.
-            day: i18n.t(`jobs:days.long.${DAY_KEYS[next]}`),
-            time: form.atTime,
-          });
+    default: {
+      // No day picked is not a schedule yet, and naming a run for it is what
+      // let the summary read like a finished setting while the save button
+      // refused it.
+      if (form.preset === "weekly" && !form.daysOfWeek.length) return i18n.t("jobs:create.firstRun.weeklyNoDay");
+      const next = nextWallClockRun(
+        form.atTime,
+        form.timezone,
+        form.preset === "weekly" ? { daysOfWeek: form.daysOfWeek } : {},
+      );
+      if (!next) return i18n.t("jobs:create.firstRun.weeklyNoDay");
+      const onJobClock = formatDateTime(next, { zone: form.timezone, weekday: true });
+      const onViewerClock = formatDateTime(next, { weekday: true });
+      return onJobClock === onViewerClock
+        ? onJobClock
+        : i18n.t("jobs:schedule.withViewerTime", { label: onJobClock, viewer: onViewerClock });
     }
-    case "daily":
-    default:
-      return i18n.t("jobs:create.firstRun.daily", { time: form.atTime });
   }
 }
 
@@ -320,6 +317,10 @@ function JobWizard({
     // Full backups default to the job's own run time. A full that falls due
     // together with the regular backup replaces that run instead of adding one.
     const atTime = existingJob?.schedule.atTime ?? "22:00";
+    // A job keeps the zone it has (the appliance reports its own for one saved
+    // without); a new one starts on the viewer's, which is what "22:00" means
+    // to the person typing it.
+    const timezone = existingJob?.schedule.timezone || userTimeZone();
     // A new job starts with a weekly synthetic full. It is the cheaper kind,
     // and a job with retention needs at least one full schedule. A job being
     // edited starts from what it has, so no schedule is switched on for it.
@@ -335,6 +336,7 @@ function JobWizard({
       atTime,
       daysOfWeek: [FULL_BACKUP_DEFAULT_DAY],
       dayOfMonth: 1,
+      timezone,
     };
     const syntheticDefaults: FullScheduleDefaults = {
       on: !existingJob,
@@ -342,12 +344,14 @@ function JobWizard({
       atTime,
       daysOfWeek: [FULL_BACKUP_DEFAULT_DAY],
       dayOfMonth: 1,
+      timezone,
     };
     if (existingJob) {
       return {
         name: existingJob.name,
         preset: scheduleToPreset(existingJob.schedule),
         atTime,
+        timezone,
         daysOfWeek: existingJob.schedule.daysOfWeek?.length ? [...existingJob.schedule.daysOfWeek] : [0],
         keepDays: existingJob.retention.keepDays,
         minFulls: existingJob.retention.minFulls ?? 0,
@@ -370,6 +374,7 @@ function JobWizard({
       name: "",
       preset: "daily",
       atTime,
+      timezone,
       daysOfWeek: [0],
       keepDays: 14,
       minFulls: 0,
@@ -421,6 +426,14 @@ function JobWizard({
 
   const setOption = <K extends keyof JobOptions>(key: K, value: JobOptions[K]) =>
     setForm((f) => ({ ...f, options: { ...f.options, [key]: value } }));
+  /* Full schedules on the job's zone follow it to a new one; one set to a
+   * zone of its own (from the CLI) keeps it. */
+  const setTimezone = (zone: string) =>
+    setForm((f) => {
+      const follow = (full: FullScheduleForm): FullScheduleForm =>
+        !full.timezone || full.timezone === f.timezone ? { ...full, timezone: zone } : full;
+      return { ...f, timezone: zone, activeFull: follow(f.activeFull), syntheticFull: follow(f.syntheticFull) };
+    });
   const toggleScheduleDay = (day: number) =>
     setForm((f) => ({
       ...f,
@@ -1039,6 +1052,16 @@ function JobWizard({
                   )}
                 </div>
               )}
+              {needsTime && (
+                <div className="space-y-1.5">
+                  <TimeZoneField id="run-timezone" value={form.timezone} onChange={setTimezone} />
+                  <ZoneExplanation
+                    atTime={form.atTime}
+                    zone={form.timezone}
+                    days={form.preset === "weekly" ? { daysOfWeek: form.daysOfWeek } : {}}
+                  />
+                </div>
+              )}
             </CardContent>
           </Card>
 
@@ -1598,6 +1621,20 @@ function FullScheduleEditor({
             </div>
           )}
 
+          {!isCustom && (
+            <ZoneExplanation
+              className="text-[11px] text-muted-foreground"
+              atTime={value.atTime}
+              zone={value.timezone}
+              days={
+                value.frequency === "weekly"
+                  ? { daysOfWeek: value.daysOfWeek }
+                  : value.frequency === "monthly"
+                    ? { dayOfMonth: value.dayOfMonth }
+                    : {}
+              }
+            />
+          )}
           {!isCustom && value.frequency === "monthly" && value.dayOfMonth > 28 && (
             <p className="text-[11px] text-muted-foreground">
               {t("create.full.lastDayNote", { day: value.dayOfMonth })}

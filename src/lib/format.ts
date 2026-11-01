@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: Apache-2.0
 // Copyright © 2026 Norvitex OÜ
 
-import { formatDistanceToNowStrict, format as formatDate } from "date-fns";
+import { formatDistanceToNowStrict } from "date-fns";
+import { formatDate as formatCalendarDay, formatDateTime as formatTimeStamp } from "@/lib/time";
 
 /**
  * A NON-BREAKING space, used everywhere below between a number and its unit.
@@ -116,23 +117,28 @@ export function formatCountdown(iso: string | null | undefined): string {
   return formatDistanceToNowStrict(date);
 }
 
+/* Absolute times: the console's one format, in the display zone with its
+ * label (see lib/time.ts). These names stay for the call sites that have
+ * always used them. */
+
+/** Date and time to the second: "Oct 28, 16:14:53 GMT+3" (log lines, clocks). */
 export function formatClock(iso: string | null | undefined): string {
-  if (!iso) return "—";
-  return formatDate(new Date(iso), "HH:mm:ss");
+  return formatTimeStamp(iso, { seconds: true });
 }
 
+/** "Oct 23, 01:00 GMT+3". */
 export function formatDateTime(iso: string | null | undefined): string {
-  if (!iso) return "—";
-  return formatDate(new Date(iso), "MMM d, HH:mm");
+  return formatTimeStamp(iso);
 }
 
+/** With the weekday: "Thu, Oct 23, 01:00 GMT+3". */
 export function formatFullDateTime(iso: string | null | undefined): string {
-  if (!iso) return "—";
-  return formatDate(new Date(iso), "EEE, MMM d yyyy · HH:mm");
+  return formatTimeStamp(iso, { weekday: true });
 }
 
+/** A calendar day in the display zone: "Oct 23". */
 export function formatDay(iso: string): string {
-  return formatDate(new Date(iso), "MMM d");
+  return formatCalendarDay(iso);
 }
 
 function trimZero(s: string): string {

@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { EmptyState } from "@/components/EmptyState";
 import { Gauge } from "@/lib/icons";
 import { formatDateTime, formatThroughput } from "@/lib/format";
+import { formatDateTime as formatAxisTime } from "@/lib/time";
 import {
   ChartTooltip,
   areaCursor,
@@ -52,7 +53,7 @@ export function ThroughputChart({ sessions, accent }: { sessions: Session[]; acc
           <ResponsiveContainer width="100%" height={200}>
             <AreaChart data={data} margin={{ top: 8, right: 8, left: -20, bottom: 0 }}>
               <CartesianGrid {...gridProps} />
-              <XAxis dataKey="ts" tickFormatter={(v: string) => formatDateTime(v)} {...xAxisProps({ tick: { fontSize: 10, fill: "hsl(var(--muted-foreground) / 0.7)" } })} />
+              <XAxis dataKey="ts" tickFormatter={(v: string) => formatAxisTime(v, { noZone: true })} {...xAxisProps({ tick: { fontSize: 10, fill: "hsl(var(--muted-foreground) / 0.7)" } })} />
               <YAxis tickFormatter={(v: number) => `${v}`} {...yAxisProps({ width: 42 })} />
               <Tooltip
                 cursor={areaCursor}

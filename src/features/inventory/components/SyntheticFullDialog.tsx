@@ -35,7 +35,7 @@ import { ProgressBar } from "@/components/ProgressBar";
 import { CancelRunButton } from "@/components/CancelRunButton";
 import { toast } from "@/components/ui/sonner";
 import { cn } from "@/lib/utils";
-import { formatDateTime, formatStorage } from "@/lib/format";
+import { formatStorage } from "@/lib/format";
 import {
   resolveSyntheticFullChain,
   syntheticFullFailureMessage,
@@ -45,6 +45,7 @@ import {
   validateSyntheticFull,
 } from "@/lib/synthetic-full";
 import { useWorldStore } from "@/store/world";
+import { DateTime } from "@/components/DateTime";
 
 interface SyntheticFullDialogProps {
   /** The VM whose chain is being merged. Only an id and a display name — the
@@ -271,9 +272,7 @@ export function SyntheticFullDialog({
                     >
                       {point.type === "full" ? "F" : "I"}
                     </span>
-                    <span className="min-w-0 flex-1 truncate text-muted-foreground">
-                      {formatDateTime(point.createdAt)}
-                    </span>
+                    <DateTime value={point.createdAt} className="min-w-0 flex-1 truncate text-muted-foreground" />
                     {point.sizeGB > 0 && (
                       <span className="nums shrink-0 text-muted-foreground/80">
                         {formatStorage(point.sizeGB, 1)}

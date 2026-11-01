@@ -50,6 +50,7 @@ import { JobObjectsTab } from "./components/JobObjectsTab";
 import { JobSettingsTab } from "./components/JobSettingsTab";
 import { DeleteJobDialog } from "./components/DeleteJobDialog";
 import { RetentionDialog } from "./components/RetentionDialog";
+import { utcTitle } from "@/lib/time";
 
 export default function JobDetailPage() {
   const { t } = useTranslation("jobs");
@@ -314,6 +315,7 @@ export default function JobDetailPage() {
           // Last run card directly below already says how long ago. So the tile
           // takes the half the page was missing: which run this was.
           hint={job.lastRunAt ? formatDateTime(job.lastRunAt) : undefined}
+          hintTitle={utcTitle(job.lastRunAt)}
         />
         <KpiCard
           density="compact"
@@ -348,6 +350,7 @@ export default function JobDetailPage() {
           // The value above is already the countdown; the hint slot is free to
           // say which slot that lands in, instead of the filler word "Scheduled".
           hint={job.nextRunAt ? formatDateTime(job.nextRunAt) : t("detailStats.notScheduled")}
+          hintTitle={utcTitle(job.nextRunAt)}
         />
         <KpiCard
           density="compact"
