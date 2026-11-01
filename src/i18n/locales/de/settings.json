@@ -22,7 +22,7 @@
     },
     "notifications": {
       "label": "Benachrichtigungen",
-      "blurb": "E-Mail- und Konsolenbenachrichtigungen"
+      "blurb": "E-Mail-, Skript- und Konsolenbenachrichtigungen"
     },
     "security": {
       "label": "Sicherheit",
@@ -707,6 +707,64 @@
       "recipients": "Keine E-Mail-Adresse: {{list}}.",
       "recipientsRequired": "Fügen Sie mindestens einen Empfänger hinzu.",
       "threshold": "Geben Sie 50 bis 99 ein."
+    }
+  },
+  "script": {
+    "title": "Eigenes Skript",
+    "description": "Führen Sie ein eigenes Skript aus, wenn ein gewähltes Ereignis eintritt, um ein Chatsystem, eine Ticket-Warteschlange oder alles andere zu erreichen, was E-Mail nicht erreicht.",
+    "enable": "Skript bei seinen Ereignissen ausführen",
+    "warning": "Das Skript läuft auf der Appliance unter dem Konto des Sicherungsdienstes und kann alles, was dieses Konto kann: den Katalog und die gespeicherten Zugangsdaten lesen sowie Sicherungen ändern oder löschen. Laden Sie nur Code hoch, den Sie gelesen haben und dem Sie vertrauen.",
+    "unavailable": "Skripte sind auf dieser Appliance ausgeschaltet (ABR_NOTIFICATION_SCRIPTS=0). Ein gespeichertes Skript läuft nicht.",
+    "loadFailed": "Die Skripteinstellungen konnten nicht von der Appliance gelesen werden.",
+    "file": "Skriptdatei",
+    "none": "Kein Skript hochgeladen.",
+    "size": "{{size}} Byte",
+    "uploadedBy": "Hochgeladen von {{user}},",
+    "upload": "Skript hochladen",
+    "replace": "Ersetzen",
+    "view": "Anzeigen",
+    "viewDescription": "Das Skript, wie es gespeichert ist und ausgeführt wird. Das Lesen wird im Audit-Log festgehalten.",
+    "remove": "Entfernen",
+    "uploaded": "{{name}} hochgeladen.",
+    "uploadFailed": "Die Appliance hat das Skript nicht angenommen.",
+    "tooLarge": "{{name}} ist größer als 256 KiB.",
+    "noInterpreter": "{{name}} beginnt nicht mit einer #!-Zeile, die den Interpreter nennt, etwa #!/bin/sh.",
+    "removed": "Skript entfernt.",
+    "removeFailed": "Skript nicht entfernt",
+    "removeDialog": {
+      "title": "Dieses Skript entfernen?",
+      "description": "{{name}} wird von der Appliance gelöscht und läuft nicht mehr. Der Verlauf bleibt erhalten."
+    },
+    "saved": "Skripteinstellungen gespeichert.",
+    "saveFailed": "Skripteinstellungen nicht gespeichert",
+    "timeout": "Zeitlimit (Sekunden)",
+    "timeoutHint": "Ein längerer Lauf wird gestoppt, mit allem, was er gestartet hat. {{min}}–{{max}}.",
+    "timeoutRange": "Geben Sie {{min}} bis {{max}} Sekunden ein.",
+    "events": "Ereignisse, die das Skript ausführen",
+    "eventsHint": "Unabhängig von den Ereignissen mit E-Mail gewählt. Das Skript läuft auch bei ausgeschalteter E-Mail.",
+    "test": "Testlauf",
+    "running": "Läuft …",
+    "testPassed": "Das Skript wurde ohne Fehler beendet.",
+    "testFailed": "Der Testlauf schlug fehl",
+    "exitCode": "Exit {{code}}",
+    "duration": "{{ms}} ms",
+    "receives": {
+      "title": "Was das Skript erhält",
+      "stdin": "Das Ereignis als JSON auf der Standardeingabe und in der Datei aus ABR_EVENT_FILE: event, name, severity, subject, body, time, host, version und details, die Fakten des Ereignisses (etwa der Job, seine VMs und deren Ergebnisse).",
+      "variables": "Die wichtigsten Felder als Umgebungsvariablen. Keine Variable des Servers erreicht das Skript, und PATH ist ein fester Systempfad.",
+      "outcome": "Exit-Code 0 gilt als Erfolg. Ein fehlgeschlagener Lauf wird festgehalten und nicht wiederholt. Behandeln Sie jeden Wert als Daten: Der Name einer VM etwa stammt von außerhalb der Appliance."
+    },
+    "history": {
+      "title": "Letzte Läufe",
+      "empty": "Das Skript ist noch nicht gelaufen.",
+      "output": "Ausgabe",
+      "status": {
+        "sent": "Erfolgreich",
+        "failed": "Fehlgeschlagen",
+        "retrying": "Neuer Versuch",
+        "queued": "Wartend",
+        "cancelled": "Abgebrochen"
+      }
     }
   }
 }

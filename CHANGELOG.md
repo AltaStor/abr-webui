@@ -18,6 +18,13 @@ All notable changes to the AltaStor WebUI are documented in this file.
   request. Recent deliveries, with failures and retries. Read-only for an
   Auditor. The browser's own pop-up notifications are the card below,
   "In-console notifications".
+- Settings → Notifications → Custom script: upload a script the appliance
+  runs on chosen events, view it, replace or remove it, switch it on, set its
+  time limit and its own events (apart from those that send e-mail), run a test
+  and see its exit code and output, and read its recent runs. The card says
+  plainly that the script runs on the appliance as the service account and what
+  it receives. Read-only for an Auditor, without the output; switched off with
+  an explanation where the appliance has `ABR_NOTIFICATION_SCRIPTS=0`.
 - Time zones: every absolute time shows its zone ("Oct 23, 01:00 GMT+3") in
   one format across the console, with UTC on hover; schedules show the job's
   zone and the viewer's equivalent ("Daily · 22:00 UTC (01:00 GMT+3, next

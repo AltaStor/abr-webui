@@ -22,7 +22,7 @@
     },
     "notifications": {
       "label": "Notifications",
-      "blurb": "E-mail and in-console notifications"
+      "blurb": "E-mail, script and in-console notifications"
     },
     "security": {
       "label": "Security",
@@ -710,6 +710,64 @@
       "recipients": "Not an e-mail address: {{list}}.",
       "recipientsRequired": "Add at least one recipient.",
       "threshold": "Enter 50 to 99."
+    }
+  },
+  "script": {
+    "title": "Custom script",
+    "description": "Run your own script when a chosen event happens, to reach a chat system, a ticket queue or anything else e-mail doesn't.",
+    "enable": "Run the script on its events",
+    "warning": "The script runs on the appliance as the backup service's account, so it can do whatever that account can: read the catalog and the stored credentials, and change or delete backups. Upload only code you have read and trust.",
+    "unavailable": "Scripts are switched off on this appliance (ABR_NOTIFICATION_SCRIPTS=0). A stored script does not run.",
+    "loadFailed": "Couldn't read the script settings from the appliance.",
+    "file": "Script file",
+    "none": "No script uploaded.",
+    "size": "{{size}} bytes",
+    "uploadedBy": "Uploaded by {{user}},",
+    "upload": "Upload script",
+    "replace": "Replace",
+    "view": "View",
+    "viewDescription": "The script as it is stored and run. Reading it is recorded in the audit log.",
+    "remove": "Remove",
+    "uploaded": "{{name}} uploaded.",
+    "uploadFailed": "The appliance didn't take the script.",
+    "tooLarge": "{{name}} is larger than 256 KiB.",
+    "noInterpreter": "{{name}} doesn't start with a #! line naming its interpreter, such as #!/bin/sh.",
+    "removed": "Script removed.",
+    "removeFailed": "Script not removed",
+    "removeDialog": {
+      "title": "Remove this script?",
+      "description": "{{name}} is deleted from the appliance and stops running. Its run history stays."
+    },
+    "saved": "Script settings saved.",
+    "saveFailed": "Script settings not saved",
+    "timeout": "Time limit (seconds)",
+    "timeoutHint": "A run that takes longer is stopped, with whatever it started. {{min}}–{{max}}.",
+    "timeoutRange": "Enter {{min}} to {{max}} seconds.",
+    "events": "Events that run the script",
+    "eventsHint": "Chosen apart from the events that send e-mail. The script runs even with e-mail switched off.",
+    "test": "Run test",
+    "running": "Running…",
+    "testPassed": "The script finished without an error.",
+    "testFailed": "The test run failed",
+    "exitCode": "exit {{code}}",
+    "duration": "{{ms}} ms",
+    "receives": {
+      "title": "What the script receives",
+      "stdin": "The event as JSON on standard input, and in the file named by ABR_EVENT_FILE: event, name, severity, subject, body, time, host, version and details, the facts of the event (the job, its VMs and their results, for one).",
+      "variables": "The main fields as environment variables. None of the server's own variables reach the script, and the PATH is a fixed system one.",
+      "outcome": "Exit code 0 counts as success. A run that fails is recorded and not repeated. Treat every value as data: a VM's name, for one, comes from outside the appliance."
+    },
+    "history": {
+      "title": "Recent runs",
+      "empty": "The script hasn't run yet.",
+      "output": "Output",
+      "status": {
+        "sent": "Succeeded",
+        "failed": "Failed",
+        "retrying": "Retrying",
+        "queued": "Queued",
+        "cancelled": "Cancelled"
+      }
     }
   }
 }

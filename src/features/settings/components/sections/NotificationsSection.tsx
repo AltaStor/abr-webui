@@ -11,6 +11,7 @@ import i18n from "@/i18n";
 import { SettingsSection } from "../SettingsSection";
 import { OfflineNotice, toastSettingSaved, useSettingsOffline } from "../controls";
 import { EmailNotificationsCard } from "./EmailNotificationsCard";
+import { NotificationScriptCard } from "./NotificationScriptCard";
 import { useCan } from "@/store/permissions";
 
 /* -------------------------------------------------------------------------- */
@@ -46,6 +47,7 @@ export function NotificationsSection() {
   return (
     <div className="space-y-4">
       {canViewChannels && <EmailNotificationsCard />}
+      {canViewChannels && <NotificationScriptCard />}
       <SettingsSection
         title={t("notifications.events.title")}
         description={t("notifications.events.description")}

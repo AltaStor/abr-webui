@@ -3130,6 +3130,122 @@ export async function testEmailNotifications(patch?: EmailNotificationPatch, to?
   return { recipients: strList(res.recipients), refused: strList(res.refused), durationMs: num(res.duration_ms) };
 }
 
+/* ---- The notification script (Settings -> Notifications) ---- */
+
+export interface NotificationScriptFile {
+  name: string;
+  size: number;
+  sha256: string;
+  uploadedAt: string | null;
+  uploadedBy: string | null;
+}
+
+export interface NotificationScriptRun {
+  id: string;
+  event: string;
+  subject: string;
+  queuedAt: string | null;
+  sentAt: string | null;
+  status: EmailDelivery["status"];
+  exitCode: number | null;
+  durationMs: number | null;
+  /** Absent for a role that may not read the script. */
+  output: string | null;
+  error: EmailDeliveryError | null;
+}
+
+export interface NotificationScriptState {
+  /** False where the appliance has the feature switched off. */
+  available: boolean;
+  enabled: boolean;
+  timeoutSeconds: number;
+  file: NotificationScriptFile | null;
+  events: NotificationEventSetting[];
+  runs: NotificationScriptRun[];
+}
+
+export interface NotificationScriptPatch {
+  enabled?: boolean;
+  timeoutSeconds?: number;
+  events?: Record<string, boolean>;
+}
+
+function mapScriptRun(r: Dict): NotificationScriptRun {
+  const delivery = mapEmailDelivery(r);
+  return {
+    id: delivery.id,
+    event: delivery.event,
+    subject: delivery.subject,
+    queuedAt: delivery.queuedAt,
+    sentAt: delivery.sentAt,
+    status: delivery.status,
+    error: delivery.error,
+    exitCode: typeof r.exit_code === "number" ? r.exit_code : null,
+    durationMs: typeof r.duration_ms === "number" ? r.duration_ms : null,
+    output: strOrNull(r.output),
+  };
+}
+
+function mapNotificationScript(res: Dict): NotificationScriptState {
+  const file = res.file && typeof res.file === "object" ? asDict(res.file) : null;
+  return {
+    available: res.available !== false,
+    enabled: res.enabled === true,
+    timeoutSeconds: num(res.timeout_seconds, 60),
+    file: file && {
+      name: str(file.name),
+      size: num(file.size),
+      sha256: str(file.sha256),
+      uploadedAt: strOrNull(file.uploaded_at),
+      uploadedBy: strOrNull(file.uploaded_by),
+    },
+    events: (Array.isArray(res.events) ? res.events : []).map((raw) => mapNotificationEvent(asDict(raw))),
+    runs: (Array.isArray(res.runs) ? res.runs : []).map((raw) => mapScriptRun(asDict(raw))),
+  };
+}
+
+export async function getNotificationScript(): Promise<NotificationScriptState> {
+  return mapNotificationScript(asDict(await request<Dict>("/notifications/script")));
+}
+
+/** Rejects with a 422 whose problems `apiErrorFields` returns by field. */
+export async function updateNotificationScript(patch: NotificationScriptPatch): Promise<NotificationScriptState> {
+  const body: Dict = {};
+  if (patch.enabled !== undefined) body.enabled = patch.enabled;
+  if (patch.timeoutSeconds !== undefined) body.timeout_seconds = patch.timeoutSeconds;
+  if (patch.events) body.events = patch.events;
+  return mapNotificationScript(
+    asDict(await request<Dict>("/notifications/script", { method: "PUT", body: JSON.stringify(body) })),
+  );
+}
+
+/** Stores the script in place of any earlier one. */
+export async function uploadNotificationScript(name: string, content: string): Promise<NotificationScriptState> {
+  return mapNotificationScript(
+    asDict(
+      await request<Dict>("/notifications/script/file", {
+        method: "PUT",
+        body: JSON.stringify({ name, script_content: content }),
+      }),
+    ),
+  );
+}
+
+/** The stored script, to review it. The appliance audits every read. */
+export async function getNotificationScriptContent(): Promise<string> {
+  return str(asDict(await request<Dict>("/notifications/script/file")).script_content);
+}
+
+export async function deleteNotificationScript(): Promise<NotificationScriptState> {
+  return mapNotificationScript(asDict(await request<Dict>("/notifications/script/file", { method: "DELETE" })));
+}
+
+/** Runs the script on a sample event and resolves with how it went, a failed
+ *  script included. */
+export async function testNotificationScript(): Promise<NotificationScriptRun> {
+  return mapScriptRun(asDict(await request<Dict>("/notifications/script/test", { method: "POST", body: "{}" })));
+}
+
 /** The per-field problems of a 422 (`error.details.fields`). */
 export function apiErrorFields(err: unknown): Record<string, string> | null {
   if (!(err instanceof ApiError)) return null;

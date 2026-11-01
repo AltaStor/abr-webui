@@ -22,7 +22,7 @@
     },
     "notifications": {
       "label": "Notificaciones",
-      "blurb": "Notificaciones por correo y en la consola"
+      "blurb": "Notificaciones por correo, script y consola"
     },
     "security": {
       "label": "Seguridad",
@@ -707,6 +707,64 @@
       "recipients": "No es una dirección de correo: {{list}}.",
       "recipientsRequired": "Añada al menos un destinatario.",
       "threshold": "Introduzca de 50 a 99."
+    }
+  },
+  "script": {
+    "title": "Script personalizado",
+    "description": "Ejecute su propio script cuando ocurra un evento elegido, para llegar a un chat, una cola de tickets o cualquier otra cosa a la que el correo no llegue.",
+    "enable": "Ejecutar el script en sus eventos",
+    "warning": "El script se ejecuta en el appliance con la cuenta del servicio de copias, así que puede hacer todo lo que esa cuenta puede: leer el catálogo y las credenciales guardadas, y cambiar o borrar copias. Suba solo código que haya leído y en el que confíe.",
+    "unavailable": "Los scripts están desactivados en este appliance (ABR_NOTIFICATION_SCRIPTS=0). Un script guardado no se ejecuta.",
+    "loadFailed": "No se pudo leer la configuración del script del appliance.",
+    "file": "Archivo del script",
+    "none": "No se ha subido ningún script.",
+    "size": "{{size}} bytes",
+    "uploadedBy": "Subido por {{user}},",
+    "upload": "Subir script",
+    "replace": "Reemplazar",
+    "view": "Ver",
+    "viewDescription": "El script tal como se guarda y se ejecuta. La lectura queda registrada en el registro de auditoría.",
+    "remove": "Quitar",
+    "uploaded": "{{name}} subido.",
+    "uploadFailed": "El appliance no aceptó el script.",
+    "tooLarge": "{{name}} ocupa más de 256 KiB.",
+    "noInterpreter": "{{name}} no empieza con una línea #! que nombre su intérprete, como #!/bin/sh.",
+    "removed": "Script quitado.",
+    "removeFailed": "Script no quitado",
+    "removeDialog": {
+      "title": "¿Quitar este script?",
+      "description": "{{name}} se borra del appliance y deja de ejecutarse. Su historial se conserva."
+    },
+    "saved": "Configuración del script guardada.",
+    "saveFailed": "Configuración del script no guardada",
+    "timeout": "Tiempo límite (segundos)",
+    "timeoutHint": "Una ejecución más larga se detiene, con todo lo que haya iniciado. {{min}}–{{max}}.",
+    "timeoutRange": "Introduzca de {{min}} a {{max}} segundos.",
+    "events": "Eventos que ejecutan el script",
+    "eventsHint": "Se eligen aparte de los eventos que envían correo. El script se ejecuta aunque el correo esté desactivado.",
+    "test": "Ejecutar prueba",
+    "running": "Ejecutando…",
+    "testPassed": "El script terminó sin errores.",
+    "testFailed": "La prueba falló",
+    "exitCode": "salida {{code}}",
+    "duration": "{{ms}} ms",
+    "receives": {
+      "title": "Qué recibe el script",
+      "stdin": "El evento como JSON en la entrada estándar y en el archivo indicado por ABR_EVENT_FILE: event, name, severity, subject, body, time, host, version y details, los datos del evento (por ejemplo el trabajo, sus VM y sus resultados).",
+      "variables": "Los campos principales como variables de entorno. Ninguna variable del servidor llega al script, y el PATH es uno fijo del sistema.",
+      "outcome": "El código de salida 0 cuenta como éxito. Una ejecución fallida se registra y no se repite. Trate cada valor como datos: el nombre de una VM, por ejemplo, viene de fuera del appliance."
+    },
+    "history": {
+      "title": "Ejecuciones recientes",
+      "empty": "El script aún no se ha ejecutado.",
+      "output": "Salida",
+      "status": {
+        "sent": "Correcta",
+        "failed": "Fallida",
+        "retrying": "Reintentando",
+        "queued": "En cola",
+        "cancelled": "Cancelada"
+      }
     }
   }
 }
