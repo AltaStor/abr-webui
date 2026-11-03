@@ -151,7 +151,7 @@ export function ActivityTimeline({ data }: Props) {
             <ResponsiveContainer width="100%" height={208}>
               <BarChart data={data} margin={{ top: 8, right: 4, left: -22, bottom: 0 }} barCategoryGap={5}>
                 <CartesianGrid {...gridProps} />
-                <XAxis dataKey="date" tickFormatter={(v: string) => formatDay(v)} {...xAxisProps({ interval: 1, minTickGap: 8 })} />
+                <XAxis dataKey="date" tickFormatter={(v: string) => formatDay(v, { short: true })} {...xAxisProps({ interval: 1, minTickGap: 8 })} />
                 <YAxis allowDecimals={false} {...yAxisProps({ width: 32 })} />
                 <Tooltip
                   cursor={barCursor}

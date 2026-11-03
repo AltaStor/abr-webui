@@ -5,29 +5,66 @@
  * Time zones, and the one way the console prints a moment. See
  * doc/TimeZones.md for the model; in short:
  *
- * - Display zone: the browser's. Every absolute time the console prints is in
- *   it and carries its label ("Oct 23, 01:00 GMT+3"); the tooltip
+ * - Display zone: the one the user picked in Settings → Appearance, or the
+ *   browser's on "Auto" (the default). Every absolute time the console prints
+ *   is in it and carries its label ("23/10/2026 01:00 GMT+3"); the tooltip
  *   (`utcTitle`) gives the same moment in UTC.
  * - Job zone: the zone a schedule's wall-clock time ("22:00") is read in, per
  *   schedule, as the appliance reports it. Schedules are printed in it, with
  *   the display-zone equivalent beside them when that reads differently.
  * - Appliance zone: the operating system zone of the appliance; read-only.
  *
+ * The date format (DD/MM/YYYY, MM/DD/YYYY, YYYY-MM-DD) and the time format
+ * (24-hour, 12-hour) are the user's too. The settings store hands all of it
+ * to `setDisplayPreferences`; this module reads no store and imports nothing
+ * at run time, so `node --test` runs it as it is (time.test.ts).
+ *
  * No date library here knows zones (date-fns 3 has no zone support), so the
  * zone arithmetic below runs on `Intl.DateTimeFormat`, which every supported
  * browser carries with the full IANA database.
  */
-import i18n from "@/i18n";
-import { languageMeta } from "@/i18n/languages";
+import type { DateFormat, TimeFormat } from "@/types";
 
 export const UTC = "UTC";
+
+/* ----------------------------------------------------------- preferences -- */
+
+/** The time zone setting that means "the browser's". */
+export const AUTO_TIME_ZONE = "auto";
+
+export interface DisplayPreferences {
+  /** An IANA zone, or `AUTO_TIME_ZONE`. */
+  timeZone: string;
+  dateFormat: DateFormat;
+  timeFormat: TimeFormat;
+  /** BCP-47 tag the weekday names are spelled in. */
+  locale: string;
+}
+
+export const DEFAULT_DISPLAY_PREFERENCES: DisplayPreferences = {
+  timeZone: AUTO_TIME_ZONE,
+  dateFormat: "DD/MM/YYYY",
+  timeFormat: "24h",
+  locale: "en-US",
+};
+
+let preferences: DisplayPreferences = DEFAULT_DISPLAY_PREFERENCES;
+
+/** Takes the user's zone and formats; every format call after reads them. */
+export function setDisplayPreferences(next: Partial<DisplayPreferences>): void {
+  preferences = { ...preferences, ...next };
+}
+
+export function displayPreferences(): DisplayPreferences {
+  return preferences;
+}
 
 /* ----------------------------------------------------------------- zones -- */
 
 let browserZone: string | null = null;
 
-/** The browser's IANA zone; the console's display zone. */
-export function userTimeZone(): string {
+/** The browser's IANA zone, which its operating system sets. */
+export function browserTimeZone(): string {
   if (browserZone === null) {
     try {
       browserZone = Intl.DateTimeFormat().resolvedOptions().timeZone || UTC;
@@ -38,15 +75,33 @@ export function userTimeZone(): string {
   return browserZone;
 }
 
+/** The console's display zone: the user's pick, or the browser's on "Auto"
+ *  and for a picked zone this browser does not know. */
+export function userTimeZone(): string {
+  return resolveTimeZone(preferences.timeZone);
+}
+
+/** The zone a time zone setting prints in. */
+export function resolveTimeZone(setting: string): string {
+  return setting !== AUTO_TIME_ZONE && isValidTimeZone(setting) ? setting : browserTimeZone();
+}
+
+const zoneValidity = new Map<string, boolean>();
+
 /** Whether `zone` is a name this browser can compute with. */
 export function isValidTimeZone(zone: string | null | undefined): zone is string {
   if (!zone) return false;
-  try {
-    new Intl.DateTimeFormat("en-US", { timeZone: zone });
-    return true;
-  } catch {
-    return false;
+  let valid = zoneValidity.get(zone);
+  if (valid === undefined) {
+    try {
+      new Intl.DateTimeFormat("en-US", { timeZone: zone });
+      valid = true;
+    } catch {
+      valid = false;
+    }
+    zoneValidity.set(zone, valid);
   }
+  return valid;
 }
 
 /** Every zone the browser knows, for a picker; UTC first. */
@@ -176,6 +231,54 @@ export function scheduleZoneName(zone: string | null | undefined): string {
   return /^(Etc\/)?(UTC|GMT|Zulu|Universal|UCT)$/i.test(zone) ? UTC : zone;
 }
 
+/* Browsers list zones by their CLDR names, which keep some names IANA has
+ * since replaced: Chrome and Node list "Asia/Calcutta" and "Europe/Kiev", not
+ * "Asia/Kolkata" or "Europe/Kyiv". Both spellings work everywhere; this is
+ * only how the zone picker names and finds them. */
+const RENAMED_ZONES: Record<string, string> = {
+  "Africa/Asmera": "Africa/Asmara",
+  "America/Buenos_Aires": "America/Argentina/Buenos_Aires",
+  "America/Catamarca": "America/Argentina/Catamarca",
+  "America/Coral_Harbour": "America/Atikokan",
+  "America/Cordoba": "America/Argentina/Cordoba",
+  "America/Godthab": "America/Nuuk",
+  "America/Indianapolis": "America/Indiana/Indianapolis",
+  "America/Jujuy": "America/Argentina/Jujuy",
+  "America/Louisville": "America/Kentucky/Louisville",
+  "America/Mendoza": "America/Argentina/Mendoza",
+  "Asia/Calcutta": "Asia/Kolkata",
+  "Asia/Katmandu": "Asia/Kathmandu",
+  "Asia/Rangoon": "Asia/Yangon",
+  "Asia/Saigon": "Asia/Ho_Chi_Minh",
+  "Atlantic/Faeroe": "Atlantic/Faroe",
+  "Europe/Kiev": "Europe/Kyiv",
+  "Pacific/Enderbury": "Pacific/Kanton",
+  "Pacific/Ponape": "Pacific/Pohnpei",
+  "Pacific/Truk": "Pacific/Chuuk",
+};
+
+/** A zone's current IANA name: "Europe/Kiev" → "Europe/Kyiv". */
+export function currentZoneName(zone: string): string {
+  return RENAMED_ZONES[zone] ?? zone;
+}
+
+/** The place an IANA zone is named after, by its current name:
+ *  "Europe/Kiev" → "Kyiv", "America/Argentina/Buenos_Aires" → "Buenos Aires". */
+export function zoneCity(zone: string): string {
+  if (scheduleZoneName(zone) === UTC) return UTC;
+  return (currentZoneName(zone).split("/").pop() ?? zone).replace(/_/g, " ");
+}
+
+/** A zone the way the zone picker lists it, at its offset on `at` (today by
+ *  default, so DST is the current one): "(UTC +02:00) Kyiv",
+ *  "(UTC +05:30) Kolkata". */
+export function zonePickerLabel(zone: string, at: Date | number = Date.now()): string {
+  const minutes = offsetMinutes(usable(zone), at);
+  const abs = Math.abs(minutes);
+  const hhmm = `${String(Math.floor(abs / 60)).padStart(2, "0")}:${String(abs % 60).padStart(2, "0")}`;
+  return `(UTC ${minutes < 0 ? "-" : "+"}${hhmm}) ${zoneCity(zone)}`;
+}
+
 /* ------------------------------------------------------------ formatting -- */
 
 export type TimeInput = string | number | Date | null | undefined;
@@ -186,17 +289,47 @@ function toDate(value: TimeInput): Date | null {
   return Number.isNaN(d.getTime()) ? null : d;
 }
 
-const textFormatters = new Map<string, Intl.DateTimeFormat>();
+const pad = (n: number) => String(n).padStart(2, "0");
 
-function textFormatter(zone: string, options: Intl.DateTimeFormatOptions): Intl.DateTimeFormat {
-  const locale = languageMeta(i18n.language).bcp47;
-  const key = `${locale}|${zone}|${JSON.stringify(options)}`;
-  let f = textFormatters.get(key);
-  if (!f) {
-    f = new Intl.DateTimeFormat(locale, { ...options, timeZone: zone, hourCycle: "h23" });
-    textFormatters.set(key, f);
+/** A calendar day in `format`: "23/10/2026", "10/23/2026", "2026-10-23";
+ *  without the year "23/10", "10/23", "10-23". */
+function dayText(w: Pick<WallTime, "year" | "month" | "day">, format: DateFormat, withYear = true): string {
+  const d = pad(w.day);
+  const m = pad(w.month);
+  switch (format) {
+    case "MM/DD/YYYY":
+      return withYear ? `${m}/${d}/${w.year}` : `${m}/${d}`;
+    case "YYYY-MM-DD":
+      return withYear ? `${w.year}-${m}-${d}` : `${m}-${d}`;
+    default:
+      return withYear ? `${d}/${m}/${w.year}` : `${d}/${m}`;
   }
-  return f;
+}
+
+/** A clock reading in `format`: "13:05", "1:05 PM"; "13:05:09", "1:05:09 PM". */
+function clockText(hour: number, minute: number, second: number | null, format: TimeFormat): string {
+  const rest = `${pad(minute)}${second === null ? "" : `:${pad(second)}`}`;
+  if (format === "12h") return `${hour % 12 || 12}:${rest} ${hour < 12 ? "AM" : "PM"}`;
+  return `${pad(hour)}:${rest}`;
+}
+
+const weekdayNames = new Map<string, string[]>();
+
+/** "Thu" for weekday 4, in the user's language. */
+function weekdayName(weekday: number, locale: string): string {
+  let names = weekdayNames.get(locale);
+  if (!names) {
+    let f: Intl.DateTimeFormat;
+    try {
+      f = new Intl.DateTimeFormat(locale, { weekday: "short", timeZone: UTC });
+    } catch {
+      f = new Intl.DateTimeFormat("en-US", { weekday: "short", timeZone: UTC });
+    }
+    // 2024-01-07 was a Sunday.
+    names = WEEKDAYS.map((_, i) => f.format(Date.UTC(2024, 0, 7 + i)));
+    weekdayNames.set(locale, names);
+  }
+  return names[weekday] ?? WEEKDAYS[weekday] ?? "";
 }
 
 export interface FormatOptions {
@@ -204,70 +337,82 @@ export interface FormatOptions {
   zone?: string;
   /** Add seconds: log lines, clocks. */
   seconds?: boolean;
-  /** Lead with the weekday: "Sat, Oct 25, 01:00 GMT+3". */
+  /** Lead with the weekday: "Sat, 25/10/2026 01:00 GMT+3". */
   weekday?: boolean;
   /** Leave the zone label off — only where a label right beside it already
    *  names the zone. */
   noZone?: boolean;
+  /** Formats other than the user's: a preview of ones not saved yet. */
+  dateFormat?: DateFormat;
+  timeFormat?: TimeFormat;
 }
 
 /**
- * The console's one date-and-time format: "Oct 23, 01:00 GMT+3", with the year
- * when it is not the current one ("Oct 23, 2025, 01:00 GMT+3"). "—" for no
- * value.
+ * The console's one date-and-time format, in the user's date and time formats
+ * and the display zone, with the zone's label: "23/10/2026 01:00 GMT+3",
+ * "10/23/2026 1:00 AM GMT+3". "—" for no value.
  */
 export function formatDateTime(value: TimeInput, options: FormatOptions = {}): string {
   const d = toDate(value);
   if (!d) return "—";
   const zone = usable(options.zone ?? userTimeZone());
-  const thisYear = wallTime(Date.now(), zone).year === wallTime(d, zone).year;
-  const text = textFormatter(zone, {
-    ...(options.weekday ? { weekday: "short" } : {}),
-    month: "short",
-    day: "numeric",
-    ...(thisYear ? {} : { year: "numeric" }),
-    hour: "2-digit",
-    minute: "2-digit",
-    ...(options.seconds ? { second: "2-digit" } : {}),
-  }).format(d);
+  const w = wallTime(d, zone);
+  const day = dayText(w, options.dateFormat ?? preferences.dateFormat);
+  const clock = clockText(w.hour, w.minute, options.seconds ? w.second : null, options.timeFormat ?? preferences.timeFormat);
+  const text = `${options.weekday ? `${weekdayName(w.weekday, preferences.locale)}, ` : ""}${day} ${clock}`;
   return options.noZone ? text : `${text} ${zoneLabel(zone, d)}`;
 }
 
-/** Time of day with its zone: "01:00 GMT+3". For a row under a heading that
- *  already names the day. */
-export function formatTime(value: TimeInput, options: Omit<FormatOptions, "weekday"> = {}): string {
+/** Time of day with its zone: "01:00 GMT+3", "1:00 AM GMT+3". For a row
+ *  under a heading that already names the day. */
+export function formatTime(
+  value: TimeInput,
+  options: Omit<FormatOptions, "weekday" | "dateFormat"> = {},
+): string {
   const d = toDate(value);
   if (!d) return "—";
   const zone = usable(options.zone ?? userTimeZone());
-  const text = textFormatter(zone, {
-    hour: "2-digit",
-    minute: "2-digit",
-    ...(options.seconds ? { second: "2-digit" } : {}),
-  }).format(d);
+  const w = wallTime(d, zone);
+  const text = clockText(w.hour, w.minute, options.seconds ? w.second : null, options.timeFormat ?? preferences.timeFormat);
   return options.noZone ? text : `${text} ${zoneLabel(zone, d)}`;
 }
 
-/** A calendar day in the display zone: "Oct 23", "Oct 23, 2025". A day has no
- *  zone label of its own; the screens that group by day name the zone once. */
-export function formatDate(value: TimeInput, options: Pick<FormatOptions, "zone" | "weekday"> = {}): string {
+/** A calendar day in the display zone: "23/10/2026"; "23/10" with `short`,
+ *  for a chart axis. A day has no zone label of its own; the screens that
+ *  group by day name the zone once. */
+export function formatDate(
+  value: TimeInput,
+  options: Pick<FormatOptions, "zone" | "weekday" | "dateFormat"> & { short?: boolean } = {},
+): string {
   const d = toDate(value);
   if (!d) return "—";
-  const zone = usable(options.zone ?? userTimeZone());
-  const thisYear = wallTime(Date.now(), zone).year === wallTime(d, zone).year;
-  return textFormatter(zone, {
-    ...(options.weekday ? { weekday: "short" } : {}),
-    month: "short",
-    day: "numeric",
-    ...(thisYear ? {} : { year: "numeric" }),
-  }).format(d);
+  const w = wallTime(d, usable(options.zone ?? userTimeZone()));
+  const day = dayText(w, options.dateFormat ?? preferences.dateFormat, !options.short);
+  return options.weekday ? `${weekdayName(w.weekday, preferences.locale)}, ${day}` : day;
 }
 
-/** The tooltip of every absolute time: the moment in UTC, ISO-style, to the
- *  second ("2026-10-22 22:00:03 UTC"). */
+/** A day of a calendar grid, which is a local `Date` at midnight rather than a
+ *  moment: its own year, month and day, in the user's date format. */
+export function formatCalendarDay(day: Date, options: { weekday?: boolean } = {}): string {
+  const text = dayText({ year: day.getFullYear(), month: day.getMonth() + 1, day: day.getDate() }, preferences.dateFormat);
+  return options.weekday ? `${weekdayName(day.getDay(), preferences.locale)}, ${text}` : text;
+}
+
+/** A schedule's wall-clock time ("22:00", as the appliance stores it) in the
+ *  user's time format: "22:00" or "10:00 PM". Anything else is returned as
+ *  it came. */
+export function formatWallClock(atTime: string, timeFormat: TimeFormat = preferences.timeFormat): string {
+  const m = /^(\d{1,2}):(\d{2})$/.exec(atTime.trim());
+  if (!m) return atTime;
+  return clockText(Number(m[1]) % 24, Number(m[2]), null, timeFormat);
+}
+
+/** The tooltip of every absolute time: the same moment in UTC, to the second,
+ *  in the user's formats ("22/10/2026 22:00:03 UTC"). */
 export function utcTitle(value: TimeInput): string | undefined {
   const d = toDate(value);
   if (!d) return undefined;
-  return `${d.toISOString().slice(0, 19).replace("T", " ")} UTC`;
+  return formatDateTime(d, { zone: UTC, seconds: true });
 }
 
 /** "yyyy-MM-dd" of the calendar day `value` falls on in `zone` (the display

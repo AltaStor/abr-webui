@@ -1121,6 +1121,11 @@ export interface GeneralSettings {
  *  `src/i18n/languages.ts`; this mirrors it for typing. */
 export type Language = "en" | "de" | "fr" | "es";
 
+/** How the console writes a calendar day. */
+export type DateFormat = "DD/MM/YYYY" | "MM/DD/YYYY" | "YYYY-MM-DD";
+/** How the console writes a time of day. */
+export type TimeFormat = "24h" | "12h";
+
 /** Browser-local presentation prefs — never sent to the appliance. */
 export interface AppearanceSettings {
   density: Density;
@@ -1128,6 +1133,11 @@ export interface AppearanceSettings {
   accent: AccentKey;
   sidebarAutoCollapse: boolean;
   language: Language;
+  /** The zone every time is printed in: an IANA name, or "auto" for the
+   *  browser's (see lib/time.ts). */
+  timeZone: string;
+  dateFormat: DateFormat;
+  timeFormat: TimeFormat;
 }
 
 export interface EmailSettings {

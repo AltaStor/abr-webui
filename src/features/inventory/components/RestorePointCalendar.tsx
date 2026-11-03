@@ -3,12 +3,20 @@
 
 import { type ReactNode, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { format, startOfDay, startOfMonth } from "date-fns";
+import { startOfDay, startOfMonth } from "date-fns";
 import { ServerOff } from "@/lib/icons";
 import { MonthCalendar, type DayContext } from "@/components/calendar/MonthCalendar";
 import { dayKey, groupByDay } from "@/lib/schedule";
+import { dayKeyIn, formatCalendarDay } from "@/lib/time";
 import type { RestorePoint } from "@/types";
 import { RestorePointItem } from "./RestorePointItem";
+
+/** The display zone's calendar day of a moment, as a local `Date` at
+ *  midnight: what the calendar's cells are. */
+function calendarDayOf(ms: number): Date {
+  const [y, m, d] = dayKeyIn(ms).split("-").map(Number);
+  return new Date(y, m - 1, d);
+}
 
 interface Props {
   points: RestorePoint[];
@@ -36,9 +44,9 @@ export function RestorePointCalendar({ points, offlineRepoIds, onRestore, onDele
     const min = times.length ? Math.min(...times) : Date.now();
     const max = times.length ? Math.max(...times) : Date.now();
     return {
-      coverStart: startOfDay(new Date(min)).getTime(),
-      coverEnd: startOfDay(new Date(max)).getTime(),
-      newestDay: startOfDay(new Date(max)),
+      coverStart: calendarDayOf(min).getTime(),
+      coverEnd: calendarDayOf(max).getTime(),
+      newestDay: calendarDayOf(max),
     };
   }, [points]);
 
@@ -124,7 +132,7 @@ export function RestorePointCalendar({ points, offlineRepoIds, onRestore, onDele
 
       <div className="border border-border bg-muted/20 p-3">
         <div className="flex items-center justify-between gap-2">
-          <h4 className="text-sm font-semibold">{format(selected, "EEEE, MMMM d")}</h4>
+          <h4 className="text-sm font-semibold">{formatCalendarDay(selected, { weekday: true })}</h4>
           <span className="text-xs text-muted-foreground">
             {selectedPts.length > 0
               ? t("calendar.pointsCount", { count: selectedPts.length })

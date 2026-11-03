@@ -35,6 +35,8 @@ import {
   putSettings as putSettingsHttp,
 } from "@/services/api.http";
 import { useWorldStore } from "@/store/world";
+import { DEFAULT_DISPLAY_PREFERENCES, setDisplayPreferences } from "@/lib/time";
+import { languageMeta } from "@/i18n/languages";
 
 /* Types now live in @/types (shared with the appliance). Re-export the ones
  * existing call sites import from here so nothing had to change. */
@@ -88,6 +90,9 @@ export const DEFAULT_SETTINGS: AppSettings = {
     accent: "cyan",
     sidebarAutoCollapse: false,
     language: "en",
+    timeZone: DEFAULT_DISPLAY_PREFERENCES.timeZone,
+    dateFormat: DEFAULT_DISPLAY_PREFERENCES.dateFormat,
+    timeFormat: DEFAULT_DISPLAY_PREFERENCES.timeFormat,
   },
   notifications: {
     email: {
@@ -462,4 +467,22 @@ export const useSettingsStore = create<SettingsStore>((set, get) => {
       writeLocalCache(get());
     },
   };
+});
+
+/* The time zone and the date and time formats reach lib/time.ts, which every
+ * printed time goes through, before anything renders: the store hydrates from
+ * localStorage when this module loads, so the first paint already uses them.
+ * The subscription is made here, before any component's, so a change is in
+ * place by the time React re-renders with it. */
+function applyDisplayPreferences(appearance: AppearanceSettings): void {
+  setDisplayPreferences({
+    timeZone: appearance.timeZone,
+    dateFormat: appearance.dateFormat,
+    timeFormat: appearance.timeFormat,
+    locale: languageMeta(appearance.language).bcp47,
+  });
+}
+applyDisplayPreferences(useSettingsStore.getState().appearance);
+useSettingsStore.subscribe((s, prev) => {
+  if (s.appearance !== prev.appearance) applyDisplayPreferences(s.appearance);
 });

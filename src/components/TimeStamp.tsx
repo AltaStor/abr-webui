@@ -4,7 +4,7 @@
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import { formatRelative } from "@/lib/format";
-import { formatDateTime, utcTitle } from "@/lib/time";
+import { useDateTimeFormat } from "@/lib/useDateTimeFormat";
 
 interface TimeStampProps {
   value: string | null | undefined;
@@ -19,7 +19,7 @@ interface TimeStampProps {
 /**
  * A moment in time, printed the way the console has to answer two questions at
  * once: the relative line on top ("2 hours ago") says whether it is fresh, and
- * the absolute line beneath ("Sep 1, 23:29") says *which* run or restore
+ * the absolute line beneath ("01/09/2026 23:29") says *which* run or restore
  * point it actually was.
  *
  * Neither works alone. Relative-only collapses the moment two rows both read
@@ -29,7 +29,7 @@ interface TimeStampProps {
  * column shipped the pair first; this is that treatment as one component, so
  * every table cell and list row that names a moment reads the same way.
  *
- * The absolute line carries its zone ("Sep 1, 23:29 GMT+3"); the same moment in
+ * The absolute line carries its zone ("01/09/2026 23:29 GMT+3"); the same moment in
  * UTC is a hover away rather than a third line.
  *
  * Not for durations (`formatDuration`) or for a value whose absolute stamp is
@@ -42,6 +42,7 @@ export function TimeStamp({
   fallback,
   className,
 }: TimeStampProps) {
+  const { formatDateTime, formatUtc } = useDateTimeFormat();
   const primary = size === "xs" ? "text-xs" : "text-sm";
 
   if (!value) {
@@ -62,7 +63,7 @@ export function TimeStamp({
   return (
     <div
       className={cn("min-w-0", align === "right" && "text-right", className)}
-      title={utcTitle(value)}
+      title={formatUtc(value)}
     >
       <span className={cn("nums block truncate text-muted-foreground", primary)}>
         {formatRelative(value)}

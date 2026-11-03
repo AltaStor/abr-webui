@@ -14,7 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { TimeField } from "@/components/ui/time-field";
 import { cn } from "@/lib/utils";
-import { formatDateTime, scheduleZoneName } from "@/lib/time";
+import { formatDateTime, formatWallClock, scheduleZoneName } from "@/lib/time";
 import {
   COPY_RETRY_DEFAULTS,
   MAX_COPY_RETRY_COUNT,
@@ -24,7 +24,7 @@ import {
 } from "@/lib/backup-copy";
 import { REPO_TYPE_META } from "@/features/repositories/components/repoMeta";
 import type { BackupJob, CopyMode, CopyWindowRule, NamedRef, Repository, RestorePoint } from "@/types";
-import { jobTypeMeta } from "../lib";
+import { jobTypeMeta, windowEndLabel } from "../lib";
 import { PresetChip, ToggleRow } from "./FormBits";
 
 const DAY_KEYS = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
@@ -302,8 +302,8 @@ export function CopyWindowEditor({
   const ruleNote = (rule: CopyWindowRule) => {
     if (rule.start === rule.end) return rule.start === "00:00" ? t("copy.window.wholeDay") : t("copy.window.sameTime");
     return rule.end !== "00:00" && rule.end < rule.start
-      ? t("copy.window.pastMidnight", { start: rule.start, end: rule.end })
-      : t("copy.window.sameDay", { start: rule.start, end: rule.end === "00:00" ? "24:00" : rule.end });
+      ? t("copy.window.pastMidnight", { start: formatWallClock(rule.start), end: formatWallClock(rule.end) })
+      : t("copy.window.sameDay", { start: formatWallClock(rule.start), end: windowEndLabel(rule.end) });
   };
 
   return (

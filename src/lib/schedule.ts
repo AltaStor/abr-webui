@@ -2,7 +2,7 @@
 // Copyright © 2026 Norvitex OÜ
 
 import { addDays, format, isBefore, startOfDay } from "date-fns";
-import { instantAt, scheduleZoneName, userTimeZone, wallTime, zoneLabel } from "@/lib/time";
+import { dayKeyIn, formatWallClock, instantAt, scheduleZoneName, userTimeZone, wallTime, zoneLabel } from "@/lib/time";
 import type { FullBackupSchedule, Schedule } from "@/types";
 
 /**
@@ -146,9 +146,10 @@ export function nextWallClockRun(atTime: string, zone: string, days: ScheduleDay
   return null;
 }
 
-/** How a schedule's time reads on the job's clock, and on the viewer's. */
+/** How a schedule's time reads on the job's clock, and on the viewer's, in
+ *  the user's time format. */
 export interface ZonedScheduleTime {
-  /** "22:00 UTC", "22:00 Europe/Berlin". */
+  /** "22:00 UTC", "10:00 PM Europe/Berlin". */
   time: string;
   /** The schedule's days as the viewer's clock sees them, when that moves
    *  them (weekly only). */
@@ -173,7 +174,7 @@ export function zonedScheduleTime(
   viewerZone: string = userTimeZone(),
 ): ZonedScheduleTime {
   const jobZone = zone || "UTC";
-  const time = `${atTime} ${scheduleZoneName(jobZone)}`;
+  const time = `${formatWallClock(atTime)} ${scheduleZoneName(jobZone)}`;
   const next = nextWallClockRun(atTime, jobZone, days);
   if (!next) return { time, viewerTime: null, dayShift: 0 };
   const job = wallTime(next, jobZone);
@@ -184,7 +185,7 @@ export function zonedScheduleTime(
   if (dayShift === 0 && viewer.hour === job.hour && viewer.minute === job.minute) {
     return { time, viewerTime: null, dayShift: 0 };
   }
-  const clock = `${String(viewer.hour).padStart(2, "0")}:${String(viewer.minute).padStart(2, "0")}`;
+  const clock = formatWallClock(`${viewer.hour}:${String(viewer.minute).padStart(2, "0")}`);
   return {
     time,
     viewerDays: days.daysOfWeek?.map((d) => (((d + dayShift) % 7) + 7) % 7),
@@ -193,16 +194,18 @@ export function zonedScheduleTime(
   };
 }
 
-/** Stable local-day key ("yyyy-MM-dd") for bucketing events into calendar cells. */
+/** Stable local-day key ("yyyy-MM-dd") of a calendar cell, which is a local
+ *  `Date` at midnight. */
 export function dayKey(d: Date | string): string {
   return format(typeof d === "string" ? new Date(d) : d, "yyyy-MM-dd");
 }
 
-/** Group items into a `dayKey → items[]` map by an ISO/Date accessor. */
+/** Group moments into a `dayKey → items[]` map by the display zone's calendar
+ *  day each falls on, which is the day the console prints for it. */
 export function groupByDay<T>(items: T[], getDate: (item: T) => Date | string): Map<string, T[]> {
   const map = new Map<string, T[]>();
   for (const item of items) {
-    const key = dayKey(getDate(item));
+    const key = dayKeyIn(getDate(item));
     const bucket = map.get(key);
     if (bucket) bucket.push(item);
     else map.set(key, [item]);

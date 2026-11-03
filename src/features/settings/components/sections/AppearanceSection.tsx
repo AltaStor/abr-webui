@@ -8,14 +8,21 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { cn } from "@/lib/utils";
 import { useSettingsStore } from "@/store/settings";
 import { useUiStore } from "@/store/ui";
-import type { AccentKey, Language } from "@/types";
+import type { AccentKey, DateFormat, Language, TimeFormat } from "@/types";
 import { LANGUAGES, languageMeta } from "@/i18n/languages";
 import { SettingsSection, SettingDivider } from "../SettingsSection";
 import { SettingRow } from "../SettingRow";
 import { Switch } from "@/components/ui/switch";
 import { Segmented, SaveBar } from "../controls";
 import { ACCENT_SWATCHES, useDraft } from "../../lib";
-import { userTimeZone, zoneLabel } from "@/lib/time";
+import { TimeZonePicker } from "../TimeZonePicker";
+import { formatDateTime, resolveTimeZone } from "@/lib/time";
+
+const DATE_FORMATS: { value: DateFormat; key: string }[] = [
+  { value: "DD/MM/YYYY", key: "dmy" },
+  { value: "MM/DD/YYYY", key: "mdy" },
+  { value: "YYYY-MM-DD", key: "ymd" },
+];
 
 export function AppearanceSection() {
   const { t } = useTranslation("settings");
@@ -28,8 +35,22 @@ export function AppearanceSection() {
   // Language applies instantly like Theme, so keep it OUT of the Save/Discard
   // draft — switching it must not re-seed and clobber other unsaved edits.
   const language = appearance.language;
-  const { density, reduceMotion, accent, sidebarAutoCollapse } = appearance;
-  const { draft, patch, dirty, reset } = useDraft({ density, reduceMotion, accent, sidebarAutoCollapse });
+  const { density, reduceMotion, accent, sidebarAutoCollapse, timeZone, dateFormat, timeFormat } = appearance;
+  const { draft, patch, dirty, reset } = useDraft({
+    density,
+    reduceMotion,
+    accent,
+    sidebarAutoCollapse,
+    timeZone,
+    dateFormat,
+    timeFormat,
+  });
+  // How a time reads with the zone and formats as picked, saved or not.
+  const example = formatDateTime(Date.now(), {
+    zone: resolveTimeZone(draft.timeZone),
+    dateFormat: draft.dateFormat,
+    timeFormat: draft.timeFormat,
+  });
 
   const save = () => {
     updateAppearance(draft);
@@ -71,12 +92,43 @@ export function AppearanceSection() {
 
       <SettingDivider />
 
-      {/* Read-only: the console prints every time in the browser's zone
-          (doc/TimeZones.md); this says which one, and where UTC is. */}
-      <SettingRow label={t("appearance.timeZone.label")} description={t("appearance.timeZone.description")}>
-        <div className="nums text-sm font-medium" data-testid="display-time-zone">
-          {t("appearance.timeZone.value", { zone: userTimeZone(), offset: zoneLabel(userTimeZone()) })}
-        </div>
+      {/* The zone and formats every printed time uses (doc/TimeZones.md).
+          They save with the section, like the rest of it. */}
+      <SettingRow
+        label={t("appearance.timeZone.label")}
+        description={t("appearance.timeZone.description", { example })}
+        htmlFor="ap-time-zone"
+      >
+        <TimeZonePicker id="ap-time-zone" value={draft.timeZone} onChange={(v) => patch({ timeZone: v })} />
+      </SettingRow>
+      <SettingDivider />
+
+      <SettingRow label={t("appearance.dateFormat.label")} description={t("appearance.dateFormat.description")}>
+        <Select value={draft.dateFormat} onValueChange={(v) => patch({ dateFormat: v as DateFormat })}>
+          <SelectTrigger className="nums w-full" aria-label={t("appearance.dateFormat.label")} data-testid="date-format">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {DATE_FORMATS.map((f) => (
+              <SelectItem key={f.value} value={f.value} className="nums">
+                {t(`appearance.dateFormat.${f.key}`)}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </SettingRow>
+      <SettingDivider />
+
+      <SettingRow label={t("appearance.timeFormat.label")} description={t("appearance.timeFormat.description")}>
+        <Select value={draft.timeFormat} onValueChange={(v) => patch({ timeFormat: v as TimeFormat })}>
+          <SelectTrigger className="w-full" aria-label={t("appearance.timeFormat.label")} data-testid="time-format">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="24h">{t("appearance.timeFormat.h24")}</SelectItem>
+            <SelectItem value="12h">{t("appearance.timeFormat.h12")}</SelectItem>
+          </SelectContent>
+        </Select>
       </SettingRow>
       <SettingDivider />
 

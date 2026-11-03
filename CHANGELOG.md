@@ -39,6 +39,16 @@ All notable changes to the AltaStor WebUI are documented in this file.
   recovery code instead". Settings → Users shows who has it, and an
   Administrator resets it for a user who lost their phone. New strings are in
   English only.
+- Settings → Appearance → Time zone, Date format and Time format. The time
+  zone is a searchable list of every zone by its offset today
+  ("(UTC +05:30) Kolkata"), with "Auto (browser time zone)" first and as the
+  default; the date format is DD/MM/YYYY (default), MM/DD/YYYY or
+  YYYY-MM-DD; the time format 24-hour (default) or 12-hour (AM/PM). They save
+  with the section and are kept in this browser, like the rest of Appearance.
+  Every time the console prints, the UTC tooltips, schedule times, copy
+  windows and day groups follow them, and new jobs start on the picked zone.
+  The note under Time zone shows the current time as it will read. `npm test`
+  runs the unit tests of the formatting module (Node's own test runner).
 - Settings → Notifications → E-mail notifications: the appliance's SMTP
   server and connection security (STARTTLS, SSL/TLS, none; certificate
   verification), sign-in with a username and password or OAuth 2.0
@@ -108,6 +118,8 @@ All notable changes to the AltaStor WebUI are documented in this file.
   jobs list and on the job page, with the appliance's warning in a tooltip.
 
 ### Changed
+- Every date reads in the date format, DD/MM/YYYY by default, with its year:
+  "23/10/2026 01:00 GMT+3" instead of "Oct 23, 01:00 GMT+3".
 - Enabling or disabling a job is sent as a job-level `enabled` flag instead
   of being nested inside the job's schedule.
 - A disabled job reads Disabled, with Enable to turn it back on, while a run

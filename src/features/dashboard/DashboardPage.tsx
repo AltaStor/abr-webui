@@ -17,14 +17,16 @@ import { useWorldStore } from "@/store/world";
 import { displayFirstName } from "@/features/settings/lib";
 import type { ProtectionStatus } from "@/types";
 import { rateTone, type Tone } from "@/lib/status";
+import { userTimeZone, wallTime } from "@/lib/time";
 import { ProtectionDonut } from "./components/ProtectionDonut";
 import { ActivityTimeline } from "./components/ActivityTimeline";
 import { LiveActivityPanel } from "./components/LiveActivityPanel";
 import { StorageCard } from "./components/StorageCard";
 
-/** Time-of-day greeting key in the `dashboard` namespace. */
+/** Time-of-day greeting key in the `dashboard` namespace, by the display
+ *  zone's clock. */
 function greetingKey() {
-  const h = new Date().getHours();
+  const h = wallTime(Date.now(), userTimeZone()).hour;
   if (h < 12) return "greeting.morning";
   if (h < 18) return "greeting.afternoon";
   return "greeting.evening";

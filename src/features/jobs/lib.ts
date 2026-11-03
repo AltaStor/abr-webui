@@ -19,7 +19,7 @@ import type {
 } from "@/types";
 import i18n from "@/i18n";
 import { WEEK_ORDER } from "@/lib/backup-copy";
-import { scheduleZoneName } from "@/lib/time";
+import { displayPreferences, formatWallClock, scheduleZoneName } from "@/lib/time";
 import { zonedScheduleTime, type ScheduleDays } from "@/lib/schedule";
 
 /**
@@ -134,13 +134,18 @@ function windowDaysLabel(days: number[]): string {
   return WEEK_ORDER.filter((d) => days.includes(d)).map(dayShortLabel).join(", ");
 }
 
-/** "Mon, Tue 22:00–06:00" for one rule; an end of 00:00 reads 24:00, the end
- *  of the day it is. */
+/** A copy window's end in the user's time format. An end of 00:00 is the end
+ *  of the day it is, so it reads 24:00 on a 24-hour clock. */
+export function windowEndLabel(end: string): string {
+  return end === "00:00" && displayPreferences().timeFormat === "24h" ? "24:00" : formatWallClock(end);
+}
+
+/** "Mon, Tue 22:00–06:00" for one rule, in the user's time format. */
 export function copyWindowRuleLabel(rule: CopyWindowRule): string {
   return i18n.t("jobs:copy.window.rule", {
     days: windowDaysLabel(rule.daysOfWeek),
-    start: rule.start,
-    end: rule.end === "00:00" ? "24:00" : rule.end,
+    start: formatWallClock(rule.start),
+    end: windowEndLabel(rule.end),
   });
 }
 

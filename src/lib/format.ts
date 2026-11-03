@@ -118,27 +118,28 @@ export function formatCountdown(iso: string | null | undefined): string {
 }
 
 /* Absolute times: the console's one format, in the display zone with its
- * label (see lib/time.ts). These names stay for the call sites that have
- * always used them. */
+ * label and the user's date and time formats (see lib/time.ts). These names
+ * stay for the call sites that have always used them. */
 
-/** Date and time to the second: "Oct 28, 16:14:53 GMT+3" (log lines, clocks). */
+/** Date and time to the second: "28/10/2026 16:14:53 GMT+3" (log lines, clocks). */
 export function formatClock(iso: string | null | undefined): string {
   return formatTimeStamp(iso, { seconds: true });
 }
 
-/** "Oct 23, 01:00 GMT+3". */
+/** "23/10/2026 01:00 GMT+3". */
 export function formatDateTime(iso: string | null | undefined): string {
   return formatTimeStamp(iso);
 }
 
-/** With the weekday: "Thu, Oct 23, 01:00 GMT+3". */
+/** With the weekday: "Thu, 23/10/2026 01:00 GMT+3". */
 export function formatFullDateTime(iso: string | null | undefined): string {
   return formatTimeStamp(iso, { weekday: true });
 }
 
-/** A calendar day in the display zone: "Oct 23". */
-export function formatDay(iso: string): string {
-  return formatCalendarDay(iso);
+/** A calendar day in the display zone: "23/10/2026"; "23/10" with `short`,
+ *  for a chart axis. */
+export function formatDay(iso: string, options: { short?: boolean } = {}): string {
+  return formatCalendarDay(iso, options);
 }
 
 function trimZero(s: string): string {

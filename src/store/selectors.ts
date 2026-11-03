@@ -9,17 +9,23 @@ import type {
   VM,
 } from "@/types";
 import type { World } from "@/mock/seed";
+import { instantAt, userTimeZone, wallTime } from "@/lib/time";
 
 const DAY = 86_400_000;
 
-/** Bucket sessions into the last `days` days for the activity timeline. */
+/** Bucket sessions into the last `days` days for the activity timeline: the
+ *  display zone's calendar days, which is what the chart labels them as. */
 function buildActivityTimeline(sessions: Session[], days = 14): ActivityPoint[] {
-  const now = Date.now();
+  const zone = userTimeZone();
+  const today = wallTime(Date.now(), zone);
+  const midnight = (daysBack: number) => {
+    const d = new Date(Date.UTC(today.year, today.month - 1, today.day - daysBack));
+    return instantAt({ year: d.getUTCFullYear(), month: d.getUTCMonth() + 1, day: d.getUTCDate(), hour: 0, minute: 0 }, zone);
+  };
   const buckets: ActivityPoint[] = [];
   for (let i = days - 1; i >= 0; i--) {
-    const dayStart = new Date(now - i * DAY);
-    dayStart.setHours(0, 0, 0, 0);
-    const dayEnd = dayStart.getTime() + DAY;
+    const dayStart = midnight(i);
+    const dayEnd = midnight(i - 1).getTime();
     const inDay = sessions.filter((s) => {
       const t = new Date(s.finishedAt ?? s.startedAt).getTime();
       return t >= dayStart.getTime() && t < dayEnd;
