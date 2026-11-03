@@ -992,6 +992,8 @@ export interface AuthUser {
    * bootstrap admin's default password) — the console forces a change before
    * anything else. */
   passwordPolicyExempt: boolean;
+  /** Whether signing in also takes a code from an authenticator app. */
+  totpEnabled: boolean;
 }
 
 /** When a session ends: `expiresAt` if it stays idle (each request the user
@@ -1012,6 +1014,8 @@ export interface LoginResult extends SessionExpiry {
   /** The function IDs the user's role allows; null from an appliance that
    *  predates roles, where everything is allowed. */
   permissions: string[] | null;
+  /** How many recovery codes are left, when one was used for this sign-in. */
+  recoveryCodesLeft: number | null;
 }
 
 function mapAuthUser(u: Dict): AuthUser {
@@ -1023,14 +1027,30 @@ function mapAuthUser(u: Dict): AuthUser {
     enabled: u.enabled !== false,
     createdAt: strOrNull(u.created_at),
     passwordPolicyExempt: Boolean(u.passwordPolicyExempt),
+    totpEnabled: Boolean(u.totpEnabled),
   };
 }
 
 const strListOrNull = (v: unknown): string[] | null =>
   Array.isArray(v) ? v.filter((item): item is string => typeof item === "string") : null;
 
-export async function login(name: string, password: string, durationSeconds?: number): Promise<LoginResult> {
-  const body: Dict = { name, password };
+/** The second step of a sign-in or of a change to one's own two-factor
+ *  sign-in: a code from the authenticator app, or a recovery code. */
+export type SecondFactor = { totp_code: string } | { recovery_code: string };
+
+/** A code typed where either kind is taken: six digits are the app's. */
+export function secondFactorOf(code: string): SecondFactor {
+  const trimmed = code.replace(/\s/g, "");
+  return /^\d{6}$/.test(trimmed) ? { totp_code: trimmed } : { recovery_code: code.trim() };
+}
+
+export async function login(
+  name: string,
+  password: string,
+  durationSeconds?: number,
+  secondFactor?: SecondFactor,
+): Promise<LoginResult> {
+  const body: Dict = { name, password, ...secondFactor };
   if (durationSeconds !== undefined) body.duration_seconds = durationSeconds;
   const res = asDict(await request<Dict>("/auth/login", { method: "POST", body: JSON.stringify(body) }));
   return {
@@ -1038,6 +1058,7 @@ export async function login(name: string, password: string, durationSeconds?: nu
     ...mapSessionExpiry(res),
     user: mapAuthUser(asDict(res.user)),
     permissions: strListOrNull(res.permissions),
+    recoveryCodesLeft: typeof res.recovery_codes_left === "number" ? res.recovery_codes_left : null,
   };
 }
 
@@ -1053,6 +1074,8 @@ export interface WhoAmI {
   permissions: string[];
   /** Null from an appliance that does not report it. */
   session: SessionExpiry | null;
+  /** Unused recovery codes; null with two-factor sign-in off. */
+  recoveryCodesLeft: number | null;
 }
 
 function mapRoleSummary(r: Dict): RoleSummary {
@@ -1069,6 +1092,7 @@ export async function whoami(): Promise<WhoAmI | null> {
       role: res.role ? mapRoleSummary(asDict(res.role)) : null,
       permissions: strListOrNull(res.permissions) ?? [],
       session: res.expires_at ? mapSessionExpiry(res) : null,
+      recoveryCodesLeft: typeof res.recovery_codes_left === "number" ? res.recovery_codes_left : null,
     };
     if (me.session) sessionExpiryHandler?.(me.session);
     return me;
@@ -1097,8 +1121,12 @@ export async function createUser(input: CreateUserInput): Promise<AuthUser> {
 
 /** A change to a user. A new `name` keeps the password; a `password` signs
  *  the user out everywhere, and is refused for the caller's own, which needs
- *  the current one (`changePassword`). */
-export type UserPatch = Partial<Pick<AuthUser, "name" | "fullName" | "role" | "enabled">> & { password?: string };
+ *  the current one (`changePassword`). `totp_reset` turns off another user's
+ *  two-factor sign-in and signs them out too. */
+export type UserPatch = Partial<Pick<AuthUser, "name" | "fullName" | "role" | "enabled">> & {
+  password?: string;
+  totp_reset?: boolean;
+};
 
 export async function updateUser(id: string, patch: UserPatch): Promise<AuthUser> {
   return mapAuthUser(
@@ -1286,6 +1314,43 @@ export async function changePassword(currentPassword: string, newPassword: strin
     body: JSON.stringify({ current_password: currentPassword, new_password: newPassword }),
   });
   return mapAuthUser(asDict(res));
+}
+
+/* The caller's own two-factor sign-in. A wrong password or code answers 422
+ * here, not 401, so that it never reads as the session having ended. */
+
+export interface TotpSetup {
+  /** The secret as text, for an authenticator app that can't scan. */
+  secret: string;
+  /** The QR code as an image `data:` URI. */
+  qrCode: string;
+}
+
+/** A new secret: to turn it on, or, with `secondFactor`, to set it up again
+ *  while it is on. The current one keeps working until `enableTotp`. */
+export async function startTotpSetup(password: string, secondFactor?: SecondFactor): Promise<TotpSetup> {
+  const body = JSON.stringify({ password, ...secondFactor });
+  const res = asDict(await request<Dict>("/auth/totp/setup", { method: "POST", body }));
+  return { secret: str(res.secret), qrCode: str(res.qr_code) };
+}
+
+export async function enableTotp(code: string): Promise<{ user: AuthUser; recoveryCodes: string[] }> {
+  const res = asDict(
+    await request<Dict>("/auth/totp/enable", { method: "POST", body: JSON.stringify({ totp_code: code }) }),
+  );
+  return { user: mapAuthUser(asDict(res.user)), recoveryCodes: strListOrNull(res.recovery_codes) ?? [] };
+}
+
+export async function disableTotp(password: string, secondFactor: SecondFactor): Promise<AuthUser> {
+  const body = JSON.stringify({ password, ...secondFactor });
+  return mapAuthUser(asDict(await request<Dict>("/auth/totp/disable", { method: "POST", body })));
+}
+
+/** New recovery codes; every earlier one stops working. */
+export async function regenerateRecoveryCodes(password: string, secondFactor: SecondFactor): Promise<string[]> {
+  const body = JSON.stringify({ password, ...secondFactor });
+  const res = asDict(await request<Dict>("/auth/totp/recovery-codes", { method: "POST", body }));
+  return strListOrNull(res.recovery_codes) ?? [];
 }
 
 /* ====================================================================== */

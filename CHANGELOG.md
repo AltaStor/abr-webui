@@ -5,6 +5,17 @@ All notable changes to the AltaStor WebUI are documented in this file.
 ## Unreleased
 
 ### Added
+- Two-factor sign-in. Settings → Security → Two-factor sign-in sets it up with a
+  QR code for an authenticator app such as Google Authenticator or Microsoft
+  Authenticator, or its key typed in, and turns it on once a code from the app
+  is accepted. Ten recovery codes are shown once. While it is on, the card shows
+  how many are left and offers, each after the password and a code or recovery
+  code: set it up again with a new secret (the current app works until the new
+  one is confirmed), make new recovery codes (the earlier ones stop working),
+  and turn it off. Sign-in asks for the code after the password, with "Use a
+  recovery code instead". Settings → Users shows who has it, and an
+  Administrator resets it for a user who lost their phone. New strings are in
+  English only.
 - Settings → Notifications → E-mail notifications: the appliance's SMTP
   server and connection security (STARTTLS, SSL/TLS, none; certificate
   verification), sign-in with a username and password or OAuth 2.0

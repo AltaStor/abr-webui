@@ -56,6 +56,7 @@ export function simLogin(name: string, password: string, durationSeconds?: numbe
     // Never force the demo through /change-password — there is no backend to
     // accept the new one, so it would be a dead end.
     passwordPolicyExempt: false,
+    totpEnabled: false,
   };
 
   return {
@@ -65,5 +66,6 @@ export function simLogin(name: string, password: string, durationSeconds?: numbe
     absoluteExpiresAt: null,
     user,
     permissions: null,
+    recoveryCodesLeft: null,
   };
 }
