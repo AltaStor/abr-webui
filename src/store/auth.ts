@@ -22,11 +22,15 @@
  * for the warning before either one and for the reason /login gives after.
  */
 import { create } from "zustand";
+import { toast } from "@/components/ui/sonner";
+import i18n from "@/i18n";
 import {
+  apiErrorCode,
   apiErrorMessage,
   changePassword as changePasswordHttp,
   login as loginHttp,
   logout as logoutHttp,
+  type SecondFactor,
   serverNow,
   setAuthToken,
   setSessionExpiryHandler,
@@ -150,9 +154,14 @@ interface AuthState {
    * policy (the bootstrap admin) — every route but /change-password redirects
    * here until it's cleared. */
   mustChangePassword: boolean;
+  /** The password was right and the account wants a code from its
+   *  authenticator app: /login asks for it and calls `login` again. */
+  totpRequired: boolean;
   pending: boolean;
   error: string | null;
-  login: (name: string, password: string, durationSeconds?: number) => Promise<boolean>;
+  login: (name: string, password: string, durationSeconds?: number, secondFactor?: SecondFactor) => Promise<boolean>;
+  /** Back from asking for the code to the username and password. */
+  cancelTotp: () => void;
   logout: () => Promise<void>;
   changePassword: (currentPassword: string, newPassword: string) => Promise<boolean>;
   /** Takes the signed-in user as the appliance answered it after an edit
@@ -182,10 +191,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   idleTimeoutSec: restored?.idleTimeoutSec ?? null,
   signOutNotice: restored ? null : readSignOutNotice(),
   mustChangePassword: restored?.user.passwordPolicyExempt ?? false,
+  totpRequired: false,
   pending: false,
   error: null,
 
-  login: async (name, password, durationSeconds) => {
+  login: async (name, password, durationSeconds, secondFactor) => {
     set({ pending: true, error: null });
     try {
       /* The demo simulation has no backend to authenticate against, so it
@@ -195,7 +205,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
        * the same failure copy the live path does. */
       const result =
         useWorldStore.getState().mode === "live"
-          ? await loginHttp(name.trim(), password, durationSeconds)
+          ? await loginHttp(name.trim(), password, durationSeconds, secondFactor)
           : simLogin(name, password, durationSeconds);
       setAuthToken(result.token);
       usePermissionsStore.getState().setGrants(result.permissions, roleRef(result.user.role));
@@ -217,14 +227,22 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         idleTimeoutSec,
         signOutNotice: null,
         mustChangePassword: result.user.passwordPolicyExempt,
+        totpRequired: false,
         pending: false,
         error: null,
       });
+      if (result.recoveryCodesLeft !== null) {
+        toast.warning(i18n.t("auth:login.recoveryCodeUsed", { count: result.recoveryCodesLeft }));
+      }
       // The live driver may already be sitting on the empty/unauthenticated
       // world (see world.live.ts) — don't wait for its next poll tick.
       refreshWorld();
       return true;
     } catch (err) {
+      if (apiErrorCode(err) === "totp_required") {
+        set({ pending: false, error: null, totpRequired: true });
+        return false;
+      }
       /* `apiErrorMessage` only speaks ApiError, so the sim's refusal would
        * otherwise fall through to the unreachable literal and blame the network
        * for a mistyped password. Its message is the sentence the appliance
@@ -237,6 +255,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       return false;
     }
   },
+
+  cancelTotp: () => set({ totpRequired: false, error: null }),
 
   logout: async () => {
     try {
@@ -309,6 +329,7 @@ const SIGNED_OUT = {
   status: "signed-out",
   user: null,
   mustChangePassword: false,
+  totpRequired: false,
   expiresAt: null,
   absoluteExpiresAt: null,
   idleTimeoutSec: null,

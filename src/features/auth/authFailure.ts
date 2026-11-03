@@ -28,6 +28,10 @@
 export type AuthFailure =
   /** Sign-in: the username/password pair was not accepted. */
   | "credentials"
+  /** Sign-in: the code from the authenticator app was not (invalid, expired or used). */
+  | "code"
+  /** Sign-in: the recovery code was not, or it was already used. */
+  | "recoveryCode"
   /** Password change: the CURRENT password was not accepted. */
   | "currentWrong"
   /** Locked out after repeated failures (the appliance's 429). */
@@ -78,6 +82,10 @@ function classify(error: string | null, screen: "login" | "changePassword"): Cla
   if (/too many/i.test(text)) return { failure: "locked", detail: text };
   if (screen === "login" && /invalid username or password/i.test(text)) {
     return { failure: "credentials", detail: text };
+  }
+  if (screen === "login" && /recovery code isn't valid/i.test(text)) return { failure: "recoveryCode", detail: null };
+  if (screen === "login" && /code isn't valid|code has expired|code was already used/i.test(text)) {
+    return { failure: "code", detail: text };
   }
   if (screen === "login" && /account is disabled|account has no valid role/i.test(text)) {
     return { failure: "disabled", detail: text };

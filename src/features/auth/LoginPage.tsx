@@ -10,7 +10,7 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { Eye, EyeOff, Loader2, Lock } from "@/lib/icons";
+import { ArrowLeft, Eye, EyeOff, Loader2, Lock } from "@/lib/icons";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -38,6 +38,8 @@ export default function LoginPage() {
   const error = useAuthStore((s) => s.error);
   const login = useAuthStore((s) => s.login);
   const clearError = useAuthStore((s) => s.clearError);
+  const totpRequired = useAuthStore((s) => s.totpRequired);
+  const cancelTotp = useAuthStore((s) => s.cancelTotp);
   const signOutNotice = useAuthStore((s) => s.signOutNotice);
 
   // Session length lives in Settings → Security now, not on the login form —
@@ -48,6 +50,8 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [touched, setTouched] = useState(false);
+  const [code, setCode] = useState("");
+  const [useRecoveryCode, setUseRecoveryCode] = useState(false);
 
   // The demo simulation has no backend to authenticate against — never trap
   // it behind a login screen it can't satisfy.
@@ -77,12 +81,28 @@ export default function LoginPage() {
 
   const nameError = touched && name.trim() === "" ? t("login.usernameRequired") : null;
   const passwordError = touched && password === "" ? t("login.passwordRequired") : null;
+  const codeError =
+    touched && code.trim() === ""
+      ? t(useRecoveryCode ? "login.twoFactor.recoveryRequired" : "login.twoFactor.codeRequired")
+      : null;
 
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setTouched(true);
     if (name.trim() === "" || password === "") return;
-    const ok = await login(name, password, sessionDurationSec);
+    if (totpRequired && code.trim() === "") return;
+    const secondFactor = !totpRequired
+      ? undefined
+      : useRecoveryCode
+        ? { recovery_code: code.trim() }
+        : { totp_code: code.replace(/\s/g, "") };
+    const ok = await login(name, password, sessionDurationSec, secondFactor);
+    if (!ok) {
+      // A failed attempt starts over from a fresh code, and being asked for a
+      // code at all is not a mistake to flag on the empty field.
+      setCode("");
+      setTouched(false);
+    }
     // Arm the sign-in intro. Only this form writes the flag, so a restored
     // session or a plain reload never replays it; the shell consumes it on mount.
     if (ok) {
@@ -93,6 +113,81 @@ export default function LoginPage() {
       }
     }
   };
+
+  if (totpRequired) {
+    return (
+      <AuthLayout title={t("login.twoFactor.title")} subtitle={t("login.twoFactor.subtitle")}>
+        <form className="space-y-4" onSubmit={onSubmit} noValidate>
+          {failure && (
+            <AuthFailureNotice
+              title={t(authFailureKey("login", failure.failure, "title"))}
+              body={t(authFailureKey("login", failure.failure, "desc"))}
+              detail={failure.detail}
+            />
+          )}
+
+          <div className="space-y-1.5">
+            <Label htmlFor="login-code">
+              {t(useRecoveryCode ? "login.twoFactor.recoveryLabel" : "login.twoFactor.codeLabel")}
+            </Label>
+            <Input
+              // Keyed on the kind, so switching starts an empty field with the focus.
+              key={useRecoveryCode ? "recovery" : "code"}
+              id="login-code"
+              value={code}
+              onChange={(e) => {
+                setCode(e.target.value);
+                if (error) clearError();
+              }}
+              inputMode={useRecoveryCode ? "text" : "numeric"}
+              autoComplete={useRecoveryCode ? "off" : "one-time-code"}
+              autoCapitalize="characters"
+              spellCheck={false}
+              autoFocus
+              className="nums tracking-wider"
+              aria-invalid={codeError ? true : undefined}
+              aria-describedby="login-code-hint"
+            />
+            <p id="login-code-hint" className={codeError ? "text-xs text-danger-text" : "text-xs text-muted-foreground"}>
+              {codeError ?? t(useRecoveryCode ? "login.twoFactor.recoveryHint" : "login.twoFactor.codeHint")}
+            </p>
+            <button
+              type="button"
+              className="text-xs text-primary underline-offset-2 hover:underline"
+              onClick={() => {
+                setUseRecoveryCode((v) => !v);
+                setCode("");
+                setTouched(false);
+                if (error) clearError();
+              }}
+            >
+              {t(useRecoveryCode ? "login.twoFactor.useApp" : "login.twoFactor.useRecovery")}
+            </button>
+          </div>
+
+          <Button type="submit" className="w-full" size="lg" disabled={pending}>
+            {pending && <Loader2 className="h-4 w-4 animate-spin" />}
+            {pending ? t("login.twoFactor.submitting") : t("login.twoFactor.submit")}
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            className="w-full"
+            disabled={pending}
+            onClick={() => {
+              setCode("");
+              setTouched(false);
+              setUseRecoveryCode(false);
+              cancelTotp();
+            }}
+          >
+            <ArrowLeft className="h-4 w-4" />
+            {t("login.twoFactor.back")}
+          </Button>
+        </form>
+      </AuthLayout>
+    );
+  }
 
   return (
     <AuthLayout title={t("login.title")} subtitle={t("login.subtitle")}>
