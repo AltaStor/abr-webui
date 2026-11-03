@@ -18,6 +18,7 @@ import { useWorldStore } from "@/store/world";
 import { SettingsSection } from "../SettingsSection";
 import { TlsCertificateCard } from "./TlsCertificateCard";
 import { KeyEscrowCard } from "./KeyEscrowCard";
+import { TwoFactorCard } from "./TwoFactorCard";
 import { useCan } from "@/store/permissions";
 
 export function SecuritySection() {
@@ -26,6 +27,7 @@ export function SecuritySection() {
   return (
     <div className="space-y-4">
       <AccessPolicyCard />
+      <TwoFactorCard />
       <SessionCard />
       {canViewCertificate && <TlsCertificateCard />}
       {canExport && <KeyEscrowCard />}
