@@ -4,7 +4,7 @@
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { LogOut, Menu, Moon, Play, Search, Server, Settings, Sun } from "@/lib/icons";
+import { LogOut, Menu, Moon, Play, Search, Server, Settings, ShieldCheck, ShieldOff, Sun } from "@/lib/icons";
 import { cn, isMacPlatform } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Hint } from "@/components/ui/tooltip";
@@ -117,6 +117,11 @@ export function Topbar() {
 
       <div className="flex-1" />
 
+      {/* Whether the signed-in user's sign-in takes a code from their app; it
+          opens the switch in Settings → Security. Live only: the demo world
+          has no two-factor sign-in to set up. */}
+      {mode === "live" && authUser && <TwoFactorShield on={authUser.totpEnabled} />}
+
       <Hint label={themeAction}>
         <Button variant="ghost" size="icon" onClick={toggleTheme} aria-label={themeAction}>
           {theme === "dark" ? <Sun className="h-[18px] w-[18px]" /> : <Moon className="h-[18px] w-[18px]" />}
@@ -202,5 +207,27 @@ export function Topbar() {
         </DialogContent>
       </Dialog>
     </header>
+  );
+}
+
+function TwoFactorShield({ on }: { on: boolean }) {
+  const { t } = useTranslation("layout");
+  const label = t(on ? "topbar.twoFactorOn" : "topbar.twoFactorOff");
+  return (
+    <Hint label={label}>
+      <Button
+        variant="ghost"
+        size="icon"
+        asChild
+        aria-label={label}
+        data-testid="two-factor-shield"
+        data-state={on ? "on" : "off"}
+        className={on ? "text-success" : "text-warning"}
+      >
+        <Link to="/settings/security">
+          {on ? <ShieldCheck className="h-[18px] w-[18px]" /> : <ShieldOff className="h-[18px] w-[18px]" />}
+        </Link>
+      </Button>
+    </Hint>
   );
 }

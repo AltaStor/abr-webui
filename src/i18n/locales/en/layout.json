@@ -33,6 +33,8 @@
     "toggleTheme": "Toggle theme",
     "accountMenu": "Account menu",
     "settings": "Settings",
+    "twoFactorOn": "Two-factor sign-in is on",
+    "twoFactorOff": "Two-factor sign-in is off. Turn it on in Settings → Security.",
     "signOut": "Sign out",
     "signOutToast": "This is a front-end prototype — no real session to sign out of.",
     "navigation": "Navigation",

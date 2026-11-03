@@ -2,16 +2,16 @@
 // Copyright © 2026 Norvitex OÜ
 
 /**
- * Two-factor sign-in for the signed-in user's own account.
+ * Two-factor sign-in for the signed-in user's own account, as a switch.
  *
- * Setting it up asks for the password, shows the QR code the appliance made
+ * Switching it on asks for the password, shows the QR code the appliance made
  * for this account, and turns it on only after a code from the authenticator
  * app proves the app holds the secret. The recovery codes that come back are
  * shown once: the appliance keeps only their digests, so they stay on screen
  * until the user says they saved them.
  *
  * While it is on, setting it up again (a new phone), making new recovery codes
- * and turning it off each take the password and a code or a recovery code: a
+ * and switching it off each take the password and a code or a recovery code: a
  * session alone is not enough, or a stolen one could change the second factor
  * it was stolen past. Setting up again leaves the current secret working until
  * the new one is confirmed, so a QR code scanned wrong locks nobody out. The
@@ -22,10 +22,10 @@ import { useState, type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AlertTriangle, Copy, Download, Loader2, Smartphone } from "@/lib/icons";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PasswordInput } from "@/components/ui/password-input";
+import { Switch } from "@/components/ui/switch";
 import { toast } from "@/components/ui/sonner";
 import { downloadText } from "@/lib/download";
 import { qk } from "@/lib/query";
@@ -42,7 +42,8 @@ import {
 import { useAuthStore } from "@/store/auth";
 import { useWorldStore } from "@/store/world";
 import { Field } from "../FormField";
-import { SettingsSection } from "../SettingsSection";
+import { SettingRow } from "../SettingRow";
+import { SettingDivider, SettingsSection } from "../SettingsSection";
 
 const RECOVERY_CODES_FILE = "altastor-recovery-codes.txt";
 
@@ -51,6 +52,8 @@ type Action = "reenroll" | "regenerate" | "disable";
 
 type View =
   | { kind: "status" }
+  /** The switch went on: the password, before the QR code. */
+  | { kind: "turnOn" }
   | { kind: "authorize"; action: Action }
   | { kind: "scan"; setup: TotpSetup; reenroll: boolean }
   | { kind: "codes"; codes: string[] };
@@ -63,18 +66,22 @@ export function TwoFactorCard() {
   const enabled = me.data?.user.totpEnabled ?? false;
   const toStatus = () => setView({ kind: "status" });
 
+  // While a step asks for more, the switch shows where it is being taken, and
+  // flipping it back cancels that step. Setting up again and new recovery
+  // codes finish or cancel on their own first.
+  const turningOn = view.kind === "turnOn" || (view.kind === "scan" && !view.reenroll);
+  const turningOff = view.kind === "authorize" && view.action === "disable";
+  const switchOn = turningOn ? true : turningOff ? false : enabled;
+  const onSwitch = (on: boolean) => {
+    if (view.kind !== "status") toStatus();
+    else setView(on ? { kind: "turnOn" } : { kind: "authorize", action: "disable" });
+  };
+
   return (
     <SettingsSection
       title={t("security.twoFactor.title")}
       description={t("security.twoFactor.description")}
       icon={Smartphone}
-      headerAside={
-        me.data ? (
-          <Badge variant={enabled ? "success" : "outline"}>
-            {enabled ? t("security.twoFactor.on") : t("security.twoFactor.off")}
-          </Badge>
-        ) : null
-      }
     >
       {!live ? (
         <p className="py-3.5 text-sm text-muted-foreground">{t("toast.connectLive")}</p>
@@ -85,30 +92,55 @@ export function TwoFactorCard() {
         </p>
       ) : !me.data ? (
         <FailureNotice message={apiErrorMessage(me.error) ?? t("security.twoFactor.loadFailed")} />
-      ) : view.kind === "codes" ? (
-        <RecoveryCodes codes={view.codes} onDone={toStatus} />
-      ) : view.kind === "scan" ? (
-        <ScanStep
-          setup={view.setup}
-          reenroll={view.reenroll}
-          onCancel={toStatus}
-          onEnabled={(codes) => setView({ kind: "codes", codes })}
-        />
-      ) : view.kind === "authorize" ? (
-        <AuthorizeForm
-          action={view.action}
-          onCancel={toStatus}
-          onSetup={(setup) => setView({ kind: "scan", setup, reenroll: true })}
-          onCodes={(codes) => setView({ kind: "codes", codes })}
-          onDisabled={toStatus}
-        />
-      ) : enabled ? (
-        <EnabledStatus
-          recoveryCodesLeft={me.data.recoveryCodesLeft ?? 0}
-          onAction={(action) => setView({ kind: "authorize", action })}
-        />
       ) : (
-        <TurnOnForm onStarted={(setup) => setView({ kind: "scan", setup, reenroll: false })} />
+        <>
+          <SettingRow
+            label={t("security.twoFactor.switch")}
+            description={
+              enabled
+                ? t("security.twoFactor.statusOn", { count: me.data.recoveryCodesLeft ?? 0 })
+                : t("security.twoFactor.offHint")
+            }
+            htmlFor="totp-switch"
+          >
+            <div className="flex justify-start sm:justify-end">
+              <Switch
+                id="totp-switch"
+                data-testid="totp-switch"
+                checked={switchOn}
+                onCheckedChange={onSwitch}
+                disabled={view.kind !== "status" && !turningOn && !turningOff}
+                aria-label={t("security.twoFactor.switch")}
+              />
+            </div>
+          </SettingRow>
+          {view.kind === "status" && !enabled ? null : <SettingDivider />}
+          {view.kind === "codes" ? (
+            <RecoveryCodes codes={view.codes} onDone={toStatus} />
+          ) : view.kind === "scan" ? (
+            <ScanStep
+              setup={view.setup}
+              reenroll={view.reenroll}
+              onCancel={toStatus}
+              onEnabled={(codes) => setView({ kind: "codes", codes })}
+            />
+          ) : view.kind === "authorize" ? (
+            <AuthorizeForm
+              action={view.action}
+              onCancel={toStatus}
+              onSetup={(setup) => setView({ kind: "scan", setup, reenroll: true })}
+              onCodes={(codes) => setView({ kind: "codes", codes })}
+              onDisabled={toStatus}
+            />
+          ) : view.kind === "turnOn" ? (
+            <TurnOnForm
+              onCancel={toStatus}
+              onStarted={(setup) => setView({ kind: "scan", setup, reenroll: false })}
+            />
+          ) : enabled ? (
+            <EnabledActions onAction={(action) => setView({ kind: "authorize", action })} />
+          ) : null}
+        </>
       )}
     </SettingsSection>
   );
@@ -132,7 +164,7 @@ function useRefreshAccount() {
   };
 }
 
-function TurnOnForm({ onStarted }: { onStarted: (setup: TotpSetup) => void }) {
+function TurnOnForm({ onCancel, onStarted }: { onCancel: () => void; onStarted: (setup: TotpSetup) => void }) {
   const { t } = useTranslation("settings");
   const [password, setPassword] = useState("");
   const [touched, setTouched] = useState(false);
@@ -145,8 +177,8 @@ function TurnOnForm({ onStarted }: { onStarted: (setup: TotpSetup) => void }) {
   };
 
   return (
-    <form onSubmit={onSubmit} noValidate className="max-w-sm space-y-4 py-3.5">
-      <p className="text-sm text-muted-foreground">{t("security.twoFactor.offHint")}</p>
+    <form onSubmit={onSubmit} noValidate className="max-w-sm space-y-4 py-3.5" data-testid="totp-turn-on">
+      <p className="text-xs text-muted-foreground">{t("security.twoFactor.turnOnHint")}</p>
       {start.isError && (
         <FailureNotice message={apiErrorMessage(start.error) ?? t("security.twoFactor.startFailed")} />
       )}
@@ -160,10 +192,14 @@ function TurnOnForm({ onStarted }: { onStarted: (setup: TotpSetup) => void }) {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           autoComplete="current-password"
+          autoFocus
           className="h-9"
         />
       </Field>
-      <div className="flex justify-end">
+      <div className="flex justify-end gap-2">
+        <Button type="button" variant="outline" size="sm" onClick={onCancel} disabled={start.isPending}>
+          {t("security.twoFactor.cancel")}
+        </Button>
         <Button type="submit" size="sm" disabled={start.isPending}>
           {start.isPending && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
           {start.isPending ? t("security.twoFactor.starting") : t("security.twoFactor.start")}
@@ -173,28 +209,17 @@ function TurnOnForm({ onStarted }: { onStarted: (setup: TotpSetup) => void }) {
   );
 }
 
-function EnabledStatus({
-  recoveryCodesLeft,
-  onAction,
-}: {
-  recoveryCodesLeft: number;
-  onAction: (action: Action) => void;
-}) {
+/** What else there is to do while it is on; the switch turns it off. */
+function EnabledActions({ onAction }: { onAction: (action: Exclude<Action, "disable">) => void }) {
   const { t } = useTranslation("settings");
   return (
-    <div className="max-w-xl space-y-4 py-3.5">
-      <p className="text-sm">{t("security.twoFactor.statusOn", { count: recoveryCodesLeft })}</p>
-      <div className="flex flex-wrap gap-2">
-        <Button type="button" variant="outline" size="sm" onClick={() => onAction("reenroll")}>
-          {t("security.twoFactor.reenroll")}
-        </Button>
-        <Button type="button" variant="outline" size="sm" onClick={() => onAction("regenerate")}>
-          {t("security.twoFactor.regenerate")}
-        </Button>
-        <Button type="button" variant="outline" size="sm" onClick={() => onAction("disable")}>
-          {t("security.twoFactor.disable")}
-        </Button>
-      </div>
+    <div className="flex flex-wrap gap-2 py-3.5">
+      <Button type="button" variant="outline" size="sm" onClick={() => onAction("reenroll")}>
+        {t("security.twoFactor.reenroll")}
+      </Button>
+      <Button type="button" variant="outline" size="sm" onClick={() => onAction("regenerate")}>
+        {t("security.twoFactor.regenerate")}
+      </Button>
     </div>
   );
 }

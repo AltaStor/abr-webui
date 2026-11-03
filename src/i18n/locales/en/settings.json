@@ -143,11 +143,11 @@
     "twoFactor": {
       "title": "Two-factor sign-in",
       "description": "Sign in with your password and a code from an authenticator app on your phone, such as Google Authenticator or Microsoft Authenticator.",
-      "on": "On",
-      "off": "Off",
       "loading": "Reading your account…",
       "loadFailed": "Couldn't read your account from the appliance.",
+      "switch": "Ask for a code from my app when I sign in",
       "offHint": "Off: your password alone signs you in.",
+      "turnOnHint": "Confirm it's you with your password. Then you scan a QR code with your authenticator app.",
       "passwordLabel": "Your password",
       "passwordRequired": "Enter your password.",
       "start": "Set up",

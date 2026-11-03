@@ -49,6 +49,9 @@ All notable changes to the AltaStor WebUI are documented in this file.
   windows and day groups follow them, and new jobs start on the picked zone.
   The note under Time zone shows the current time as it will read. `npm test`
   runs the unit tests of the formatting module (Node's own test runner).
+- A shield left of the theme and notification buttons shows whether
+  two-factor sign-in is on for the signed-in user and opens Settings →
+  Security.
 - Settings → Notifications → E-mail notifications: the appliance's SMTP
   server and connection security (STARTTLS, SSL/TLS, none; certificate
   verification), sign-in with a username and password or OAuth 2.0
@@ -120,6 +123,10 @@ All notable changes to the AltaStor WebUI are documented in this file.
 ### Changed
 - Every date reads in the date format, DD/MM/YYYY by default, with its year:
   "23/10/2026 01:00 GMT+3" instead of "Oct 23, 01:00 GMT+3".
+- Settings → Security → Two-factor sign-in is a switch. Switching it on asks
+  for the password, then shows the QR code; switching it off asks for the
+  password and a code or recovery code. Cancelling a step puts the switch
+  back. "Set up again" and "New recovery codes" stay below it while it is on.
 - Enabling or disabling a job is sent as a job-level `enabled` flag instead
   of being nested inside the job's schedule.
 - A disabled job reads Disabled, with Enable to turn it back on, while a run
