@@ -87,6 +87,9 @@ export function RetentionDialog({ job, open, onOpenChange }: RetentionDialogProp
           <DialogTitle>{t("retentionRun.title")}</DialogTitle>
           <DialogDescription>
             {t("retentionRun.lead", { policy: retentionLabel(job.retention) })}
+            {/* A copy job's retention is its own: it never reaches into the
+                sources it copies from. */}
+            {job.type === "backup-copy" && ` ${t("retentionRun.copyNote")}`}
           </DialogDescription>
         </DialogHeader>
 

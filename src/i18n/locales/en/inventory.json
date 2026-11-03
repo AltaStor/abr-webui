@@ -554,5 +554,12 @@
       "passThrough": "Pass-through disk, not backed up",
       "vhdSet": "Shared VHD Set, not backed up"
     }
+  },
+  "copy": {
+    "badge": "Copy",
+    "badgeTip": "Copied by {{job}} from {{source}} in {{repository}}: the restore point of {{when}}. It restores like any other.",
+    "badgeTipJobOnly": "Copied by backup copy job {{job}}. It restores like any other.",
+    "unknownJob": "an unknown job",
+    "unknownRepository": "an unknown repository"
   }
 }

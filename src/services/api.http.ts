@@ -30,6 +30,7 @@
 import { fileStamp } from "@/lib/download";
 import { userTimeZone } from "@/lib/time";
 import { deleteRunName, restoreRunName, verifyRunName } from "@/lib/format";
+import { copyScopeSummary, mapBackupCopy, mapCopySource, windowRuleToWire } from "@/lib/backup-copy";
 import { useWorldStore } from "@/store/world";
 import type {
   Alert,
@@ -37,6 +38,7 @@ import type {
   ApplyImmutabilityResult,
   AuditEvent,
   BackupConsistency,
+  BackupCopySettings,
   BackupJob,
   CreateEnvironmentInput,
   CreateRepositoryInput,
@@ -476,6 +478,10 @@ function mapSession(s: Dict): Session {
   // terminal error text once it isn't — `message` above already covers the
   // latter, so only pull this while still running.
   const stageMessage = status === "running" ? strOrNull(s.message) ?? undefined : undefined;
+  // A finished run without an error still says how it went — for a backup
+  // copy, which restore point it copied from where, or that nothing was new.
+  const outcome =
+    status !== "running" && status !== "queued" && !errors.length ? strOrNull(s.message) ?? undefined : undefined;
   // Folded into "running" by sessionStatusOf (it IS still running), so the
   // distinction has to travel on its own field or the console can't tell a run
   // that has been asked to stop from one that hasn't.
@@ -492,6 +498,7 @@ function mapSession(s: Dict): Session {
     type: isRestore ? "restore" : isVerify ? "verify" : isDelete ? "delete" : "backup",
     status,
     backupType,
+    ...(resolvedBackupType ? {} : { typeUnknown: true }),
     synthetic,
     startedAt,
     finishedAt,
@@ -531,12 +538,22 @@ function mapSession(s: Dict): Session {
     consistency: consistencyOf(s.consistency),
     consistencyReason: strOrNull(s.consistency_reason),
     stageMessage,
+    outcome,
     stopping,
-    // Only the JobScheduler's own runs report "schedule" — Run now/Run full
-    // backup, restores and backup-copy sessions are all "manual" (see
-    // session_to_dto in abr_v41.py).
-    triggeredBy: str(s.triggered_by) === "schedule" ? "schedule" : "manual",
+    triggeredBy: triggerOf(str(s.triggered_by)),
   };
+}
+
+/** The triggers a backup copy job's runs start on by themselves
+ *  (`_start_and_record` in backup_copy.py). */
+const COPY_TRIGGERS = new Set<string>(["immediate", "copy-backlog", "after-job", "copy-window"]);
+
+/** Only the JobScheduler's own runs report "schedule", and a backup copy job's
+ *  automatic runs their own trigger; Run now, restores and everything else are
+ *  "manual" (see session_to_dto in abr_v41.py). */
+function triggerOf(trigger: string): Session["triggeredBy"] {
+  if (trigger === "schedule") return "schedule";
+  return COPY_TRIGGERS.has(trigger) ? (trigger as Session["triggeredBy"]) : "manual";
 }
 
 const DAY_NAMES = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
@@ -737,10 +754,12 @@ function mapJob(job: Dict, sessions: Session[]): BackupJob {
 
   const lastRun = mapLastRun(job.last_run);
   const { recentRuns, successRate, lastStatus } = jobRunStats(sessions.filter((s) => s.jobId === id), lastRun);
+  // A copy job may have no schedule at all; the appliance reports null then.
+  const copy = type === "backup-copy" ? mapBackupCopy(job.backup_copy, job.schedule != null) : undefined;
 
-  const scopeSummary =
-    (str(inventory.name) ? `${str(inventory.name)} · ` : "") +
-    `${vmCount} VM${vmCount === 1 ? "" : "s"}`;
+  const scopeSummary = copy
+    ? copyScopeSummary(copy, vmIds.length)
+    : (str(inventory.name) ? `${str(inventory.name)} · ` : "") + `${vmCount} VM${vmCount === 1 ? "" : "s"}`;
 
   return {
     id,
@@ -759,7 +778,11 @@ function mapJob(job: Dict, sessions: Session[]): BackupJob {
     syntheticFullNextRunAt: enabled ? strOrNull(job.synthetic_full_next_run_at) : null,
     retention: mapRetention(job),
     options: mapJobOptions(asDict(job.task_parameters ?? job.backup_options), job.compression_level, asDict(job.encryption)),
-    state: activeCount > 0 ? "running" : enabled ? "idle" : "disabled",
+    // Switched off wins over a run in flight: the Enable/Disable toggle reads
+    // this, and a copy queued behind a closed copy window can keep a disabled
+    // job "running" for hours. The run itself still shows as running, and
+    // `jobHasActiveRun` still keeps such a job from being deleted.
+    state: !enabled ? "disabled" : activeCount > 0 ? "running" : "idle",
     lastStatus,
     lastRun,
     lastRunAt: strOrNull(job.last_run_at),
@@ -771,6 +794,7 @@ function mapJob(job: Dict, sessions: Session[]): BackupJob {
     successRate,
     recentRuns,
     accent: accentFor(id),
+    ...(copy ? { copy } : {}),
   };
 }
 
@@ -827,6 +851,7 @@ function mapRestorePointFromChainPoint(chain: Dict, point: Dict): RestorePoint {
     // "SyntheticFull" is a full point (the /inc/ test above already types it
     // as one) that was merged from the chain rather than read off the VM.
     synthetic: /synthetic/i.test(execType),
+    copySource: mapCopySource(point.copy_source),
   };
 }
 
@@ -1656,6 +1681,9 @@ export interface CreateJobPayload {
   accent?: BackupJob["accent"];
   runNow?: boolean;
   replicaTarget?: ReplicaTarget;
+  /** Backup copy jobs: their sources, mode, window and retries. Its
+   *  `scheduled` decides whether `schedule` is sent at all. */
+  copy?: BackupCopySettings;
 }
 
 /** Domain Schedule → orchestrator schedule dict. */
@@ -1799,9 +1827,47 @@ function createJobBody(payload: Partial<CreateJobPayload>): Dict {
   return body;
 }
 
+/**
+ * A backup copy job's body, for POST /jobs/backup-copy and PATCH /jobs/{id}
+ * (CreateBackupCopyJobRequest, UpdateJobRequest). Unlike a backup job's it
+ * names no inventory, which the appliance refuses for a copy job, and its VMs
+ * are picked from what the sources back up: none copies every one of them.
+ * Only compression and encryption apply to a copy, so those are the only task
+ * parameters sent.
+ */
+function backupCopyJobBody(payload: Partial<CreateJobPayload>): Dict {
+  const body = createJobBody({ ...payload, vmIds: undefined, schedule: undefined, options: undefined });
+  if (payload.vmIds) body.vms = payload.vmIds;
+  const copy = payload.copy;
+  if (copy) {
+    body.copy_mode = copy.mode;
+    body.source_job_ids = copy.sourceJobs.map((j) => j.id);
+    body.source_repository_ids = copy.sourceRepositories.map((r) => r.id);
+    // Cleared for an immediate copy, which already follows every source backup.
+    body.run_after_job_id = copy.mode === "periodic" ? (copy.runAfterJob?.id ?? "") : "";
+    body.retry_count = copy.retry.count;
+    body.retry_interval_minutes = copy.retry.intervalMinutes;
+    body.copy_window = copy.window.map(windowRuleToWire);
+    if (copy.mode === "periodic" && copy.scheduled && payload.schedule) body.schedule = scheduleToWire(payload.schedule);
+  }
+  if (payload.options) {
+    const { compression_level, encryption_enabled, encryption_key } = optionsToTaskParams(payload.options);
+    body.task_parameters = {
+      compression_level,
+      encryption_enabled,
+      ...(encryption_key !== undefined ? { encryption_key } : {}),
+    };
+  }
+  return body;
+}
+
 export async function createJob(payload: CreateJobPayload): Promise<BackupJob> {
+  const copy = payload.type === "backup-copy";
   const created = asDict(
-    await request<Dict>("/jobs", { method: "POST", body: JSON.stringify(createJobBody(payload)) }),
+    await request<Dict>(copy ? "/jobs/backup-copy" : "/jobs", {
+      method: "POST",
+      body: JSON.stringify(copy ? backupCopyJobBody(payload) : createJobBody(payload)),
+    }),
   );
   if (payload.runNow && created.id) {
     await request(`/jobs/${str(created.id)}/start`, { method: "POST", body: "{}" }).catch(() => undefined);
@@ -1810,9 +1876,13 @@ export async function createJob(payload: CreateJobPayload): Promise<BackupJob> {
 }
 
 export async function updateJob(id: string, patch: Partial<CreateJobPayload>): Promise<BackupJob> {
-  const updated = asDict(
-    await request<Dict>(`/jobs/${id}`, { method: "PATCH", body: JSON.stringify(createJobBody(patch)) }),
-  );
+  const current = useWorldStore.getState().jobs.find((j) => j.id === id);
+  const body = (current?.type ?? patch.type) === "backup-copy" ? backupCopyJobBody(patch) : createJobBody(patch);
+  // A schedule sent without `enabled` is an enabled one, and the appliance
+  // switches the job on with it — so saving any change to a disabled job used
+  // to turn it back on. Its schedule goes out as off, the way it is.
+  if (body.schedule && current?.state === "disabled") body.schedule = { ...asDict(body.schedule), enabled: false };
+  const updated = asDict(await request<Dict>(`/jobs/${id}`, { method: "PATCH", body: JSON.stringify(body) }));
   return mapJob(updated, useWorldStore.getState().sessions);
 }
 

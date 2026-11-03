@@ -2,15 +2,21 @@
 // Copyright © 2026 Norvitex OÜ
 
 import { useTranslation } from "react-i18next";
+import { Link } from "react-router-dom";
 import {
   CalendarClock,
   Check,
+  ChevronsRight,
   Clock,
   Database,
   DatabaseBackup,
+  HardDriveDownload,
   Layers,
   Lock,
   Minus,
+  Repeat,
+  RotateCw,
+  Server,
   ShieldCheck,
   Sparkles,
 } from "@/lib/icons";
@@ -19,9 +25,10 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useWorldStore } from "@/store/world";
 import { formatDateTime, formatStorage, usagePercent } from "@/lib/format";
-import type { BackupJob, Repository } from "@/types";
-import { fullScheduleLabel, retentionLabel, scheduleLabel } from "../lib";
-import { utcTitle } from "@/lib/time";
+import type { BackupCopySettings, BackupJob, Repository } from "@/types";
+import { copyWindowState } from "@/lib/backup-copy";
+import { copyModeLabel, copyWindowRuleLabel, fullScheduleLabel, jobScheduleLabel, retentionLabel } from "../lib";
+import { scheduleZoneName, utcTitle } from "@/lib/time";
 
 interface Props {
   job: BackupJob;
@@ -32,7 +39,7 @@ interface Props {
 
 export function JobSettingsTab({ job, repository, onApplyRetention }: Props) {
   const { t } = useTranslation("jobs");
-  const { options, retention, schedule } = job;
+  const { options, retention } = job;
   const compressionLabel = t("settings.compressionLevel", { level: options.compression });
   const hyperv = useWorldStore((s) =>
     job.vmIds.some((vmId) => {
@@ -53,7 +60,7 @@ export function JobSettingsTab({ job, repository, onApplyRetention }: Props) {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-2.5 pt-0 text-sm">
-            <Row icon={Clock} label={t("settings.runs")} value={scheduleLabel(schedule, job.state === "disabled")} />
+            <Row icon={Clock} label={t("settings.runs")} value={jobScheduleLabel(job)} />
             {job.type !== "replication" && (
               <>
                 <Row
@@ -163,6 +170,8 @@ export function JobSettingsTab({ job, repository, onApplyRetention }: Props) {
         </Card>
       </div>
 
+      {job.copy && <CopySettingsCard job={job} copy={job.copy} />}
+
       {/* Processing options */}
       <Card>
         <CardHeader className="pb-3">
@@ -174,7 +183,7 @@ export function JobSettingsTab({ job, repository, onApplyRetention }: Props) {
         <CardContent className="grid grid-cols-2 gap-3 pt-0">
           <Toggle on={options.encryption} label={t("settings.encryption")} hint="AES-256" icon={Lock} />
           <Value label={t("settings.compression")} value={compressionLabel} />
-          {hyperv && (
+          {hyperv && job.type === "backup" && (
             <Value
               label={t("settings.guestConsistency")}
               value={t(`hyperv.consistency.${options.guestConsistency ?? "application"}`)}
@@ -193,6 +202,108 @@ export function JobSettingsTab({ job, repository, onApplyRetention }: Props) {
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+/**
+ * What a backup copy job copies and how: its sources (each a link while it
+ * exists), the VMs, the mode and what it follows, the copy window with
+ * whether it is open now, and the retries.
+ */
+function CopySettingsCard({ job, copy }: { job: BackupJob; copy: BackupCopySettings }) {
+  const { t } = useTranslation("jobs");
+  const jobs = useWorldStore((s) => s.jobs);
+  const jobIds = new Set(jobs.map((j) => j.id));
+  const window = copy.window.length ? copyWindowState(copy.window) : null;
+  const zones = [...new Set(copy.window.map((r) => scheduleZoneName(r.timezone)))];
+  const retries =
+    copy.retry.count === 0
+      ? t("copy.retry.shortNone")
+      : copy.retry.intervalMinutes === 0
+        ? t("copy.retry.shortRightAway", { count: copy.retry.count })
+        : t("copy.retry.shortApart", { count: copy.retry.count, minutes: copy.retry.intervalMinutes });
+
+  return (
+    <Card>
+      <CardHeader className="pb-3">
+        <CardTitle className="flex items-center gap-2 text-sm">
+          <HardDriveDownload className="h-4 w-4 text-muted-foreground" />
+          {t("copy.settings.title")}
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="grid grid-cols-1 gap-x-6 gap-y-2.5 pt-0 text-sm md:grid-cols-2">
+        <div className="space-y-2.5">
+          <Row icon={Repeat} label={t("copy.about.mode")} value={copyModeLabel(copy.mode)} />
+          {copy.mode === "periodic" && (
+            <Row
+              icon={ChevronsRight}
+              label={t("copy.settings.runsAfter")}
+              value={copy.runAfterJob?.name ?? t("copy.settings.noJob")}
+            />
+          )}
+          <Row
+            icon={Server}
+            label={t("objects.vms")}
+            value={job.vmIds.length ? t("copy.scope.vms", { count: job.vmIds.length }) : t("copy.scope.allVms")}
+          />
+          <Row icon={RotateCw} label={t("copy.retry.title")} value={retries} />
+        </div>
+        <div className="space-y-2.5">
+          <div>
+            <p className="flex items-center gap-1.5 text-muted-foreground">
+              <HardDriveDownload className="h-3.5 w-3.5" />
+              {t("copy.about.from")}
+            </p>
+            <ul className="mt-1 space-y-0.5 pl-5">
+              {copy.sourceJobs.map((source) => (
+                <li key={source.id} className="truncate">
+                  {jobIds.has(source.id) ? (
+                    <Link to={`/jobs/${source.id}`} className="font-medium hover:underline">
+                      {source.name}
+                    </Link>
+                  ) : (
+                    <span className="font-medium">{source.name}</span>
+                  )}
+                  <span className="text-xs text-muted-foreground"> · {t("copy.settings.job")}</span>
+                </li>
+              ))}
+              {copy.sourceRepositories.map((source) => (
+                <li key={source.id} className="truncate">
+                  <span className="font-medium">{source.name}</span>
+                  <span className="text-xs text-muted-foreground"> · {t("copy.settings.repository")}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div>
+            <p className="flex items-center gap-1.5 text-muted-foreground">
+              <Clock className="h-3.5 w-3.5" />
+              {t("copy.about.window")}
+            </p>
+            {copy.window.length ? (
+              <ul className="mt-1 space-y-0.5 pl-5">
+                {copy.window.map((rule, index) => (
+                  <li key={index} className="nums font-medium">
+                    {copyWindowRuleLabel(rule)}
+                  </li>
+                ))}
+                <li className="text-xs text-muted-foreground">
+                  {t("copy.window.zone", { zone: zones.join(", ") })}{" "}
+                  {window &&
+                    (window.open
+                      ? window.closesAt && t("copy.window.openUntil", { when: formatDateTime(window.closesAt.toISOString()) })
+                      : window.opensAt
+                        ? t("copy.window.closedUntil", { when: formatDateTime(window.opensAt.toISOString()) })
+                        : t("copy.window.neverOpens"))}
+                </li>
+              </ul>
+            ) : (
+              <p className="mt-1 pl-5 font-medium">{t("copy.window.anyTime")}</p>
+            )}
+          </div>
+        </div>
+      </CardContent>
+    </Card>
   );
 }
 

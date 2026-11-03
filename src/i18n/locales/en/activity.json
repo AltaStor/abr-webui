@@ -33,7 +33,11 @@
   },
   "trigger": {
     "schedule": "Schedule",
-    "manual": "Manual"
+    "manual": "Manual",
+    "immediate": "New restore point",
+    "copyBacklog": "Pending restore point",
+    "afterJob": "After another job",
+    "copyWindow": "Copy window"
   },
   "filters": {
     "statusGroupLabel": "Filter runs by status",

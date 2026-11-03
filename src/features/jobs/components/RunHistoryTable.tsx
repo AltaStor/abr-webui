@@ -86,9 +86,11 @@ export function RunHistoryTable({ sessions }: { sessions: Session[] }) {
               // same sentence the manual-run dialog and the Activity drawer
               // show. Anything else keeps the appliance's own line.
               const failedSynthetic = Boolean(s.synthetic) && s.status === "failed";
+              // A copy that went well still says what it copied from where,
+              // or that nothing was new — the line a copy's history is read for.
               const resultMessage = failedSynthetic
                 ? syntheticFullFailureMessage(s.message ?? "")
-                : s.message;
+                : (s.message ?? (s.type === "backup-copy" ? s.outcome : undefined));
               return (
                 <Fragment key={s.id}>
                   <tr
@@ -123,7 +125,7 @@ export function RunHistoryTable({ sessions }: { sessions: Session[] }) {
                           worth naming when reading back a job's history. The
                           label comes from the shared helper so this row and the
                           Overview's last-run footer cannot disagree. */}
-                      <Badge variant={s.backupType === "full" ? "info" : "outline"}>
+                      <Badge variant={s.backupType === "full" && !s.typeUnknown ? "info" : "outline"}>
                         {backupTypeLabel(s) ?? t("runType.full")}
                       </Badge>
                     </td>

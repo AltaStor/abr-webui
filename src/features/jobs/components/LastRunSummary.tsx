@@ -73,7 +73,11 @@ export function LastRunSummary({ session }: { session: Session }) {
       </div>
       <p className="mt-3 text-[11px] text-muted-foreground">
         {t("lastRun.avgPrefix")} {formatThroughput(session.throughputMBps)} ·{" "}
-        {backupTypeLabel(session) ?? t("runType.full")} {t("lastRun.kindBackup")}
+        {backupTypeLabel(session) ?? t("runType.full")}
+        {/* "Nothing copied" is the whole story; "Full copy" needs its noun. */}
+        {session.type === "backup-copy"
+          ? !session.typeUnknown && ` ${t("lastRun.kindCopy")}`
+          : ` ${t("lastRun.kindBackup")}`}
       </p>
     </Card>
   );

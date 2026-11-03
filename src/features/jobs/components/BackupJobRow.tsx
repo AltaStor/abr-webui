@@ -2,7 +2,7 @@
 // Copyright © 2026 Norvitex OÜ
 
 import { useTranslation } from "react-i18next";
-import { AlertTriangle, ChevronRight, History } from "@/lib/icons";
+import { AlertTriangle, ChevronRight, Copy, History } from "@/lib/icons";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
@@ -61,7 +61,10 @@ export function BackupJobRow({
    *  The restore wizard resolves its target VM from inventory, so a point whose
    *  VM is gone has nothing to restore onto until that VM is re-added. */
   const removedRestoreTip = t("backupsTab.removedTip");
-  const typeMeta = job ? jobTypeMeta(job.type) : null;
+  /* Copies stay copies after their job is deleted: the points say so
+   * themselves, so an orphaned group keeps its copy glyph and label. */
+  const copies = job ? job.type === "backup-copy" : group.points.some((p) => p.copySource);
+  const typeMeta = job ? jobTypeMeta(job.type) : copies ? jobTypeMeta("backup-copy") : null;
   const TypeIcon = typeMeta?.icon ?? History;
   const pointCount = group.points.length;
 
@@ -89,6 +92,12 @@ export function BackupJobRow({
           <span className="min-w-0 flex-1">
             <CardTitle className="flex flex-wrap items-center gap-2 text-sm">
               <span className="truncate">{group.jobName}</span>
+              {copies && (
+                <Badge variant="outline" className="shrink-0 gap-1 font-normal" title={t("copy.groupTip")}>
+                  <Copy className="h-3 w-3" />
+                  {t("copy.group")}
+                </Badge>
+              )}
               {group.orphaned && (
                 <Badge
                   variant="outline"

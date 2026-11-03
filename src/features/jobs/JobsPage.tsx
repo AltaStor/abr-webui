@@ -49,7 +49,8 @@ import { useCan } from "@/store/permissions";
 import { useWorldStore } from "@/store/world";
 import type { BackupJob, Repository, Session, SessionStatus } from "@/types";
 import { DatabaseBackup } from "@/lib/icons";
-import { accentColor, jobHasActiveRun, jobTypeMeta, scheduleLabel } from "./lib";
+import { copyJobVmIds } from "@/lib/backup-copy";
+import { accentColor, jobHasActiveRun, jobScheduleLabel, jobTypeMeta } from "./lib";
 import { JobActionsMenu } from "./components/JobActionsMenu";
 import { CancelRunDialog } from "@/components/CancelRunButton";
 import { DeleteJobDialog } from "./components/DeleteJobDialog";
@@ -105,6 +106,7 @@ export default function JobsPage() {
   const repositories = useWorldStore((s) => s.repositories);
   const environments = useWorldStore((s) => s.environments);
   const restorePoints = useWorldStore((s) => s.restorePoints);
+  const vms = useWorldStore((s) => s.vms);
   const sessions = useWorldStore((s) => s.sessions);
   const runJob = useWorldStore((s) => s.runJob);
   const setJobEnabled = useWorldStore((s) => s.setJobEnabled);
@@ -157,6 +159,20 @@ export default function JobsPage() {
         : noRepositories
           ? t("page.addJobNeedsRepo")
           : null;
+  // A copy job needs backups to copy, and a repository other than theirs.
+  const addCopyJobBlockedReason =
+    !jobs.some((j) => j.type === "backup") && restorePoints.length === 0
+      ? t("page.addCopyJobNeedsBackups")
+      : repositories.length < 2
+        ? t("page.addCopyJobNeedsRepo")
+        : null;
+
+  /* How many VMs a job covers. A copy job that picked none copies every VM its
+   * sources back up, which is what it counts. */
+  const vmCountByJob = useMemo(() => {
+    const world = { jobs, restorePoints, vms };
+    return new Map(jobs.map((j) => [j.id, copyJobVmIds(j, world).length]));
+  }, [jobs, restorePoints, vms]);
 
   /* The "Last run" column shows an absolute start → end, but `job.lastRunAt` is
    * `finishedAt ?? startedAt` of the NEWEST session — so it is the run's end only
@@ -219,6 +235,9 @@ export default function JobsPage() {
         description: forceFull ? t("toast.startedFullDesc") : t("toast.startedDesc"),
         action: { label: t("toast.watch"), onClick: () => navigate(`/jobs/${job.id}`) },
       });
+    } else if (job.type === "backup-copy" && job.state !== "disabled") {
+      // A copy job starts a session per VM its sources hold restore points of.
+      toast.error(t("toast.runRefused", { name: job.name }), { description: t("toast.copyNothingStarted") });
     } else {
       toast.info(
         job.state === "disabled" ? t("toast.jobDisabled", { name: job.name }) : t("toast.jobAlreadyRunning", { name: job.name }),
@@ -387,12 +406,8 @@ export default function JobsPage() {
         id: "schedule",
         header: t("table.schedule"),
         meta: { tooltip: t("table.scheduleHint") },
-        accessorFn: (j) => scheduleLabel(j.schedule, j.state === "disabled"),
-        cell: ({ row }) => (
-          <span className="text-sm text-muted-foreground">
-            {scheduleLabel(row.original.schedule, row.original.state === "disabled")}
-          </span>
-        ),
+        accessorFn: (j) => jobScheduleLabel(j),
+        cell: ({ row }) => <span className="text-sm text-muted-foreground">{jobScheduleLabel(row.original)}</span>,
       },
       {
         id: "lastRun",
@@ -481,9 +496,9 @@ export default function JobsPage() {
         id: "objects",
         header: t("table.objects"),
         meta: { tooltip: t("table.objectsHint") },
-        accessorFn: (j) => j.vmIds.length,
+        accessorFn: (j) => vmCountByJob.get(j.id) ?? j.vmIds.length,
         cell: ({ row }) => (
-          <span className="nums text-sm tabular-nums">{row.original.vmIds.length}</span>
+          <span className="nums text-sm tabular-nums">{vmCountByJob.get(row.original.id) ?? row.original.vmIds.length}</span>
         ),
       },
       {
@@ -532,7 +547,7 @@ export default function JobsPage() {
     ];
     return cols;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [repoById, lastRunByJob, runningByJob, t, canStart, canStop, canEdit, canDelete]);
+  }, [repoById, lastRunByJob, runningByJob, vmCountByJob, t, canStart, canStop, canEdit, canDelete]);
 
   return (
     <div className="space-y-4">
@@ -541,7 +556,15 @@ export default function JobsPage() {
         description={t("page.description")}
         actions={
           tab === "jobs" && canCreate ? (
-            <AddJobButton blockedReason={addJobBlockedReason} onClick={() => navigate("/jobs/new/backup")} />
+            <>
+              <AddJobButton
+                blockedReason={addCopyJobBlockedReason}
+                onClick={() => navigate("/jobs/new/backup-copy")}
+                label={t("page.addCopyJob")}
+                variant="outline"
+              />
+              <AddJobButton blockedReason={addJobBlockedReason} onClick={() => navigate("/jobs/new/backup")} />
+            </>
           ) : undefined
         }
       />
@@ -828,14 +851,16 @@ function AddJobButton({
   blockedReason,
   onClick,
   label,
+  variant,
 }: {
   blockedReason: string | null;
   onClick: () => void;
   label?: string;
+  variant?: "outline";
 }) {
   const { t } = useTranslation("jobs");
   const button = (
-    <Button onClick={onClick} disabled={!!blockedReason}>
+    <Button onClick={onClick} disabled={!!blockedReason} variant={variant}>
       <Plus className="h-4 w-4" />
       {label ?? t("page.addJob")}
     </Button>

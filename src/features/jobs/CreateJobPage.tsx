@@ -13,8 +13,9 @@ import {
   Database,
   DatabaseBackup,
   Globe,
-  HelpCircle,
+  HardDriveDownload,
   Repeat,
+  RotateCw,
   Settings2,
   Sliders,
 } from "@/lib/icons";
@@ -36,7 +37,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "@/components/ui/sonner";
-import { Hint } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { formatStorage } from "@/lib/format";
 import { PLATFORM_META } from "@/lib/platform";
@@ -51,15 +51,38 @@ import { NotPermitted } from "@/components/FeatureUnavailable";
 import { useCan } from "@/store/permissions";
 import { useWorldStore, type CreateJobInput } from "@/store/world";
 import { REPO_TYPE_META } from "@/features/repositories/components/repoMeta";
-import type { BackupJob, FullBackupSchedule, JobOptions, Schedule } from "@/types";
+import type { BackupCopySettings, BackupJob, CopyMode, CopyWindowRule, FullBackupSchedule, JobOptions, Schedule } from "@/types";
 import i18n from "@/i18n";
-import { fullScheduleLabel, pickAccent, retentionLabel, scheduleLabel } from "./lib";
+import {
+  COPY_RETRY_DEFAULTS,
+  copySourcesEncrypted,
+  copySourcesHyperV,
+  copySourceVms,
+} from "@/lib/backup-copy";
+import {
+  copyModeLabel,
+  copyWindowLabel,
+  fullScheduleLabel,
+  jobScheduleLabel,
+  pickAccent,
+  retentionLabel,
+  scheduleLabel,
+} from "./lib";
 import { ScopePicker } from "./components/ScopePicker";
 import { JobSummaryPanel, type SummaryData } from "./components/JobSummaryPanel";
 import { EncryptionKeyField } from "./components/EncryptionKeyField";
+import { HelpHint, PresetChip, ToggleRow } from "./components/FormBits";
+import {
+  CopyModeChoice,
+  CopyRetryFields,
+  CopySourcesPicker,
+  CopyVmPicker,
+  CopyWindowEditor,
+  copyWindowRuleProblem,
+} from "./components/BackupCopyFields";
 
 type Preset = "hourly" | "every4h" | "daily" | "weekly";
-type JobTypeChoice = "backup" | "replication";
+type JobTypeChoice = "backup" | "replication" | "backup-copy";
 const RETENTION_PRESETS = [7, 14, 30, 90];
 const DAY_KEYS = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
 
@@ -69,6 +92,8 @@ const FULL_BACKUP_DEFAULT_DAY = 6;
 const DEFAULT_NAME_PREFIX = "replica-";
 /** "" = auto — let AltaStor place the replica on any host in the target environment. */
 const AUTO_HOST = "";
+/** The "no job" choice of the run-after picker: a select item can't be "". */
+const NO_JOB = "none";
 
 // The API constrains job names (`_ensure_ascii_name` + `job_name_exists` in
 // abr_v41.py): ^[A-Za-z0-9][A-Za-z0-9 ._-]*$, max 125 chars, and unique across
@@ -195,6 +220,23 @@ interface FormState {
   targetEnvironmentId: string;
   targetHostId: string;
   namePrefix: string;
+  /** Backup copy jobs only, from here on. */
+  copyMode: CopyMode;
+  /** Periodic copies: whether `preset` applies, or the job runs only when
+   *  started by hand or after `runAfterJobId`. */
+  copyScheduled: boolean;
+  sourceJobIds: string[];
+  sourceRepositoryIds: string[];
+  /** "" for none. */
+  runAfterJobId: string;
+  /** Every VM of the sources; otherwise the ones in `selected`. */
+  copyAllVms: boolean;
+  /** The window switch is separate from the rules so that switching it off
+   *  and on again keeps them, as the GFS switch keeps its counts. */
+  copyWindowOn: boolean;
+  copyWindow: CopyWindowRule[];
+  retryCount: number;
+  retryIntervalMinutes: number;
 }
 
 function presetToSchedule(form: FormState): Schedule {
@@ -298,29 +340,55 @@ function JobWizard({
   const jobs = useWorldStore((s) => s.jobs);
   const jobCount = jobs.length;
   const sessions = useWorldStore((s) => s.sessions);
+  const restorePoints = useWorldStore((s) => s.restorePoints);
   const createJob = useWorldStore((s) => s.createJob);
   const updateJob = useWorldStore((s) => s.updateJob);
 
   const editMode = !!jobId;
 
   // The wizard's kind is fixed by the route (create) or the job being edited —
-  // there is no in-form type toggle; Backup and Replication are separate wizards.
+  // there is no in-form type toggle; Backup, Backup copy and Replication are
+  // separate wizards.
   const kind: JobTypeChoice = editMode
-    ? existingJob?.type === "replication"
-      ? "replication"
+    ? existingJob?.type === "replication" || existingJob?.type === "backup-copy"
+      ? existingJob.type
       : "backup"
     : kindProp ?? "backup";
   const isReplication = kind === "replication";
+  const isCopy = kind === "backup-copy";
+  const storedCopy = existingJob?.copy;
 
   // ----- initial state (prefill in edit mode, smart defaults for create) -----
   const [form, setForm] = useState<FormState>(() => {
+    // A copy job without a schedule of its own has none to read a time or a
+    // zone from: the appliance reports null, which reads as daily at 00:00.
+    const ownSchedule = existingJob && (!storedCopy || storedCopy.scheduled) ? existingJob.schedule : undefined;
     // Full backups default to the job's own run time. A full that falls due
     // together with the regular backup replaces that run instead of adding one.
-    const atTime = existingJob?.schedule.atTime ?? "22:00";
+    const atTime = ownSchedule?.atTime ?? "22:00";
     // A job keeps the zone it has (the appliance reports its own for one saved
     // without); a new one starts on the viewer's, which is what "22:00" means
-    // to the person typing it.
-    const timezone = existingJob?.schedule.timezone || userTimeZone();
+    // to the person typing it. A copy job without a schedule keeps the zone
+    // its copy window or full backups are on.
+    const timezone =
+      ownSchedule?.timezone ||
+      storedCopy?.window[0]?.timezone ||
+      existingJob?.syntheticFullSchedule?.timezone ||
+      existingJob?.activeFullSchedule?.timezone ||
+      userTimeZone();
+    const copyMode: CopyMode = storedCopy?.mode ?? "periodic";
+    const copyFields = {
+      copyMode,
+      copyScheduled: storedCopy ? storedCopy.scheduled : true,
+      sourceJobIds: storedCopy?.sourceJobs.map((j) => j.id) ?? [],
+      sourceRepositoryIds: storedCopy?.sourceRepositories.map((r) => r.id) ?? [],
+      runAfterJobId: storedCopy?.runAfterJob?.id ?? "",
+      copyAllVms: !existingJob?.vmIds.length,
+      copyWindowOn: !!storedCopy?.window.length,
+      copyWindow: storedCopy?.window ?? [],
+      retryCount: storedCopy?.retry.count ?? COPY_RETRY_DEFAULTS[copyMode].count,
+      retryIntervalMinutes: storedCopy?.retry.intervalMinutes ?? COPY_RETRY_DEFAULTS[copyMode].intervalMinutes,
+    };
     // A new job starts with a weekly synthetic full. It is the cheaper kind,
     // and a job with retention needs at least one full schedule. A job being
     // edited starts from what it has, so no schedule is switched on for it.
@@ -366,6 +434,7 @@ function JobWizard({
         targetEnvironmentId: existingJob.replicaTarget?.environmentId ?? "",
         targetHostId: existingJob.replicaTarget?.hostId ?? AUTO_HOST,
         namePrefix: existingJob.replicaTarget?.namePrefix ?? DEFAULT_NAME_PREFIX,
+        ...copyFields,
       };
     }
     return {
@@ -380,7 +449,9 @@ function JobWizard({
       minFulls: 0,
       activeFull: activeDefaults,
       syntheticFull: syntheticDefaults,
-      repositoryId: "repo-immutable",
+      // A copy job's destination is picked, never assumed: it has to differ
+      // from every source, and none are picked yet.
+      repositoryId: isCopy ? "" : "repo-immutable",
       options: { appAware: true, encryption: false, compression: 3, dedup: true, onQuiesceFailure: "fail" },
       gfsWeekly: 0,
       gfsMonthly: 0,
@@ -391,11 +462,14 @@ function JobWizard({
       targetEnvironmentId: "",
       targetHostId: AUTO_HOST,
       namePrefix: DEFAULT_NAME_PREFIX,
+      ...copyFields,
     };
   });
 
   const [selected, setSelected] = useState<Set<string>>(() => {
     if (existingJob) return new Set(existingJob.vmIds);
+    // A copy job picks from what its sources hold, and starts with every VM.
+    if (isCopy) return new Set();
     if (preselectVmId && vms.some((v) => v.id === preselectVmId)) return new Set([preselectVmId]);
     // Default: pre-select the 'production' tag.
     return new Set(vms.filter((v) => v.tags.includes("production")).map((v) => v.id));
@@ -420,19 +494,37 @@ function JobWizard({
    * something once a Hyper-V VM is in scope, so it only shows then. */
   const hypervSelected =
     !isReplication &&
+    !isCopy &&
     vms.some(
       (v) => selected.has(v.id) && environments.find((e) => e.id === v.environmentId)?.hypervisor === "hyperv",
     );
 
   const setOption = <K extends keyof JobOptions>(key: K, value: JobOptions[K]) =>
     setForm((f) => ({ ...f, options: { ...f.options, [key]: value } }));
-  /* Full schedules on the job's zone follow it to a new one; one set to a
-   * zone of its own (from the CLI) keeps it. */
+  /* Full schedules and copy window rules on the job's zone follow it to a new
+   * one; one set to a zone of its own (from the CLI) keeps it. */
   const setTimezone = (zone: string) =>
     setForm((f) => {
-      const follow = (full: FullScheduleForm): FullScheduleForm =>
-        !full.timezone || full.timezone === f.timezone ? { ...full, timezone: zone } : full;
-      return { ...f, timezone: zone, activeFull: follow(f.activeFull), syntheticFull: follow(f.syntheticFull) };
+      const follow = <T extends { timezone?: string }>(item: T): T =>
+        !item.timezone || item.timezone === f.timezone ? { ...item, timezone: zone } : item;
+      return {
+        ...f,
+        timezone: zone,
+        activeFull: follow(f.activeFull),
+        syntheticFull: follow(f.syntheticFull),
+        copyWindow: f.copyWindow.map(follow),
+      };
+    });
+  /* The retries follow the mode's defaults until the operator sets their own,
+   * so switching a new job to immediate gives it the appliance's 3 × 10 min. */
+  const setCopyMode = (mode: CopyMode) =>
+    setForm((f) => {
+      const before = COPY_RETRY_DEFAULTS[f.copyMode];
+      const defaults =
+        f.retryCount === before.count && f.retryIntervalMinutes === before.intervalMinutes
+          ? { retryCount: COPY_RETRY_DEFAULTS[mode].count, retryIntervalMinutes: COPY_RETRY_DEFAULTS[mode].intervalMinutes }
+          : {};
+      return { ...f, copyMode: mode, ...defaults };
     });
   const toggleScheduleDay = (day: number) =>
     setForm((f) => ({
@@ -444,6 +536,30 @@ function JobWizard({
 
   const repository = repositories.find((r) => r.id === form.repositoryId);
   const schedule = presetToSchedule(form);
+
+  // ----- backup copy derivation -----
+  /* A copy job reads backup jobs (and other copy jobs, never itself) and
+   * whole repositories, and copies the VMs they back up — every one, or the
+   * ones picked from that list. */
+  const sourceJobCandidates = useMemo(
+    () => jobs.filter((j) => j.id !== existingJob?.id && (j.type === "backup" || j.type === "backup-copy")),
+    [jobs, existingJob?.id],
+  );
+  const copySources = useMemo(
+    () => ({ jobIds: form.sourceJobIds, repositoryIds: form.sourceRepositoryIds }),
+    [form.sourceJobIds, form.sourceRepositoryIds],
+  );
+  const copyKnownVms = useMemo(
+    () => (isCopy ? copySourceVms(copySources, { jobs, restorePoints, vms }, existingJob?.id) : []),
+    [isCopy, copySources, jobs, restorePoints, vms, existingJob?.id],
+  );
+  const copiedVmIds = form.copyAllVms ? copyKnownVms.map((vm) => vm.id) : [...selected];
+  /* Periodic copies may run without a schedule; immediate ones never have one.
+   * A schedule the job already has stays: the appliance can't remove one. */
+  const copyScheduleLocked = !!storedCopy?.scheduled;
+  const copyScheduled = isCopy && form.copyMode === "periodic" && form.copyScheduled;
+  const showSchedule = !isCopy || copyScheduled;
+  const runAfterJob = isCopy && form.copyMode === "periodic" ? jobs.find((j) => j.id === form.runAfterJobId) : undefined;
 
   // usedGB stays 0 until a VM's first full backup lands (see api.http.ts
   // applyProtection) — exactly the common case here, since this page exists to
@@ -542,20 +658,57 @@ function JobWizard({
   // Same rule the appliance enforces (`normalize_schedule_payload`: "Weekly
   // schedules require at least one weekday") and the same one the Full backups
   // block below already applied to its own weekly pickers.
-  if (form.preset === "weekly" && form.daysOfWeek.length === 0)
+  if (showSchedule && form.preset === "weekly" && form.daysOfWeek.length === 0)
     errors.push(t("create.errors.scheduleDays"));
-  if (selected.size === 0)
+  if (selected.size === 0 && !isCopy)
     errors.push(isReplication ? t("create.errors.scopeReplication") : t("create.vm.scopeError"));
   if (isReplication && !form.targetEnvironmentId) errors.push(t("create.errors.targetEnv"));
-  if (!isReplication && !repository) errors.push(t("create.errors.repository"));
+  if (!isReplication && !repository) errors.push(isCopy ? t("copy.errors.destination") : t("create.errors.repository"));
+  // The appliance's own checks on a copy job (apply_copy_settings and
+  // validate_copy_job in backup_copy.py), made here so the form names them
+  // before a save is refused.
+  if (isCopy) {
+    if (!form.sourceJobIds.length && !form.sourceRepositoryIds.length) errors.push(t("copy.errors.noSource"));
+    if (!form.copyAllVms) {
+      const known = new Set(copyKnownVms.map((vm) => vm.id));
+      const gone = [...selected].filter((id) => !known.has(id)).length;
+      if (selected.size === 0) errors.push(t("copy.errors.noVms"));
+      else if (gone) errors.push(t("copy.errors.vmsNotInSources", { count: gone }));
+    }
+    if (repository) {
+      const sourceJobInto = jobs.find((j) => form.sourceJobIds.includes(j.id) && j.repositoryId === repository.id);
+      if (form.sourceRepositoryIds.includes(repository.id))
+        errors.push(t("copy.errors.destinationIsSource", { repository: repository.name }));
+      else if (sourceJobInto)
+        errors.push(t("copy.errors.destinationOfSourceJob", { repository: repository.name, job: sourceJobInto.name }));
+    }
+    if (form.copyWindowOn) {
+      const problems = new Set(form.copyWindow.map(copyWindowRuleProblem));
+      if (!form.copyWindow.length) errors.push(t("copy.errors.windowEmpty"));
+      if (problems.has("days")) errors.push(t("copy.errors.windowDays"));
+      if (problems.has("sameTime")) errors.push(t("copy.errors.windowSameTime"));
+    }
+    if (!form.options.encryption && copySourcesEncrypted(copySources, copiedVmIds, { jobs, restorePoints, vms }, existingJob?.id))
+      errors.push(t("copy.errors.encryptedSources"));
+    // A Hyper-V restore reads the copy from the Hyper-V host, which reaches S3
+    // and SMB repositories (through their share), never a local folder.
+    if (
+      repository &&
+      repository.type !== "object-lock-s3" &&
+      !repository.share &&
+      copySourcesHyperV(copySources, copiedVmIds, { jobs, restorePoints, vms, environments }, existingJob?.id)
+    )
+      errors.push(t("copy.errors.hypervDestination", { repository: repository.name }));
+  }
   // abr-vhdx-tool moves Hyper-V disks on the host itself, which reaches S3 and
   // SMB repositories (through the share they name), never a local folder.
   if (hypervSelected && repository && repository.type !== "object-lock-s3" && !repository.share)
     errors.push(t("create.errors.hypervRepository", { repository: repository.name }));
 
-  // Full backup schedules belong to backup jobs. A backup-copy job copies its
-  // source's schedules, and the appliance doesn't check them on copy jobs.
-  const hasFullSchedules = !isReplication && existingJob?.type !== "backup-copy";
+  // Full backup schedules belong to backup and backup copy jobs: a copy job's
+  // active full copies the newest state from the source again, its synthetic
+  // full merges the copied chain in the destination.
+  const hasFullSchedules = !isReplication;
   // Retention can only delete a chain once a newer full has started the next
   // one. With retention set, a job that only takes incrementals would keep a
   // chain that is never deleted, so the appliance refuses it
@@ -648,8 +801,31 @@ function JobWizard({
     return fullScheduleKey(desired) === fullScheduleKey(stored) ? undefined : desired;
   };
 
+  /* A copy job's settings as the job will hold them. Names ride along for
+   * the summary and the demo world; the appliance takes the ids. */
+  const copySettings: BackupCopySettings | undefined = isCopy
+    ? {
+        mode: form.copyMode,
+        sourceJobs: form.sourceJobIds.map((id) => ({ id, name: jobs.find((j) => j.id === id)?.name ?? id })),
+        sourceRepositories: form.sourceRepositoryIds.map((id) => ({
+          id,
+          name: repositories.find((r) => r.id === id)?.name ?? id,
+        })),
+        runAfterJob: runAfterJob ? { id: runAfterJob.id, name: runAfterJob.name } : null,
+        retry: { count: form.retryCount, intervalMinutes: form.retryIntervalMinutes },
+        window: form.copyWindowOn ? form.copyWindow : [],
+        scheduled: copyScheduled,
+      }
+    : undefined;
+  /** When the job runs, in the words the jobs list will use for it. */
+  const whenLabel = isCopy ? jobScheduleLabel({ schedule, state: "idle", copy: copySettings }) : scheduleLabel(schedule);
+  /** The VMs the job covers, as a count or "every VM of the sources". */
+  const objectsLabel = (count: number) =>
+    isCopy && form.copyAllVms ? t("copy.scope.allVms") : t("create.scope.vmSummary", { count });
+
   const buildInput = (runNow: boolean): CreateJobInput => {
-    const ids = [...selected];
+    // A copy job that copies every VM of its sources names none.
+    const ids = isCopy && form.copyAllVms ? [] : [...selected];
     const scopeSummary = t("create.scope.vmSummary", { count: ids.length });
 
     // GFS long-term retention is a backup-only concept — replicas keep N points, no archival tail.
@@ -692,6 +868,7 @@ function JobWizard({
       accent: existingJob?.accent ?? pickAccent(jobCount),
       runNow,
       replicaTarget,
+      copy: copySettings,
     };
   };
 
@@ -722,9 +899,10 @@ function JobWizard({
           retention: input.retention,
           options: input.options,
           ...(isReplication ? { replicaTarget: input.replicaTarget } : {}),
+          ...(isCopy ? { copy: input.copy } : {}),
         });
         toast.success(t("create.toast.updated"), {
-          description: t("create.toast.updatedDesc", { name: input.name, objects: t("create.scope.vmSummary", { count: input.vmIds.length }) }),
+          description: t("create.toast.updatedDesc", { name: input.name, objects: objectsLabel(input.vmIds.length) }),
         });
         navigate(`/jobs/${existingJob.id}`);
         return;
@@ -733,8 +911,8 @@ function JobWizard({
       const job = await createJob(input);
       toast.success(runNow ? t("create.toast.createdRun", { name: job.name }) : t("create.toast.created", { name: job.name }), {
         description: t("create.toast.createdDesc", {
-          objects: t("create.scope.vmSummary", { count: input.vmIds.length }),
-          schedule: scheduleLabel(input.schedule),
+          objects: objectsLabel(input.vmIds.length),
+          schedule: whenLabel,
           retention: retentionLabel(input.retention),
         }),
       });
@@ -749,14 +927,25 @@ function JobWizard({
 
   const replicaPointsLabel = t("create.replicaPoints", { count: form.keepDays });
 
+  /** When the first run happens. A copy job without a schedule waits for a
+   *  person, for the job it follows, or for a source backup. */
+  const copyFirstRunLabel =
+    form.copyMode === "immediate"
+      ? t("copy.firstRun.immediate")
+      : copyScheduled
+        ? firstRunLabel(form)
+        : runAfterJob
+          ? t("copy.firstRun.afterJob", { job: runAfterJob.name })
+          : t("copy.firstRun.manual");
+
   const summary: SummaryData = {
     name: jobName,
-    vmCount: selected.size,
+    vmCount: isCopy ? copiedVmIds.length : selected.size,
     totalSizeGB,
     effectiveMBps,
     compressionLevel: form.options.compression,
     repository,
-    scheduleLabel: scheduleLabel(schedule),
+    scheduleLabel: whenLabel,
     retentionLabel: isReplication
       ? replicaPointsLabel
       : retentionLabel({
@@ -772,7 +961,7 @@ function JobWizard({
                 }
               : undefined,
         }),
-    firstRunLabel: firstRunLabel(form),
+    firstRunLabel: isCopy ? copyFirstRunLabel : firstRunLabel(form),
     fullBackups: hasFullSchedules
       ? {
           active: fullScheduleLabel(form.activeFull.on ? toFullSchedule(form.activeFull, true) : null),
@@ -786,6 +975,16 @@ function JobWizard({
           targetPlatform: targetEnv ? PLATFORM_META[targetEnv.hypervisor].short : "",
           targetHostName: form.targetHostId ? targetHost?.name ?? "—" : t("create.autoPlaces"),
           replicaNameExample,
+        }
+      : undefined,
+    copy: copySettings
+      ? {
+          allVms: form.copyAllVms,
+          mode: copyModeLabel(copySettings.mode),
+          sources:
+            [...copySettings.sourceJobs, ...copySettings.sourceRepositories].map((s) => s.name).join(", ") ||
+            t("common:generic.na"),
+          window: copyWindowLabel(copySettings.window),
         }
       : undefined,
   };
@@ -812,18 +1011,26 @@ function JobWizard({
             ? editMode
               ? t("create.repl.editTitle")
               : t("create.repl.title")
-            : editMode
-              ? t("create.vm.editTitle")
-              : t("create.vm.title")
+            : isCopy
+              ? editMode
+                ? t("copy.form.editTitle")
+                : t("copy.form.title")
+              : editMode
+                ? t("create.vm.editTitle")
+                : t("create.vm.title")
         }
         description={
           isReplication
             ? editMode
               ? t("create.repl.editDescription")
               : t("create.repl.description")
-            : editMode
-              ? t("create.editDescription")
-              : t("create.vm.description")
+            : isCopy
+              ? editMode
+                ? t("copy.form.editDescription")
+                : t("copy.form.description")
+              : editMode
+                ? t("create.editDescription")
+                : t("create.vm.description")
         }
       />
 
@@ -852,18 +1059,69 @@ function JobWizard({
             </CardContent>
           </Card>
 
-          {/* What to back up / replicate */}
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2 text-base">
-                <Database className="h-4 w-4 text-muted-foreground" />
-                {isReplication ? t("create.whatToReplicate") : t("create.whatToBackUp")}
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="pt-0">
-              <ScopePicker selected={selected} onChange={setSelected} />
-            </CardContent>
-          </Card>
+          {/* What to back up / replicate / copy */}
+          {isCopy ? (
+            <>
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="flex items-center gap-2 text-base">
+                    <HardDriveDownload className="h-4 w-4 text-muted-foreground" />
+                    {t("copy.form.copyFrom")}
+                  </CardTitle>
+                  <CardDescription className="text-xs">{t("copy.form.copyFromHint")}</CardDescription>
+                </CardHeader>
+                <CardContent className="pt-0">
+                  <CopySourcesPicker
+                    jobs={sourceJobCandidates}
+                    repositories={repositories}
+                    restorePoints={restorePoints}
+                    sourceJobIds={form.sourceJobIds}
+                    sourceRepositoryIds={form.sourceRepositoryIds}
+                    destinationId={form.repositoryId}
+                    onChange={({ jobIds, repositoryIds }) =>
+                      setForm((f) => ({ ...f, sourceJobIds: jobIds, sourceRepositoryIds: repositoryIds }))
+                    }
+                  />
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="flex items-center gap-2 text-base">
+                    <Database className="h-4 w-4 text-muted-foreground" />
+                    {t("copy.form.whichVms")}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="pt-0">
+                  <CopyVmPicker
+                    allVms={form.copyAllVms}
+                    onAllVms={(all) => set("copyAllVms", all)}
+                    known={copyKnownVms}
+                    selected={selected}
+                    onToggle={(vmId) =>
+                      setSelected((prev) => {
+                        const next = new Set(prev);
+                        if (next.has(vmId)) next.delete(vmId);
+                        else next.add(vmId);
+                        return next;
+                      })
+                    }
+                  />
+                </CardContent>
+              </Card>
+            </>
+          ) : (
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <Database className="h-4 w-4 text-muted-foreground" />
+                  {isReplication ? t("create.whatToReplicate") : t("create.whatToBackUp")}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pt-0">
+                <ScopePicker selected={selected} onChange={setSelected} />
+              </CardContent>
+            </Card>
+          )}
 
           {/* Where — repository (backup) OR replica target (replication) */}
           {isReplication ? (
@@ -961,13 +1219,14 @@ function JobWizard({
               <CardHeader className="pb-3">
                 <CardTitle className="flex items-center gap-2 text-base">
                   <Database className="h-4 w-4 text-muted-foreground" />
-                  {t("create.whereToStore")}
+                  {isCopy ? t("copy.form.copyTo") : t("create.whereToStore")}
                 </CardTitle>
+                {isCopy && <CardDescription className="text-xs">{t("copy.form.copyToHint")}</CardDescription>}
               </CardHeader>
               <CardContent className="space-y-3 pt-0">
                 <Select value={form.repositoryId} onValueChange={(v) => set("repositoryId", v)}>
-                  <SelectTrigger aria-label={t("create.whereToStore")}>
-                    <SelectValue />
+                  <SelectTrigger aria-label={isCopy ? t("copy.form.copyTo") : t("create.whereToStore")}>
+                    <SelectValue placeholder={isCopy ? t("copy.form.pickDestination") : undefined} />
                   </SelectTrigger>
                   <SelectContent>
                     {repositories.map((r) => (
@@ -975,6 +1234,13 @@ function JobWizard({
                         <span className="flex items-center gap-2">
                           {r.name}
                           <span className="text-[11px] text-muted-foreground">· {REPO_TYPE_META[r.type].short}</span>
+                          {/* A source can't take the copies; say so in the list
+                              rather than only once it is picked. */}
+                          {isCopy &&
+                            (form.sourceRepositoryIds.includes(r.id) ||
+                              jobs.some((j) => form.sourceJobIds.includes(j.id) && j.repositoryId === r.id)) && (
+                              <span className="text-[11px] text-warning-text">· {t("copy.form.isSource")}</span>
+                            )}
                         </span>
                       </SelectItem>
                     ))}
@@ -1001,15 +1267,42 @@ function JobWizard({
             </Card>
           )}
 
-          {/* Schedule */}
+          {/* Schedule — for a copy job, also how it copies and what it follows */}
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-base">
                 <Repeat className="h-4 w-4 text-muted-foreground" />
-                {t("create.howOften")}
+                {isCopy ? t("copy.form.when") : t("create.howOften")}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3 pt-0">
+              {isCopy && (
+                <CopyModeChoice
+                  mode={form.copyMode}
+                  onChange={setCopyMode}
+                  immediateLockedReason={copyScheduleLocked ? t("copy.mode.immediateLocked") : undefined}
+                />
+              )}
+              {isCopy && form.copyMode === "immediate" && (
+                <p className="text-xs text-muted-foreground">{t("copy.form.immediateNote")}</p>
+              )}
+              {isCopy && form.copyMode === "periodic" && (
+                <ToggleRow
+                  label={t("copy.form.onSchedule")}
+                  hint={
+                    copyScheduleLocked
+                      ? t("copy.form.scheduleLocked")
+                      : form.copyScheduled
+                        ? t("copy.form.onScheduleOn")
+                        : t("copy.form.onScheduleOff")
+                  }
+                  checked={form.copyScheduled}
+                  onChange={(v) => set("copyScheduled", v)}
+                  disabled={copyScheduleLocked}
+                />
+              )}
+              {showSchedule && (
+              <>
               <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
                 <PresetChip icon={Clock} label={t("create.preset.hourly")} sub={t("create.preset.hourlySub")} active={form.preset === "hourly"} onClick={() => set("preset", "hourly")} />
                 <PresetChip icon={Clock} label={t("create.preset.every4h")} sub={t("create.preset.every4hSub")} active={form.preset === "every4h"} onClick={() => set("preset", "every4h")} />
@@ -1062,8 +1355,78 @@ function JobWizard({
                   />
                 </div>
               )}
+              </>
+              )}
+              {/* Without a schedule the zone still decides when the copy
+                  window and the full backups below fall. */}
+              {isCopy && !showSchedule && (
+                <div className="space-y-1.5">
+                  <TimeZoneField id="run-timezone" value={form.timezone} onChange={setTimezone} />
+                  <p className="text-xs text-muted-foreground">{t("copy.form.zoneHint")}</p>
+                </div>
+              )}
+              {isCopy && form.copyMode === "periodic" && (
+                <div className="space-y-1.5">
+                  <Label htmlFor="copy-run-after">{t("copy.form.runAfter")}</Label>
+                  <Select
+                    value={form.runAfterJobId || NO_JOB}
+                    onValueChange={(v) => set("runAfterJobId", v === NO_JOB ? "" : v)}
+                  >
+                    <SelectTrigger id="copy-run-after" className="sm:w-80">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value={NO_JOB}>{t("copy.form.runAfterNone")}</SelectItem>
+                      {jobs
+                        .filter((j) => j.id !== existingJob?.id && j.type !== "replication")
+                        .map((j) => (
+                          <SelectItem key={j.id} value={j.id}>
+                            {j.name}
+                          </SelectItem>
+                        ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-[11px] text-muted-foreground">
+                    {runAfterJob ? t("copy.form.runAfterHint", { job: runAfterJob.name }) : t("copy.form.manualHint")}
+                  </p>
+                </div>
+              )}
             </CardContent>
           </Card>
+
+          {isCopy && (
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <Clock className="h-4 w-4 text-muted-foreground" />
+                  {t("copy.form.windowTitle")}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4 pt-0">
+                <CopyWindowEditor
+                  on={form.copyWindowOn}
+                  onToggle={(on) => set("copyWindowOn", on)}
+                  rules={form.copyWindow}
+                  onChange={(rules) => set("copyWindow", rules)}
+                  timezone={form.timezone}
+                />
+                <div className="space-y-2 border-t border-border pt-4">
+                  <p className="flex items-center gap-1.5 text-sm font-medium">
+                    <RotateCw className="h-3.5 w-3.5 text-muted-foreground" />
+                    {t("copy.retry.title")}
+                  </p>
+                  <CopyRetryFields
+                    count={form.retryCount}
+                    intervalMinutes={form.retryIntervalMinutes}
+                    mode={form.copyMode}
+                    onChange={({ count, intervalMinutes }) =>
+                      setForm((f) => ({ ...f, retryCount: count, retryIntervalMinutes: intervalMinutes }))
+                    }
+                  />
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Full backups — optional schedules of their own, next to the one above */}
           {hasFullSchedules && (
@@ -1076,13 +1439,15 @@ function JobWizard({
                   </CardTitle>
                   <HelpHint term={t("create.full.term")} label={t("create.full.help")} />
                 </div>
-                <CardDescription className="text-xs">{t("create.full.description")}</CardDescription>
+                <CardDescription className="text-xs">
+                  {isCopy ? t("copy.full.description") : t("create.full.description")}
+                </CardDescription>
               </CardHeader>
               <CardContent className="space-y-3 pt-0">
                 <FullScheduleEditor
                   id="active-full"
                   title={t("create.full.active")}
-                  hint={t("create.full.activeHint")}
+                  hint={isCopy ? t("copy.full.activeHint") : t("create.full.activeHint")}
                   value={form.activeFull}
                   stored={existingJob?.activeFullSchedule}
                   onChange={(v) => set("activeFull", v)}
@@ -1090,7 +1455,7 @@ function JobWizard({
                 <FullScheduleEditor
                   id="synthetic-full"
                   title={t("create.full.synthetic")}
-                  hint={t("create.full.syntheticHint")}
+                  hint={isCopy ? t("copy.full.syntheticHint") : t("create.full.syntheticHint")}
                   value={form.syntheticFull}
                   stored={existingJob?.syntheticFullSchedule}
                   onChange={(v) => set("syntheticFull", v)}
@@ -1160,7 +1525,9 @@ function JobWizard({
               <p className="text-xs text-muted-foreground">
                 {isReplication
                   ? t("create.keepReplicaNote", { count: form.keepDays })
-                  : t("create.keepBackupNote", { count: form.keepDays })}
+                  : isCopy
+                    ? t("copy.keepNote", { count: form.keepDays })
+                    : t("create.keepBackupNote", { count: form.keepDays })}
               </p>
               {!isReplication && (
                 <div className="space-y-2 border-t border-border pt-4" data-testid="retention-min-fulls">
@@ -1220,7 +1587,13 @@ function JobWizard({
                     <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                       <ToggleRow
                         label={t("create.opt.encryption")}
-                        hint={isReplication ? t("create.opt.encryptionHintReplication") : t("create.opt.encryptionHintBackup")}
+                        hint={
+                          isReplication
+                            ? t("create.opt.encryptionHintReplication")
+                            : isCopy
+                              ? t("copy.encryptionHint")
+                              : t("create.opt.encryptionHintBackup")
+                        }
                         checked={form.options.encryption}
                         onChange={(v) => setOption("encryption", v)}
                       />
@@ -1248,7 +1621,8 @@ function JobWizard({
                       </div>
                     </div>
 
-                    {!isReplication && !hypervSelected && (
+                    {/* A copy reads stored backups and never quiesces anything. */}
+                    {!isReplication && !isCopy && !hypervSelected && (
                       <ToggleRow
                         label={t("create.opt.quiesceFallback")}
                         hint={t("create.opt.quiesceFallbackHint")}
@@ -1395,84 +1769,6 @@ function WizardSkeleton({ title }: { title: string }) {
         </div>
       </div>
     </div>
-  );
-}
-
-/** Small info affordance: a focusable, keyboard-reachable icon with a plain-language definition. */
-function HelpHint({ label, term }: { label: string; term: string }) {
-  const { t } = useTranslation("jobs");
-  return (
-    <Hint label={label}>
-      <button
-        type="button"
-        aria-label={t("create.whatIs", { term })}
-        className="inline-flex shrink-0 text-muted-foreground/70 transition-colors hover:text-foreground"
-      >
-        <HelpCircle className="h-3.5 w-3.5" />
-      </button>
-    </Hint>
-  );
-}
-
-function PresetChip({
-  icon: Icon,
-  label,
-  sub,
-  active,
-  onClick,
-}: {
-  icon: typeof Clock;
-  label: string;
-  sub: string;
-  active: boolean;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-pressed={active}
-      className={cn(
-        "flex flex-col items-start gap-0.5 border p-3 text-left transition-colors",
-        active ? "border-primary/40 bg-primary/10" : "border-border hover:border-border hover:bg-muted/40",
-      )}
-    >
-      <span className="flex items-center gap-1.5 text-sm font-medium">
-        <Icon className={cn("h-3.5 w-3.5", active ? "text-primary" : "text-muted-foreground")} />
-        {label}
-      </span>
-      <span className="text-[11px] text-muted-foreground">{sub}</span>
-    </button>
-  );
-}
-
-function ToggleRow({
-  label,
-  hint,
-  help,
-  helpTerm,
-  checked,
-  onChange,
-}: {
-  label: string;
-  hint: string;
-  /** Plain-language definition surfaced via an info tooltip next to the label. */
-  help?: string;
-  helpTerm?: string;
-  checked: boolean;
-  onChange: (v: boolean) => void;
-}) {
-  return (
-    <label className="flex cursor-pointer items-start justify-between gap-3 border border-border bg-muted/20 p-3">
-      <span className="min-w-0">
-        <span className="flex items-center gap-1.5 text-sm font-medium">
-          {label}
-          {help && <HelpHint label={help} term={helpTerm ?? label} />}
-        </span>
-        <span className="mt-0.5 block text-[11px] text-muted-foreground">{hint}</span>
-      </span>
-      <Switch checked={checked} onCheckedChange={onChange} aria-label={label} />
-    </label>
   );
 }
 

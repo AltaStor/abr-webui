@@ -8,6 +8,7 @@ import { Clock, History, Lock, ServerOff, ShieldCheck } from "@/lib/icons";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ConsistencyBadge } from "@/components/ConsistencyBadge";
+import { CopyBadge } from "@/components/CopyBadge";
 import { EmptyState } from "@/components/EmptyState";
 import { cn } from "@/lib/utils";
 import { formatRelative, formatStorage } from "@/lib/format";
@@ -183,6 +184,7 @@ export function ChoosePointStep({ vm, selectedId, onSelect }: ChoosePointStepPro
                                 >
                                   {p.type === "full" ? t("point.full") : t("point.incremental")}
                                 </Badge>
+                                <CopyBadge point={p} />
                                 {unavailable && (
                                   <Badge
                                     variant="outline"

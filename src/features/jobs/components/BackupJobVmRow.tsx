@@ -24,6 +24,7 @@ import {
 } from "@/lib/restore-points";
 import type { RestorePoint } from "@/types";
 import { SyntheticFullBadge } from "@/components/SyntheticFullBadge";
+import { CopyBadge } from "@/components/CopyBadge";
 import { ConsistencyBadge } from "@/components/ConsistencyBadge";
 import { PointEncryptionBadge, VmEncryptionBadge } from "./EncryptionBadge";
 import { utcTitle } from "@/lib/time";
@@ -299,6 +300,7 @@ function BackupPointRow({
           {/* Same marker as the VM detail list — a merged full has to look the
               same wherever a restore point is shown. */}
           {point.synthetic && <SyntheticFullBadge />}
+          <CopyBadge point={point} />
           {unavailable && (
             <Badge
               variant="outline"

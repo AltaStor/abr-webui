@@ -1,7 +1,21 @@
 // SPDX-License-Identifier: Apache-2.0
 // Copyright © 2026 Norvitex OÜ
 
-import { DatabaseBackup, HardDriveDownload, RotateCcw, ShieldCheck, Trash2, type LucideIcon } from "@/lib/icons";
+import {
+  CalendarClock,
+  ChevronsRight,
+  Clock,
+  DatabaseBackup,
+  Hand,
+  HardDriveDownload,
+  Layers,
+  RotateCcw,
+  RotateCw,
+  ShieldCheck,
+  Trash2,
+  Zap,
+  type LucideIcon,
+} from "@/lib/icons";
 import type { Session, SessionStatus } from "@/types";
 import type { Tone } from "@/lib/status";
 import i18n from "@/i18n";
@@ -56,6 +70,21 @@ export function runKindIcon(session: Session): LucideIcon {
   if (session.type === "backup-copy") return HardDriveDownload;
   return DatabaseBackup;
 }
+
+/**
+ * What started a run, in the words the Activity list, its detail panel and a
+ * job's run panel all use. A backup copy job's runs mostly start on their own,
+ * and calling those "Manual" would send someone looking for who clicked.
+ */
+export const TRIGGER_META: Record<Session["triggeredBy"], { readonly label: string; icon: LucideIcon }> = {
+  schedule: { get label() { return i18n.t("activity:trigger.schedule"); }, icon: CalendarClock },
+  manual: { get label() { return i18n.t("activity:trigger.manual"); }, icon: Hand },
+  retry: { get label() { return i18n.t("common:actions.retry"); }, icon: RotateCw },
+  immediate: { get label() { return i18n.t("activity:trigger.immediate"); }, icon: Zap },
+  "copy-backlog": { get label() { return i18n.t("activity:trigger.copyBacklog"); }, icon: Layers },
+  "after-job": { get label() { return i18n.t("activity:trigger.afterJob"); }, icon: ChevronsRight },
+  "copy-window": { get label() { return i18n.t("activity:trigger.copyWindow"); }, icon: Clock },
+};
 
 /** ms since epoch for "now minus 24h". */
 export function since24h(): number {

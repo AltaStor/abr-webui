@@ -9,6 +9,7 @@ import {
   Database,
   DatabaseBackup,
   Globe,
+  HardDriveDownload,
   Layers,
   Play,
   Server,
@@ -20,6 +21,15 @@ import { formatDuration, formatStorage } from "@/lib/format";
 import type { Repository } from "@/types";
 import { compressionSpeedFactor } from "../lib";
 import { cn } from "@/lib/utils";
+
+/** Present only for backup copy jobs: what they copy, how, and when data may move. */
+export interface SummaryCopy {
+  /** Every VM of the sources, rather than the ones picked. */
+  allVms: boolean;
+  mode: string;
+  sources: string;
+  window: string;
+}
 
 /** Present only for replication jobs; drives the target-host recap on the right rail. */
 export interface SummaryReplication {
@@ -50,6 +60,10 @@ export interface SummaryData {
   errors: string[];
   /** When set, the panel recaps a replication target instead of a repository. */
   replication?: SummaryReplication;
+  /** When set, the panel recaps a backup copy: its sources and copy window
+   *  instead of a backup-window estimate, which a copy between repositories
+   *  has nothing to measure against. */
+  copy?: SummaryCopy;
 }
 
 interface Props {
@@ -87,14 +101,32 @@ export function JobSummaryPanel({ data, editMode, submitting, onCreate, onCreate
       </div>
 
       <div className="space-y-3 p-4">
-        <Row icon={Server} label={t("summary.objects")}>
-          <span className="nums font-medium">{data.vmCount}</span>
-          <span className="text-muted-foreground"> · {formatStorage(data.totalSizeGB)}</span>
-        </Row>
+        {data.copy ? (
+          <>
+            <Row icon={HardDriveDownload} label={t("summary.copyFrom")} wrap>
+              <span className="font-medium">{data.copy.sources}</span>
+            </Row>
+            <Row icon={Server} label={t("summary.objects")}>
+              <span className="nums font-medium">
+                {data.copy.allVms ? t("summary.copyAllVms", { count: data.vmCount }) : data.vmCount}
+              </span>
+            </Row>
+            <Row icon={Layers} label={t("summary.copyMode")}>
+              <span className="font-medium">{data.copy.mode}</span>
+            </Row>
+          </>
+        ) : (
+          <>
+            <Row icon={Server} label={t("summary.objects")}>
+              <span className="nums font-medium">{data.vmCount}</span>
+              <span className="text-muted-foreground"> · {formatStorage(data.totalSizeGB)}</span>
+            </Row>
 
-        <Row icon={Timer} label={isReplication ? t("summary.estSeedWindow") : t("summary.estBackupWindow")}>
-          <span className="nums font-medium">{estSeconds > 0 ? `~${formatDuration(estSeconds)}` : t("common:generic.na")}</span>
-        </Row>
+            <Row icon={Timer} label={isReplication ? t("summary.estSeedWindow") : t("summary.estBackupWindow")}>
+              <span className="nums font-medium">{estSeconds > 0 ? `~${formatDuration(estSeconds)}` : t("common:generic.na")}</span>
+            </Row>
+          </>
+        )}
 
         <Row icon={Clock} label={t("summary.schedule")} wrap>
           <span className="font-medium">{data.scheduleLabel}</span>
@@ -109,6 +141,12 @@ export function JobSummaryPanel({ data, editMode, submitting, onCreate, onCreate
               <span className="font-medium">{data.fullBackups.synthetic}</span>
             </Row>
           </>
+        )}
+
+        {data.copy && (
+          <Row icon={Clock} label={t("summary.copyWindow")} wrap>
+            <span className="font-medium">{data.copy.window}</span>
+          </Row>
         )}
 
         <Row icon={Play} label={t("summary.firstRun")} wrap>

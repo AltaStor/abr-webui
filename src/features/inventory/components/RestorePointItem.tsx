@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 import { formatRelative, formatStorage } from "@/lib/format";
 import { compressionRatioLabel, pointTypeTooltip } from "@/lib/restore-points";
 import { SyntheticFullBadge } from "@/components/SyntheticFullBadge";
+import { CopyBadge } from "@/components/CopyBadge";
 import { ConsistencyBadge } from "@/components/ConsistencyBadge";
 import type { RestorePoint } from "@/types";
 import { useCan } from "@/store/permissions";
@@ -62,6 +63,7 @@ export function RestorePointItem({
               full is a full restore point in every way that matters to a
               restore, and only differs in where its bytes came from. */}
           {point.synthetic && <SyntheticFullBadge />}
+          <CopyBadge point={point} />
           {unavailable && (
             <Badge
               variant="outline"

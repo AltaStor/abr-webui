@@ -199,6 +199,67 @@ export interface Retention {
   };
 }
 
+/**
+ * How a backup copy job copies (`copy_mode`): "periodic" copies the newest
+ * state of each VM on its own schedule, when started by hand, or after another
+ * job's run, merging what is new into one restore point; "immediate" copies
+ * every new restore point of a source as soon as the backup that wrote it ends.
+ */
+export type CopyMode = "periodic" | "immediate";
+
+/**
+ * One rule of a backup copy job's copy window: copies move data only inside
+ * the window's hours, wait in the queue outside them, and a copy still running
+ * when the window closes is stopped and queued again for the next opening.
+ */
+export interface CopyWindowRule {
+  /** 0 (Sun) – 6 (Sat). The appliance stores no days as every day. */
+  daysOfWeek: number[];
+  /** "HH:mm", 00:00–23:59. */
+  start: string;
+  /** "HH:mm". At or before `start` the window runs past midnight into the
+   *  next day; "00:00" is the end of the day ("24:00" on the wire). */
+  end: string;
+  /** The IANA zone the times are read in. */
+  timezone?: string;
+}
+
+export interface NamedRef {
+  id: string;
+  name: string;
+}
+
+/** A backup copy job's own settings (the job DTO's `backup_copy`). */
+export interface BackupCopySettings {
+  mode: CopyMode;
+  /** Backup jobs (or other copy jobs) whose restore points are copied. */
+  sourceJobs: NamedRef[];
+  /** Repositories whose restore points are copied, every job's. */
+  sourceRepositories: NamedRef[];
+  /** Periodic only: the copy starts each time a run of this job ends. */
+  runAfterJob: NamedRef | null;
+  /** Retries of a VM whose copy failed, within the same session. */
+  retry: { count: number; intervalMinutes: number };
+  /** Empty: copies move data at any time. */
+  window: CopyWindowRule[];
+  /** Whether the job runs on a schedule of its own. A periodic job may have
+   *  none (started by hand or after another job); an immediate one never does. */
+  scheduled: boolean;
+}
+
+/** Where a restore point a backup copy job made was copied from
+ *  (`copy_source`). */
+export interface RestorePointCopySource {
+  jobId: string | null;
+  jobName: string | null;
+  repositoryId: string | null;
+  repositoryName: string | null;
+  /** The source restore point whose state the copy holds. */
+  pointId: string | null;
+  /** When that source point was made. */
+  createdAt: string | null;
+}
+
 export type QuiesceFailureAction = "fail" | "crash_consistent";
 
 export type BackupConsistency = "quiesced" | "crash_consistent";
@@ -361,6 +422,10 @@ export interface BackupJob {
   accent: AccentKey;
   /** For replication jobs (type === "replication"): where the replica is kept. */
   replicaTarget?: ReplicaTarget;
+  /** For backup copy jobs (type === "backup-copy"): what they copy, and when.
+   *  Their `vmIds` are the VMs picked from the sources; empty copies every VM
+   *  the sources back up. */
+  copy?: BackupCopySettings;
 }
 
 export type AccentKey = "emerald" | "cyan" | "blue" | "violet" | "amber";
@@ -385,6 +450,10 @@ export interface Session {
   status: SessionStatus;
   /** "full" | "incremental" — drives restore-point typing. */
   backupType: "full" | "incremental";
+  /** The appliance reported no backup type. A backup copy that found nothing
+   *  new to copy wrote no restore point and reports none, and `backupType`'s
+   *  "full" would then claim a full copy that never happened. */
+  typeUnknown?: boolean;
   /**
    * A `backupType: "full"` run that merged the existing chain in the repository
    * instead of re-reading the VM — the orchestrator's "SyntheticFull". Absent/
@@ -431,7 +500,20 @@ export interface Session {
    * that was asked to stop from one that wasn't.
    */
   stopping?: boolean;
-  triggeredBy: "schedule" | "manual" | "retry";
+  /**
+   * What started the run. Besides the schedule and a person, a backup copy
+   * job's runs start on their own: "immediate" after a source backup added a
+   * restore point, "copy-backlog" for the next point that piled up behind it,
+   * "after-job" when the run of the job it follows ended, and "copy-window"
+   * for a copy stopped by its closing window and queued for the next opening.
+   */
+  triggeredBy: "schedule" | "manual" | "retry" | "immediate" | "copy-backlog" | "after-job" | "copy-window";
+  /**
+   * The appliance's own account of a run that finished without an error. For
+   * a backup copy it names the restore point copied, its job and repository
+   * and where it went, or that there was nothing new to copy.
+   */
+  outcome?: string;
   /**
    * Which phase a *running* session is in. For agent-backed (real Hyper-V)
    * VMs the run isn't done when the guest read finishes — the bytes still
@@ -555,6 +637,9 @@ export interface RestorePoint {
    * From the orchestrator's `execution_type` ("SyntheticFull").
    */
   synthetic: boolean;
+  /** Set on a copy a backup copy job made: where it was copied from. Its
+   *  `jobId` is the copy job's own, and the copy restores like any point. */
+  copySource?: RestorePointCopySource | null;
 }
 
 /** A target-environment datastore, scoped to the hosts it's actually mounted on. */

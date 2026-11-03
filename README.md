@@ -11,7 +11,8 @@ API and renders no data of its own.
 ## Features
 
 - **Dashboard** — appliance health and backup posture at a glance
-- **Backups** (`/jobs`) — backup schedules and the restore points they produce
+- **Backups** (`/jobs`) — backup schedules and the restore points they produce,
+  and backup copy jobs that copy them into another repository
 - **Activity** — running and historical job activity
 - **Restore** — restoring VMs from repository restore points
 - **Inventory** — vCenter/ESXi topology and protected VM inventory

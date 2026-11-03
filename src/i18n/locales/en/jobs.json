@@ -75,7 +75,8 @@
   "runType": {
     "full": "Full",
     "incremental": "Incremental",
-    "syntheticFull": "Synthetic full"
+    "syntheticFull": "Synthetic full",
+    "nothingCopied": "Nothing copied"
   },
   "state": {
     "on": "On",
@@ -149,7 +150,8 @@
     "finishedAt": "{{rel}} · {{abs}}",
     "avgPrefix": "Avg",
     "kindReplication": "VM replication",
-    "kindBackup": "backup"
+    "kindBackup": "backup",
+    "kindCopy": "copy"
   },
   "throughput": {
     "title": "Throughput trend",
@@ -166,7 +168,10 @@
     "addJob": "Add backup job",
     "addJobNeedsBoth": "Connect an environment and add a repository before creating a backup job.",
     "addJobNeedsEnv": "Connect an environment before creating a backup job.",
-    "addJobNeedsRepo": "Add a repository before creating a backup job."
+    "addJobNeedsRepo": "Add a repository before creating a backup job.",
+    "addCopyJob": "Add backup copy job",
+    "addCopyJobNeedsBackups": "There is nothing to copy yet: create a backup job first.",
+    "addCopyJobNeedsRepo": "Add a second repository first: copies can't go where the backups they copy are."
   },
   "addMenu": {
     "vm": {
@@ -275,7 +280,8 @@
     "runFull": "Run full backup",
     "runOptions": "Run options",
     "deleteJob": "Delete job",
-    "applyRetention": "Apply retention now…"
+    "applyRetention": "Apply retention now…",
+    "runFullCopy": "Run full copy"
   },
   "toast": {
     "started": "Started {{name}}",
@@ -312,7 +318,8 @@
     "bulkDeletedPartialDesc": "The appliance didn't confirm the rest — they are untouched.",
     "runRefused": "Couldn’t start {{name}}",
     "runRefusedDesc": "The appliance didn’t start the run and gave no reason. Try again in a moment.",
-    "runRefusedDisabledDesc": "The job is disabled — enable it to run it."
+    "runRefusedDisabledDesc": "The job is disabled — enable it to run it.",
+    "copyNothingStarted": "A backup copy job starts a copy for each VM its sources hold restore points of. If they hold none yet, there is nothing to copy; otherwise the appliance may not have been reachable."
   },
   "delete": {
     "titleOne": "Delete this job?",
@@ -426,7 +433,12 @@
     "saveChanges": "Save changes",
     "createReplication": "Create replication job",
     "createJob": "Create job",
-    "createAndRun": "Create & run now"
+    "createAndRun": "Create & run now",
+    "copyFrom": "Copy from",
+    "copyAllVms_one": "All · {{count}}",
+    "copyAllVms_other": "All · {{count}}",
+    "copyMode": "Copy mode",
+    "copyWindow": "Copy window"
   },
   "history": {
     "emptyTitle": "No runs yet",
@@ -1086,7 +1098,8 @@
     },
     "clockBlocked": "Retention is blocked: the server clock jumped forward. It deletes nothing until an Administrator confirms the server time.",
     "blockedByClock": "Blocked by the server clock",
-    "keptMinFullsExplained": "Some expired restore points stay because they belong to the newest full backups this job always keeps."
+    "keptMinFullsExplained": "Some expired restore points stay because they belong to the newest full backups this job always keeps.",
+    "copyNote": "Only this job's copies are removed; the restore points of its sources are never touched."
   },
   "clock": {
     "title": "This job's last run is ahead of the server clock",
@@ -1104,5 +1117,155 @@
       "warning": "Completed with warnings"
     },
     "openSession": "Open session"
+  },
+  "copy": {
+    "scope": {
+      "vms_one": "{{count}} VM",
+      "vms_other": "{{count}} VMs",
+      "allVms": "every VM of the sources",
+      "summary": "From {{sources}} · {{vms}}"
+    },
+    "when": {
+      "immediate": "After each source backup",
+      "afterJob": "After {{job}}",
+      "manual": "When started by hand"
+    },
+    "mode": {
+      "label": "Copy mode",
+      "periodic": "Periodic",
+      "periodicSub": "Copies each VM's newest state on a schedule, by hand or after another job",
+      "immediate": "Immediate",
+      "immediateSub": "Copies every new restore point as soon as the backup that made it ends",
+      "immediateLocked": "This job has a schedule, and the appliance can't remove a schedule from a job, so it stays periodic. To copy immediately, create a new backup copy job."
+    },
+    "form": {
+      "title": "New backup copy job",
+      "editTitle": "Edit backup copy job",
+      "description": "Copy the restore points of backup jobs or repositories into another repository, where the copies keep a chain, retention and encryption of their own.",
+      "editDescription": "Change what this job copies, where to, and when.",
+      "copyFrom": "Copy from",
+      "copyFromHint": "A copy job reads stored backups only, never the VMs, so it copies whether a VM is on, off or gone.",
+      "whichVms": "Which VMs",
+      "copyTo": "Copy to",
+      "copyToHint": "The copies keep a chain of their own here, with this job's retention, Object Lock and encryption, apart from the sources.",
+      "pickDestination": "Pick a repository",
+      "isSource": "a source",
+      "when": "When to copy",
+      "immediateNote": "Each backup of a source that adds a restore point starts a copy of it. Points that pile up, for example while the destination was down, are copied one after another.",
+      "onSchedule": "On a schedule",
+      "onScheduleOn": "Copies the newest state of each VM at these times.",
+      "onScheduleOff": "Off: the job copies when you start it, or after the job picked below.",
+      "scheduleLocked": "This job has a schedule, which the appliance can't remove from a job. Change it below, or disable the job.",
+      "zoneHint": "The copy window and the full backups below are read on this clock.",
+      "runAfter": "Also run after",
+      "runAfterNone": "No other job",
+      "runAfterHint": "Copies each time a run of {{job}} ends, once all of its VMs are done.",
+      "manualHint": "Run now on the job's page copies at any time.",
+      "windowTitle": "Copy window and retries"
+    },
+    "sources": {
+      "jobs": "Backup jobs",
+      "noJobs": "No other jobs yet.",
+      "pickJob": "Copy from job {{name}}",
+      "jobDetail_one": "Into {{repository}} · {{count}} restore point",
+      "jobDetail_other": "Into {{repository}} · {{count}} restore points",
+      "jobClash": "Backs up into the destination",
+      "repositories": "Repositories",
+      "repositoriesHint": "A repository copies every job's restore points in it, including jobs added later.",
+      "pickRepository": "Copy from repository {{name}}",
+      "repositoryDetail_one": "{{type}} · {{count}} restore point",
+      "repositoryDetail_other": "{{type}} · {{count}} restore points",
+      "repositoryClash": "Is the destination"
+    },
+    "vms": {
+      "all": "Every VM of the sources",
+      "allSub_one": "{{count}} VM now, and any the sources back up later",
+      "allSub_other": "{{count}} VMs now, and any the sources back up later",
+      "some": "Only some VMs",
+      "someSub": "Picked from the VMs the sources back up",
+      "none": "The sources back up no VMs yet.",
+      "pick": "Copy {{name}}",
+      "notInSources": "Not in the sources"
+    },
+    "window": {
+      "everyDay": "Every day",
+      "rule": "{{days}} {{start}}–{{end}}",
+      "anyTime": "Any time",
+      "toggle": "Copy only inside a window",
+      "toggleOn": "Outside these hours copies wait in the queue. A copy still running when the window closes is stopped, what it wrote is discarded, and it is queued again for the next opening.",
+      "toggleOff": "Off: copies move data whenever they run.",
+      "term": "copy window",
+      "help": "Keeps copies off the network and the storage while they are busy, for example during working hours. With several rules, data moves while any of them is open.",
+      "days": "Days",
+      "from": "From",
+      "to": "To",
+      "remove": "Remove this rule",
+      "add": "Add a rule",
+      "zone": "Times are on the clock of {{zone}}.",
+      "openUntil": "Open now, until {{when}}.",
+      "closedUntil": "Closed now; it opens {{when}}.",
+      "neverOpens": "No rule ever opens it.",
+      "wholeDay": "The whole day.",
+      "sameTime": "It starts and ends at the same time, so it never opens. Pick another end, or 00:00 to 00:00 for the whole day.",
+      "pastMidnight": "From {{start}} on each day picked to {{end}} the next morning.",
+      "sameDay": "From {{start}} to {{end}} on each day picked."
+    },
+    "retry": {
+      "title": "Retries",
+      "count": "Retries of a failed VM",
+      "interval": "Minutes between them",
+      "none": "A VM whose copy fails is not tried again.",
+      "rightAway_one": "A VM whose copy fails is tried again once, right away, in the same session.",
+      "rightAway_other": "A VM whose copy fails is tried again up to {{count}} times, right away, in the same session.",
+      "apart_one": "A VM whose copy fails is tried again once, {{minutes}} min later, in the same session.",
+      "apart_other": "A VM whose copy fails is tried again up to {{count}} times, {{minutes}} min apart, in the same session.",
+      "defaults": "The appliance's default for this mode is {{count}}, {{minutes}} min apart. A stop and a configuration error are never retried.",
+      "shortNone": "None",
+      "shortRightAway": "{{count}}, right away",
+      "shortApart": "{{count}}, {{minutes}} min apart"
+    },
+    "errors": {
+      "destination": "Pick the repository the copies go to.",
+      "noSource": "Pick at least one backup job or repository to copy from.",
+      "noVms": "Pick at least one VM to copy, or copy every VM of the sources.",
+      "vmsNotInSources_one": "{{count}} picked VM isn't backed up by the sources. Untick it, or add a source that backs it up.",
+      "vmsNotInSources_other": "{{count}} picked VMs aren't backed up by the sources. Untick them, or add a source that backs them up.",
+      "destinationIsSource": "{{repository}} is a source of this job. The copies must go to another repository.",
+      "destinationOfSourceJob": "{{job}} backs up into {{repository}}, so it is a source of this job. The copies must go to another repository.",
+      "windowEmpty": "Add a copy window rule, or turn the window off.",
+      "windowDays": "Pick at least one day for each copy window rule.",
+      "windowSameTime": "A copy window rule starts and ends at the same time. Pick another end, or 00:00 to 00:00 for the whole day.",
+      "encryptedSources": "The sources hold encrypted restore points. Turn on encryption under Advanced, with a key of this job's own, so the copies stay encrypted.",
+      "hypervDestination": "The sources hold Hyper-V VMs. A Hyper-V restore reads its disks from the Hyper-V host, which can't reach {{repository}}, a folder of this appliance. Copy them to an S3 repository, or an SMB repository with its share."
+    },
+    "firstRun": {
+      "immediate": "After the next backup of a source",
+      "afterJob": "When the next run of {{job}} ends",
+      "manual": "When you start it"
+    },
+    "full": {
+      "description": "The first copy of each VM is a full one. Retention can delete an old chain of copies only after a newer full exists, so a job with retention needs at least one of these schedules.",
+      "activeHint": "Copies the newest state from the source again as a new full. Reads the source's stored backups, not the VM.",
+      "syntheticHint": "Copies what is new, then merges the copied chain into a new full inside the destination, without reading the source."
+    },
+    "keepNote_one": "Keep copies for {{count}} day, whatever the sources keep. The sources' restore points are never touched.",
+    "keepNote_other": "Keep copies for {{count}} days, whatever the sources keep. The sources' restore points are never touched.",
+    "encryptionHint": "Encrypt the copies at rest with a key of this job's own. Needed when the sources are encrypted.",
+    "waiting": "Copies are queued and wait for the copy window ({{window}}). It opens {{when}}.",
+    "waitingNever": "Copies are queued, but no rule of the copy window ({{window}}) ever opens it. Edit the job's copy window.",
+    "about": {
+      "mode": "Copy mode",
+      "from": "Copy from",
+      "window": "Copy window"
+    },
+    "settings": {
+      "title": "Backup copy",
+      "runsAfter": "Runs after",
+      "noJob": "No other job",
+      "job": "job",
+      "repository": "repository"
+    },
+    "group": "Copies",
+    "groupTip": "Restore points a backup copy job made: copies of other jobs' backups, kept in a chain of their own."
   }
 }

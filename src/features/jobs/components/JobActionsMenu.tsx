@@ -45,7 +45,7 @@ export function JobActionsMenu({
   const disabled = job.state === "disabled";
   const running = job.state === "running";
   const stop = (e: React.MouseEvent | React.KeyboardEvent) => e.stopPropagation();
-  const runFull = job.type === "backup" ? onRunFull : undefined;
+  const runFull = job.type === "backup" || job.type === "backup-copy" ? onRunFull : undefined;
 
   if (!onRun && !runFull && !onStopRun && !onEdit && !onToggleEnabled && !onDelete) return null;
 
@@ -78,7 +78,7 @@ export function JobActionsMenu({
             }}
           >
             <DatabaseBackup className="h-4 w-4" />
-            {t("actions.runFull")}
+            {job.type === "backup-copy" ? t("actions.runFullCopy") : t("actions.runFull")}
           </DropdownMenuItem>
         )}
         {onStopRun && (

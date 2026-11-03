@@ -204,6 +204,7 @@
     "powerState": "Power state"
   },
   "restorePointSub": "{{type}} · {{size}}",
+  "restorePointSubCopy": "{{type}} · {{size}} · a copy of {{source}}, made by {{job}}",
   "mode": {
     "subtitle": "Choose whether to bring back the whole machine or just a few files. You'll confirm before anything runs.",
     "entireVm": {

@@ -2,27 +2,19 @@
 // Copyright © 2026 Norvitex OÜ
 
 import { useTranslation } from "react-i18next";
-import { CalendarClock, Hand, RotateCw } from "@/lib/icons";
 import { cn } from "@/lib/utils";
 import { StatusPill } from "@/components/StatusPill";
 import { ProgressBar } from "@/components/ProgressBar";
 import { SESSION_META } from "@/lib/status";
 import { formatDateTime, formatDuration, formatRelative, formatStorage } from "@/lib/format";
 import { TimeStamp } from "@/components/TimeStamp";
-import i18n from "@/i18n";
 import type { Session } from "@/types";
 import { backupTypeLabel } from "@/lib/run-type";
-import { runKind, runKindIcon } from "../lib";
+import { runKind, runKindIcon, TRIGGER_META } from "../lib";
 
 /** Grid template shared by the header and every row so columns line up. */
 export const ROW_GRID =
   "grid grid-cols-[8.5rem_minmax(12rem,1.6fr)_7.5rem_5.5rem_5rem_5rem_6rem] items-center gap-x-4";
-
-const TRIGGER_META: Record<Session["triggeredBy"], { label: string; icon: typeof Hand }> = {
-  schedule: { get label() { return i18n.t("activity:trigger.schedule"); }, icon: CalendarClock },
-  manual: { get label() { return i18n.t("activity:trigger.manual"); }, icon: Hand },
-  retry: { get label() { return i18n.t("common:actions.retry"); }, icon: RotateCw },
-};
 
 export function RunRow({ session: s, onOpen }: { session: Session; onOpen: (sessionId: string) => void }) {
   const { t } = useTranslation("activity");

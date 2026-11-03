@@ -9,6 +9,7 @@ import {
   CalendarClock,
   CheckCircle2,
   ChevronDown,
+  Clock,
   Database,
   DatabaseBackup,
   Layers,
@@ -40,7 +41,16 @@ import { apiErrorMessage } from "@/services/api.http";
 import { useCan } from "@/store/permissions";
 import { useWorldStore } from "@/store/world";
 import { REPO_TYPE_META } from "@/features/repositories/components/repoMeta";
-import { fullScheduleLabel, jobHasActiveRun, jobTypeMeta, retentionLabel, scheduleLabel } from "./lib";
+import { copyJobVmIds, copyWindowState } from "@/lib/backup-copy";
+import {
+  copyModeLabel,
+  copyWindowLabel,
+  fullScheduleLabel,
+  jobHasActiveRun,
+  jobScheduleLabel,
+  jobTypeMeta,
+  retentionLabel,
+} from "./lib";
 import { ActiveRunPanel } from "./components/ActiveRunPanel";
 import { LastRunSummary } from "./components/LastRunSummary";
 import { LastRunProblems, lastRunAsSession } from "./components/RunOutcome";
@@ -62,8 +72,11 @@ export default function JobDetailPage() {
   const navigate = useNavigate();
 
   const job = useWorldStore((s) => s.jobs.find((j) => j.id === jobId));
+  const jobs = useWorldStore((s) => s.jobs);
   const sessions = useWorldStore((s) => s.sessions);
   const repositories = useWorldStore((s) => s.repositories);
+  const restorePoints = useWorldStore((s) => s.restorePoints);
+  const vms = useWorldStore((s) => s.vms);
   const runJob = useWorldStore((s) => s.runJob);
   const setJobEnabled = useWorldStore((s) => s.setJobEnabled);
   const deleteJob = useWorldStore((s) => s.deleteJob);
@@ -87,7 +100,11 @@ export default function JobDetailPage() {
   const activeSession = jobSessions.find((s) => s.status === "running");
   // The newest finished run — shown when nothing is live so the Overview never
   // goes blank the instant a run ends (the live panel used to just disappear).
-  const lastFinished = lastRunAsSession(job?.lastRun, jobSessions) ?? jobSessions.find((s) => s.status !== "running");
+  // A queued run hasn't happened yet — a copy can wait hours for its window —
+  // so it is not the last run either.
+  const lastFinished =
+    lastRunAsSession(job?.lastRun, jobSessions) ??
+    jobSessions.find((s) => s.status !== "running" && s.status !== "queued");
 
   // Keep the big run panel up for a grace window AFTER a run finishes, showing
   // its terminal Success/Failed state — so a run visibly *completes* instead of
@@ -140,6 +157,17 @@ export default function JobDetailPage() {
   // session of this job that is queued or running but not yet counted.
   const deleteBlocked = jobHasActiveRun(job, jobSessions);
   const { icon: TypeIcon, label: typeLabel } = jobTypeMeta(job.type);
+  const copy = job.copy;
+  // A copy job that picked no VMs covers every VM its sources back up.
+  const vmCount = copyJobVmIds(job, { jobs, restorePoints, vms }).length;
+  /* Copies queued behind a closed copy window are not stuck, and the page says
+   * so — with when they will move. */
+  const windowState = copy?.window.length ? copyWindowState(copy.window) : null;
+  const waitingForWindow =
+    windowState && !windowState.open && jobSessions.some((s) => s.status === "queued") ? windowState : null;
+  /* Both kinds take an active full and keep their own retention; a copy's
+   * full reads the source's newest state again. */
+  const runsFull = job.type === "backup" || job.type === "backup-copy";
 
   /* ------------------------------- actions ------------------------------- */
   /* Console-owned sentence first, the appliance's own words underneath — they
@@ -156,6 +184,12 @@ export default function JobDetailPage() {
     const sessionId = await runJob(job.id, undefined, forceFull);
     if (sessionId) {
       toast.success(t("toast.started", { name: job.name }), { description: t("toast.startedBelow") });
+      return;
+    }
+    /* A copy job starts a session per VM its sources hold restore points of;
+     * with none yet there is nothing to copy, which is the likelier reason. */
+    if (copy && !disabled) {
+      toast.error(t("toast.runRefused", { name: job.name }), { description: t("toast.copyNothingStarted") });
       return;
     }
     /* `runJob` reports every failure as a null session — a 409, a 404, a 5xx
@@ -204,12 +238,12 @@ export default function JobDetailPage() {
             <span className="text-muted-foreground/50">·</span>
             <span>{job.scopeSummary}</span>
             <span className="text-muted-foreground/50">·</span>
-            <span>{scheduleLabel(job.schedule, disabled)}</span>
+            <span>{jobScheduleLabel(job)}</span>
           </span>
         }
         actions={
           <>
-            {!canStart ? null : job.type === "backup" ? (
+            {!canStart ? null : runsFull ? (
               <div className="flex">
                 <Button
                   variant="default"
@@ -234,7 +268,7 @@ export default function JobDetailPage() {
                   <DropdownMenuContent align="end">
                     <DropdownMenuItem onSelect={() => handleRun(true)}>
                       <DatabaseBackup className="h-4 w-4" />
-                      {t("actions.runFull")}
+                      {copy ? t("actions.runFullCopy") : t("actions.runFull")}
                     </DropdownMenuItem>
                     {canRetention && (
                       <DropdownMenuItem onSelect={() => setRetentionOpen(true)}>
@@ -298,6 +332,19 @@ export default function JobDetailPage() {
         </div>
       ) : null}
       <LastRunProblems run={job.lastRun} />
+      {waitingForWindow && copy && (
+        <div className="flex items-start gap-2.5 border border-info/30 bg-info/[0.06] px-3 py-2.5" role="status">
+          <Clock className="mt-0.5 h-4 w-4 shrink-0 text-info" aria-hidden="true" />
+          <p className="text-xs text-foreground">
+            {waitingForWindow.opensAt
+              ? t("copy.waiting", {
+                  window: copyWindowLabel(copy.window),
+                  when: formatDateTime(waitingForWindow.opensAt.toISOString()),
+                })
+              : t("copy.waitingNever", { window: copyWindowLabel(copy.window) })}
+          </p>
+        </div>
+      )}
       <KpiBand className="grid-cols-2 sm:grid-cols-3 xl:grid-cols-6">
         <KpiCard
           density="compact"
@@ -330,8 +377,12 @@ export default function JobDetailPage() {
           icon={Server}
           tone="neutral"
           label={t("detailStats.objects")}
-          value={<span className="nums">{job.vmIds.length}</span>}
-          hint={t("detailStats.inScope", { noun: job.vmIds.length === 1 ? "VM" : "VMs" })}
+          value={<span className="nums">{vmCount}</span>}
+          hint={
+            copy && !job.vmIds.length
+              ? t("copy.scope.allVms")
+              : t("detailStats.inScope", { noun: vmCount === 1 ? "VM" : "VMs" })
+          }
         />
         <KpiCard
           density="compact"
@@ -346,7 +397,15 @@ export default function JobDetailPage() {
           icon={CalendarClock}
           tone={job.nextRunAt ? "neutral" : "muted"}
           label={t("detailStats.nextRun")}
-          value={<span className="nums text-base font-semibold">{job.nextRunAt ? formatRelative(job.nextRunAt) : t("status.disabled")}</span>}
+          value={
+            <span className="nums text-base font-semibold">
+              {job.nextRunAt
+                ? formatRelative(job.nextRunAt)
+                : copy && !disabled
+                  ? jobScheduleLabel(job)
+                  : t("status.disabled")}
+            </span>
+          }
           // The value above is already the countdown; the hint slot is free to
           // say which slot that lands in, instead of the filler word "Scheduled".
           hint={job.nextRunAt ? formatDateTime(job.nextRunAt) : t("detailStats.notScheduled")}
@@ -389,7 +448,17 @@ export default function JobDetailPage() {
                   {job.description?.trim() || t("about.noDescription")}
                 </p>
                 <div className="mt-4 space-y-2 border-t border-border pt-3 text-sm">
-                  <Detail label={t("about.schedule")} value={scheduleLabel(job.schedule, disabled)} />
+                  <Detail label={t("about.schedule")} value={jobScheduleLabel(job)} />
+                  {copy && (
+                    <>
+                      <Detail label={t("copy.about.mode")} value={copyModeLabel(copy.mode)} />
+                      <Detail
+                        label={t("copy.about.from")}
+                        value={[...copy.sourceJobs, ...copy.sourceRepositories].map((s) => s.name).join(", ")}
+                      />
+                      <Detail label={t("copy.about.window")} value={copyWindowLabel(copy.window)} />
+                    </>
+                  )}
                   {job.type !== "replication" && (
                     <>
                       <Detail label={t("fullSchedule.active")} value={fullScheduleLabel(job.activeFullSchedule)} />
@@ -422,7 +491,7 @@ export default function JobDetailPage() {
           <JobSettingsTab
             job={job}
             repository={repository}
-            onApplyRetention={job.type === "backup" && canRetention ? () => setRetentionOpen(true) : undefined}
+            onApplyRetention={runsFull && canRetention ? () => setRetentionOpen(true) : undefined}
           />
         </TabsContent>
       </Tabs>
@@ -434,9 +503,7 @@ export default function JobDetailPage() {
         runningCount={deleteBlocked ? 1 : 0}
         onConfirm={handleDelete}
       />
-      {job.type === "backup" && (
-        <RetentionDialog job={job} open={retentionOpen} onOpenChange={setRetentionOpen} />
-      )}
+      {runsFull && <RetentionDialog job={job} open={retentionOpen} onOpenChange={setRetentionOpen} />}
     </div>
   );
 }
@@ -444,8 +511,11 @@ export default function JobDetailPage() {
 function Detail({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-center justify-between gap-2">
-      <span className="text-muted-foreground">{label}</span>
-      <span className="truncate font-medium">{value}</span>
+      <span className="shrink-0 text-muted-foreground">{label}</span>
+      {/* A long value (a copy window, several sources) is cut, and readable whole on hover. */}
+      <span className="truncate font-medium" title={value}>
+        {value}
+      </span>
     </div>
   );
 }

@@ -738,9 +738,13 @@ export function ChooseModeStep({
               icon={ShieldCheck}
               label={t("summary.restorePoint")}
               value={formatFullDateTime(point.createdAt)}
-              sub={t("restorePointSub", {
+              sub={t(point.copySource ? "restorePointSubCopy" : "restorePointSub", {
                 type: point.type === "full" ? t("point.full") : t("point.incremental"),
                 size: formatStorage(point.sizeGB),
+                // A copy is restored like any point; the review still says which
+                // backup it is a copy of, and which job made it.
+                source: point.copySource?.jobName ?? point.copySource?.repositoryName,
+                job: point.jobName,
               })}
             />
             <SummaryRow

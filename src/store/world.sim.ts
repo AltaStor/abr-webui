@@ -20,6 +20,7 @@ import {
   validateSyntheticFull,
 } from "@/lib/synthetic-full";
 import { formatDateTime, verifyRunName } from "@/lib/format";
+import { copyJobVmIds } from "@/lib/backup-copy";
 import { nextFullBackupRun } from "@/lib/schedule";
 import type {
   Alert,
@@ -641,7 +642,9 @@ export function createSimDriver(handle: WorldHandle): WorldDriver {
       const existing = state.sessions.find((s) => s.jobId === jobId && s.status === "running");
       if (existing) return Promise.resolve(existing.id);
 
-      const scope = job.vmIds.slice(0, Math.min(job.vmIds.length, 10));
+      // A copy job that picked no VMs copies every VM of its sources.
+      const inScope = copyJobVmIds(job, state);
+      const scope = inScope.slice(0, Math.min(inScope.length, 10));
       const id = uid("sess");
       const vmResults: VmRunResult[] = scope.map((vmId, idx) => {
         const vm = state.vms.find((v) => v.id === vmId);
@@ -769,6 +772,7 @@ export function createSimDriver(handle: WorldHandle): WorldDriver {
         ...(input.type === "replication" && input.replicaTarget
           ? { replicaTarget: input.replicaTarget }
           : {}),
+        ...(input.type === "backup-copy" && input.copy ? { copy: input.copy } : {}),
       };
       handle.set({ jobs: [job, ...state.jobs], revision: state.revision + 1 });
       if (input.runNow) {

@@ -139,6 +139,18 @@ function withRestoreVmName(session: Session, vms: VM[]): Session {
 }
 
 /**
+ * A backup copy job's runs are backup sessions on the wire (`task_type`
+ * "backup"); the job is what makes them copies. Typed here, where the jobs
+ * are in hand, so every screen that names a run kind says "Backup copy".
+ */
+function withJobKind(session: Session, jobs: BackupJob[]): Session {
+  if (session.type !== "backup") return session;
+  return jobs.some((j) => j.id === session.jobId && j.type === "backup-copy")
+    ? { ...session, type: "backup-copy" }
+    : session;
+}
+
+/**
  * Hard ceiling on retained run history.
  *
  * The merge below keeps sessions the console has already loaded, which is what
@@ -180,6 +192,7 @@ function toJobPatchPayload(patch: Partial<BackupJob>): Partial<api.CreateJobPayl
   if (patch.options !== undefined) out.options = patch.options;
   if (patch.accent !== undefined) out.accent = patch.accent;
   if (patch.replicaTarget !== undefined) out.replicaTarget = patch.replicaTarget;
+  if (patch.copy !== undefined) out.copy = patch.copy;
   return out;
 }
 
@@ -386,7 +399,7 @@ export function createLiveDriver(handle: WorldHandle): WorldDriver {
     /* The newest page only. Anything older that a screen has already asked for
      * (see `loadOlderSessions`) is kept by the merge below, so a poll can't
      * quietly undo a "load older" the operator just did. */
-    const namedSessions = sessionPage.items.map((s) => withThroughput(withRestoreVmName(s, vms)));
+    const namedSessions = sessionPage.items.map((s) => withThroughput(withJobKind(withRestoreVmName(s, vms), jobs)));
     // Job run strips are computed from the merged history inside `set` below,
     // where the previously-held sessions are in hand.
     // Logs only for sessions still running — finished ones lazy-load on demand.
@@ -461,7 +474,7 @@ export function createLiveDriver(handle: WorldHandle): WorldDriver {
       if (stopped) return;
       let prepended = false;
       handle.set((s) => {
-        const session = withThroughput(withRestoreVmName(rawSession, s.vms));
+        const session = withThroughput(withJobKind(withRestoreVmName(rawSession, s.vms), s.jobs));
         const idx = s.sessions.findIndex((x) => x.id === sessionId);
         if (idx === -1) {
           prepended = true; // a run started server-side — structural
@@ -809,8 +822,9 @@ export function createLiveDriver(handle: WorldHandle): WorldDriver {
       try {
         const { sessionId } = await api.runJob(jobId, { forceFull });
         // The sim and server worlds share entity ids — a continuation landing
-        // after a mode switch would corrupt the successor world.
-        if (stopped) return sessionId;
+        // after a mode switch would corrupt the successor world. A start that
+        // created no session (a copy job with nothing to copy yet) ran nothing.
+        if (stopped || !sessionId) return sessionId || null;
         handle.set((s) => ({
           jobs: s.jobs.map((j) =>
             j.id === jobId ? { ...j, state: "running" as const, lastStatus: "running" as const } : j,
@@ -1017,7 +1031,7 @@ export function createLiveDriver(handle: WorldHandle): WorldDriver {
         noteFetchOk();
         if (stopped) return;
         handle.set((s) => {
-          const named = page.items.map((x) => withThroughput(withRestoreVmName(x, s.vms)));
+          const named = page.items.map((x) => withThroughput(withJobKind(withRestoreVmName(x, s.vms), s.jobs)));
           const merged = mergeSessions(s.sessions, named);
           return {
             sessions: merged,

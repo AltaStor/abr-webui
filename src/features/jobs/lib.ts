@@ -7,8 +7,18 @@ import {
   HardDriveDownload,
   type LucideIcon,
 } from "@/lib/icons";
-import type { AccentKey, BackupJob, FullBackupSchedule, JobType, Retention, Schedule, Session } from "@/types";
+import type {
+  AccentKey,
+  BackupJob,
+  CopyWindowRule,
+  FullBackupSchedule,
+  JobType,
+  Retention,
+  Schedule,
+  Session,
+} from "@/types";
 import i18n from "@/i18n";
+import { WEEK_ORDER } from "@/lib/backup-copy";
 import { scheduleZoneName } from "@/lib/time";
 import { zonedScheduleTime, type ScheduleDays } from "@/lib/schedule";
 
@@ -96,6 +106,51 @@ export function scheduleLabel(schedule: Schedule, disabled = false): string {
     default:
       return zonedLabel("jobs:schedule.daily", schedule.atTime ?? "22:00", schedule.timezone, {});
   }
+}
+
+/**
+ * When a job runs, as one label. A backup job's is its schedule's; a backup
+ * copy job may also run after another job, by hand only, or after every
+ * backup of its sources, and its `schedule` says nothing about those.
+ */
+export function jobScheduleLabel(job: Pick<BackupJob, "schedule" | "state" | "copy">): string {
+  const disabled = job.state === "disabled";
+  const copy = job.copy;
+  if (!copy || disabled) return scheduleLabel(job.schedule, disabled);
+  if (copy.mode === "immediate") return i18n.t("jobs:copy.when.immediate");
+  const after = copy.runAfterJob ? i18n.t("jobs:copy.when.afterJob", { job: copy.runAfterJob.name }) : null;
+  if (!copy.scheduled) return after ?? i18n.t("jobs:copy.when.manual");
+  return after ? `${scheduleLabel(job.schedule)} · ${after}` : scheduleLabel(job.schedule);
+}
+
+/** "Periodic" / "Immediate". */
+export function copyModeLabel(mode: "periodic" | "immediate"): string {
+  return i18n.t(`jobs:copy.mode.${mode}`);
+}
+
+/** A rule's days, Monday first as the appliance orders them, or "Every day". */
+function windowDaysLabel(days: number[]): string {
+  if (days.length === 7) return i18n.t("jobs:copy.window.everyDay");
+  return WEEK_ORDER.filter((d) => days.includes(d)).map(dayShortLabel).join(", ");
+}
+
+/** "Mon, Tue 22:00–06:00" for one rule; an end of 00:00 reads 24:00, the end
+ *  of the day it is. */
+export function copyWindowRuleLabel(rule: CopyWindowRule): string {
+  return i18n.t("jobs:copy.window.rule", {
+    days: windowDaysLabel(rule.daysOfWeek),
+    start: rule.start,
+    end: rule.end === "00:00" ? "24:00" : rule.end,
+  });
+}
+
+/** Every rule of a copy window, with the zone they are read in: "Mon, Tue
+ *  22:00–06:00; Sat, Sun 00:00–24:00 (Europe/Berlin)", or "Any time". */
+export function copyWindowLabel(rules: CopyWindowRule[]): string {
+  if (!rules.length) return i18n.t("jobs:copy.window.anyTime");
+  const zones = [...new Set(rules.map((r) => scheduleZoneName(r.timezone)))];
+  const list = rules.map(copyWindowRuleLabel).join("; ");
+  return zones.length === 1 ? `${list} (${zones[0]})` : list;
 }
 
 /**

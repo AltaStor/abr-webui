@@ -19,7 +19,7 @@ import { formatDuration, formatStorage, formatThroughput } from "@/lib/format";
 import { useWorldStore } from "@/store/world";
 import type { Session, VmRunResult } from "@/types";
 import { PipelineStages } from "@/components/PipelineStages";
-import { isVerify } from "@/features/activity/lib";
+import { isVerify, TRIGGER_META } from "@/features/activity/lib";
 import i18n from "@/i18n";
 
 const VM_TONE: Record<VmRunResult["status"], string> = {
@@ -38,18 +38,6 @@ const VM_LABEL: Record<VmRunResult["status"], () => string> = {
   failed: () => i18n.t("jobs:vmStatus.failed"),
   running: () => i18n.t("jobs:vmStatus.running"),
   pending: () => i18n.t("jobs:vmStatus.queued"),
-};
-
-/**
- * Run trigger → the same words the Activity list shows. The footer used to
- * interpolate `session.triggeredBy` straight into the sentence, so the wire
- * enum ("schedule", "manual", "retry") surfaced untranslated in every language.
- * The enum values themselves are the backend's and are untouched.
- */
-const TRIGGER_LABEL: Record<Session["triggeredBy"], () => string> = {
-  schedule: () => i18n.t("activity:trigger.schedule"),
-  manual: () => i18n.t("activity:trigger.manual"),
-  retry: () => i18n.t("common:actions.retry"),
 };
 
 /** Static class strings per tone — Tailwind can't see dynamically built class
@@ -242,7 +230,7 @@ export function ActiveRunPanel({ session }: { session: Session }) {
 
         <p className="text-xs text-muted-foreground">
           {/* Elapsed already has its own metric tile above — this footer only adds trigger context. */}
-          {t("run.triggered", { by: TRIGGER_LABEL[session.triggeredBy]() })}
+          {t("run.triggered", { by: TRIGGER_META[session.triggeredBy].label })}
         </p>
       </CardContent>
     </Card>

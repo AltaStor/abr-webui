@@ -14,6 +14,7 @@ import { formatStorage } from "@/lib/format";
 import { TimeStamp } from "@/components/TimeStamp";
 import { PROTECTION_META } from "@/lib/status";
 import { useWorldStore } from "@/store/world";
+import { copyJobVmIds } from "@/lib/backup-copy";
 import type { BackupJob, ProtectionStatus, VM } from "@/types";
 import type { VmDetailOrigin } from "@/features/inventory/VmDetailPage";
 import { VmIcon } from "@/features/inventory/components/VmIcon";
@@ -24,9 +25,9 @@ interface Props {
 }
 
 /** Shared header line: resolved count + scope summary + dropped-id note. */
-function ScopeLine({ job, resolved }: { job: BackupJob; resolved: number }) {
+function ScopeLine({ job, inScope, resolved }: { job: BackupJob; inScope: number; resolved: number }) {
   const { t } = useTranslation("jobs");
-  const missing = job.vmIds.length - resolved;
+  const missing = inScope - resolved;
   return (
     <p className="text-xs text-muted-foreground">
       <span className="nums font-medium text-foreground">{resolved}</span>{" "}
@@ -49,8 +50,11 @@ export function JobObjectsTab({ job }: Props) {
   const { t } = useTranslation("jobs");
   const navigate = useNavigate();
   const vms = useWorldStore((s) => s.vms);
+  const jobs = useWorldStore((s) => s.jobs);
   const environments = useWorldStore((s) => s.environments);
   const restorePoints = useWorldStore((s) => s.restorePoints);
+  // A copy job that picked no VMs covers every VM its sources back up.
+  const vmIds = useMemo(() => copyJobVmIds(job, { jobs, restorePoints, vms }), [job, jobs, restorePoints, vms]);
 
   const envName = useMemo(() => new Map(environments.map((e) => [e.id, e.name])), [environments]);
 
@@ -67,8 +71,8 @@ export function JobObjectsTab({ job }: Props) {
   // machine removed from inventory) are dropped and reported below.
   const scopeVms = useMemo(() => {
     const byId = new Map(vms.map((v) => [v.id, v]));
-    return job.vmIds.map((id) => byId.get(id)).filter((v): v is VM => v !== undefined);
-  }, [vms, job.vmIds]);
+    return vmIds.map((id) => byId.get(id)).filter((v): v is VM => v !== undefined);
+  }, [vms, vmIds]);
 
   const columns = useMemo<ColumnDef<VM, unknown>[]>(
     () => [
@@ -163,7 +167,7 @@ export function JobObjectsTab({ job }: Props) {
 
   return (
     <div className="space-y-3">
-      <ScopeLine job={job} resolved={scopeVms.length} />
+      <ScopeLine job={job} inScope={vmIds.length} resolved={scopeVms.length} />
 
       <DataTable
         columns={columns}

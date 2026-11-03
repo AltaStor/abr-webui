@@ -73,6 +73,7 @@ export const router = createBrowserRouter([
       { path: "jobs", element: <JobsPage /> },
       { path: "jobs/new", element: <Navigate to="/jobs/new/backup" replace /> },
       { path: "jobs/new/backup", element: <CreateJobPage kind="backup" /> },
+      { path: "jobs/new/backup-copy", element: <CreateJobPage kind="backup-copy" /> },
       // Replication has no orchestrator support. The wizard is hidden, and this
       // route says so rather than quietly handing back the backup wizard —
       // someone who asked for a replication job would otherwise fill in a

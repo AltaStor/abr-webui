@@ -32,6 +32,8 @@ export function producesBackup(session: Session): boolean {
  *  restore point (see `producesBackup`). */
 export function backupTypeLabel(session: Session): string | null {
   if (!producesBackup(session)) return null;
+  // A copy that reports no type found nothing new and copied nothing.
+  if (session.type === "backup-copy" && session.typeUnknown) return i18n.t("jobs:runType.nothingCopied");
   if (session.synthetic) return i18n.t("jobs:runType.syntheticFull");
   return session.backupType === "incremental"
     ? i18n.t("jobs:runType.incremental")

@@ -4,7 +4,7 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
-import { Trash2, ArrowRight, Hand, CalendarClock, RotateCw, Gauge } from "@/lib/icons";
+import { Trash2, ArrowRight, Gauge } from "@/lib/icons";
 import {
   Sheet,
   SheetContent,
@@ -34,9 +34,8 @@ import { formatDuration, formatStorage, formatThroughput } from "@/lib/format";
 import { DateTime } from "@/components/DateTime";
 import { useWorldStore } from "@/store/world";
 import { getSessionLog } from "@/services/api.http";
-import i18n from "@/i18n";
 import type { LogLevel, LogLine, Session, VmRunResult } from "@/types";
-import { isDelete, isRestore, isVerify, runKind, runKindIcon } from "../lib";
+import { isDelete, isRestore, isVerify, runKind, runKindIcon, TRIGGER_META } from "../lib";
 
 const VM_TONE: Record<VmRunResult["status"], string> = {
   success: "success",
@@ -44,12 +43,6 @@ const VM_TONE: Record<VmRunResult["status"], string> = {
   failed: "danger",
   running: "info",
   pending: "muted",
-};
-
-const TRIGGER = {
-  schedule: { get label() { return i18n.t("activity:trigger.schedule"); }, icon: CalendarClock },
-  manual: { get label() { return i18n.t("activity:trigger.manual"); }, icon: Hand },
-  retry: { get label() { return i18n.t("common:actions.retry"); }, icon: RotateCw },
 };
 
 const LOG_LEVELS = new Set<LogLevel>(["debug", "info", "warn", "error", "success"]);
@@ -136,7 +129,11 @@ function RunDetail({ session: s, jobExists, onClose }: { session: Session; jobEx
   // A merge that failed has a cause the console can usually name outright; a
   // run that succeeded, or failed any other way, keeps the appliance's line.
   const failedSynthetic = Boolean(s.synthetic) && s.status === "failed";
-  const resultMessage = failedSynthetic ? syntheticFullFailureMessage(s.message ?? "") : s.message;
+  // A copy that went well says what it copied, from which job and repository
+  // into which — or that there was nothing new.
+  const resultMessage = failedSynthetic
+    ? syntheticFullFailureMessage(s.message ?? "")
+    : (s.message ?? (s.type === "backup-copy" ? s.outcome : undefined));
   const consistencyNote = useConsistencyExplanation(s.consistency, s.consistencyReason);
   /* The same sentence for the per-VM row. It used to print the appliance's own
    * text while the banner above it printed the console's, so one failed merge
@@ -144,7 +141,7 @@ function RunDetail({ session: s, jobExists, onClose }: { session: Session; jobEx
    * appliance's lines verbatim — it is a log. */
   const vmMessage = (message: string | undefined) =>
     failedSynthetic && message ? syntheticFullFailureMessage(message) : message;
-  const trigger = TRIGGER[s.triggeredBy];
+  const trigger = TRIGGER_META[s.triggeredBy];
   const TriggerIcon = trigger.icon;
 
   // The waveform is driven by throughputMBps — the TRANSFER rate — and never by
@@ -239,7 +236,7 @@ function RunDetail({ session: s, jobExists, onClose }: { session: Session; jobEx
             <Metric
               label={t("drawer.stat.type")}
               value={
-                <Badge variant={s.backupType === "full" ? "info" : "outline"}>{typeLabel}</Badge>
+                <Badge variant={s.backupType === "full" && !s.typeUnknown ? "info" : "outline"}>{typeLabel}</Badge>
               }
             />
           )}

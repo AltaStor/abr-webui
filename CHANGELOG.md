@@ -5,6 +5,29 @@ All notable changes to the AltaStor WebUI are documented in this file.
 ## Unreleased
 
 ### Added
+- Backup copy jobs. Backup → Add backup copy job copies the restore points
+  of backup jobs, or of whole repositories, into another repository, where
+  the copies keep a chain, retention, GFS, Object Lock dates and encryption
+  key of their own. The form sets the sources, every VM of the sources or
+  some of them, the destination, the copy mode (periodic: on a schedule, by
+  hand or after another job; immediate: after each source backup), the copy
+  window (days and hours, past midnight too, in the job's time zone), the
+  retries, the full backup schedules, retention, compression and encryption.
+  It names what the appliance would refuse before saving: no source, a
+  destination that is a source or where a source job backs up, VMs the
+  sources don't hold, encrypted sources without encryption, Hyper-V sources
+  on a local folder, a window rule without days or with the same start and
+  end. A job with a schedule stays periodic, since the appliance cannot
+  remove a schedule. The job page shows the copy settings, whether the copy
+  window is open, and why queued copies wait; Run now, Run full copy, Apply
+  retention, Edit, Enable/Disable and Delete work as for backup jobs. Copy
+  runs read "Backup copy" in Activity and the run history, with what started
+  them (new restore point, after another job, copy window), what they copied
+  or that nothing was new. Copies carry a Copy badge wherever restore points
+  are listed (VM page, Backups tab, restore wizard), with the job and
+  repository they came from, and keep it after their job is deleted. Needs
+  `copy_source` on the points of `GET /api/v1/backups` (abr-core). New
+  strings are in English only.
 - Two-factor sign-in. Settings → Security → Two-factor sign-in sets it up with a
   QR code for an authenticator app such as Google Authenticator or Microsoft
   Authenticator, or its key typed in, and turns it on once a code from the app
@@ -87,6 +110,9 @@ All notable changes to the AltaStor WebUI are documented in this file.
 ### Changed
 - Enabling or disabling a job is sent as a job-level `enabled` flag instead
   of being nested inside the job's schedule.
+- A disabled job reads Disabled, with Enable to turn it back on, while a run
+  of it is still queued or running; it used to read Running until the run
+  ended, so Disable seemed to do nothing.
 - Only the reads the console repeats on its own (the world poll, the server
   clock and update checks, the system log's refresh) are sent as background
   refreshes (`X-ABR-Refresh`), so the appliance neither records them in the
@@ -96,6 +122,10 @@ All notable changes to the AltaStor WebUI are documented in this file.
   platform.
 
 ### Fixed
+- Saving any change to a disabled job no longer turns it back on: the form
+  sent the job's schedule without its `enabled` flag, which the appliance
+  reads as on.
+- A queued run is no longer shown as the job's last run, with a success mark.
 - The console no longer signs the user out at a fixed time while they are
   working. Switching views sends no request of its own, and the polls are
   background refreshes the appliance does not count, so the console now keeps

@@ -15,6 +15,7 @@ import type {
   Alert,
   ApplyImmutabilityResult,
   AuditEvent,
+  BackupCopySettings,
   BackupJob,
   CreateEnvironmentInput,
   CreateRepositoryInput,
@@ -202,6 +203,8 @@ export interface CreateJobInput {
   runNow?: boolean;
   /** For replication jobs — where the replica is maintained. */
   replicaTarget?: ReplicaTarget;
+  /** For backup copy jobs — what they copy, how and when. */
+  copy?: BackupCopySettings;
 }
 
 export interface RestoreInput {

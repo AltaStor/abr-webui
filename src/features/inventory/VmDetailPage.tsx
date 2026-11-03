@@ -45,7 +45,8 @@ import { selfContainedNote } from "@/lib/restore-points";
 import { syntheticFullJobsForVm } from "@/lib/synthetic-full";
 import { SESSION_META, toneFg } from "@/lib/status";
 import { useWorldStore } from "@/store/world";
-import { accentColor, jobTypeMeta, scheduleLabel } from "@/features/jobs/lib";
+import { accentColor, jobScheduleLabel, jobTypeMeta } from "@/features/jobs/lib";
+import { copyJobVmIds } from "@/lib/backup-copy";
 import { vmLocation } from "./topology";
 import { restoreLink } from "@/features/restore/link";
 import type { RestorePoint } from "@/types";
@@ -80,6 +81,7 @@ export default function VmDetailPage() {
   const [syntheticFullOpen, setSyntheticFullOpen] = useState(false);
 
   const vm = useWorldStore((s) => s.vms.find((v) => v.id === vmId));
+  const vms = useWorldStore((s) => s.vms);
   const environments = useWorldStore((s) => s.environments);
   const hosts = useWorldStore((s) => s.hosts);
   const jobs = useWorldStore((s) => s.jobs);
@@ -98,9 +100,11 @@ export default function VmDetailPage() {
     [repositories],
   );
 
+  /* A backup copy job that picked no VMs covers every VM its sources back
+   * up, so it is listed here for this one too. */
   const coveringJobs = useMemo(
-    () => (vm ? jobs.filter((j) => j.vmIds.includes(vm.id)) : []),
-    [jobs, vm],
+    () => (vm ? jobs.filter((j) => copyJobVmIds(j, { jobs, restorePoints, vms }).includes(vm.id)) : []),
+    [jobs, restorePoints, vms, vm],
   );
 
   const points = useMemo(
@@ -152,7 +156,8 @@ export default function VmDetailPage() {
   const host = hosts.find((h) => h.id === vm.hostId);
   const location = vmLocation(vm, hosts, environments);
   const powerMeta = POWER_META[vm.powerState];
-  const primaryJob = coveringJobs[0];
+  // "Back up now" runs a backup, never a copy of one.
+  const primaryJob = coveringJobs.find((j) => j.type !== "backup-copy");
   const isRunning = primaryJob?.state === "running";
   // Arriving from a job's Objects tab is a one-way trip unless the header says
   // so: the URL is the same /inventory/:vmId either way, so the origin job is
@@ -378,7 +383,7 @@ export default function VmDetailPage() {
                           <p className="truncate text-sm font-medium">{job.name}</p>
                           <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
                             <Calendar className="h-3 w-3" />
-                            {scheduleLabel(job.schedule)}
+                            {jobScheduleLabel(job)}
                             <span className="text-muted-foreground/40">·</span>
                             {job.scopeSummary}
                           </p>
