@@ -27,6 +27,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { PasswordInput } from "@/components/ui/password-input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "@/components/ui/sonner";
@@ -177,6 +178,7 @@ function UsersCard() {
               <TableHead>{t("users.column.user")}</TableHead>
               <TableHead>{t("users.column.role")}</TableHead>
               <TableHead>{t("users.column.enabled")}</TableHead>
+              <TableHead className="hidden md:table-cell">{t("users.column.twoFactor")}</TableHead>
               <TableHead className="hidden md:table-cell">{t("users.column.created")}</TableHead>
               {(canEdit || canDelete) && <TableHead className="w-20" />}
             </TableRow>
@@ -229,6 +231,13 @@ function UsersCard() {
                       t("users.state.enabled")
                     ) : (
                       t("users.state.disabled")
+                    )}
+                  </TableCell>
+                  <TableCell className="hidden md:table-cell">
+                    {user.totpEnabled ? (
+                      <Badge variant="success">{t("users.state.twoFactorOn")}</Badge>
+                    ) : (
+                      <span className="text-muted-foreground">{t("users.state.twoFactorOff")}</span>
                     )}
                   </TableCell>
                   <TableCell className="hidden text-muted-foreground md:table-cell">
@@ -450,6 +459,7 @@ function EditUserForm({ user, self, onClose }: { user: AuthUser; self: boolean; 
   const [fullName, setFullName] = useState(user.fullName);
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
+  const [resetTotp, setResetTotp] = useState(false);
   const [touched, setTouched] = useState(false);
 
   const save = useMutation({
@@ -466,6 +476,7 @@ function EditUserForm({ user, self, onClose }: { user: AuthUser; self: boolean; 
     ...(name.trim() !== user.name && { name: name.trim() }),
     ...(fullName.trim() !== user.fullName && { fullName: fullName.trim() }),
     ...(password !== "" && { password }),
+    ...(resetTotp && { totp_reset: true }),
   };
   const dirty = Object.keys(patch).length > 0;
   const errors = {
@@ -542,6 +553,15 @@ function EditUserForm({ user, self, onClose }: { user: AuthUser; self: boolean; 
                 autoComplete="new-password"
               />
             </Field>
+          )}
+          {user.totpEnabled && (
+            <div className="flex items-start justify-between gap-3">
+              <div className="space-y-1">
+                <Label htmlFor="edit-user-reset-totp">{t("users.edit.resetTwoFactor")}</Label>
+                <p className="text-xs text-muted-foreground">{t("users.edit.resetTwoFactorHint")}</p>
+              </div>
+              <Switch id="edit-user-reset-totp" checked={resetTotp} onCheckedChange={setResetTotp} />
+            </div>
           )}
         </div>
       )}

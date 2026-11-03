@@ -458,6 +458,7 @@
       "user": "User",
       "role": "Role",
       "enabled": "Enabled",
+      "twoFactor": "Two-factor",
       "created": "Created"
     },
     "you": "you",
@@ -466,7 +467,9 @@
     "enabledFor": "{{name}} can sign in",
     "state": {
       "enabled": "Enabled",
-      "disabled": "Disabled"
+      "disabled": "Disabled",
+      "twoFactorOn": "On",
+      "twoFactorOff": "Off"
     },
     "deleteUser": "Delete {{name}}",
     "editUser": "Edit {{name}}",
@@ -506,6 +509,8 @@
       "passwordHint": "Leave empty to keep the current one. A new password needs at least {{count}} characters and signs the user out everywhere.",
       "passwordUnchanged": "Unchanged",
       "ownPassword": "Your own password is changed under Settings → Security, which asks for the current one.",
+      "resetTwoFactor": "Reset two-factor sign-in",
+      "resetTwoFactorHint": "For a user who lost their authenticator app. They sign in with their password alone and are signed out everywhere.",
       "submit": "Save changes"
     },
     "deleteDialog": {
