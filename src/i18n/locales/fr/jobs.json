@@ -342,7 +342,8 @@
     "nextRun": "Prochaine exécution",
     "notScheduled": "Non planifié",
     "retention": "Rétention",
-    "daysValue": "{{count}} jours",
+    "daysValue_one": "{{count}} jour",
+    "daysValue_other": "{{count}} jours",
     "gfsLongTerm": "+ GFS long terme"
   },
   "detailTabs": {
@@ -667,7 +668,7 @@
     },
     "kpi": {
       "points": "Points de restauration",
-      "acrossObjects": "Sur {{jobs}} travaux · {{vms}} VM",
+      "acrossObjects": "Sur {{jobs}} · {{vms}}",
       "stored": "Stocké",
       "fromLogical": "À partir de {{size}} de données · compressé à {{ratio}}",
       "fromLogicalNoRatio": "À partir de {{size}} de données",
@@ -891,7 +892,7 @@
     "replicaDiffEnv": "Une réplique atterrit normalement sur un environnement différent de celui de la source.",
     "targetHost": "Hôte cible",
     "autoPlace": "Auto — laisser AltaStor placer",
-    "hostSpec": "{{cores}} cœurs · {{ram}} RAM",
+    "hostSpec": "{{cores}} · {{ram}} RAM",
     "replicaPrefix": "Préfixe du nom de la réplique",
     "replicasNamed": "Les répliques sont nommées <1>{{example}}</1>.",
     "whereToStore": "Sélectionner le référentiel",

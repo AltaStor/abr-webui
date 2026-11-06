@@ -3,7 +3,7 @@
     "title": "Inventario"
   },
   "header": {
-    "description": "{{vms}} máquinas virtuales en {{envs}} entornos · {{running}} encendidas",
+    "description": "{{vms}} en {{envs}} · {{running}} encendidas",
     "physicalSuffix_one": " · {{count}} servidor físico",
     "physicalSuffix_other": " · {{count}} servidores físicos"
   },
@@ -110,7 +110,8 @@
     "physicalHost": "Servidor físico"
   },
   "coverage": {
-    "vms": "VMs",
+    "vms_one": "VM",
+    "vms_other": "VMs",
     "sources": "orígenes",
     "running": "en ejecución",
     "vmsRunning": "VMs en ejecución",
@@ -353,7 +354,7 @@
   },
   "removeEnvironment": {
     "title": "¿Quitar {{name}}?",
-    "description": "Detiene la detección y quita <1>{{hosts}} hosts y {{vms}} VM</1> del inventario. Los puntos de restauración existentes se conservan y siguen siendo restaurables.",
+    "description": "Detiene la detección y quita <1>{{hosts}} y {{vms}}</1> del inventario. Los puntos de restauración existentes se conservan y siguen siendo restaurables.",
     "jobsBlock_one": "<1>{{count}}</1> trabajo aún tiene como destino este entorno — rediríjalo o elimínelo primero.",
     "jobsBlock_other": "<1>{{count}}</1> trabajos aún tienen como destino este entorno — rediríjalos o elimínelos primero.",
     "jobsWarning_one": "<1>{{count}}</1> trabajo tiene actualmente como destino este entorno. Fallará en la próxima ejecución hasta que se redirija a otro entorno.",
@@ -484,7 +485,7 @@
       "encryptionOn": "AES-256 en reposo",
       "encryptionOff": "Desactivado",
       "immutability": "Inmutabilidad",
-      "immutabilityOn": "Bloqueado {{days}} días",
+      "immutabilityOn": "Bloqueado {{days}}",
       "immutabilityOff": "Sin bloquear",
       "retention": "Retención",
       "retentionDays_one": "{{count}} día",

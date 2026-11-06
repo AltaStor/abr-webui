@@ -22,6 +22,7 @@ import { ProtectionDonut } from "./components/ProtectionDonut";
 import { ActivityTimeline } from "./components/ActivityTimeline";
 import { LiveActivityPanel } from "./components/LiveActivityPanel";
 import { StorageCard } from "./components/StorageCard";
+import { countOf } from "@/lib/count";
 
 /** Time-of-day greeting key in the `dashboard` namespace, by the display
  *  zone's clock. */
@@ -73,8 +74,9 @@ export default function DashboardPage() {
             ? t("header.descriptionVmOnly", {
                 protected: data.protectedVms,
                 total: data.totalVms,
-                env: envCount,
-                points: data.totalRestorePoints.toLocaleString(),
+                vms: countOf("vm", data.totalVms),
+                envs: countOf("environment", envCount),
+                points: countOf("restorePoint", data.totalRestorePoints),
               })
             : isError
               ? t("header.unavailable")
@@ -103,7 +105,11 @@ export default function DashboardPage() {
           {...pctKpi(data?.protectionCoverage, rateTone(data?.protectionCoverage))}
           icon={IconProtected}
           loading={isLoading}
-          hint={data ? t("kpi.coverage.hint", { protected: data.protectedVms, total: data.totalVms }) : undefined}
+          hint={data ? t("kpi.coverage.hint", {
+                  protected: data.protectedVms,
+                  total: data.totalVms,
+                  vms: countOf("vm", data.totalVms),
+                }) : undefined}
           drillLabel={data ? t("kpi.coverage.drill", { count: data.unprotectedVms }) : undefined}
           to={protectionHref("unprotected")}
         />
@@ -112,7 +118,7 @@ export default function DashboardPage() {
           {...pctKpi(data?.successRate24h, rateTone(data?.successRate24h))}
           icon={IconOk}
           loading={isLoading}
-          hint={data ? t("kpi.success.hint", { runs: data.sessions24h, failed: data.failed24h }) : undefined}
+          hint={data ? t("kpi.success.hint", { runs: countOf("run", data.sessions24h), failed: data.failed24h }) : undefined}
           drillLabel={t("kpi.success.drill")}
           to="/activity"
         />

@@ -52,6 +52,7 @@ import { DeleteEnvironmentDialog } from "./components/DeleteEnvironmentDialog";
 import { buildTree, collectVmIds, type TreeNode } from "./topology";
 import { restoreLink } from "@/features/restore/link";
 import { useCan } from "@/store/permissions";
+import { countOf } from "@/lib/count";
 
 type PowerFilter = "all" | VM["powerState"];
 type OsFilter = "all" | VM["osFamily"];
@@ -470,7 +471,11 @@ export default function InventoryPage() {
     <div className="space-y-4">
       <PageHeader
         title={t("page.title")}
-        description={t("header.description", { vms: vms.length, envs: environments.length, running: runningCount })}
+        description={t("header.description", {
+          vms: countOf("virtualMachine", vms.length),
+          envs: countOf("environment", environments.length),
+          running: runningCount,
+        })}
         actions={
           <>
             {/* Default size (h-9), not sm (h-8): the header actions and every

@@ -33,6 +33,7 @@ import {
   DeleteJobVmBackupsDialog,
   type DeleteJobVmBackupsTarget,
 } from "./DeleteJobVmBackupsDialog";
+import { countOf } from "@/lib/count";
 
 type ScopeFilter = "all" | "orphaned";
 type SortDir = "asc" | "desc";
@@ -269,7 +270,7 @@ export function BackupsTab() {
           icon={History}
           label={t("backupsTab.kpi.points")}
           value={totalPoints}
-          hint={t("backupsTab.kpi.acrossObjects", { jobs: groups.length, vms: totalVms })}
+          hint={t("backupsTab.kpi.acrossObjects", { jobs: countOf("job", groups.length), vms: countOf("vm", totalVms) })}
         />
         {/* Sizes come from the catalog, which has none until a backup has run. A
             hard 0 B would read as "these backups are empty" rather than "not

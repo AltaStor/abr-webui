@@ -351,7 +351,8 @@
     "nextRun": "Next run",
     "notScheduled": "Not scheduled",
     "retention": "Retention",
-    "daysValue": "{{count}} days",
+    "daysValue_one": "{{count}} day",
+    "daysValue_other": "{{count}} days",
     "gfsLongTerm": "+ GFS long-term"
   },
   "detailTabs": {
@@ -684,7 +685,7 @@
     },
     "kpi": {
       "points": "Restore points",
-      "acrossObjects": "Across {{jobs}} jobs · {{vms}} VMs",
+      "acrossObjects": "Across {{jobs}} · {{vms}}",
       "stored": "Stored",
       "fromLogical": "From {{size}} of data · compressed to {{ratio}}",
       "fromLogicalNoRatio": "From {{size}} of data",
@@ -908,7 +909,7 @@
     "replicaDiffEnv": "A replica normally lands on a different environment than the source.",
     "targetHost": "Target host",
     "autoPlace": "Auto — let AltaStor place it",
-    "hostSpec": "{{cores}} cores · {{ram}} RAM",
+    "hostSpec": "{{cores}} · {{ram}} RAM",
     "replicaPrefix": "Replica name prefix",
     "replicasNamed": "Replicas are named <1>{{example}}</1>.",
     "whereToStore": "Select backup repository",
@@ -1106,10 +1107,10 @@
     "mark": "Last run is ahead of the server clock"
   },
   "runResult": {
-    "failed": "{{count}} of {{total}} VMs failed",
-    "stopped": "{{count}} of {{total}} VMs stopped",
-    "warning": "{{count}} of {{total}} VMs with warnings",
-    "running": "{{done}} of {{total}} VMs done",
+    "failed": "{{count}} of {{vms}} failed",
+    "stopped": "{{count}} of {{vms}} stopped",
+    "warning": "{{count}} of {{vms}} with warnings",
+    "running": "{{done}} of {{vms}} done",
     "title": "Last run: {{summary}}",
     "vmResult": {
       "failed": "Failed",

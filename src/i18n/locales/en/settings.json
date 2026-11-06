@@ -386,7 +386,7 @@
       "exporting": "Exporting…",
       "toast": {
         "done": "Catalog exported",
-        "doneDescription": "{{jobs}} jobs and {{backups}} backups, with their encryption keys. Store it off this appliance.",
+        "doneDescription": "{{jobs}} and {{backups}}, with their encryption keys. Store it off this appliance.",
         "failed": "Couldn't export the catalog",
         "failedDescription": "The appliance didn't produce an archive. Try again in a moment."
       }

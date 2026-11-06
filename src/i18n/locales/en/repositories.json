@@ -67,7 +67,7 @@
     }
   },
   "immutability": {
-    "summary": "{{mode}} lock · {{days}} days",
+    "summary": "{{mode}} lock · {{days}}",
     "mode": {
       "governance": "Governance",
       "compliance": "Compliance"

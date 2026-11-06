@@ -319,7 +319,7 @@
       "exporting": "Exportation…",
       "toast": {
         "done": "Catalogue exporté",
-        "doneDescription": "{{jobs}} tâches et {{backups}} sauvegardes, avec leurs clés de chiffrement. Conservez l’archive hors de cette appliance.",
+        "doneDescription": "{{jobs}} et {{backups}}, avec leurs clés de chiffrement. Conservez l’archive hors de cette appliance.",
         "failed": "Impossible d’exporter le catalogue",
         "failedDescription": "L’appliance n’a produit aucune archive. Réessayez dans un instant."
       }

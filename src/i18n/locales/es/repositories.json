@@ -67,7 +67,7 @@
     }
   },
   "immutability": {
-    "summary": "Bloqueo {{mode}} · {{days}} días",
+    "summary": "Bloqueo {{mode}} · {{days}}",
     "mode": {
       "governance": "Governance",
       "compliance": "Compliance"

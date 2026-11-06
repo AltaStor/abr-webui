@@ -8,7 +8,7 @@
   "header": {
     "loading": "Schutzstatus wird geladen…",
     "unavailable": "Schutzstatus nicht verfügbar",
-    "descriptionVmOnly": "{{protected}} von {{total}} VMs in {{env}} Umgebungen geschützt · {{points}} Wiederherstellungspunkte",
+    "descriptionVmOnly": "{{protected}} von {{vms}} in {{envs}} geschützt · {{points}}",
     "descriptionWithPhysical": "{{protected}} von {{total}} VMs und {{physicalProtected}} von {{physicalTotal}} physischen Servern in {{env}} Umgebungen geschützt · {{points}} Wiederherstellungspunkte"
   },
   "error": {
@@ -19,28 +19,29 @@
   "kpi": {
     "coverage": {
       "label": "Schutzabdeckung",
-      "hint": "{{protected}} von {{total}} VMs geschützt",
+      "hint": "{{protected}} von {{vms}} geschützt",
       "drill": "{{count}} ungeschützt"
     },
     "success": {
       "label": "Erfolgsquote (24 h)",
-      "hint": "{{runs}} Durchläufe · {{failed}} fehlgeschlagen",
+      "hint": "{{runs}} · {{failed}} fehlgeschlagen",
       "drill": "Aktivität"
     }
   },
   "activity": {
     "title": "Backup-Aktivität",
-    "subtitle": "Letzte 14 Tage · {{count}} Durchläufe",
+    "subtitle_one": "Letzte 14 Tage · {{count}} Durchlauf",
+    "subtitle_other": "Letzte 14 Tage · {{count}} Durchläufe",
     "successRate": "Erfolgsquote im Zeitraum",
     "noRuns": "keine Durchläufe im Zeitraum",
     "totalRuns": "Durchläufe gesamt",
-    "ariaLabel": "Backup-Aktivität: {{rate}} % Erfolg über {{days}} Tage, {{runs}} Durchläufe gesamt, {{failed}} fehlgeschlagen.",
+    "ariaLabel": "Backup-Aktivität: {{rate}} % Erfolg über {{days}}, {{runs}} gesamt, {{failed}} fehlgeschlagen.",
     "ariaLabelNoRuns": "Backup-Aktivität: keine Durchläufe über {{days}} Tage erfasst, daher gibt es keine Erfolgsquote."
   },
   "donut": {
     "title": "Schutzstatus",
     "center": "{{protected}} von {{total}} geschützt",
-    "ariaLabel": "Schutz: {{coverage}} % von {{total}} VMs geschützt, {{warning}} außerhalb des RPO, {{unprotected}} ungeschützt."
+    "ariaLabel": "Schutz: {{coverage}} % von {{vms}} geschützt, {{warning}} außerhalb des RPO, {{unprotected}} ungeschützt."
   },
   "live": {
     "title": "Live-Aktivität",

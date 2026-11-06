@@ -20,6 +20,7 @@ import { DUR, EASE_BRAND } from "@/lib/motion";
 import { PROTECTION_META, toneFg } from "@/lib/status";
 import { cn } from "@/lib/utils";
 import type { DashboardSummary, ProtectionStatus } from "@/types";
+import { countOf } from "@/lib/count";
 
 interface Props {
   summary: DashboardSummary;
@@ -73,6 +74,7 @@ export function ProtectionDonut({ summary, onSegment }: Props) {
     : t("dashboard:donut.ariaLabel", {
         coverage: Math.round(summary.protectionCoverage),
         total,
+        vms: countOf("vm", total),
         warning: summary.warningVms,
         unprotected: summary.unprotectedVms,
       });

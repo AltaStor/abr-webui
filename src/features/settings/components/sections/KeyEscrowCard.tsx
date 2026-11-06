@@ -31,6 +31,7 @@ import { downloadBlob } from "@/lib/download";
 import { apiErrorMessage, exportCatalogSnapshot } from "@/services/api.http";
 import { useWorldStore } from "@/store/world";
 import { SettingsSection } from "../SettingsSection";
+import { countOf } from "@/lib/count";
 
 /** The appliance's own floor for the archive password (`MIN_PASSWORD_LENGTH`). */
 const MIN_EXPORT_PASSWORD_LENGTH = 8;
@@ -66,8 +67,8 @@ export function KeyEscrowCard() {
       downloadBlob(filename, blob);
       toast.success(t("security.keyEscrow.toast.done"), {
         description: t("security.keyEscrow.toast.doneDescription", {
-          jobs: counts.jobs ?? 0,
-          backups: counts.backups ?? 0,
+          jobs: countOf("job", counts.jobs ?? 0),
+          backups: countOf("backup", counts.backups ?? 0),
         }),
       });
       setPassword("");

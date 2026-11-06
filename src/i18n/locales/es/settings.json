@@ -319,7 +319,7 @@
       "exporting": "Exportando…",
       "toast": {
         "done": "Catálogo exportado",
-        "doneDescription": "{{jobs}} trabajos y {{backups}} copias, con sus claves de cifrado. Guárdelo fuera de este dispositivo.",
+        "doneDescription": "{{jobs}} y {{backups}}, con sus claves de cifrado. Guárdelo fuera de este dispositivo.",
         "failed": "No se pudo exportar el catálogo",
         "failedDescription": "El dispositivo no generó ningún archivo. Inténtelo de nuevo en un momento."
       }

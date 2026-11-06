@@ -8,7 +8,7 @@
   "header": {
     "loading": "Chargement de l'état de protection…",
     "unavailable": "État de protection indisponible",
-    "descriptionVmOnly": "Protection de {{protected}} VM sur {{total}} dans {{env}} environnements · {{points}} points de restauration",
+    "descriptionVmOnly": "Protection de {{protected}} VM sur {{total}} dans {{envs}} · {{points}}",
     "descriptionWithPhysical": "Protection de {{protected}} VM sur {{total}} et de {{physicalProtected}} serveurs physiques sur {{physicalTotal}} dans {{env}} environnements · {{points}} points de restauration"
   },
   "error": {
@@ -24,17 +24,18 @@
     },
     "success": {
       "label": "Taux de réussite sur 24 h",
-      "hint": "{{runs}} exécutions · {{failed}} en échec",
+      "hint": "{{runs}} · {{failed}} en échec",
       "drill": "Activité"
     }
   },
   "activity": {
     "title": "Activité de sauvegarde",
-    "subtitle": "14 derniers jours · {{count}} exécutions",
+    "subtitle_one": "14 derniers jours · {{count}} exécution",
+    "subtitle_other": "14 derniers jours · {{count}} exécutions",
     "successRate": "taux de réussite sur la période",
     "noRuns": "aucune exécution sur la période",
     "totalRuns": "Exécutions totales",
-    "ariaLabel": "Activité de sauvegarde : {{rate}} % de réussite sur {{days}} jours, {{runs}} exécutions au total, {{failed}} en échec.",
+    "ariaLabel": "Activité de sauvegarde : {{rate}} % de réussite sur {{days}}, {{runs}} au total, {{failed}} en échec.",
     "ariaLabelNoRuns": "Activité de sauvegarde : aucune exécution enregistrée sur {{days}} jours, il n'y a donc aucun taux de réussite."
   },
   "donut": {

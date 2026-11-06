@@ -21,6 +21,7 @@ import {
 } from "@/components/charts";
 import { DUR, EASE_BRAND } from "@/lib/motion";
 import type { ActivityPoint } from "@/types";
+import { countOf } from "@/lib/count";
 
 interface Props {
   data: ActivityPoint[];
@@ -85,7 +86,12 @@ export function ActivityTimeline({ data }: Props) {
   const chartLabel =
     rate === null
       ? t("activity.ariaLabelNoRuns", { days: data.length })
-      : t("activity.ariaLabel", { rate, days: data.length, runs: totalRuns, failed: totalFailed });
+      : t("activity.ariaLabel", {
+          rate,
+          days: countOf("day", data.length),
+          runs: countOf("run", totalRuns),
+          failed: totalFailed,
+        });
 
   return (
     <Card className="flex h-full flex-col">

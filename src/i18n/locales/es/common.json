@@ -110,5 +110,27 @@
   "passwordInput": {
     "show": "Mostrar contraseña",
     "hide": "Ocultar contraseña"
+  },
+  "count": {
+    "environment_one": "{{count, number}} entorno",
+    "environment_other": "{{count, number}} entornos",
+    "host_one": "{{count, number}} host",
+    "host_other": "{{count, number}} hosts",
+    "vm_one": "{{count, number}} VM",
+    "vm_other": "{{count, number}} VMs",
+    "virtualMachine_one": "{{count, number}} máquina virtual",
+    "virtualMachine_other": "{{count, number}} máquinas virtuales",
+    "restorePoint_one": "{{count, number}} punto de restauración",
+    "restorePoint_other": "{{count, number}} puntos de restauración",
+    "run_one": "{{count, number}} ejecución",
+    "run_other": "{{count, number}} ejecuciones",
+    "job_one": "{{count, number}} trabajo",
+    "job_other": "{{count, number}} trabajos",
+    "backup_one": "{{count, number}} copia",
+    "backup_other": "{{count, number}} copias",
+    "day_one": "{{count, number}} día",
+    "day_other": "{{count, number}} días",
+    "core_one": "{{count, number}} núcleo",
+    "core_other": "{{count, number}} núcleos"
   }
 }

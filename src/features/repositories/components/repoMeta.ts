@@ -16,6 +16,7 @@ import {
 import type { Repository, RepositoryType } from "@/types";
 import type { Tone } from "@/lib/status";
 import i18n from "@/i18n";
+import { countOf } from "@/lib/count";
 
 /** Friendly label + icon for each repository backend type.
  *  `label`/`short` are getters resolving through i18next at access time, so every
@@ -130,6 +131,6 @@ export function immutabilityLabel(repo: Repository): string | null {
   if (!lock || lock.mode === "none" || lock.retentionDays <= 0) return null;
   return i18n.t("repositories:immutability.summary", {
     mode: i18n.t(`repositories:immutability.mode.${lock.mode}`),
-    days: lock.retentionDays,
+    days: countOf("day", lock.retentionDays),
   });
 }

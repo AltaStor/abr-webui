@@ -3,7 +3,7 @@
     "title": "Inventory"
   },
   "header": {
-    "description": "{{vms}} virtual machines across {{envs}} environments · {{running}} powered on",
+    "description": "{{vms}} across {{envs}} · {{running}} powered on",
     "physicalSuffix_one": " · {{count}} physical server",
     "physicalSuffix_other": " · {{count}} physical servers"
   },
@@ -110,7 +110,8 @@
     "physicalHost": "Physical server"
   },
   "coverage": {
-    "vms": "VMs",
+    "vms_one": "VM",
+    "vms_other": "VMs",
     "sources": "sources",
     "running": "running",
     "vmsRunning": "VMs running",
@@ -353,7 +354,7 @@
   },
   "removeEnvironment": {
     "title": "Remove {{name}}?",
-    "description": "Stops discovery and removes <1>{{hosts}} hosts and {{vms}} VMs</1> from Inventory. Existing restore points are kept and stay restorable.",
+    "description": "Stops discovery and removes <1>{{hosts}} and {{vms}}</1> from Inventory. Existing restore points are kept and stay restorable.",
     "jobsBlock_one": "<1>{{count}}</1> job still targets this environment — repoint or remove it first.",
     "jobsBlock_other": "<1>{{count}}</1> jobs still target this environment — repoint or remove them first.",
     "jobsWarning_one": "<1>{{count}}</1> job currently targets this environment. It will fail on the next run until re-pointed at another environment.",
@@ -484,7 +485,7 @@
       "encryptionOn": "AES-256 at rest",
       "encryptionOff": "Off",
       "immutability": "Immutability",
-      "immutabilityOn": "Locked for {{days}} days",
+      "immutabilityOn": "Locked for {{days}}",
       "immutabilityOff": "Not locked",
       "retention": "Retention",
       "retentionDays_one": "{{count}} day",

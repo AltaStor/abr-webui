@@ -6,6 +6,7 @@ import { useTranslation } from "react-i18next";
 import { AlertTriangle, XCircle } from "@/lib/icons";
 import { cn } from "@/lib/utils";
 import type { JobLastRun, JobRunResult, Session } from "@/types";
+import { countOf } from "@/lib/count";
 
 type RunProblem = Extract<JobRunResult, "failed" | "stopped" | "warning">;
 
@@ -15,10 +16,16 @@ function useRunSummary(run: JobLastRun | null | undefined): string | null {
   const { t } = useTranslation("jobs");
   if (!run) return null;
   if (run.result === "running") {
-    return t("runResult.running", { done: run.vmCount - run.running, total: run.vmCount });
+    return t("runResult.running", {
+      done: run.vmCount - run.running,
+      total: run.vmCount,
+      vms: countOf("vm", run.vmCount),
+    });
   }
   const worst = PROBLEMS.find((result) => run[result] > 0);
-  return worst ? t(`runResult.${worst}`, { count: run[worst], total: run.vmCount }) : null;
+  return worst
+    ? t(`runResult.${worst}`, { count: run[worst], total: run.vmCount, vms: countOf("vm", run.vmCount) })
+    : null;
 }
 
 export function LastRunCounts({ run }: { run?: JobLastRun | null }) {

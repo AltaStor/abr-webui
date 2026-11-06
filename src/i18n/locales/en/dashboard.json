@@ -8,7 +8,7 @@
   "header": {
     "loading": "Loading protection posture…",
     "unavailable": "Protection posture unavailable",
-    "descriptionVmOnly": "Protecting {{protected}} of {{total}} VMs across {{env}} environments · {{points}} restore points",
+    "descriptionVmOnly": "Protecting {{protected}} of {{vms}} across {{envs}} · {{points}}",
     "descriptionWithPhysical": "Protecting {{protected}} of {{total}} VMs and {{physicalProtected}} of {{physicalTotal}} physical servers across {{env}} environments · {{points}} restore points"
   },
   "error": {
@@ -19,28 +19,29 @@
   "kpi": {
     "coverage": {
       "label": "Protection coverage",
-      "hint": "{{protected}} of {{total}} VMs protected",
+      "hint": "{{protected}} of {{vms}} protected",
       "drill": "{{count}} unprotected"
     },
     "success": {
       "label": "24h success rate",
-      "hint": "{{runs}} runs · {{failed}} failed",
+      "hint": "{{runs}} · {{failed}} failed",
       "drill": "Activity"
     }
   },
   "activity": {
     "title": "Backup activity",
-    "subtitle": "Last 14 days · {{count}} runs",
+    "subtitle_one": "Last 14 days · {{count}} run",
+    "subtitle_other": "Last 14 days · {{count}} runs",
     "successRate": "success rate over the window",
     "noRuns": "no runs in the window",
     "totalRuns": "Total runs",
-    "ariaLabel": "Backup activity: {{rate}}% success over {{days}} days, {{runs}} total runs, {{failed}} failed.",
+    "ariaLabel": "Backup activity: {{rate}}% success over {{days}}, {{runs}} in total, {{failed}} failed.",
     "ariaLabelNoRuns": "Backup activity: no runs recorded over {{days}} days, so there is no success rate."
   },
   "donut": {
     "title": "Protection status",
     "center": "{{protected}} of {{total}} protected",
-    "ariaLabel": "Protection: {{coverage}}% of {{total}} VMs protected, {{warning}} at risk, {{unprotected}} unprotected."
+    "ariaLabel": "Protection: {{coverage}}% of {{vms}} protected, {{warning}} at risk, {{unprotected}} unprotected."
   },
   "live": {
     "title": "Live activity",

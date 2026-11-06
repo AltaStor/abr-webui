@@ -3,7 +3,7 @@
     "title": "Inventaire"
   },
   "header": {
-    "description": "{{vms}} machines virtuelles réparties sur {{envs}} environnements · {{running}} sous tension",
+    "description": "{{vms}} sur {{envs}} · {{running}} sous tension",
     "physicalSuffix_one": " · {{count}} serveur physique",
     "physicalSuffix_other": " · {{count}} serveurs physiques"
   },
@@ -110,7 +110,8 @@
     "physicalHost": "Serveur physique"
   },
   "coverage": {
-    "vms": "VM",
+    "vms_one": "VM",
+    "vms_other": "VM",
     "sources": "sources",
     "running": "en cours d’exécution",
     "vmsRunning": "VM en cours d’exécution",
@@ -353,7 +354,7 @@
   },
   "removeEnvironment": {
     "title": "Retirer {{name}} ?",
-    "description": "Arrête la découverte et retire <1>{{hosts}} hôtes et {{vms}} VM</1> de l'inventaire. Les points de restauration existants sont conservés et restent restaurables.",
+    "description": "Arrête la découverte et retire <1>{{hosts}} et {{vms}}</1> de l'inventaire. Les points de restauration existants sont conservés et restent restaurables.",
     "jobsBlock_one": "<1>{{count}}</1> tâche cible encore cet environnement — réorientez-la ou supprimez-la d'abord.",
     "jobsBlock_other": "<1>{{count}}</1> tâches ciblent encore cet environnement — réorientez-les ou supprimez-les d'abord.",
     "jobsWarning_one": "<1>{{count}}</1> tâche cible actuellement cet environnement. Elle échouera à la prochaine exécution tant qu'elle ne sera pas réorientée vers un autre environnement.",
@@ -484,7 +485,7 @@
       "encryptionOn": "AES-256 au repos",
       "encryptionOff": "Désactivé",
       "immutability": "Immuabilité",
-      "immutabilityOn": "Verrouillé {{days}} jours",
+      "immutabilityOn": "Verrouillé {{days}}",
       "immutabilityOff": "Non verrouillé",
       "retention": "Rétention",
       "retentionDays_one": "{{count}} jour",

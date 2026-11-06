@@ -8,7 +8,7 @@
   "header": {
     "loading": "Cargando estado de protección…",
     "unavailable": "Estado de protección no disponible",
-    "descriptionVmOnly": "Protegiendo {{protected}} de {{total}} VMs en {{env}} entornos · {{points}} puntos de restauración",
+    "descriptionVmOnly": "Protegiendo {{protected}} de {{vms}} en {{envs}} · {{points}}",
     "descriptionWithPhysical": "Protegiendo {{protected}} de {{total}} VMs y {{physicalProtected}} de {{physicalTotal}} servidores físicos en {{env}} entornos · {{points}} puntos de restauración"
   },
   "error": {
@@ -19,28 +19,29 @@
   "kpi": {
     "coverage": {
       "label": "Cobertura de protección",
-      "hint": "{{protected}} de {{total}} VMs protegidas",
+      "hint": "{{protected}} de {{vms}} protegidas",
       "drill": "{{count}} sin proteger"
     },
     "success": {
       "label": "Tasa de éxito en 24 h",
-      "hint": "{{runs}} ejecuciones · {{failed}} fallidas",
+      "hint": "{{runs}} · {{failed}} fallidas",
       "drill": "Actividad"
     }
   },
   "activity": {
     "title": "Actividad de copias de seguridad",
-    "subtitle": "Últimos 14 días · {{count}} ejecuciones",
+    "subtitle_one": "Últimos 14 días · {{count}} ejecución",
+    "subtitle_other": "Últimos 14 días · {{count}} ejecuciones",
     "successRate": "tasa de éxito en el periodo",
     "noRuns": "sin ejecuciones en el periodo",
     "totalRuns": "Ejecuciones totales",
-    "ariaLabel": "Actividad de copias de seguridad: {{rate}} % de éxito en {{days}} días, {{runs}} ejecuciones totales, {{failed}} fallidas.",
+    "ariaLabel": "Actividad de copias de seguridad: {{rate}} % de éxito en {{days}}, {{runs}} en total, {{failed}} fallidas.",
     "ariaLabelNoRuns": "Actividad de copias de seguridad: no se registraron ejecuciones en {{days}} días, por lo que no hay tasa de éxito."
   },
   "donut": {
     "title": "Estado de protección",
     "center": "{{protected}} de {{total}} protegidas",
-    "ariaLabel": "Protección: {{coverage}} % de {{total}} VMs protegidas, {{warning}} fuera de RPO, {{unprotected}} sin proteger."
+    "ariaLabel": "Protección: {{coverage}} % de {{vms}} protegidas, {{warning}} fuera de RPO, {{unprotected}} sin proteger."
   },
   "live": {
     "title": "Actividad en vivo",

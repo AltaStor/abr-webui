@@ -80,6 +80,7 @@ import {
   CopyWindowEditor,
   copyWindowRuleProblem,
 } from "./components/BackupCopyFields";
+import { countOf } from "@/lib/count";
 
 type Preset = "hourly" | "every4h" | "daily" | "weekly";
 type JobTypeChoice = "backup" | "replication" | "backup-copy";
@@ -1185,7 +1186,7 @@ function JobWizard({
                           <span className="flex items-center gap-2">
                             {h.name}
                             <span className="text-[11px] text-muted-foreground">
-                              · {t("create.hostSpec", { cores: h.cpuCores, ram: formatStorage(h.memoryGB) })}
+                              · {t("create.hostSpec", { cores: countOf("core", h.cpuCores), ram: formatStorage(h.memoryGB) })}
                             </span>
                           </span>
                         </SelectItem>

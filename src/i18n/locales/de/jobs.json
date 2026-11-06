@@ -342,7 +342,8 @@
     "nextRun": "Nächste Ausführung",
     "notScheduled": "Nicht geplant",
     "retention": "Aufbewahrung",
-    "daysValue": "{{count}} Tage",
+    "daysValue_one": "{{count}} Tag",
+    "daysValue_other": "{{count}} Tage",
     "gfsLongTerm": "+ GFS Langzeit"
   },
   "detailTabs": {
@@ -667,7 +668,7 @@
     },
     "kpi": {
       "points": "Wiederherstellungspunkte",
-      "acrossObjects": "Über {{jobs}} Jobs · {{vms}} VMs",
+      "acrossObjects": "Über {{jobs}} · {{vms}}",
       "stored": "Gespeichert",
       "fromLogical": "Aus {{size}} Daten · komprimiert auf {{ratio}}",
       "fromLogicalNoRatio": "Aus {{size}} Daten",
@@ -891,7 +892,7 @@
     "replicaDiffEnv": "Ein Replikat landet normalerweise in einer anderen Umgebung als die Quelle.",
     "targetHost": "Zielhost",
     "autoPlace": "Auto — AltaStor platzieren lassen",
-    "hostSpec": "{{cores}} Kerne · {{ram}} RAM",
+    "hostSpec": "{{cores}} · {{ram}} RAM",
     "replicaPrefix": "Präfix des Replikatnamens",
     "replicasNamed": "Replikate werden <1>{{example}}</1> benannt.",
     "whereToStore": "Backup-Repository auswählen",

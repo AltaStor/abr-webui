@@ -17,6 +17,7 @@ import { toast } from "@/components/ui/sonner";
 import { useWorldStore } from "@/store/world";
 import type { BlockingJobRef } from "@/store/world.types";
 import type { Environment } from "@/types";
+import { countOf } from "@/lib/count";
 
 interface DeleteEnvironmentDialogProps {
   environment: Environment | null;
@@ -94,7 +95,7 @@ export function DeleteEnvironmentDialog({ environment, open, onOpenChange }: Del
             <Trans
               i18nKey="removeEnvironment.description"
               ns="inventory"
-              values={{ hosts: environment.hostCount, vms: environment.vmCount }}
+              values={{ hosts: countOf("host", environment.hostCount), vms: countOf("vm", environment.vmCount) }}
               components={{ 1: <span className="font-medium text-foreground" /> }}
             />
           </DialogDescription>

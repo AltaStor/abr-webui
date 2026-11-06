@@ -38,7 +38,8 @@ export function ProtectionCoverageStrip({ counts, total, running, exposedGB }: P
   // the tile stays grey rather than claiming a verdict it cannot have.
   const tone = rateTone(total ? coverage : null);
   const share = (n: number) => (total ? Math.round((n / total) * 100) : 0);
-  const noun = t("coverage.vms");
+  // The noun agrees with the number it follows: "0 of 1 VM", "2 VMs".
+  const noun = (n: number) => t("coverage.vms", { count: n });
 
   return (
     <KpiBand>
@@ -51,7 +52,7 @@ export function ProtectionCoverageStrip({ counts, total, running, exposedGB }: P
         hint={t("coverage.card.coverageHint", {
           protected: counts.protected,
           total,
-          noun,
+          noun: noun(total),
           running,
           runningLabel: t("coverage.running"),
         })}
@@ -63,7 +64,7 @@ export function ProtectionCoverageStrip({ counts, total, running, exposedGB }: P
         label={PROTECTION_META.warning.label}
         value={share(counts.warning)}
         format={(n) => `${Math.round(n)}%`}
-        hint={t("coverage.card.ofEstate", { count: counts.warning, noun })}
+        hint={t("coverage.card.ofEstate", { count: counts.warning, noun: noun(counts.warning) })}
       />
       <KpiCard
         icon={PROTECTION_META.unprotected.icon}
@@ -71,7 +72,7 @@ export function ProtectionCoverageStrip({ counts, total, running, exposedGB }: P
         label={PROTECTION_META.unprotected.label}
         value={share(counts.unprotected)}
         format={(n) => `${Math.round(n)}%`}
-        hint={t("coverage.card.ofEstate", { count: counts.unprotected, noun })}
+        hint={t("coverage.card.ofEstate", { count: counts.unprotected, noun: noun(counts.unprotected) })}
       />
       <KpiCard
         icon={Database}
@@ -83,7 +84,7 @@ export function ProtectionCoverageStrip({ counts, total, running, exposedGB }: P
         format={(n) => formatStorage(n, 0)}
         hint={t("coverage.card.exposedHint", {
           count: counts.warning + counts.unprotected,
-          noun,
+          noun: noun(counts.warning + counts.unprotected),
         })}
       />
     </KpiBand>

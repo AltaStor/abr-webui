@@ -3,7 +3,7 @@
     "title": "Inventar"
   },
   "header": {
-    "description": "{{vms}} virtuelle Maschinen in {{envs}} Umgebungen · {{running}} eingeschaltet",
+    "description": "{{vms}} in {{envs}} · {{running}} eingeschaltet",
     "physicalSuffix_one": " · {{count}} physischer Server",
     "physicalSuffix_other": " · {{count}} physische Server"
   },
@@ -110,7 +110,8 @@
     "physicalHost": "Physischer Server"
   },
   "coverage": {
-    "vms": "VMs",
+    "vms_one": "VM",
+    "vms_other": "VMs",
     "sources": "Quellen",
     "running": "aktiv",
     "vmsRunning": "VMs aktiv",
@@ -353,7 +354,7 @@
   },
   "removeEnvironment": {
     "title": "{{name}} entfernen?",
-    "description": "Beendet die Erkennung und entfernt <1>{{hosts}} Hosts und {{vms}} VMs</1> aus dem Inventar. Vorhandene Wiederherstellungspunkte bleiben erhalten und wiederherstellbar.",
+    "description": "Beendet die Erkennung und entfernt <1>{{hosts}} und {{vms}}</1> aus dem Inventar. Vorhandene Wiederherstellungspunkte bleiben erhalten und wiederherstellbar.",
     "jobsBlock_one": "<1>{{count}}</1> Job zielt noch auf diese Umgebung — richten Sie ihn zuerst neu aus oder entfernen Sie ihn.",
     "jobsBlock_other": "<1>{{count}}</1> Jobs zielen noch auf diese Umgebung — richten Sie sie zuerst neu aus oder entfernen Sie sie.",
     "jobsWarning_one": "<1>{{count}}</1> Job zielt derzeit auf diese Umgebung. Er wird beim nächsten Lauf fehlschlagen, bis er auf eine andere Umgebung ausgerichtet ist.",
@@ -484,7 +485,7 @@
       "encryptionOn": "AES-256 im Ruhezustand",
       "encryptionOff": "Aus",
       "immutability": "Unveränderlichkeit",
-      "immutabilityOn": "{{days}} Tage gesperrt",
+      "immutabilityOn": "{{days}} gesperrt",
       "immutabilityOff": "Nicht gesperrt",
       "retention": "Aufbewahrung",
       "retentionDays_one": "{{count}} Tag",

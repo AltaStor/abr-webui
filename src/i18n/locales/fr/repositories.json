@@ -67,7 +67,7 @@
     }
   },
   "immutability": {
-    "summary": "Verrou {{mode}} · {{days}} jours",
+    "summary": "Verrou {{mode}} · {{days}}",
     "mode": {
       "governance": "Governance",
       "compliance": "Compliance"

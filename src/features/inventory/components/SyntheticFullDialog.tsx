@@ -46,6 +46,7 @@ import {
 } from "@/lib/synthetic-full";
 import { useWorldStore } from "@/store/world";
 import { DateTime } from "@/components/DateTime";
+import { countOf } from "@/lib/count";
 
 interface SyntheticFullDialogProps {
   /** The VM whose chain is being merged. Only an id and a display name — the
@@ -342,7 +343,7 @@ export function SyntheticFullDialog({
                     value={
                       targetRepository?.immutability && targetRepository.immutability.mode !== "none"
                         ? t("syntheticFull.inherited.immutabilityOn", {
-                            days: targetRepository.immutability.retentionDays,
+                            days: countOf("day", targetRepository.immutability.retentionDays),
                           })
                         : t("syntheticFull.inherited.immutabilityOff")
                     }

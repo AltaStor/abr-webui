@@ -319,7 +319,7 @@
       "exporting": "Wird exportiert…",
       "toast": {
         "done": "Katalog exportiert",
-        "doneDescription": "{{jobs}} Jobs und {{backups}} Backups samt ihren Verschlüsselungsschlüsseln. Bewahren Sie das Archiv außerhalb dieser Appliance auf.",
+        "doneDescription": "{{jobs}} und {{backups}} samt ihren Verschlüsselungsschlüsseln. Bewahren Sie das Archiv außerhalb dieser Appliance auf.",
         "failed": "Katalog konnte nicht exportiert werden",
         "failedDescription": "Die Appliance hat kein Archiv erzeugt. Versuchen Sie es gleich noch einmal."
       }
