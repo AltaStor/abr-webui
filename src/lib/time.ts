@@ -63,11 +63,12 @@ export function displayPreferences(): DisplayPreferences {
 
 let browserZone: string | null = null;
 
-/** The browser's IANA zone, which its operating system sets. */
+/** The browser's IANA zone, which its operating system sets, by its current
+ *  name ("Europe/Kyiv", though the browser says "Europe/Kiev"). */
 export function browserTimeZone(): string {
   if (browserZone === null) {
     try {
-      browserZone = Intl.DateTimeFormat().resolvedOptions().timeZone || UTC;
+      browserZone = preferredZoneName(Intl.DateTimeFormat().resolvedOptions().timeZone || UTC);
     } catch {
       browserZone = UTC;
     }
@@ -83,7 +84,7 @@ export function userTimeZone(): string {
 
 /** The zone a time zone setting prints in. */
 export function resolveTimeZone(setting: string): string {
-  return setting !== AUTO_TIME_ZONE && isValidTimeZone(setting) ? setting : browserTimeZone();
+  return setting !== AUTO_TIME_ZONE && isValidTimeZone(setting) ? preferredZoneName(setting) : browserTimeZone();
 }
 
 const zoneValidity = new Map<string, boolean>();
@@ -104,7 +105,7 @@ export function isValidTimeZone(zone: string | null | undefined): zone is string
   return valid;
 }
 
-/** Every zone the browser knows, for a picker; UTC first. */
+/** Every zone the browser knows, by current names, for a picker; UTC first. */
 export function allTimeZones(): string[] {
   let zones: string[] = [];
   try {
@@ -112,7 +113,7 @@ export function allTimeZones(): string[] {
   } catch {
     /* an older browser: the picker still offers the zones named below */
   }
-  return [UTC, ...zones.filter((z) => z !== UTC)];
+  return [UTC, ...new Set(zones.filter((z) => z !== UTC).map(preferredZoneName))];
 }
 
 /** `zone` if the browser can use it, else UTC — what the appliance falls back
@@ -231,10 +232,14 @@ export function scheduleZoneName(zone: string | null | undefined): string {
   return /^(Etc\/)?(UTC|GMT|Zulu|Universal|UCT)$/i.test(zone) ? UTC : zone;
 }
 
-/* Browsers list zones by their CLDR names, which keep some names IANA has
- * since replaced: Chrome and Node list "Asia/Calcutta" and "Europe/Kiev", not
- * "Asia/Kolkata" or "Europe/Kyiv". Both spellings work everywhere; this is
- * only how the zone picker names and finds them. */
+/* Browsers report zones by their CLDR names, which keep some names IANA has
+ * since replaced: Chrome, Firefox and Node say "Asia/Calcutta" and
+ * "Europe/Kiev", not "Asia/Kolkata" or "Europe/Kyiv". Browsers accept both,
+ * but an appliance on Debian 13 knows only the current names (the old ones
+ * are in tzdata-legacy, which it does not have) and refused a job saved as
+ * "Europe/Kiev". So the console uses the current names throughout and sends
+ * nothing else. The appliance keeps the same table (RENAMED_ZONES in
+ * python/srv/core/time_zones.py) for older clients and catalogs. */
 const RENAMED_ZONES: Record<string, string> = {
   "Africa/Asmera": "Africa/Asmara",
   "America/Buenos_Aires": "America/Argentina/Buenos_Aires",
@@ -257,9 +262,18 @@ const RENAMED_ZONES: Record<string, string> = {
   "Pacific/Truk": "Pacific/Chuuk",
 };
 
-/** A zone's current IANA name: "Europe/Kiev" → "Europe/Kyiv". */
+/** A zone's current IANA name: "Europe/Kiev" → "Europe/Kyiv". What a zone is
+ *  sent to the appliance as. */
 export function currentZoneName(zone: string): string {
   return RENAMED_ZONES[zone] ?? zone;
+}
+
+/** `currentZoneName`, where this browser computes with the current name too
+ *  (any current one does; an old one may not), so that a zone the browser
+ *  reports and the same zone the appliance reports compare equal. */
+export function preferredZoneName(zone: string): string {
+  const current = currentZoneName(zone);
+  return current !== zone && isValidTimeZone(current) ? current : zone;
 }
 
 /** The place an IANA zone is named after, by its current name:

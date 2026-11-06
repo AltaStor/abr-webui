@@ -13,6 +13,7 @@ import {
   currentZoneName,
   isValidTimeZone,
   offsetMinutes,
+  preferredZoneName,
   zonePickerLabel,
 } from "@/lib/time";
 
@@ -33,6 +34,8 @@ export function TimeZonePicker({
 }) {
   const { t } = useTranslation("settings");
   const [open, setOpen] = useState(false);
+  // A zone saved by its old name ("Europe/Kiev") is listed by its current one.
+  const saved = value === AUTO_TIME_ZONE ? value : preferredZoneName(value);
 
   // Recomputed on each opening: the offsets are today's.
   const zones = useMemo(() => {
@@ -40,11 +43,11 @@ export function TimeZonePicker({
     const now = Date.now();
     const names = allTimeZones();
     // A saved zone this browser lists under another name stays selectable.
-    if (value !== AUTO_TIME_ZONE && isValidTimeZone(value) && !names.includes(value)) names.push(value);
+    if (saved !== AUTO_TIME_ZONE && isValidTimeZone(saved) && !names.includes(saved)) names.push(saved);
     return names
       .map((zone) => ({ zone, offset: offsetMinutes(zone, now), label: zonePickerLabel(zone, now) }))
       .sort((a, b) => a.offset - b.offset || a.label.localeCompare(b.label));
-  }, [open, value]);
+  }, [open, saved]);
 
   const autoLabel = t("appearance.timeZone.auto");
   const browserLabel = zonePickerLabel(browserTimeZone());
@@ -78,7 +81,7 @@ export function TimeZonePicker({
       </PopoverTrigger>
       <PopoverContent align="end" className="w-[min(22rem,calc(100vw-2rem))] p-0">
         <Command
-          defaultValue={auto ? AUTO_TIME_ZONE : value}
+          defaultValue={auto ? AUTO_TIME_ZONE : saved}
           filter={(item, search, keywords) => {
             const text = `${item} ${keywords?.join(" ") ?? ""}`.toLowerCase();
             return search
@@ -114,7 +117,7 @@ export function TimeZonePicker({
                 key={zone}
                 value={zone}
                 keywords={[label, currentZoneName(zone)]}
-                selected={!auto && zone === value}
+                selected={!auto && zone === saved}
                 onSelect={() => choose(zone)}
               >
                 <span className="nums truncate">{label}</span>

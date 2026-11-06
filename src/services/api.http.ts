@@ -28,7 +28,7 @@
  * is a polling loop (see the bottom of the file).
  */
 import { fileStamp } from "@/lib/download";
-import { userTimeZone } from "@/lib/time";
+import { currentZoneName, userTimeZone } from "@/lib/time";
 import { deleteRunName, restoreRunName, verifyRunName } from "@/lib/format";
 import { copyScopeSummary, mapBackupCopy, mapCopySource, windowRuleToWire } from "@/lib/backup-copy";
 import { useWorldStore } from "@/store/world";
@@ -1689,8 +1689,9 @@ export interface CreateJobPayload {
 /** Domain Schedule → orchestrator schedule dict. */
 function scheduleToWire(s: Schedule): Dict {
   // The form always names one; the browser's zone is what a time typed
-  // without one means to the person who typed it.
-  const timezone = s.timezone || userTimeZone();
+  // without one means to the person who typed it. Sent by its current name:
+  // an appliance on Debian 13 refuses "Europe/Kiev".
+  const timezone = currentZoneName(s.timezone || userTimeZone());
   switch (s.frequency) {
     case "weekly":
       // The API validates weekdays as "Mon".."Sun" names (DAY_ALIASES in
@@ -1715,7 +1716,7 @@ function scheduleToWire(s: Schedule): Dict {
 
 /** Domain full schedule → the dict `normalize_schedule_payload` reads. */
 function fullScheduleToWire(s: FullBackupSchedule): Dict {
-  const common = { enabled: s.enabled, timezone: s.timezone || userTimeZone() };
+  const common = { enabled: s.enabled, timezone: currentZoneName(s.timezone || userTimeZone()) };
   const time = s.atTime ?? "00:00";
   switch (s.frequency) {
     case "weekly":

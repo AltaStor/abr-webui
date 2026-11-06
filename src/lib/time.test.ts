@@ -6,14 +6,18 @@
 import { afterEach, describe, test } from "node:test";
 import assert from "node:assert/strict";
 import {
+  allTimeZones,
   AUTO_TIME_ZONE,
   browserTimeZone,
+  currentZoneName,
   DEFAULT_DISPLAY_PREFERENCES,
   formatDate,
   formatDateTime,
   formatTime,
   formatWallClock,
   instantAt,
+  preferredZoneName,
+  resolveTimeZone,
   setDisplayPreferences,
   userTimeZone,
   utcTitle,
@@ -167,7 +171,7 @@ describe("display zone", () => {
   test("Auto is the browser's zone", () => {
     setDisplayPreferences({ timeZone: AUTO_TIME_ZONE });
     assert.equal(userTimeZone(), browserTimeZone());
-    assert.equal(browserTimeZone(), Intl.DateTimeFormat().resolvedOptions().timeZone);
+    assert.equal(browserTimeZone(), preferredZoneName(Intl.DateTimeFormat().resolvedOptions().timeZone));
   });
 
   test("a picked zone is used", () => {
@@ -178,5 +182,31 @@ describe("display zone", () => {
   test("a saved zone this browser does not know falls back to the browser's", () => {
     setDisplayPreferences({ timeZone: "Mars/Olympus_Mons" });
     assert.equal(userTimeZone(), browserTimeZone());
+  });
+});
+
+describe("old zone names", () => {
+  // Browsers report Kyiv as "Europe/Kiev"; an appliance on Debian 13 refused a
+  // job saved with it ("Unknown time zone 'Europe/Kiev'").
+  test("the console uses the current name", () => {
+    assert.equal(preferredZoneName("Europe/Kiev"), "Europe/Kyiv");
+    assert.equal(preferredZoneName("Asia/Calcutta"), "Asia/Kolkata");
+    assert.equal(preferredZoneName("Europe/Berlin"), "Europe/Berlin");
+    assert.equal(resolveTimeZone("Europe/Kiev"), "Europe/Kyiv");
+    setDisplayPreferences({ timeZone: "Asia/Saigon" });
+    assert.equal(userTimeZone(), "Asia/Ho_Chi_Minh");
+  });
+
+  test("the zone list has no old names", () => {
+    const zones = allTimeZones();
+    assert.ok(zones.includes("Europe/Kyiv"));
+    assert.ok(!zones.includes("Europe/Kiev"));
+    assert.equal(zones.filter((zone) => currentZoneName(zone) !== zone).length, 0);
+    assert.equal(new Set(zones).size, zones.length);
+  });
+
+  test("the appliance is sent the current name", () => {
+    assert.equal(currentZoneName("Europe/Kiev"), "Europe/Kyiv");
+    assert.equal(currentZoneName("UTC"), "UTC");
   });
 });

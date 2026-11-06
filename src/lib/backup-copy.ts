@@ -9,7 +9,7 @@
  * functions here mirror it and are named after the parts they mirror.
  */
 import i18n from "@/i18n";
-import { instantAt, wallTime } from "@/lib/time";
+import { currentZoneName, instantAt, wallTime } from "@/lib/time";
 import type {
   BackupCopySettings,
   BackupJob,
@@ -73,7 +73,7 @@ export function windowRuleToWire(rule: CopyWindowRule): Dict {
     days: WEEK_ORDER.filter((d) => rule.daysOfWeek.includes(d)).map((d) => WIRE_DAYS[d]),
     start: rule.start,
     end: rule.end === "00:00" ? "24:00" : rule.end,
-    ...(rule.timezone ? { timezone: rule.timezone } : {}),
+    ...(rule.timezone ? { timezone: currentZoneName(rule.timezone) } : {}),
   };
 }
 
