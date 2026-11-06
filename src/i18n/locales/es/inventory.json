@@ -446,15 +446,19 @@
     "doneDesc_one": "{{count}} entorno actualizado.",
     "doneDesc_other": "{{count}} entornos actualizados.",
     "failedTitle": "El reescaneo falló",
-    "failedDesc_one": "La appliance no pudo contactar con {{count}} entorno, así que no se actualizó nada.",
-    "failedDesc_other": "La appliance no pudo contactar con {{count}} entornos, así que no se actualizó nada.",
+    "failedDesc_one": "No se pudo reescanear el entorno, así que no se actualizó nada.",
+    "failedDesc_other": "No se pudo reescanear ninguno de los {{count}} entornos, así que no se actualizó nada.",
     "partialTitle": "Reescaneo parcialmente completado",
-    "partialDesc": "Se actualizaron {{ok}} de {{total}} entornos; con el resto la appliance no pudo contactar.",
+    "partialDesc": "Se actualizaron {{ok}} de {{total}} entornos; los demás no se pudieron reescanear.",
     "oneDoneTitle": "{{name}} reescaneado",
     "oneDoneDesc_one": "{{count}} VM encontrada.",
     "oneDoneDesc_other": "{{count}} VMs encontradas.",
     "oneFailedTitle": "No se pudo reescanear {{name}}",
-    "oneFailedDesc": "La appliance no pudo contactar con él, así que su inventario no ha cambiado."
+    "oneFailedDesc": "Su inventario no ha cambiado.",
+    "failedCause": "{{name}}: {{reason}}",
+    "noReason": "la appliance no indicó el motivo",
+    "moreFailed_one": "…y {{count}} más.",
+    "moreFailed_other": "…y {{count}} más."
   },
   "syntheticFull": {
     "action": "Completo sintético",

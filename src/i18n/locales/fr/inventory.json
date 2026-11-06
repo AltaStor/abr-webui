@@ -446,15 +446,19 @@
     "doneDesc_one": "{{count}} environnement actualisé.",
     "doneDesc_other": "{{count}} environnements actualisés.",
     "failedTitle": "Échec de la nouvelle analyse",
-    "failedDesc_one": "L’appliance n’a pas pu joindre {{count}} environnement ; rien n’a été actualisé.",
-    "failedDesc_other": "L’appliance n’a pas pu joindre {{count}} environnements ; rien n’a été actualisé.",
+    "failedDesc_one": "L’environnement n’a pas pu être réanalysé ; rien n’a été actualisé.",
+    "failedDesc_other": "Aucun des {{count}} environnements n’a pu être réanalysé ; rien n’a été actualisé.",
     "partialTitle": "Nouvelle analyse partiellement terminée",
-    "partialDesc": "{{ok}} environnements sur {{total}} ont été actualisés ; l’appliance n’a pas pu joindre les autres.",
+    "partialDesc": "{{ok}} environnements sur {{total}} ont été actualisés ; les autres n’ont pas pu être réanalysés.",
     "oneDoneTitle": "{{name}} réanalysé",
     "oneDoneDesc_one": "{{count}} VM trouvée.",
     "oneDoneDesc_other": "{{count}} VMs trouvées.",
     "oneFailedTitle": "Impossible de réanalyser {{name}}",
-    "oneFailedDesc": "L’appliance n’a pas pu le joindre — son inventaire reste inchangé."
+    "oneFailedDesc": "Son inventaire reste inchangé.",
+    "failedCause": "{{name}} : {{reason}}",
+    "noReason": "l’appliance n’a donné aucune raison",
+    "moreFailed_one": "…et {{count}} autre.",
+    "moreFailed_other": "…et {{count}} autres."
   },
   "syntheticFull": {
     "action": "Complète synthétique",

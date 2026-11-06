@@ -54,6 +54,7 @@ import type {
 import type {
   BlockingJobRef,
   EnvDeleteResult,
+  RescanOutcome,
   RepoDeleteResult,
   RepositoryWriteResult,
   RestorePointDeleteResult,
@@ -936,7 +937,7 @@ export function createSimDriver(handle: WorldHandle): WorldDriver {
 
     rescanEnvironment: (id) => {
       const env = handle.get().environments.find((e) => e.id === id);
-      return Promise.resolve(env ? { vmCount: env.vmCount } : null);
+      return Promise.resolve<RescanOutcome>(env ? { ok: true, vmCount: env.vmCount } : { ok: false, reason: null });
     },
 
     /* --------------------------- startRestore -------------------------- */

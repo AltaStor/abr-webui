@@ -199,25 +199,25 @@ export function AddEnvironmentDialog({
   /**
    * Discovery, once the record exists. Deliberately NOT awaited by `submit`:
    * the dialog is already closed by the time this runs, so a vCenter that never
-   * answers costs the operator nothing but a pending toast. Reads the outcome
-   * back off the store rather than off `rescanEnvironment`'s return value,
-   * because the appliance persists the specific failure reason on the record
-   * (`statusError`) while the action itself only reports null.
+   * answers costs the operator nothing but a pending toast. The reason is the
+   * one the rescan returns, or else the one the appliance persisted on the
+   * record (`statusError`).
    */
   const discover = (environmentId: string, platform: string, endpoint: string) => {
     const settled = toast.loading(t("addEnvironment.toast.discovering", { platform }), {
       description: t("addEnvironment.toast.discoveringDesc", { endpoint }),
     });
-    void rescanEnvironment(environmentId).then(() => {
+    void rescanEnvironment(environmentId).then((result) => {
       const env = useWorldStore.getState().environments.find((e) => e.id === environmentId);
-      if (env?.statusError) {
+      const reason = result.ok ? null : (result.reason ?? env?.statusError ?? null);
+      if (reason) {
         // Created, but the scan failed (e.g. a self-signed cert rejected with
         // "Skip TLS verification" off) — surface the appliance's own reason
         // instead of a silent "Disconnected" to go dig for. It also stays on
         // the environment in Inventory.
         toast.warning(t("addEnvironment.toast.discoveryFailed", { platform }), {
           id: settled,
-          description: env.statusError,
+          description: reason,
         });
         return;
       }

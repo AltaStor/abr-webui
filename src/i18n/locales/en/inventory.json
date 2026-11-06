@@ -446,15 +446,19 @@
     "doneDesc_one": "{{count}} environment refreshed.",
     "doneDesc_other": "{{count}} environments refreshed.",
     "failedTitle": "Rescan failed",
-    "failedDesc_one": "The appliance couldn’t reach {{count}} environment, so nothing was refreshed.",
-    "failedDesc_other": "The appliance couldn’t reach {{count}} environments, so nothing was refreshed.",
+    "failedDesc_one": "The environment could not be rescanned, so nothing was refreshed.",
+    "failedDesc_other": "None of the {{count}} environments could be rescanned, so nothing was refreshed.",
     "partialTitle": "Rescan partly complete",
-    "partialDesc": "{{ok}} of {{total}} environments were refreshed; the appliance couldn’t reach the rest.",
+    "partialDesc": "{{ok}} of {{total}} environments were refreshed; the others could not be rescanned.",
     "oneDoneTitle": "{{name}} rescanned",
     "oneDoneDesc_one": "{{count}} VM found.",
     "oneDoneDesc_other": "{{count}} VMs found.",
     "oneFailedTitle": "Couldn’t rescan {{name}}",
-    "oneFailedDesc": "The appliance couldn’t reach it, so its inventory is unchanged."
+    "oneFailedDesc": "Its inventory is unchanged.",
+    "failedCause": "{{name}}: {{reason}}",
+    "noReason": "the appliance gave no reason",
+    "moreFailed_one": "…and {{count}} more.",
+    "moreFailed_other": "…and {{count}} more."
   },
   "syntheticFull": {
     "action": "Synthetic full",

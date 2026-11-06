@@ -56,6 +56,38 @@ import { useCan } from "@/store/permissions";
 type PowerFilter = "all" | VM["powerState"];
 type OsFilter = "all" | VM["osFamily"];
 
+/** Long enough to read a cause such as "Hyper-V host 192.168.13.135 rejected
+ *  the credentials for …: Failed to authenticate the user … with ntlm". */
+const FAILED_RESCAN_TOAST_MS = 10_000;
+
+/** Shown for at most this many failed environments; the rest are counted. */
+const LISTED_RESCAN_FAILURES = 3;
+
+/** A "Rescan all" verdict: the summary line, then each failed environment
+ *  with the appliance's reason for it. */
+function RescanFailures({
+  summary,
+  failures,
+}: {
+  summary: string;
+  failures: { name: string; reason: string | null }[];
+}) {
+  const { t } = useTranslation("inventory");
+  const listed = failures.slice(0, LISTED_RESCAN_FAILURES);
+  const more = failures.length - listed.length;
+  return (
+    <span className="flex flex-col gap-1">
+      <span>{summary}</span>
+      {listed.map((f, i) => (
+        <span key={i} className="break-words">
+          {t("rescan.failedCause", { name: f.name, reason: f.reason ?? t("rescan.noReason") })}
+        </span>
+      ))}
+      {more > 0 && <span>{t("rescan.moreFailed", { count: more })}</span>}
+    </span>
+  );
+}
+
 function isProtectionStatus(v: string | null): v is ProtectionStatus {
   return v === "protected" || v === "warning" || v === "unprotected";
 }
@@ -190,28 +222,33 @@ export default function InventoryPage() {
   // hypervisors into the tree — used to live behind "Expand all" on the old
   // Topology tab; now a standalone action next to the estate navigator.
   //
-  // `rescanEnvironment` resolves to null when the appliance could not reach the
-  // environment, so every rescan has a verdict — and the operator gets it.
-  // Silence used to be the only outcome either way.
+  // Every rescan has a verdict, and a failed one carries the appliance's own
+  // reason: "the host rejected the credentials" and "the host did not answer"
+  // need different fixes, so the toast must not guess which it was.
   const handleRescan = async () => {
     if (rescanning || environments.length === 0) return;
     setRescanning(true);
     try {
       const results = await Promise.all(environments.map((env) => rescanEnvironment(env.id)));
-      const answered = results.filter((r) => r !== null).length;
+      const failures = environments.flatMap((env, i) => {
+        const r = results[i];
+        return r.ok ? [] : [{ name: env.name, reason: r.reason }];
+      });
       const total = results.length;
-      if (answered === total) {
+      const answered = total - failures.length;
+      if (failures.length === 0) {
         toast.success(t("rescan.doneTitle"), {
           description: t("rescan.doneDesc", { count: total }),
         });
-      } else if (answered === 0) {
-        toast.error(t("rescan.failedTitle"), {
-          description: t("rescan.failedDesc", { count: total }),
-        });
+        return;
+      }
+      const summary =
+        answered === 0 ? t("rescan.failedDesc", { count: total }) : t("rescan.partialDesc", { ok: answered, total });
+      const description = <RescanFailures summary={summary} failures={failures} />;
+      if (answered === 0) {
+        toast.error(t("rescan.failedTitle"), { description, duration: FAILED_RESCAN_TOAST_MS });
       } else {
-        toast.warning(t("rescan.partialTitle"), {
-          description: t("rescan.partialDesc", { ok: answered, total }),
-        });
+        toast.warning(t("rescan.partialTitle"), { description, duration: FAILED_RESCAN_TOAST_MS });
       }
     } finally {
       setRescanning(false);
@@ -220,13 +257,21 @@ export default function InventoryPage() {
 
   const handleRescanEnvironment = async (env: Environment) => {
     const result = await rescanEnvironment(env.id);
-    if (result) {
+    if (result.ok) {
       toast.success(t("rescan.oneDoneTitle", { name: env.name }), {
         description: t("rescan.oneDoneDesc", { count: result.vmCount }),
       });
     } else {
       toast.error(t("rescan.oneFailedTitle", { name: env.name }), {
-        description: t("rescan.oneFailedDesc"),
+        description: result.reason ? (
+          <span className="flex flex-col gap-1">
+            <span className="break-words">{result.reason}</span>
+            <span>{t("rescan.oneFailedDesc")}</span>
+          </span>
+        ) : (
+          t("rescan.oneFailedDesc")
+        ),
+        duration: result.reason ? FAILED_RESCAN_TOAST_MS : undefined,
       });
     }
   };

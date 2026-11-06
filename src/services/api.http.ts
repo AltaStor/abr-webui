@@ -140,6 +140,19 @@ function apiErrorCode(err: unknown): string | null {
   return null;
 }
 
+/** Why a rescan failed, in the appliance's own words. A failed discovery is a
+ *  502 `inventory_rescan_failed` whose message is the same for every cause
+ *  ("Unable to query virtualization environment"); the cause itself (refused
+ *  credentials, an unreachable host, a rejected certificate) is in
+ *  `details.error`. Null when the appliance gave no answer at all. */
+function rescanFailureReason(err: unknown): string | null {
+  if (!(err instanceof ApiError)) return null;
+  const body = err.body as { error?: { details?: { error?: unknown } } } | null;
+  const cause = body?.error?.details?.error;
+  if (typeof cause === "string" && cause.trim()) return cause.trim();
+  return apiErrorMessage(err);
+}
+
 /* --------------------------- auth: session token -------------------------- */
 let authToken: string | null = null;
 let unauthorizedHandler: (() => void) | null = null;
@@ -909,7 +922,7 @@ async function fetchInventoryTree(): Promise<{ vms: VM[]; hosts: Host[] }> {
         cluster: str(n.cluster_name),
         status: hs.includes("maint") ? "maintenance" : hs.includes("disconn") ? "disconnected" : "online",
         cpuCores: num(n.cpu_count),
-        memoryGB: Math.round(num(n.memory_mb) / 1024),
+        memoryGB: num(n.memory_mb) / 1024,
         vmCount: num(n.vm_count),
       });
     } else if (n.kind === "vm") {
@@ -923,7 +936,7 @@ async function fetchInventoryTree(): Promise<{ vms: VM[]; hosts: Host[] }> {
         osFamily: osFamilyOf(guest),
         powerState: powerStateOf(str(n.power_state)),
         vcpus: num(n.cpu_count),
-        memoryGB: Math.round(num(n.memory_mb) / 1024),
+        memoryGB: num(n.memory_mb) / 1024,
         // Sum of the VM's discovered disks; usedGB is filled in from real
         // restore-point sizes once backup coverage is overlaid (applyProtection).
         provisionedGB: num(n.disk_capacity_bytes) / GB,
@@ -3443,4 +3456,4 @@ export function subscribeEvents(
   };
 }
 
-export { ApiError, apiErrorMessage, apiErrorCode, isVersionMismatchError };
+export { ApiError, apiErrorMessage, apiErrorCode, isVersionMismatchError, rescanFailureReason };

@@ -446,15 +446,19 @@
     "doneDesc_one": "{{count}} Umgebung aktualisiert.",
     "doneDesc_other": "{{count}} Umgebungen aktualisiert.",
     "failedTitle": "Neuscan fehlgeschlagen",
-    "failedDesc_one": "Die Appliance konnte {{count}} Umgebung nicht erreichen — es wurde nichts aktualisiert.",
-    "failedDesc_other": "Die Appliance konnte {{count}} Umgebungen nicht erreichen — es wurde nichts aktualisiert.",
+    "failedDesc_one": "Die Umgebung konnte nicht neu gescannt werden — es wurde nichts aktualisiert.",
+    "failedDesc_other": "Keine der {{count}} Umgebungen konnte neu gescannt werden — es wurde nichts aktualisiert.",
     "partialTitle": "Neuscan teilweise abgeschlossen",
-    "partialDesc": "{{ok}} von {{total}} Umgebungen wurden aktualisiert; die übrigen konnte die Appliance nicht erreichen.",
+    "partialDesc": "{{ok}} von {{total}} Umgebungen wurden aktualisiert; die übrigen konnten nicht neu gescannt werden.",
     "oneDoneTitle": "{{name}} neu gescannt",
     "oneDoneDesc_one": "{{count}} VM gefunden.",
     "oneDoneDesc_other": "{{count}} VMs gefunden.",
     "oneFailedTitle": "{{name}} konnte nicht neu gescannt werden",
-    "oneFailedDesc": "Die Appliance konnte die Umgebung nicht erreichen — ihr Bestand bleibt unverändert."
+    "oneFailedDesc": "Ihr Bestand bleibt unverändert.",
+    "failedCause": "{{name}}: {{reason}}",
+    "noReason": "die Appliance hat keinen Grund genannt",
+    "moreFailed_one": "…und {{count}} weitere.",
+    "moreFailed_other": "…und {{count}} weitere."
   },
   "syntheticFull": {
     "action": "Synthetisches Vollbackup",

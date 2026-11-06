@@ -174,6 +174,12 @@ export type RepoDeleteResult =
   | { ok: false; reason: "error"; message: string };
 
 /** Outcome of an environment delete — the guard reasons are surfaced to the UI. */
+/** What a rescan of one environment came to. `reason` is the appliance's own
+ *  account of a failed discovery ("Hyper-V host … rejected the credentials for
+ *  …"), so the operator is not sent to look for a network fault that is not
+ *  there. */
+export type RescanOutcome = { ok: true; vmCount: number } | { ok: false; reason: string | null };
+
 export type EnvDeleteResult =
   | { ok: true }
   | { ok: false; reason: "jobs"; jobs: BlockingJobRef[] }
@@ -279,8 +285,10 @@ export interface WorldState extends WorldData {
   createEnvironment(input: CreateEnvironmentInput): Promise<Environment | null>;
   editEnvironment(id: string, patch: EnvironmentEdit): Promise<void>;
   deleteEnvironment(id: string): Promise<EnvDeleteResult>;
-  /** Re-scan an environment; resolves with the discovered VM count. */
-  rescanEnvironment(id: string): Promise<{ vmCount: number } | null>;
+  /** Re-scan an environment; resolves with the discovered VM count, or with
+   *  the appliance's reason when discovery failed (null when it gave none,
+   *  e.g. the appliance itself did not answer). */
+  rescanEnvironment(id: string): Promise<RescanOutcome>;
   /** Fetch the next (older) page of run history and add it to `sessions`.
    *  A no-op when nothing older remains or a load is already running. */
   loadOlderSessions(): Promise<void>;

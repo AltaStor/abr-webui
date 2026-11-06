@@ -1010,11 +1010,11 @@ export function createLiveDriver(handle: WorldHandle): WorldDriver {
       try {
         const res = await api.refreshEnvironment(id);
         if (!stopped) await refreshInventory();
-        return { vmCount: res.total };
+        return { ok: true, vmCount: res.total };
       } catch (err) {
         if (!stopped) await refreshInventory();
         console.warn("[world.live] rescanEnvironment failed:", err);
-        return null;
+        return { ok: false, reason: api.rescanFailureReason(err) };
       }
     },
 

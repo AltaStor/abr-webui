@@ -309,7 +309,9 @@ export default function VmDetailPage() {
                 <SpecRow label={t("vmDetail.memory")}>
                   <span className="inline-flex items-center gap-1.5">
                     <MemoryStick className="h-3.5 w-3.5 text-muted-foreground" />
-                    <span className="nums">{vm.memoryGB} GB</span>
+                    <span className="nums">
+                      {vm.memoryGB > 0 ? formatStorage(vm.memoryGB) : t("common:generic.na")}
+                    </span>
                   </span>
                 </SpecRow>
                 <SpecRow label={t("vmDetail.provisioned")}>

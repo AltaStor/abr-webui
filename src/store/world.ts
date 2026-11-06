@@ -88,7 +88,8 @@ export const useWorldStore = create<WorldState>(() => ({
   deleteEnvironment: (id) =>
     driver?.actions.deleteEnvironment(id) ??
     Promise.resolve({ ok: false, reason: "error", message: "world not started" } as const),
-  rescanEnvironment: (id) => driver?.actions.rescanEnvironment(id) ?? Promise.resolve(null),
+  rescanEnvironment: (id) =>
+    driver?.actions.rescanEnvironment(id) ?? Promise.resolve({ ok: false as const, reason: null }),
   loadOlderSessions: () => driver?.actions.loadOlderSessions() ?? Promise.resolve(),
   startRestore: (input) =>
     driver?.actions.startRestore(input) ?? Promise.resolve(null),
