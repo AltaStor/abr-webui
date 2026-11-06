@@ -390,5 +390,41 @@
     "passwordUnchanged": "Unchanged",
     "passwordRequired": "Enter the account's password.",
     "accountHint": "The share must write as the user the appliance runs as (Samba's force user). Without an account, the hosts open it with the Hyper-V inventory's own."
+  },
+  "default": {
+    "title": "Default repository",
+    "missing": "No default repository",
+    "missingHint": "The appliance's own local repository is missing. Create it to back up to this appliance's disk.",
+    "create": "Create default repository",
+    "hypervAction": "Hyper-V support…",
+    "hypervOn": "Hyper-V support on",
+    "hypervOff": "Hyper-V support off — Hyper-V hosts cannot write to it",
+    "account": "account {{account}}",
+    "on": "On",
+    "off": "Off",
+    "chip": "Default",
+    "chipHyperV": "Hyper-V",
+    "managedShare": "The share Hyper-V hosts write through, and its account, belong to the default repository's Hyper-V support: the appliance made them and keeps them. Turn Hyper-V support off and on again on the Repositories page to get a new share and account.",
+    "toast": {
+      "created": "Default repository created",
+      "changed": "Hyper-V support of {{name}} changed"
+    },
+    "dialog": {
+      "createTitle": "Create the default repository",
+      "createDescription": "A local repository in a folder on this appliance, which the appliance chooses.",
+      "hypervTitle": "Hyper-V support",
+      "hypervDescription": "Whether Hyper-V hosts can back up into {{name}}.",
+      "hypervLabel": "Support Hyper-V backups",
+      "hypervHint": "Hyper-V hosts write their backups over SMB. Turning this on creates a hidden SMB share for the repository's folder and a dedicated service account that only this share admits. The appliance generates both, and keeps the password to itself.",
+      "creating": "Creating…",
+      "saving": "Saving…",
+      "created": "Created",
+      "saved": "Saved",
+      "createdButShare": "The repository was created, but Hyper-V support could not be turned on:",
+      "path": "Folder",
+      "share": "Share",
+      "accountLabel": "Account",
+      "passwordNote": "The account's password is stored encrypted on the appliance and is never shown."
+    }
   }
 }

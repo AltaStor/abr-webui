@@ -390,5 +390,41 @@
     "passwordUnchanged": "Unverändert",
     "passwordRequired": "Geben Sie das Passwort des Kontos ein.",
     "accountHint": "Die Freigabe muss als der Benutzer schreiben, unter dem die Appliance läuft (Sambas force user). Ohne Konto öffnen die Hosts sie mit dem Konto des Hyper-V-Inventars."
+  },
+  "default": {
+    "title": "Standard-Repository",
+    "missing": "Kein Standard-Repository",
+    "missingHint": "Das lokale Repository der Appliance fehlt. Legen Sie es an, um auf die Festplatte dieser Appliance zu sichern.",
+    "create": "Standard-Repository anlegen",
+    "hypervAction": "Hyper-V-Unterstützung…",
+    "hypervOn": "Hyper-V-Unterstützung an",
+    "hypervOff": "Hyper-V-Unterstützung aus — Hyper-V-Hosts können nicht hineinschreiben",
+    "account": "Konto {{account}}",
+    "on": "An",
+    "off": "Aus",
+    "chip": "Standard",
+    "chipHyperV": "Hyper-V",
+    "managedShare": "Die Freigabe, über die Hyper-V-Hosts schreiben, und ihr Konto gehören zur Hyper-V-Unterstützung des Standard-Repositorys: Die Appliance hat sie angelegt und verwaltet sie. Schalten Sie die Hyper-V-Unterstützung auf der Seite „Repositorys“ aus und wieder ein, um eine neue Freigabe und ein neues Konto zu erhalten.",
+    "toast": {
+      "created": "Standard-Repository angelegt",
+      "changed": "Hyper-V-Unterstützung von {{name}} geändert"
+    },
+    "dialog": {
+      "createTitle": "Standard-Repository anlegen",
+      "createDescription": "Ein lokales Repository in einem Ordner auf dieser Appliance, den die Appliance wählt.",
+      "hypervTitle": "Hyper-V-Unterstützung",
+      "hypervDescription": "Ob Hyper-V-Hosts in {{name}} sichern können.",
+      "hypervLabel": "Hyper-V-Backups unterstützen",
+      "hypervHint": "Hyper-V-Hosts schreiben ihre Backups über SMB. Ist dies eingeschaltet, legt die Appliance eine versteckte SMB-Freigabe für den Ordner des Repositorys und ein eigenes Dienstkonto an, das nur diese Freigabe zulässt. Beides erzeugt die Appliance selbst; das Passwort behält sie für sich.",
+      "creating": "Wird angelegt…",
+      "saving": "Wird gespeichert…",
+      "created": "Angelegt",
+      "saved": "Gespeichert",
+      "createdButShare": "Das Repository wurde angelegt, aber die Hyper-V-Unterstützung konnte nicht eingeschaltet werden:",
+      "path": "Ordner",
+      "share": "Freigabe",
+      "accountLabel": "Konto",
+      "passwordNote": "Das Passwort des Kontos wird verschlüsselt auf der Appliance gespeichert und nie angezeigt."
+    }
   }
 }

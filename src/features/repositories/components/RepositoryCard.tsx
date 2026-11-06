@@ -97,8 +97,14 @@ export function RepositoryCard({
         </div>
 
         {/* Status chips row: immutability / threat-lock / scanning */}
-        {(lockLabel || threatLock || scanning || verifying) && (
+        {(repo.isDefault || lockLabel || threatLock || scanning || verifying) && (
           <div className="mt-3 flex flex-wrap items-center gap-1.5">
+            {repo.isDefault && (
+              <span className="inline-flex items-center gap-1 bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
+                {t("default.chip")}
+                {repo.supportsHyperV && <> · {t("default.chipHyperV")}</>}
+              </span>
+            )}
             {lockLabel && (
               <span className="inline-flex items-center gap-1 bg-immutable-subtle px-2 py-0.5 text-[11px] font-medium text-immutable-text">
                 <Lock className="h-3 w-3" />

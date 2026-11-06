@@ -139,7 +139,10 @@ function EditRepositoryForm({
   const nameErrorKey = resourceNameErrorKey(nameProblem);
   const nameDirty = name !== "" && name !== repo.name;
   const lockValid = draftValid(lock);
-  const isSmb = repo.type === "smb";
+  // The default repository's share is generated and managed by its Hyper-V
+  // switch; the appliance refuses edits to it (409 default_repository_share_managed).
+  const managedShare = Boolean(repo.isDefault && repo.supportsHyperV);
+  const isSmb = repo.type === "smb" && !managedShare;
   const shareDirty = isSmb && shareDraftChanged(shareDraft, repo.share);
   const shareValid = !isSmb || shareDraftProblem(shareDraft, repo.share) === null;
   const dirty = nameDirty || lockDirty || shareDirty;
@@ -279,6 +282,12 @@ function EditRepositoryForm({
             />
             {nameErrorKey && <p className="text-xs text-danger">{tCommon(nameErrorKey)}</p>}
           </div>
+
+          {managedShare && (
+            <p className="border border-dashed border-border px-3 py-3 text-[11px] leading-relaxed text-muted-foreground">
+              {t("default.managedShare")}
+            </p>
+          )}
 
           {isSmb && (
             <ShareFields

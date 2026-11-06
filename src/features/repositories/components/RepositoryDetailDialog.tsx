@@ -135,7 +135,9 @@ function RepositoryDetailBody({
           </span>
           <div className="min-w-0 flex-1">
             <DialogTitle className="truncate">{repo.name}</DialogTitle>
-            <DialogDescription className="mt-1">{typeMeta.label}</DialogDescription>
+            <DialogDescription className="mt-1">
+              {repo.isDefault ? `${typeMeta.label} · ${t("default.chip")}` : typeMeta.label}
+            </DialogDescription>
           </div>
           <div className="flex shrink-0 items-center gap-1">
             <StatusPill
@@ -174,9 +176,20 @@ function RepositoryDetailBody({
       <ScrollArea className="max-h-[62vh]">
         <div className="space-y-5 p-6 pt-5">
           {/* Path */}
-          <Field icon={ServerCog} label={repo.type === "smb" ? t("detail.mountPath") : t("detail.storagePath")}>
+          <Field
+            icon={ServerCog}
+            label={repo.type === "smb" && !repo.isDefault ? t("detail.mountPath") : t("detail.storagePath")}
+          >
             <code className="nums bg-muted/60 px-2 py-1 text-xs">{repo.path}</code>
           </Field>
+
+          {/* The default repository's share is the appliance's own, made and
+              removed by its Hyper-V switch; say whether it is on either way. */}
+          {repo.isDefault && !repo.supportsHyperV && (
+            <Field icon={Network} label={t("default.dialog.hypervLabel")}>
+              <span className="text-xs text-muted-foreground">{t("default.off")}</span>
+            </Field>
+          )}
 
           {repo.share && (
             <Field icon={Network} label={t("detail.hypervShare")}>

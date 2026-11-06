@@ -835,6 +835,8 @@ function mapRepository(r: Dict): Repository {
       str(r.type) === "smb" && str(r.server) && str(r.share)
         ? { server: str(r.server), share: str(r.share), username: strOrNull(r.username) }
         : null,
+    isDefault: r.default === true,
+    supportsHyperV: r.support_hyperv === true,
     deleteBlock:
       r.can_delete === false
         ? {
@@ -2372,6 +2374,25 @@ function mapImmutabilityEffect(raw: unknown): ImmutabilityEffect | null {
     effect: lines(effect.effect),
     limitations: lines(effect.limitations),
     warnings: lines(effect.warnings),
+  };
+}
+
+/**
+ * Create the default repository when it is missing, and/or turn its Hyper-V
+ * support on or off — `POST /repositories/default`. Leaving `supportHyperV`
+ * out keeps the current setting. With it on, the appliance creates a hidden
+ * SMB share for the repository's folder and an account only that share
+ * admits; the account's password stays on the appliance.
+ */
+export async function setUpDefaultRepository(
+  supportHyperV?: boolean,
+): Promise<{ created: boolean; changed: boolean; repository: Repository }> {
+  const body = supportHyperV === undefined ? {} : { support_hyperv: supportHyperV };
+  const res = asDict(await request<Dict>("/repositories/default", { method: "POST", body: JSON.stringify(body) }));
+  return {
+    created: res.created === true,
+    changed: res.changed === true,
+    repository: mapRepository(asDict(res.repository)),
   };
 }
 

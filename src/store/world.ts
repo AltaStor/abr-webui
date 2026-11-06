@@ -121,6 +121,9 @@ export const useWorldStore = create<WorldState>(() => ({
     driver?.actions.runRetention(jobId, dryRun) ?? Promise.resolve(retentionRefused(jobId, dryRun, "world not started")),
   createRepository: (input) =>
     driver?.actions.createRepository(input) ?? Promise.resolve(NO_WORLD_WRITE),
+  setUpDefaultRepository: (supportHyperV) =>
+    driver?.actions.setUpDefaultRepository(supportHyperV) ??
+    Promise.resolve({ ok: false, message: "world not started", repository: null } as const),
   editRepository: (id, patch) =>
     driver?.actions.editRepository(id, patch) ?? Promise.resolve(NO_WORLD_WRITE),
   deleteRepository: (id) =>

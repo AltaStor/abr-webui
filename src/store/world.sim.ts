@@ -53,6 +53,7 @@ import type {
 } from "@/types";
 import type {
   BlockingJobRef,
+  DefaultRepositoryResult,
   EnvDeleteResult,
   RescanOutcome,
   RepoDeleteResult,
@@ -70,6 +71,9 @@ import { retentionRefused } from "@/store/world.types";
 /* --------------------------- id / time helpers -------------------------- */
 let _id = 0;
 const uid = (p: string) => `${p}-${Date.now().toString(36)}-${(_id++).toString(36)}`;
+/** Eight random lowercase letters and digits, like the appliance's generated
+ *  share and account names. */
+const simToken = () => Math.random().toString(36).slice(2, 10).padEnd(8, "0");
 const nowIso = () => new Date().toISOString();
 const TICK_MS = 1200;
 const TICK_SECONDS = TICK_MS / 1000;
@@ -1463,6 +1467,48 @@ export function createSimDriver(handle: WorldHandle): WorldDriver {
             })
           : null,
       });
+    },
+
+    setUpDefaultRepository: (supportHyperV) => {
+      // The appliance's behaviour, in miniature: one local repository in its
+      // own folder, which turns into an SMB-shared one with Hyper-V support.
+      const existing = handle.get().repositories.find((r) => r.isDefault);
+      const base: Repository = existing ?? {
+        id: uid("repo"),
+        name: "Default Repo",
+        type: "local",
+        path: "/var/lib/altastor-backup/repository",
+        capacityGB: 2048,
+        usedGB: 0,
+        dedupRatio: 1,
+        status: "healthy",
+        usageTrend: Array.from({ length: 14 }, () => 0),
+        integrityStatus: "never",
+        lastScanAt: null,
+        supportsImmutability: false,
+        immutability: null,
+        share: null,
+        isDefault: true,
+        supportsHyperV: false,
+      };
+      const changed = Boolean(base.supportsHyperV) !== supportHyperV;
+      const repository: Repository = changed
+        ? {
+            ...base,
+            type: supportHyperV ? "smb" : "local",
+            supportsHyperV: supportHyperV,
+            share: supportHyperV
+              ? { server: "abr-appliance.local", share: `abr-${simToken()}$`, username: `abr-smb-${simToken()}` }
+              : null,
+          }
+        : base;
+      handle.set((s) => ({
+        repositories: existing
+          ? s.repositories.map((r) => (r.id === repository.id ? repository : r))
+          : [...s.repositories, repository],
+        revision: s.revision + 1,
+      }));
+      return Promise.resolve<DefaultRepositoryResult>({ ok: true, created: !existing, changed, repository });
     },
 
     deleteRepository: (id) => {

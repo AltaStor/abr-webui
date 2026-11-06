@@ -813,6 +813,13 @@ export interface Repository {
    *  (abr-vhdx-tool writes Hyper-V backups there from the host), while the
    *  appliance reaches the same storage at `path`, where it mounts it. */
   share?: RepositoryShare | null;
+  /** The appliance's own local repository, which the server creates at
+   *  startup when it is missing (`default`). At most one. */
+  isDefault?: boolean;
+  /** Default repository only: Hyper-V hosts write to it through a hidden SMB
+   *  share with a generated account (`support_hyperv`). The appliance manages
+   *  that share; its password is never sent to the console. */
+  supportsHyperV?: boolean;
   /** Why the appliance will refuse to delete this repository (`can_delete`
    *  false), so the console can say so before anyone confirms. Null when
    *  nothing stands in the way; absent for a world that doesn't report it. */

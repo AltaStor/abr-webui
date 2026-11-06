@@ -1268,6 +1268,27 @@ export function createLiveDriver(handle: WorldHandle): WorldDriver {
       }
     },
 
+    setUpDefaultRepository: async (supportHyperV) => {
+      try {
+        const res = await api.setUpDefaultRepository(supportHyperV);
+        if (!stopped) {
+          handle.set((s) => ({
+            repositories: s.repositories.some((r) => r.id === res.repository.id)
+              ? s.repositories.map((r) => (r.id === res.repository.id ? res.repository : r))
+              : [...s.repositories, res.repository],
+            revision: s.revision + 1,
+          }));
+        }
+        return { ok: true, ...res };
+      } catch (err) {
+        // The create may have gone through before the share failed: read the
+        // list back so the page shows what the appliance now holds.
+        if (!stopped) await refreshRepositories();
+        const repository = handle.get().repositories.find((r) => r.isDefault) ?? null;
+        return { ok: false, message: apiFailureMessage(err), repository };
+      }
+    },
+
     deleteRepository: async (id) => {
       try {
         await api.deleteRepository(id);
