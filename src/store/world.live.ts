@@ -1119,6 +1119,7 @@ export function createLiveDriver(handle: WorldHandle): WorldDriver {
           datastores: [],
           networks: [],
           existingVms: [],
+          hosts: [],
           originalDatastore: null,
           originalHost: null,
           defaultHostId: null,

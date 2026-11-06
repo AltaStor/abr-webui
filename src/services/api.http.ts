@@ -2163,6 +2163,9 @@ export async function getRestorePlacementOptions(restorePointId: string): Promis
     environmentId: str(v.inventory_id),
     name: str(v.name),
   }));
+  const hosts = (Array.isArray(targets.hosts) ? (targets.hosts as Dict[]) : [])
+    .map((h) => ({ id: str(h.id), environmentId: str(h.inventory_id), name: str(h.name) || str(h.id) }))
+    .filter((h) => h.id !== "");
 
   const defaults = asDict(res.defaults);
 
@@ -2181,6 +2184,7 @@ export async function getRestorePlacementOptions(restorePointId: string): Promis
     datastores,
     networks,
     existingVms,
+    hosts,
     originalDatastore,
     originalHost,
     defaultHostId: str(defaults.target_host_id).trim() || null,

@@ -217,10 +217,6 @@ export function ChooseModeStep({
   const hosts = useWorldStore((s) => s.hosts);
   const getRestorePlacementOptions = useWorldStore((s) => s.getRestorePlacementOptions);
   const connectedEnvs = useMemo(() => environments.filter((e) => e.connected), [environments]);
-  const targetHostOptions = useMemo(
-    () => hosts.filter((h) => h.environmentId === targetEnvId),
-    [hosts, targetEnvId],
-  );
 
   // Real datastores/networks for the destination — resolved from the source
   // VM's actual NICs and the candidate targets' live inventory, never typed
@@ -232,6 +228,17 @@ export function ChooseModeStep({
     enabled: destination === "new-location",
   });
   const sourceNics = placement?.sourceNics ?? [];
+
+  // The target environment's hosts as the appliance lists them for a restore.
+  // The inventory tree (the store's `hosts`) is built from VMs, so a host that
+  // runs none yet — typically the very host a VM is being moved to — is not in
+  // it, and the wizard offered only "Automatic" and then sent no host at all.
+  // The tree is only the fallback while the restore context is loading.
+  const targetHostOptions = useMemo(() => {
+    const listed = (placement?.hosts ?? []).filter((h) => h.environmentId === targetEnvId);
+    if (listed.length > 0) return listed.map((h) => ({ id: h.id, name: h.name }));
+    return hosts.filter((h) => h.environmentId === targetEnvId).map((h) => ({ id: h.id, name: h.name }));
+  }, [placement, hosts, targetEnvId]);
 
   // VM names already registered in the chosen target environment — a
   // best-effort client-side uniqueness check. The appliance validates this

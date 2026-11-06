@@ -1073,6 +1073,7 @@ export function createSimDriver(handle: WorldHandle): WorldDriver {
         datastores: Array.from(datastoreMap.values()),
         networks,
         existingVms,
+        hosts: state.hosts.map((h) => ({ id: h.id, environmentId: h.environmentId, name: h.name })),
         originalDatastore,
         originalHost,
         defaultHostId: vm?.hostId ?? null,

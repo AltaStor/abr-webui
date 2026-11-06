@@ -101,6 +101,7 @@ export const useWorldStore = create<WorldState>(() => ({
       datastores: [],
       networks: [],
       existingVms: [],
+      hosts: [],
       originalDatastore: null,
       originalHost: null,
       defaultHostId: null,

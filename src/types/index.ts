@@ -675,6 +675,15 @@ export interface RestoreSourceNic {
   connected: boolean;
 }
 
+/** A host of a candidate target environment, as the appliance lists it for a
+ *  restore — every discovered host, also one that runs no VM yet (which the
+ *  inventory tree leaves out, being built from VMs). */
+export interface RestoreHostOption {
+  id: string;
+  environmentId: string;
+  name: string;
+}
+
 /** A VM already present in a candidate target environment — used to flag a
  *  restored-VM name that would collide before the appliance rejects it. */
 export interface RestoreExistingVmOption {
@@ -732,6 +741,8 @@ export interface RestorePlacementOptions {
   /** VMs already registered in a candidate target environment, for a
    *  best-effort client-side name-uniqueness check. */
   existingVms: RestoreExistingVmOption[];
+  /** Every host of every candidate target environment (`targets.hosts`). */
+  hosts: RestoreHostOption[];
   /** The datastore the source VM lived on before backup. Only a starting
    *  point for "Automatic" — it means nothing on a target host that doesn't
    *  mount it, so never show it as the resolved value without checking. */
