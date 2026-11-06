@@ -36,7 +36,7 @@
     },
     "smb": {
       "label": "Partage SMB / CIFS",
-      "short": "Partage SMB"
+      "short": "Partage SMB / CIFS"
     },
     "local": {
       "label": "Stockage local",
@@ -73,7 +73,6 @@
       "compliance": "Compliance"
     },
     "currentLabel": "Actuellement",
-    "unsupported": "Ce backend de stockage ne dispose pas d’Object Lock ; l’immuabilité ne peut donc pas y être configurée. Les référentiels de stockage objet (S3) peuvent verrouiller chaque sauvegarde qu’ils reçoivent.",
     "validate": "Valider sur le bucket",
     "validating": "Validation…",
     "validateHint": "Écrit un objet de test verrouillé, relit sa rétention et tente de le supprimer — le seul moyen de savoir si le bucket applique réellement ce qui est configuré ici.",
@@ -351,10 +350,11 @@
     },
     "title": "Supprimer {{name}} ?",
     "description": "Retirer un référentiel libère son stockage. Cette action est irréversible.",
+    "blockedDescription": "Ce référentiel ne peut pas encore être supprimé :",
     "jobsBlock_one": "<1>{{count}}</1> tâche cible encore ce référentiel — réorientez-la ou supprimez-la d'abord.",
     "jobsBlock_other": "<1>{{count}}</1> tâches ciblent encore ce référentiel — réorientez-les ou supprimez-les d'abord.",
-    "jobsWarning_one": "<1>{{count}}</1> tâche cible actuellement ce référentiel. Elle échouera à la prochaine exécution tant qu'elle ne sera pas réorientée vers une autre cible.",
-    "jobsWarning_other": "<1>{{count}}</1> tâches ciblent actuellement ce référentiel. Elles échoueront à la prochaine exécution tant qu'elles ne seront pas réorientées vers une autre cible.",
+    "backupsBlock_one": "<1>{{count}}</1> point de restauration est encore stocké dans ce référentiel — supprimez-le d’abord, ou attendez que la rétention le retire.",
+    "backupsBlock_other": "<1>{{count}}</1> points de restauration sont encore stockés dans ce référentiel — supprimez-les d’abord, ou attendez que la rétention les retire.",
     "typeToConfirm": "Saisissez <1>{{name}}</1> pour confirmer",
     "deleting": "Suppression en cours…"
   },
@@ -370,7 +370,11 @@
       }
     },
     "title": "Modifier le référentiel",
-    "description": "Ajustez la capacité, la compression, l'immuabilité et les limites de débit. Les modifications prennent effet dès l'enregistrement.",
+    "description": {
+      "name": "Modifiez le nom de ce référentiel.",
+      "smb": "Modifiez le nom de ce référentiel, le chemin du partage par lequel les hôtes Hyper-V l’atteignent et le compte avec lequel ils ouvrent le partage.",
+      "s3": "Modifiez le nom de ce référentiel et son paramètre Object Lock."
+    },
     "saving": "Enregistrement en cours…",
     "saveSettings": "Enregistrer les paramètres",
     "savedStaysOpen": "Enregistré. Les points de restauration déjà stockés ici ({{count}}) ne sont pas couverts — placez-les sous le verrou ci-dessous, ou fermez."

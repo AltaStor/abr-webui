@@ -36,7 +36,7 @@
     },
     "smb": {
       "label": "SMB-/CIFS-Freigabe",
-      "short": "SMB-Freigabe"
+      "short": "SMB-/CIFS-Freigabe"
     },
     "local": {
       "label": "Lokaler Speicher",
@@ -73,7 +73,6 @@
       "compliance": "Compliance"
     },
     "currentLabel": "Aktuell",
-    "unsupported": "Dieses Speicher-Backend kennt kein Object Lock, daher lässt sich Unveränderlichkeit dafür nicht konfigurieren. Objektspeicher-Repositories (S3) können jedes eingehende Backup sperren.",
     "validate": "Gegen den Bucket validieren",
     "validating": "Wird validiert…",
     "validateHint": "Schreibt ein gesperrtes Testobjekt, liest dessen Aufbewahrung zurück und versucht, es zu löschen — die einzige Möglichkeit festzustellen, ob der Bucket das hier Konfigurierte wirklich durchsetzt.",
@@ -351,10 +350,11 @@
     },
     "title": "{{name}} löschen?",
     "description": "Beim Entfernen eines Repositorys wird sein Speicher freigegeben. Dies kann nicht rückgängig gemacht werden.",
+    "blockedDescription": "Dieses Repository kann noch nicht gelöscht werden:",
     "jobsBlock_one": "<1>{{count}}</1> Job zielt noch auf dieses Repository — richten Sie ihn zuerst neu aus oder entfernen Sie ihn.",
     "jobsBlock_other": "<1>{{count}}</1> Jobs zielen noch auf dieses Repository — richten Sie sie zuerst neu aus oder entfernen Sie sie.",
-    "jobsWarning_one": "<1>{{count}}</1> Job zielt derzeit auf dieses Repository. Er wird beim nächsten Lauf fehlschlagen, bis er auf ein anderes Ziel ausgerichtet ist.",
-    "jobsWarning_other": "<1>{{count}}</1> Jobs zielen derzeit auf dieses Repository. Sie werden beim nächsten Lauf fehlschlagen, bis sie auf ein anderes Ziel ausgerichtet sind.",
+    "backupsBlock_one": "In diesem Repository ist noch <1>{{count}}</1> Wiederherstellungspunkt gespeichert — löschen Sie ihn zuerst oder warten Sie, bis die Aufbewahrung ihn entfernt.",
+    "backupsBlock_other": "In diesem Repository sind noch <1>{{count}}</1> Wiederherstellungspunkte gespeichert — löschen Sie sie zuerst oder warten Sie, bis die Aufbewahrung sie entfernt.",
     "typeToConfirm": "Geben Sie zur Bestätigung <1>{{name}}</1> ein",
     "deleting": "Wird gelöscht…"
   },
@@ -370,7 +370,11 @@
       }
     },
     "title": "Repository bearbeiten",
-    "description": "Passen Sie Kapazität, Komprimierung, Unveränderlichkeit und Durchsatzgrenzen an. Änderungen werden wirksam, sobald Sie speichern.",
+    "description": {
+      "name": "Ändern Sie den Namen dieses Repositorys.",
+      "smb": "Ändern Sie den Namen dieses Repositorys, den Freigabepfad, über den die Hyper-V-Hosts es erreichen, und das Konto, mit dem sie die Freigabe öffnen.",
+      "s3": "Ändern Sie den Namen dieses Repositorys und seine Object-Lock-Einstellung."
+    },
     "saving": "Wird gespeichert…",
     "saveSettings": "Einstellungen speichern",
     "savedStaysOpen": "Gespeichert. Die hier bereits gespeicherten Wiederherstellungspunkte ({{count}}) sind nicht erfasst — stellen Sie sie unten unter die Sperre oder schließen Sie."

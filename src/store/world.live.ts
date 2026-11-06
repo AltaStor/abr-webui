@@ -1280,10 +1280,15 @@ export function createLiveDriver(handle: WorldHandle): WorldDriver {
         return { ok: true } as RepoDeleteResult;
       } catch (err) {
         if (err instanceof api.ApiError) {
+          if (err.status === 409 && api.apiErrorCode(err) === "repository_has_backups") {
+            const details = (err.body as { error?: { details?: { restore_point_count?: unknown } } } | null)?.error
+              ?.details;
+            return { ok: false, reason: "backups", restorePointCount: Number(details?.restore_point_count) || 0 };
+          }
           if (err.status === 409) {
             return { ok: false, reason: "jobs", jobs: blockingJobsFromApiError(err.body) };
           }
-          return { ok: false, reason: "error", message: `Request failed (${err.status})` };
+          return { ok: false, reason: "error", message: apiFailureMessage(err) };
         }
         return { ok: false, reason: "error", message: "Appliance unreachable" };
       }

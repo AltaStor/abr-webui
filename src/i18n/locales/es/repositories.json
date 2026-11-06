@@ -36,7 +36,7 @@
     },
     "smb": {
       "label": "Recurso compartido SMB / CIFS",
-      "short": "Recurso compartido SMB"
+      "short": "Recurso compartido SMB / CIFS"
     },
     "local": {
       "label": "Almacenamiento local",
@@ -73,7 +73,6 @@
       "compliance": "Compliance"
     },
     "currentLabel": "Actualmente",
-    "unsupported": "Este backend de almacenamiento no tiene Object Lock, así que no se puede configurar la inmutabilidad. Los repositorios de almacenamiento de objetos (S3) sí pueden bloquear cada copia que reciben.",
     "validate": "Validar contra el bucket",
     "validating": "Validando…",
     "validateHint": "Escribe un objeto de prueba bloqueado, vuelve a leer su retención e intenta eliminarlo: la única forma de saber si el bucket aplica realmente lo configurado aquí.",
@@ -351,10 +350,11 @@
     },
     "title": "¿Eliminar {{name}}?",
     "description": "Eliminar un repositorio libera su almacenamiento. Esto no se puede deshacer.",
+    "blockedDescription": "Este repositorio todavía no se puede eliminar:",
     "jobsBlock_one": "<1>{{count}}</1> trabajo aún tiene como destino este repositorio — rediríjalo o elimínelo primero.",
     "jobsBlock_other": "<1>{{count}}</1> trabajos aún tienen como destino este repositorio — rediríjalos o elimínelos primero.",
-    "jobsWarning_one": "<1>{{count}}</1> trabajo tiene actualmente como destino este repositorio. Fallará en la próxima ejecución hasta que se redirija a otro destino.",
-    "jobsWarning_other": "<1>{{count}}</1> trabajos tienen actualmente como destino este repositorio. Fallarán en la próxima ejecución hasta que se redirijan a otro destino.",
+    "backupsBlock_one": "Este repositorio todavía guarda <1>{{count}}</1> punto de restauración: elimínelo primero o espere a que la retención lo quite.",
+    "backupsBlock_other": "Este repositorio todavía guarda <1>{{count}}</1> puntos de restauración: elimínelos primero o espere a que la retención los quite.",
     "typeToConfirm": "Escriba <1>{{name}}</1> para confirmar",
     "deleting": "Eliminando…"
   },
@@ -370,7 +370,11 @@
       }
     },
     "title": "Editar repositorio",
-    "description": "Ajuste la capacidad, la compresión, la inmutabilidad y los límites de rendimiento. Los cambios surten efecto en cuanto guarda.",
+    "description": {
+      "name": "Cambie el nombre de este repositorio.",
+      "smb": "Cambie el nombre de este repositorio, la ruta del recurso compartido por la que lo alcanzan los hosts Hyper-V y la cuenta con la que lo abren.",
+      "s3": "Cambie el nombre de este repositorio y su configuración de Object Lock."
+    },
     "saving": "Guardando…",
     "saveSettings": "Guardar ajustes",
     "savedStaysOpen": "Guardado. Los puntos de restauración ya almacenados aquí ({{count}}) no quedan cubiertos: póngalos bajo el bloqueo más abajo o cierre."

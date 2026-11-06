@@ -813,6 +813,19 @@ export interface Repository {
    *  (abr-vhdx-tool writes Hyper-V backups there from the host), while the
    *  appliance reaches the same storage at `path`, where it mounts it. */
   share?: RepositoryShare | null;
+  /** Why the appliance will refuse to delete this repository (`can_delete`
+   *  false), so the console can say so before anyone confirms. Null when
+   *  nothing stands in the way; absent for a world that doesn't report it. */
+  deleteBlock?: RepositoryDeleteBlock | null;
+}
+
+/** What keeps a repository from being deleted: the jobs that still target it,
+ *  the restore points still stored in it, and the appliance's own one-line
+ *  reason (`delete_disabled_reason`). */
+export interface RepositoryDeleteBlock {
+  jobs: { id: string; name: string }[];
+  restorePointCount: number;
+  reason: string | null;
 }
 
 /** An SMB repository's folder as Windows sees it: \\server\share, where

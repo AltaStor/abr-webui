@@ -835,6 +835,17 @@ function mapRepository(r: Dict): Repository {
       str(r.type) === "smb" && str(r.server) && str(r.share)
         ? { server: str(r.server), share: str(r.share), username: strOrNull(r.username) }
         : null,
+    deleteBlock:
+      r.can_delete === false
+        ? {
+            jobs: (Array.isArray(r.referenced_jobs) ? r.referenced_jobs : []).map((job) => {
+              const j = asDict(job);
+              return { id: str(j.id), name: str(j.name) || str(j.id) };
+            }),
+            restorePointCount: num(r.restore_point_count),
+            reason: strOrNull(r.delete_disabled_reason),
+          }
+        : null,
   };
 }
 

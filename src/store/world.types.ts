@@ -171,6 +171,8 @@ export type RepositoryWriteResult =
 export type RepoDeleteResult =
   | { ok: true }
   | { ok: false; reason: "jobs"; jobs: BlockingJobRef[] }
+  /** 409 `repository_has_backups`: restore points are still stored in it. */
+  | { ok: false; reason: "backups"; restorePointCount: number }
   | { ok: false; reason: "error"; message: string };
 
 /** Outcome of an environment delete — the guard reasons are surfaced to the UI. */

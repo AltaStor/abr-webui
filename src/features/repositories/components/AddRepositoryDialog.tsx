@@ -349,7 +349,7 @@ function AddRepositoryDialogBody() {
               <SelectContent>
                 {TYPE_OPTIONS.map((t) => (
                   <SelectItem key={t} value={t}>
-                    {REPO_TYPE_META[t].short}
+                    {REPO_TYPE_META[t].label}
                   </SelectItem>
                 ))}
               </SelectContent>

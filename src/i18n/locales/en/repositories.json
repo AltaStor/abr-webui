@@ -36,7 +36,7 @@
     },
     "smb": {
       "label": "SMB / CIFS share",
-      "short": "SMB share"
+      "short": "SMB / CIFS share"
     },
     "local": {
       "label": "Local storage",
@@ -73,7 +73,6 @@
       "compliance": "Compliance"
     },
     "currentLabel": "Currently",
-    "unsupported": "This storage backend has no Object Lock, so immutability cannot be configured for it. Object storage (S3) repositories can lock every backup they receive.",
     "validate": "Validate against the bucket",
     "validating": "Validating…",
     "validateHint": "Writes a locked test object, reads its retention back and tries to delete it — the only way to know the bucket really enforces what is configured here.",
@@ -351,10 +350,11 @@
     },
     "title": "Delete {{name}}?",
     "description": "Removing a repository releases its storage. This can't be undone.",
+    "blockedDescription": "This repository can't be deleted yet:",
     "jobsBlock_one": "<1>{{count}}</1> job still targets this repository — repoint or remove it first.",
     "jobsBlock_other": "<1>{{count}}</1> jobs still target this repository — repoint or remove them first.",
-    "jobsWarning_one": "<1>{{count}}</1> job currently targets this repository. It will fail on the next run until re-pointed at another target.",
-    "jobsWarning_other": "<1>{{count}}</1> jobs currently target this repository. They will fail on the next run until re-pointed at another target.",
+    "backupsBlock_one": "<1>{{count}}</1> restore point is still stored in this repository — delete it first, or wait until retention removes it.",
+    "backupsBlock_other": "<1>{{count}}</1> restore points are still stored in this repository — delete them first, or wait until retention removes them.",
     "typeToConfirm": "Type <1>{{name}}</1> to confirm",
     "deleting": "Deleting…"
   },
@@ -370,7 +370,11 @@
       }
     },
     "title": "Edit repository",
-    "description": "Rename this repository.",
+    "description": {
+      "name": "Change this repository's name.",
+      "smb": "Change this repository's name, the share path the Hyper-V hosts reach it by, and the account they open the share with.",
+      "s3": "Change this repository's name and its Object Lock setting."
+    },
     "saving": "Saving…",
     "saveSettings": "Save settings",
     "savedStaysOpen": "Saved. The restore points already stored here ({{count}}) are not covered by it — put them under the lock below, or close."

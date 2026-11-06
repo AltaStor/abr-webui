@@ -259,7 +259,9 @@ function EditRepositoryForm({
           <Wrench className="h-5 w-5" />
         </div>
         <DialogTitle>{t("edit.title")}</DialogTitle>
-        <DialogDescription>{t("edit.description")}</DialogDescription>
+        <DialogDescription>
+          {t(isSmb ? "edit.description.smb" : supportsLock ? "edit.description.s3" : "edit.description.name")}
+        </DialogDescription>
       </DialogHeader>
 
       <ScrollArea className="max-h-[60vh]">
@@ -412,11 +414,7 @@ function EditRepositoryForm({
                 </div>
               )}
             </div>
-          ) : (
-            <p className="border border-dashed border-border px-3 py-3 text-[11px] leading-relaxed text-muted-foreground">
-              {t("immutability.unsupported")}
-            </p>
-          )}
+          ) : null}
 
           {saveError && (
             <ValidationResultPanel ok={false} message={saveError.message} checks={saveError.checks} />
