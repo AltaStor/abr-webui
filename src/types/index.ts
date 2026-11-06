@@ -1153,7 +1153,9 @@ export interface GeneralSettings {
 export type Language = "en" | "de" | "fr" | "es";
 
 /** How the console writes a calendar day. */
-export type DateFormat = "DD/MM/YYYY" | "MM/DD/YYYY" | "YYYY-MM-DD";
+/** How the console writes a day. "D MMM YYYY" spells the month ("4 Nov
+ *  2026"), which no reader can take for another day; it is the default. */
+export type DateFormat = "D MMM YYYY" | "DD/MM/YYYY" | "MM/DD/YYYY" | "YYYY-MM-DD";
 /** How the console writes a time of day. */
 export type TimeFormat = "24h" | "12h";
 

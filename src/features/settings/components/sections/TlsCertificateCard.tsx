@@ -26,7 +26,7 @@ import {
 import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
-import { formatFullDateTime, formatRelative } from "@/lib/format";
+import { formatDateTime, formatRelative } from "@/lib/format";
 import {
   apiErrorMessage,
   getTlsCertificate,
@@ -243,7 +243,7 @@ function CertificateDetails({ cert }: { cert: TlsCertificate }) {
           )}
         </DetailRow>
         <DetailRow label={t("security.certificate.validUntil")}>
-          <DateTime value={cert.notAfter} weekday className={cn("font-medium", cert.expired && "text-danger-text")} />{" "}
+          <DateTime value={cert.notAfter} className={cn("font-medium", cert.expired && "text-danger-text")} />{" "}
           <span className={cn("text-muted-foreground", cert.expired && "text-danger-text")}>
             {cert.expired
               ? t("security.certificate.expiredAgo", { rel: formatRelative(cert.notAfter) })
@@ -269,7 +269,7 @@ function CertificateDetails({ cert }: { cert: TlsCertificate }) {
           : cert.installedAt
             ? t("security.certificate.sourceInstalled", {
                 user: cert.installedBy ?? t("security.certificate.anAdministrator"),
-                when: formatFullDateTime(cert.installedAt),
+                when: formatDateTime(cert.installedAt),
               })
             : t("security.certificate.sourceManual")}
       </p>

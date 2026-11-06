@@ -101,6 +101,7 @@
     "dateFormat": {
       "label": "Date format",
       "description": "How the console writes a day.",
+      "dMonthY": "D MMM YYYY (4 Nov 2026)",
       "dmy": "DD/MM/YYYY",
       "mdy": "MM/DD/YYYY",
       "ymd": "YYYY-MM-DD"

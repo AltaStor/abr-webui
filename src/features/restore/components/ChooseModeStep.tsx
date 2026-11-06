@@ -27,7 +27,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
-import { formatFullDateTime, formatStorage } from "@/lib/format";
+import { formatDateTime, formatStorage } from "@/lib/format";
 import { qk } from "@/lib/query";
 import { PLATFORM_META } from "@/lib/platform";
 import { crossHypervisorRestoreBlocked } from "../refusals";
@@ -744,7 +744,7 @@ export function ChooseModeStep({
             <SummaryRow
               icon={ShieldCheck}
               label={t("summary.restorePoint")}
-              value={formatFullDateTime(point.createdAt)}
+              value={formatDateTime(point.createdAt)}
               sub={t(point.copySource ? "restorePointSubCopy" : "restorePointSub", {
                 type: point.type === "full" ? t("point.full") : t("point.incremental"),
                 size: formatStorage(point.sizeGB),

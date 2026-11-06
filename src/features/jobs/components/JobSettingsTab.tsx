@@ -24,7 +24,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useWorldStore } from "@/store/world";
-import { formatDateTime, formatStorage, usagePercent } from "@/lib/format";
+import { formatFullDateTime, formatStorage, usagePercent } from "@/lib/format";
 import type { BackupCopySettings, BackupJob, Repository } from "@/types";
 import { copyWindowState } from "@/lib/backup-copy";
 import { copyModeLabel, copyWindowRuleLabel, fullScheduleLabel, jobScheduleLabel, retentionLabel } from "../lib";
@@ -78,12 +78,12 @@ export function JobSettingsTab({ job, repository, onApplyRetention }: Props) {
                     job itself is disabled. */}
                 {job.activeFullNextRunAt && (
                   <p className="text-xs text-muted-foreground" title={utcTitle(job.activeFullNextRunAt)}>
-                    {t("fullSchedule.nextActive", { when: formatDateTime(job.activeFullNextRunAt) })}
+                    {t("fullSchedule.nextActive", { when: formatFullDateTime(job.activeFullNextRunAt) })}
                   </p>
                 )}
                 {job.syntheticFullNextRunAt && (
                   <p className="text-xs text-muted-foreground" title={utcTitle(job.syntheticFullNextRunAt)}>
-                    {t("fullSchedule.nextSynthetic", { when: formatDateTime(job.syntheticFullNextRunAt) })}
+                    {t("fullSchedule.nextSynthetic", { when: formatFullDateTime(job.syntheticFullNextRunAt) })}
                   </p>
                 )}
               </>
@@ -291,9 +291,9 @@ function CopySettingsCard({ job, copy }: { job: BackupJob; copy: BackupCopySetti
                   {t("copy.window.zone", { zone: zones.join(", ") })}{" "}
                   {window &&
                     (window.open
-                      ? window.closesAt && t("copy.window.openUntil", { when: formatDateTime(window.closesAt.toISOString()) })
+                      ? window.closesAt && t("copy.window.openUntil", { when: formatFullDateTime(window.closesAt.toISOString()) })
                       : window.opensAt
-                        ? t("copy.window.closedUntil", { when: formatDateTime(window.opensAt.toISOString()) })
+                        ? t("copy.window.closedUntil", { when: formatFullDateTime(window.opensAt.toISOString()) })
                         : t("copy.window.neverOpens"))}
                 </li>
               </ul>

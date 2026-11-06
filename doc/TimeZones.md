@@ -1,8 +1,10 @@
 # Time zones in the web console: design and implementation
 
 Tickets: ABR-466 "WebUI shows times in mixed time zones with no zone label;
-job schedule form hides the time zone", and ABR-484 "Settings > Date and
-time", which added the time zone, date format and time format settings. This
+job schedule form hides the time zone", ABR-484 "Settings > Date and
+time", which added the time zone, date format and time format settings, and
+ABR-515, which made the spelled month the default date format and set where the
+weekday is printed. This
 document states what was built, so QA, support and developers do not have to
 read it out of the code. It is kept in step with the code: a change to the
 behaviour below changes this document in the same commit.
@@ -14,16 +16,16 @@ the display zone of option 3 as a setting of each browser, with the date and
 time formats beside it.
 
 - Every absolute time is printed in the **display zone with its offset**
-  ("23/10/2026 01:00 GMT+3"), and its UTC reading is one hover away. The
+  ("23 Oct 2026 01:00 GMT+3"), and its UTC reading is one hover away. The
   display zone is the one picked in Settings → Appearance, or the browser's on
   "Auto", the default.
 - A **schedule is printed in the job's own zone**, followed by the viewer's
   reading when that differs: "Daily · 22:00 UTC (01:00 GMT+3, next day)".
 - The **job form shows and sets the job's zone**, explains the entered time on
   the viewer's clock, and gives the first run as a dated moment in both zones.
-- One date-and-time format everywhere, in the date format (DD/MM/YYYY,
-  MM/DD/YYYY or YYYY-MM-DD) and time format (24-hour or 12-hour) set in
-  Settings → Appearance.
+- One date-and-time format everywhere, in the date format (D MMM YYYY,
+  DD/MM/YYYY, MM/DD/YYYY or YYYY-MM-DD) and time format (24-hour or 12-hour)
+  set in Settings → Appearance.
 
 Rejected or deferred:
 
@@ -47,8 +49,15 @@ the zone and lets the user pick another (their own, the appliance's, UTC, or
 any IANA zone), so a team that runs jobs on the appliance's clock picks it once.
 
 The date and time formats are stored next to the zone (`appearance.dateFormat`:
-`DD/MM/YYYY`, `MM/DD/YYYY` or `YYYY-MM-DD`, default `DD/MM/YYYY`;
-`appearance.timeFormat`: `24h` or `12h`, default `24h`). The settings store
+`D MMM YYYY`, `DD/MM/YYYY`, `MM/DD/YYYY` or `YYYY-MM-DD`, default
+`D MMM YYYY`;
+`appearance.timeFormat`: `24h` or `12h`, default `24h`). Until ABR-515 the
+default was `DD/MM/YYYY`, as ABR-484 asked; but `04/11/2026` is 4 November to
+some readers and 11 April to others, while `4 Nov 2026` is one day to everyone.
+`D MMM YYYY` writes the day, the month's short name in the console language and
+the year, in that order: "4 Nov 2026", in German "4. Nov. 2026", in French
+"4 nov. 2026" (English is written the British way; "en-US" would put the month
+first). The settings store
 hands all three to `setDisplayPreferences` in `lib/time.ts` when it loads,
 before the first render, so times never show in another format first, and on
 every change.
@@ -64,22 +73,30 @@ same functions plus a re-render when the user saves another zone or format;
 are converted only when printed.
 
 - **One format**: the date in the user's date format, the time in the user's
-  time format, and the zone label: "23/10/2026 01:00 GMT+3",
-  "10/23/2026 1:00 AM GMT+3", "2026-10-23 01:00 GMT+3". The year is always
-  printed. Variants of the same format: with seconds for log lines and clocks
-  ("28/10/2026 16:14:53 GMT+3"), with the weekday where a day matters
-  ("Thu, 23/10/2026 01:00 GMT+3"), time only under a heading that already
-  names the day ("01:00 GMT+3", "1:00 AM GMT+3"). The 12-hour clock writes
-  `h:mm AM`/`PM`, midnight `12:00 AM`, noon `12:00 PM`. Weekday names follow
-  the console language (English today). The old demo settings' `general.*`
-  date and time preferences are not read.
+  time format, and the zone label: "23 Oct 2026 01:00 GMT+3",
+  "23/10/2026 01:00 GMT+3", "10/23/2026 1:00 AM GMT+3",
+  "2026-10-23 01:00 GMT+3". The year is always printed (a chart axis drops
+  it: "23 Oct"). Variants of the same format: with seconds for log lines and
+  clocks ("28 Oct 2026 16:14:53 GMT+3"), time only under a heading that
+  already names the day ("01:00 GMT+3", "1:00 AM GMT+3"). The 12-hour clock
+  writes `h:mm AM`/`PM`, midnight `12:00 AM`, noon `12:00 PM`. Weekday and
+  month names follow the console language (English today). The old demo
+  settings' `general.*` date and time preferences are not read.
+- **The weekday** ("Thu, 23 Oct 2026 01:00 GMT+3") leads a time that a
+  schedule decides, because schedules are set by weekday: every next run (the
+  jobs list, the job page, the full backup schedules, the job form, the
+  Dashboard and Activity), and a copy window's opening and closing. A moment
+  that has happened or a fixed date prints without it: last runs, restore
+  points, log lines, certificate dates. The restore point calendar's heading
+  for the picked day keeps it, as calendars do (`formatFullDateTime` in
+  `lib/format.ts` is the weekday form; ABR-515).
 - **Zone label**: the offset at that moment, computed by the console, not taken
   from `Intl` (browsers spell zero differently): `UTC` for offset 0, otherwise
   `GMT+3`, `GMT-4`, `GMT+5:30`, `GMT+5:45`. Schedules name the zone itself
   (`UTC` or the IANA name, e.g. `Europe/Berlin`), because a schedule keeps its
   wall-clock time across DST while an offset does not.
 - **Tooltip**: every absolute time has a `title` with the same moment in UTC,
-  to the second, in the user's formats: `22/10/2026 22:00:03 UTC`. Where the time is
+  to the second, in the user's formats: `22 Oct 2026 22:00:03 UTC`. Where the time is
   part of a sentence, the tooltip is on the sentence's element; in the jobs
   table's Last run hint, the UTC reading is a line of the hint itself.
   `<DateTime>` (`src/components/DateTime.tsx`) renders a `<time datetime=ISO>`
@@ -89,14 +106,14 @@ are converted only when printed.
   tooltip. A next run in the past reads "x ago".
 - **Today / Yesterday groups** (Restore → restore point picker): calendar days
   of the **display zone**, by its midnight; the heading carries the date and
-  the zone ("Today · 28/10/2026 (GMT+3)"), so two users in different zones see
+  the zone ("Today · 28 Oct 2026 (GMT+3)"), so two users in different zones see
   which day each means. Other day buckets (restore point calendar, dashboard
   activity chart) also use display-zone days, and the dashboard greeting the
   display zone's hour.
 - **"Last 24 hours"** (Activity summary, dashboard success rate) is a rolling
   window of 24 × 3600 s back from now: it does not depend on any zone.
 - **Charts**: axis ticks leave the year and the zone label off to stay
-  readable ("23/10", "23/10 01:00"); the chart's hover tooltip carries them.
+  readable ("23 Oct", "23 Oct 01:00"); the chart's hover tooltip carries them.
 - **Exceptions, printed in the appliance zone and labelled**: the appliance's
   own clock (About → Server clock, the clock-jump dialog), because that is the
   question they answer.
@@ -140,8 +157,8 @@ and `src/features/jobs/lib.ts` (`scheduleLabel`, `fullScheduleLabel`).
     follow it (one set to another zone from the CLI keeps it). Each shows the
     same explanation.
   - Summary → First run: the next run as a moment, in the job zone and, when it
-    reads differently, the viewer's: "Wed, 28/10/2026 22:00 UTC (Thu,
-    29/10/2026 01:00 GMT+3)". This replaces "tonight at 22:00".
+    reads differently, the viewer's: "Wed, 28 Oct 2026 22:00 UTC (Thu,
+    29 Oct 2026 01:00 GMT+3)". This replaces "tonight at 22:00".
   - The time fields themselves take a 24-hour time ("22:00") whatever the time
     format; the sentence under them uses the time format.
 - The appliance's own next run (`next_run_at`, `*_full_next_run_at`) is always
@@ -173,11 +190,16 @@ as instants, so the display zone never changes which moment is meant.
   `UTC` and keep it.
 - **Browser settings in localStorage**: a `basalt.settings` saved before
   ABR-484 has no `appearance.timeZone`, `dateFormat` or `timeFormat`; it reads
-  as Auto, DD/MM/YYYY and 24-hour, and keeps everything else. The old demo
+  as Auto, D MMM YYYY and 24-hour, and keeps everything else. One saved since
+  ABR-484 keeps the date format it was saved with (often `DD/MM/YYYY`, the
+  default then) until the user picks another. The old demo
   "Date format", "Time format" and "Time zone" preferences (`general.*`) are
   still not read; nothing is migrated or deleted.
 - **Automated tests that compare time strings** must expect the new format.
-  ABR-484 changed the default from "Oct 23, 01:00 GMT+3" to
+  ABR-515 changed the default from "23/10/2026 01:00 GMT+3" to
+  "23 Oct 2026 01:00 GMT+3", and the weekday now leads every next run and
+  copy window time and no other time with a clock. Before that, ABR-484
+  changed the default from "Oct 23, 01:00 GMT+3" to
   "23/10/2026 01:00 GMT+3": every absolute time carries the year and ends with
   a zone label, schedules carry the job zone and possibly the viewer's
   equivalent, the restore point picker's headings read
@@ -202,7 +224,7 @@ as instants, so the display zone never changes which moment is meant.
 | Zone unknown to the appliance | Refused on save (422); a legacy stored one is shown as UTC, which is what it runs on. A zone stored by an old name (`Europe/Kiev`) is not unknown: it is shown and run as its current one. |
 | **Known limitation**: weekly/monthly equivalents use the shift at the **next** run; a schedule whose shift changes later (a DST change in between) shows the new shift from that run on. |
 | Zones browsers report by an old name (`Asia/Calcutta`, `Europe/Kiev`, `Asia/Saigon`, … 19 of them) | The console uses the current name everywhere (`Asia/Kolkata`, `Europe/Kyiv`): the browser's zone, the pickers, a setting saved by the old name, and every schedule and copy window it sends. An appliance on Debian 13 knows only the current names (the old ones are in `tzdata-legacy`, which it does not have) and refused "Europe/Kiev" with "Unknown time zone"; it now also takes the old names from older clients and stores the current one. |
-| **Known limitation**: the display zone and formats are stored in the browser, not with the user account: another browser, or a cleared browser, starts on Auto, DD/MM/YYYY and 24-hour. |
+| **Known limitation**: the display zone and formats are stored in the browser, not with the user account: another browser, or a cleared browser, starts on Auto, D MMM YYYY and 24-hour. |
 | **Known limitation**: the job form's time fields and the copy window's take 24-hour times on a 12-hour clock too. |
 | **Known limitation**: cron schedules are not projected; they show the expression and its zone without an equivalent. |
 
@@ -212,7 +234,7 @@ as instants, so the display zone never changes which moment is meant.
 |---|---|---|
 | REST (abr-core, `python -m unittest`) | `test_input_limits.JobFieldTests.test_a_schedule_reports_the_zone_it_runs_on` (no zone → appliance zone, abbreviation → appliance zone, unknown → UTC), `test_the_server_reports_its_own_zone` (`/system/clock`, `/system/info`), `test_a_schedule_time_zone_must_exist` (unknown names refused) | appliance Europe/Berlin and Asia/Kolkata (+05:30) |
 | REST | `test_api_engine…test_legacy_schedule_timezone_abbreviation_uses_server_zone`; the scheduler's DST tests in `python/tests/srv/jobs/test_fall_back_night.py` (repeated and skipped hour) | America/New_York, Europe zones |
-| Console unit tests (`npm test`: `src/lib/time.test.ts`, Node's own test runner, no extra dependency) | 24-hour and 12-hour output (midnight, noon), each date format, the weekday, the display zone's day, a preview's override, the repeated autumn hour and the skipped spring hour (`instantAt` too), the picker's offset on a summer and a winter day and its current zone names, +05:30, +05:45 and −03:30, the UTC tooltip, an unknown zone printing in UTC, Auto and an unknown saved zone falling back to the browser's | UTC, Europe/Kyiv, America/New_York, Australia/Sydney, Asia/Kolkata, Asia/Kathmandu, America/St_Johns, Asia/Tokyo, America/Los_Angeles, Europe/London |
+| Console unit tests (`npm test`: `src/lib/time.test.ts`, Node's own test runner, no extra dependency) | 24-hour and 12-hour output (midnight, noon), each date format, the spelled month as the default and in English, German, French and Spanish, the weekday, the display zone's day, a preview's override, the repeated autumn hour and the skipped spring hour (`instantAt` too), the picker's offset on a summer and a winter day and its current zone names, +05:30, +05:45 and −03:30, the UTC tooltip, an unknown zone printing in UTC, Auto and an unknown saved zone falling back to the browser's | UTC, Europe/Kyiv, America/New_York, Australia/Sydney, Asia/Kolkata, Asia/Kathmandu, America/St_Johns, Asia/Tokyo, America/Los_Angeles, Europe/London |
 | Console logic (ad hoc, esbuild + node; ABR-466) | `instantAt` in the skipped and repeated hour (Europe/Berlin), labels for +5:30, +5:45, +12:45, −3:30, weekday and previous-day shifts, same-offset zones, day 31 in November | UTC, Europe/Berlin, Asia/Kolkata, Asia/Kathmandu, Pacific/Chatham, America/St_Johns |
 | UI (headless Chromium, console against an in-memory appliance) | Jobs list and job page schedules, job form zone field, explanation and first run, restore point groups, About clock and zone, Appearance zone row, log line tooltips | browser Europe/Istanbul (GMT+3), appliance UTC: the QA stand's setup |
 | Type check | `npm run typecheck` | — |
@@ -228,15 +250,15 @@ October), and one with a picked zone, MM/DD/YYYY and 12-hour.
   time zone)" first, then every zone by its offset today
   ("(UTC +02:00) Kyiv"); typing filters by city, IANA name or offset. Its
   note: "Every time in the console is shown in this zone, with its offset:
-  03/11/2026 22:41 GMT+2. Hover a time to see it in UTC. Auto uses your
+  3 Nov 2026 22:41 GMT+2. Hover a time to see it in UTC. Auto uses your
   browser's zone, which your operating system sets. A job's schedule is shown
   in the job's own time zone, with your time beside it when the two differ."
   The example is the current time in the zone and formats as picked, so the
   offset in the note is always the picked zone's. (The ABR-484 mock-up showed
   "UTC+10 Canberra" in the list and "GMT+3" in the note; that fixed "GMT+3"
   is gone.)
-- Settings → Appearance → **Date format** (DD/MM/YYYY, MM/DD/YYYY,
-  YYYY-MM-DD) and **Time format** (24-hour, 12-hour (AM/PM)). All three save
+- Settings → Appearance → **Date format** (D MMM YYYY, the default;
+  DD/MM/YYYY, MM/DD/YYYY, YYYY-MM-DD) and **Time format** (24-hour, 12-hour (AM/PM)). All three save
   with the section's Save, as its note says ("Theme applies instantly; the
   rest saves with the section").
 - Job form: the Time zone field and the sentence under it explain each

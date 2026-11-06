@@ -431,7 +431,7 @@ export default function JobsPage() {
                 <Hint
                   label={
                     <span className="block space-y-0.5">
-                      <span className="block">{t("table.lastRunStarted", { value: formatFullDateTime(startedAt) })}</span>
+                      <span className="block">{t("table.lastRunStarted", { value: formatDateTime(startedAt) })}</span>
                       <span className="block text-muted-foreground">{utcTitle(startedAt)}</span>
                       <span className="block">{t("table.lastRunInProgress")}</span>
                     </span>
@@ -460,8 +460,8 @@ export default function JobsPage() {
               <Hint
                 label={
                   <span className="block space-y-0.5">
-                    <span className="block">{t("table.lastRunStarted", { value: formatFullDateTime(session?.startedAt) })}</span>
-                    <span className="block">{t("table.lastRunFinished", { value: formatFullDateTime(job.lastRunAt) })}</span>
+                    <span className="block">{t("table.lastRunStarted", { value: formatDateTime(session?.startedAt) })}</span>
+                    <span className="block">{t("table.lastRunFinished", { value: formatDateTime(job.lastRunAt) })}</span>
                     <span className="block text-muted-foreground">{utcTitle(job.lastRunAt)}</span>
                     {session && (
                       <span className="block">{t("table.lastRunDuration", { value: formatDuration(session.durationSec) })}</span>
@@ -489,7 +489,7 @@ export default function JobsPage() {
         // pair the Last run column already prints, so a schedule reads the same
         // way in both directions.
         cell: ({ row }) => (
-          <TimeStamp value={row.original.nextRunAt} fallback={t("common:generic.na")} />
+          <TimeStamp value={row.original.nextRunAt} fallback={t("common:generic.na")} weekday />
         ),
       },
       {
@@ -610,7 +610,7 @@ export default function JobsPage() {
           value={nextRunAt ? formatCountdown(new Date(nextRunAt).toISOString()) : t("common:generic.na")}
           hint={
             nextRunAt
-              ? t("stats.scheduled", { abs: formatDateTime(new Date(nextRunAt).toISOString()) })
+              ? t("stats.scheduled", { abs: formatFullDateTime(new Date(nextRunAt).toISOString()) })
               : t("stats.nothingQueued")
           }
           hintTitle={nextRunAt ? utcTitle(nextRunAt) : undefined}

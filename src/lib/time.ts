@@ -7,14 +7,14 @@
  *
  * - Display zone: the one the user picked in Settings → Appearance, or the
  *   browser's on "Auto" (the default). Every absolute time the console prints
- *   is in it and carries its label ("23/10/2026 01:00 GMT+3"); the tooltip
+ *   is in it and carries its label ("23 Oct 2026 01:00 GMT+3"); the tooltip
  *   (`utcTitle`) gives the same moment in UTC.
  * - Job zone: the zone a schedule's wall-clock time ("22:00") is read in, per
  *   schedule, as the appliance reports it. Schedules are printed in it, with
  *   the display-zone equivalent beside them when that reads differently.
  * - Appliance zone: the operating system zone of the appliance; read-only.
  *
- * The date format (DD/MM/YYYY, MM/DD/YYYY, YYYY-MM-DD) and the time format
+ * The date format (D MMM YYYY, DD/MM/YYYY, MM/DD/YYYY, YYYY-MM-DD) and the time format
  * (24-hour, 12-hour) are the user's too. The settings store hands all of it
  * to `setDisplayPreferences`; this module reads no store and imports nothing
  * at run time, so `node --test` runs it as it is (time.test.ts).
@@ -37,13 +37,15 @@ export interface DisplayPreferences {
   timeZone: string;
   dateFormat: DateFormat;
   timeFormat: TimeFormat;
-  /** BCP-47 tag the weekday names are spelled in. */
+  /** BCP-47 tag the weekday and month names are spelled in. */
   locale: string;
 }
 
 export const DEFAULT_DISPLAY_PREFERENCES: DisplayPreferences = {
   timeZone: AUTO_TIME_ZONE,
-  dateFormat: "DD/MM/YYYY",
+  // Not DD/MM/YYYY: "04/11/2026" is 4 November to some readers and 11 April
+  // to others (ABR-515); a spelled month is one day to everyone.
+  dateFormat: "D MMM YYYY",
   timeFormat: "24h",
   locale: "en-US",
 };
@@ -305,12 +307,14 @@ function toDate(value: TimeInput): Date | null {
 
 const pad = (n: number) => String(n).padStart(2, "0");
 
-/** A calendar day in `format`: "23/10/2026", "10/23/2026", "2026-10-23";
- *  without the year "23/10", "10/23", "10-23". */
+/** A calendar day in `format`: "23 Oct 2026", "23/10/2026", "10/23/2026",
+ *  "2026-10-23"; without the year "23 Oct", "23/10", "10/23", "10-23". */
 function dayText(w: Pick<WallTime, "year" | "month" | "day">, format: DateFormat, withYear = true): string {
   const d = pad(w.day);
   const m = pad(w.month);
   switch (format) {
+    case "D MMM YYYY":
+      return spelledDay(w, withYear, preferences.locale);
     case "MM/DD/YYYY":
       return withYear ? `${m}/${d}/${w.year}` : `${m}/${d}`;
     case "YYYY-MM-DD":
@@ -325,6 +329,33 @@ function clockText(hour: number, minute: number, second: number | null, format: 
   const rest = `${pad(minute)}${second === null ? "" : `:${pad(second)}`}`;
   if (format === "12h") return `${hour % 12 || 12}:${rest} ${hour < 12 ? "AM" : "PM"}`;
   return `${pad(hour)}:${rest}`;
+}
+
+const spelledDays = new Map<string, Intl.DateTimeFormat>();
+
+/** The day, the month's short name and the year, in that order and in the
+ *  console's language: "4 Nov 2026", "4. Nov. 2026", "4 nov. 2026"; "4 Nov"
+ *  without the year. English is written the British way, since "en-US" would
+ *  put the month first ("Nov 4, 2026") and the format promises day first. */
+function spelledDay(w: Pick<WallTime, "year" | "month" | "day">, withYear: boolean, locale: string): string {
+  const tag = /^en(-|$)/i.test(locale) ? "en-GB" : locale;
+  const key = `${tag}|${withYear}`;
+  let f = spelledDays.get(key);
+  if (!f) {
+    const options: Intl.DateTimeFormatOptions = {
+      day: "numeric",
+      month: "short",
+      ...(withYear ? { year: "numeric" } : {}),
+      timeZone: UTC,
+    };
+    try {
+      f = new Intl.DateTimeFormat(tag, options);
+    } catch {
+      f = new Intl.DateTimeFormat("en-GB", options);
+    }
+    spelledDays.set(key, f);
+  }
+  return f.format(Date.UTC(w.year, w.month - 1, w.day));
 }
 
 const weekdayNames = new Map<string, string[]>();
@@ -363,7 +394,7 @@ export interface FormatOptions {
 
 /**
  * The console's one date-and-time format, in the user's date and time formats
- * and the display zone, with the zone's label: "23/10/2026 01:00 GMT+3",
+ * and the display zone, with the zone's label: "23 Oct 2026 01:00 GMT+3",
  * "10/23/2026 1:00 AM GMT+3". "—" for no value.
  */
 export function formatDateTime(value: TimeInput, options: FormatOptions = {}): string {
@@ -391,7 +422,7 @@ export function formatTime(
   return options.noZone ? text : `${text} ${zoneLabel(zone, d)}`;
 }
 
-/** A calendar day in the display zone: "23/10/2026"; "23/10" with `short`,
+/** A calendar day in the display zone: "23 Oct 2026"; "23 Oct" with `short`,
  *  for a chart axis. A day has no zone label of its own; the screens that
  *  group by day name the zone once. */
 export function formatDate(

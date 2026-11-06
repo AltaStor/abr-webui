@@ -3,7 +3,7 @@
 
 /* The console's time formatting (lib/time.ts). Run with `npm test`: Node runs
  * the TypeScript as it is, with its own full IANA zone database. */
-import { afterEach, describe, test } from "node:test";
+import { afterEach, beforeEach, describe, test } from "node:test";
 import assert from "node:assert/strict";
 import {
   allTimeZones,
@@ -28,6 +28,9 @@ import {
 // Thursday 22 October 2026, 22:05:09 UTC.
 const MOMENT = "2026-10-22T22:05:09Z";
 
+// Cases read in DD/MM/YYYY, whose digits are the easiest to check; the
+// default format has cases of its own below.
+beforeEach(() => setDisplayPreferences({ ...DEFAULT_DISPLAY_PREFERENCES, dateFormat: "DD/MM/YYYY" }));
 afterEach(() => setDisplayPreferences(DEFAULT_DISPLAY_PREFERENCES));
 
 describe("time format", () => {
@@ -57,7 +60,27 @@ describe("time format", () => {
 });
 
 describe("date format", () => {
-  test("DD/MM/YYYY, the default", () => {
+  test("the default spells the month, so no reader takes 4 November for 11 April", () => {
+    assert.equal(DEFAULT_DISPLAY_PREFERENCES.dateFormat, "D MMM YYYY");
+    setDisplayPreferences({ ...DEFAULT_DISPLAY_PREFERENCES, timeZone: "UTC" });
+    assert.equal(formatDateTime("2026-11-04T09:41:00Z"), "4 Nov 2026 09:41 UTC");
+    assert.equal(formatDate(MOMENT), "22 Oct 2026");
+    assert.equal(formatDate(MOMENT, { short: true }), "22 Oct");
+    assert.equal(formatDateTime(MOMENT, { weekday: true }), "Thu, 22 Oct 2026 22:05 UTC");
+  });
+
+  test("the spelled month follows the console language, day first", () => {
+    const spelled = (locale: string) => {
+      setDisplayPreferences({ timeZone: "UTC", dateFormat: "D MMM YYYY", locale });
+      return formatDate("2026-11-04T09:41:00Z");
+    };
+    assert.equal(spelled("en-US"), "4 Nov 2026");
+    assert.equal(spelled("de-DE"), "4. Nov. 2026");
+    assert.equal(spelled("fr-FR"), "4 nov. 2026");
+    assert.equal(spelled("es-ES"), "4 nov 2026");
+  });
+
+  test("DD/MM/YYYY", () => {
     setDisplayPreferences({ timeZone: "UTC" });
     assert.equal(formatDate(MOMENT), "22/10/2026");
     assert.equal(formatDate(MOMENT, { short: true }), "22/10");

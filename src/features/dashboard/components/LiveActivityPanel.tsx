@@ -11,7 +11,7 @@ import { ProgressBar } from "@/components/ProgressBar";
 import { StatusPill } from "@/components/StatusPill";
 import { TimeStamp } from "@/components/TimeStamp";
 import { SESSION_META, toneFg } from "@/lib/status";
-import { formatDateTime, formatDuration, formatRelative, formatStorage, formatThroughput } from "@/lib/format";
+import { formatDuration, formatFullDateTime, formatRelative, formatStorage, formatThroughput } from "@/lib/format";
 import { useWorldStore } from "@/store/world";
 import { isVerify, runKind } from "@/features/activity/lib";
 import { utcTitle } from "@/lib/time";
@@ -78,7 +78,7 @@ export function LiveActivityPanel() {
                   <span className="ml-1" title={utcTitle(nextRun)}>
                     {t("live.emptyNextScheduled", {
                       when: formatRelative(new Date(nextRun).toISOString()),
-                      abs: formatDateTime(new Date(nextRun).toISOString()),
+                      abs: formatFullDateTime(new Date(nextRun).toISOString()),
                     })}
                   </span>
                 )}

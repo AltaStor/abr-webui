@@ -13,6 +13,9 @@ interface TimeStampProps {
   align?: "left" | "right";
   /** What to print when there is no timestamp. Defaults to "Never". */
   fallback?: ReactNode;
+  /** Lead the absolute line with the weekday — for a time a schedule decides
+   *  (a next run), never for one that has happened. */
+  weekday?: boolean;
   className?: string;
 }
 
@@ -40,6 +43,7 @@ export function TimeStamp({
   size = "sm",
   align = "left",
   fallback,
+  weekday = false,
   className,
 }: TimeStampProps) {
   const { formatDateTime, formatUtc } = useDateTimeFormat();
@@ -69,7 +73,7 @@ export function TimeStamp({
         {formatRelative(value)}
       </span>
       <time dateTime={new Date(value).toISOString()} className="nums block truncate text-[11px] text-muted-foreground">
-        {formatDateTime(value)}
+        {formatDateTime(value, { weekday })}
       </time>
     </div>
   );

@@ -35,7 +35,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Hint } from "@/components/ui/tooltip";
 import { toast } from "@/components/ui/sonner";
-import { formatDateTime, formatRelative } from "@/lib/format";
+import { formatDateTime, formatFullDateTime, formatRelative } from "@/lib/format";
 import { lastRunMeta, rateTone } from "@/lib/status";
 import { apiErrorMessage } from "@/services/api.http";
 import { useCan } from "@/store/permissions";
@@ -339,7 +339,7 @@ export default function JobDetailPage() {
             {waitingForWindow.opensAt
               ? t("copy.waiting", {
                   window: copyWindowLabel(copy.window),
-                  when: formatDateTime(waitingForWindow.opensAt.toISOString()),
+                  when: formatFullDateTime(waitingForWindow.opensAt.toISOString()),
                 })
               : t("copy.waitingNever", { window: copyWindowLabel(copy.window) })}
           </p>
@@ -408,7 +408,7 @@ export default function JobDetailPage() {
           }
           // The value above is already the countdown; the hint slot is free to
           // say which slot that lands in, instead of the filler word "Scheduled".
-          hint={job.nextRunAt ? formatDateTime(job.nextRunAt) : t("detailStats.notScheduled")}
+          hint={job.nextRunAt ? formatFullDateTime(job.nextRunAt) : t("detailStats.notScheduled")}
           hintTitle={utcTitle(job.nextRunAt)}
         />
         <KpiCard

@@ -12,7 +12,7 @@ import { CountUp } from "@/components/CountUp";
 import { StatusPill } from "@/components/StatusPill";
 import { CancelRunButton } from "@/components/CancelRunButton";
 import { SESSION_META } from "@/lib/status";
-import { formatDateTime, formatDuration, formatRelative, formatStorage, formatThroughput } from "@/lib/format";
+import { formatDuration, formatFullDateTime, formatRelative, formatStorage, formatThroughput } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { useWorldStore } from "@/store/world";
 import type { Session } from "@/types";
@@ -73,7 +73,7 @@ export function InProgress() {
                 <span className="ml-1 text-foreground/80" title={utcTitle(nextRunMs)}>
                   {t("inProgress.nextScheduled", {
                     when: formatRelative(new Date(nextRunMs).toISOString()),
-                    abs: formatDateTime(new Date(nextRunMs).toISOString()),
+                    abs: formatFullDateTime(new Date(nextRunMs).toISOString()),
                   })}
                 </span>
               )}

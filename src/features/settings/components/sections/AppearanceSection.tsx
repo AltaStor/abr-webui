@@ -19,6 +19,7 @@ import { TimeZonePicker } from "../TimeZonePicker";
 import { formatDateTime, resolveTimeZone } from "@/lib/time";
 
 const DATE_FORMATS: { value: DateFormat; key: string }[] = [
+  { value: "D MMM YYYY", key: "dMonthY" },
   { value: "DD/MM/YYYY", key: "dmy" },
   { value: "MM/DD/YYYY", key: "mdy" },
   { value: "YYYY-MM-DD", key: "ymd" },
