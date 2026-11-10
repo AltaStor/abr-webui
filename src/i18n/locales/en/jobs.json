@@ -47,10 +47,7 @@
     "upcomingRuns": "Upcoming runs",
     "disabledNote": "Schedule disabled — enable the job to resume automatic runs.",
     "customSchedule": "Custom schedule",
-    "noRunsProjected": "No runs projected.",
-    "withViewerTime": "{{label}} ({{viewer}})",
-    "nextDay": "{{time}}, next day",
-    "previousDay": "{{time}}, previous day"
+    "noRunsProjected": "No runs projected."
   },
   "retention": {
     "days_one": "{{count}} day",
@@ -1022,16 +1019,11 @@
         "crash": "The guest is never involved — like pulling the plug at the moment of the checkpoint."
       }
     },
-    "timezone": {
-      "label": "Time zone",
-      "suggested": "Suggested",
-      "all": "All time zones",
-      "yours": "your time zone",
-      "appliance": "the appliance's",
-      "explain": "{{time}} is {{viewer}} on your clock.",
-      "explainSame": "{{time}} is the same time on your clock.",
-      "explainNextDay": "{{time}} is {{viewer}} the next day on your clock.",
-      "explainPreviousDay": "{{time}} is {{viewer}} the day before on your clock."
+    "zone": {
+      "serverTime": "(server time)",
+      "otherZone": "This schedule runs on {{zone}}, not server time, so its runs move against server time when the two zones change to or from daylight saving time.",
+      "moveToServerTime": "Use server time",
+      "inZone": "({{zone}})"
     }
   },
   "hyperv": {
@@ -1141,7 +1133,6 @@
       "onScheduleOn": "Copies the newest state of each VM at these times.",
       "onScheduleOff": "Off: the job copies when you start it, or after the job picked below.",
       "scheduleLocked": "This job has a schedule, which the appliance can't remove from a job. Change it below, or disable the job.",
-      "zoneHint": "The copy window and the full backups below are read on this clock.",
       "runAfter": "Also run after",
       "runAfterNone": "No other job",
       "runAfterHint": "Copies each time a run of {{job}} ends, once all of its VMs are done.",
@@ -1186,7 +1177,7 @@
       "to": "To",
       "remove": "Remove this rule",
       "add": "Add a rule",
-      "zone": "Times are on the clock of {{zone}}.",
+      "zone": "Times are on the clock of {{zone}}, not server time.",
       "openUntil": "Open now, until {{when}}.",
       "closedUntil": "Closed now; it opens {{when}}.",
       "neverOpens": "No rule ever opens it.",

@@ -14,7 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { TimeField } from "@/components/ui/time-field";
 import { cn } from "@/lib/utils";
-import { formatDateTime, formatWallClock, scheduleZoneName } from "@/lib/time";
+import { formatDateTime, formatWallClock, isDisplayZone, scheduleZoneName } from "@/lib/time";
 import {
   COPY_RETRY_DEFAULTS,
   MAX_COPY_RETRY_COUNT,
@@ -295,7 +295,10 @@ export function CopyWindowEditor({
   const { t } = useTranslation("jobs");
   const update = (index: number, patch: Partial<CopyWindowRule>) =>
     onChange(rules.map((rule, i) => (i === index ? { ...rule, ...patch } : rule)));
-  const zones = [...new Set(rules.map((r) => scheduleZoneName(r.timezone || timezone)))];
+  // Named only when the rules are read on a clock other than server time.
+  const zones = [
+    ...new Set(rules.map((r) => r.timezone || timezone).filter((z) => !isDisplayZone(z)).map(scheduleZoneName)),
+  ];
   const state = on && rules.length ? copyWindowState(rules) : null;
   /** What a rule's hours mean: the same day, past midnight, the whole day,
    *  or no window at all. */
@@ -388,7 +391,7 @@ export function CopyWindowEditor({
           </Button>
           {rules.length > 0 && (
             <p className="text-xs text-muted-foreground">
-              {t("copy.window.zone", { zone: zones.join(", ") })}{" "}
+              {zones.length > 0 && <>{t("copy.window.zone", { zone: zones.join(", ") })} </>}
               {state &&
                 (state.open
                   ? state.closesAt

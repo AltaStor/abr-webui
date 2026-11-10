@@ -1261,9 +1261,6 @@ export interface AppearanceSettings {
   accent: AccentKey;
   sidebarAutoCollapse: boolean;
   language: Language;
-  /** The zone every time is printed in: an IANA name, or "auto" for the
-   *  browser's (see lib/time.ts). */
-  timeZone: string;
   dateFormat: DateFormat;
   timeFormat: TimeFormat;
 }

@@ -117,21 +117,21 @@ export function formatCountdown(iso: string | null | undefined): string {
   return formatDistanceToNowStrict(date);
 }
 
-/* Absolute times: the console's one format, in the display zone with its
- * label and the user's date and time formats (see lib/time.ts). These names
- * stay for the call sites that have always used them. */
+/* Absolute times: the console's one format, on server time and in the user's
+ * date and time formats (see lib/time.ts). These names stay for the call sites
+ * that have always used them. */
 
-/** Date and time to the second: "28 Oct 2026 16:14:53 GMT+3" (log lines, clocks). */
+/** Date and time to the second: "28 Oct 2026 16:14:53" (log lines, clocks). */
 export function formatClock(iso: string | null | undefined): string {
   return formatTimeStamp(iso, { seconds: true });
 }
 
-/** "23 Oct 2026 01:00 GMT+3". */
+/** "23 Oct 2026 01:00". */
 export function formatDateTime(iso: string | null | undefined): string {
   return formatTimeStamp(iso);
 }
 
-/** With the weekday: "Thu, 23 Oct 2026 01:00 GMT+3". Only for a time a
+/** With the weekday: "Thu, 23 Oct 2026 01:00". Only for a time a
  *  schedule decides — a next run, a copy window opening or closing — since
  *  schedules are set by weekday. A moment that has happened, or a fixed date
  *  (a restore point, a last run, a certificate), prints without it. */
@@ -139,7 +139,7 @@ export function formatFullDateTime(iso: string | null | undefined): string {
   return formatTimeStamp(iso, { weekday: true });
 }
 
-/** A calendar day in the display zone: "23 Oct 2026"; "23 Oct" with `short`,
+/** A calendar day on server time: "23 Oct 2026"; "23 Oct" with `short`,
  *  for a chart axis. */
 export function formatDay(iso: string, options: { short?: boolean } = {}): string {
   return formatCalendarDay(iso, options);

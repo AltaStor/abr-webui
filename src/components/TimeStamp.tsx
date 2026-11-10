@@ -32,8 +32,8 @@ interface TimeStampProps {
  * column shipped the pair first; this is that treatment as one component, so
  * every table cell and list row that names a moment reads the same way.
  *
- * The absolute line carries its zone ("01/09/2026 23:29 GMT+3"); the same moment in
- * UTC is a hover away rather than a third line.
+ * The absolute line is server time, like every time in the console; the same
+ * moment in UTC is a hover away rather than a third line.
  *
  * Not for durations (`formatDuration`) or for a value whose absolute stamp is
  * already the primary line, as on a restore point row.

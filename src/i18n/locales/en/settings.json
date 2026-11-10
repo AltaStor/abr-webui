@@ -90,17 +90,9 @@
       "label": "Auto-collapse sidebar",
       "description": "Collapse the navigation rail to icons on narrower windows."
     },
-    "timeZone": {
-      "label": "Time zone",
-      "description": "Every time in the console is shown in this zone, with its offset: {{example}}. Hover a time to see it in UTC. Auto uses your browser's zone, which your operating system sets. A job's schedule is shown in the job's own time zone, with your time beside it when the two differ.",
-      "auto": "Auto (browser time zone)",
-      "autoShort": "Auto",
-      "search": "Search by city, zone or offset",
-      "noMatch": "No time zone matches."
-    },
     "dateFormat": {
       "label": "Date format",
-      "description": "How the console writes a day.",
+      "description": "How the console writes a day. A time now reads {{example}}, on server time like every time in the console; hover one to see it in UTC and on your computer.",
       "dMonthY": "D MMM YYYY (4 Nov 2026)",
       "dmy": "DD/MM/YYYY",
       "mdy": "MM/DD/YYYY",

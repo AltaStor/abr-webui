@@ -119,5 +119,12 @@
       "keepWorking": "Keep working",
       "signInAgain": "Sign in again now"
     }
+  },
+  "serverTime": {
+    "label": "Server time",
+    "zone": "Every time in the console is server time: {{zone}}.",
+    "utc": "UTC: {{time}}",
+    "local": "Your computer: {{time}} ({{zone}})",
+    "onYourComputer": "on your computer"
   }
 }

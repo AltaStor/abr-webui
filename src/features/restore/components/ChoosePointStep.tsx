@@ -12,7 +12,7 @@ import { CopyBadge } from "@/components/CopyBadge";
 import { EmptyState } from "@/components/EmptyState";
 import { cn } from "@/lib/utils";
 import { formatRelative, formatStorage } from "@/lib/format";
-import { dayKeyIn, daysAgo, formatDate, formatTime, userTimeZone, utcTitle, zoneLabel } from "@/lib/time";
+import { dayKeyIn, daysAgo, formatDate, formatTime, utcTitle } from "@/lib/time";
 import { compressionRatioLabel, pointTypeTooltip } from "@/lib/restore-points";
 import { useWorldStore } from "@/store/world";
 import i18n from "@/i18n";
@@ -24,9 +24,9 @@ interface ChoosePointStepProps {
   onSelect: (point: RestorePoint) => void;
 }
 
-/** The group heading: the calendar day in the display zone, "Today" and
- *  "Yesterday" by that zone's midnight, with the date beside them so two
- *  people in different zones can still tell which day is meant. */
+/** The group heading: the calendar day on server time, "Today" and
+ *  "Yesterday" by the server's midnight, with the date beside them so the
+ *  day meant is never a guess. */
 function dayLabel(iso: string): string {
   const ago = daysAgo(iso);
   const date = formatDate(iso);
@@ -65,7 +65,6 @@ export function ChoosePointStep({ vm, selectedId, onSelect }: ChoosePointStepPro
     }
     return Array.from(map.entries()).map(([, pts]) => ({
       label: dayLabel(pts[0].createdAt),
-      zone: zoneLabel(userTimeZone(), new Date(pts[0].createdAt)),
       points: pts,
     }));
   }, [points]);
@@ -121,10 +120,7 @@ export function ChoosePointStep({ vm, selectedId, onSelect }: ChoosePointStepPro
             <div className="space-y-4">
               {groups.map((group) => (
                 <div key={group.label}>
-                  <p className="label-overline mb-2">
-                    {group.label}
-                    <span className="ml-1.5 normal-case tracking-normal text-muted-foreground/80">({group.zone})</span>
-                  </p>
+                  <p className="label-overline mb-2">{group.label}</p>
                   <ol className="relative space-y-1.5">
                     {/* Continuous rail behind the markers — lives inside the row gutter so it
                         never escapes the scroll container (that was the old clipping bug). */}

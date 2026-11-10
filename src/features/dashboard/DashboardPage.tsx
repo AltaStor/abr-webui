@@ -17,7 +17,7 @@ import { useWorldStore } from "@/store/world";
 import { displayFirstName } from "@/features/settings/lib";
 import type { ProtectionStatus } from "@/types";
 import { rateTone, type Tone } from "@/lib/status";
-import { userTimeZone, wallTime } from "@/lib/time";
+import { displayTimeZone, wallTime } from "@/lib/time";
 import { ProtectionDonut } from "./components/ProtectionDonut";
 import { ActivityTimeline } from "./components/ActivityTimeline";
 import { LiveActivityPanel } from "./components/LiveActivityPanel";
@@ -27,7 +27,7 @@ import { countOf } from "@/lib/count";
 /** Time-of-day greeting key in the `dashboard` namespace, by the display
  *  zone's clock. */
 function greetingKey() {
-  const h = wallTime(Date.now(), userTimeZone()).hour;
+  const h = wallTime(Date.now(), displayTimeZone()).hour;
   if (h < 12) return "greeting.morning";
   if (h < 18) return "greeting.afternoon";
   return "greeting.evening";

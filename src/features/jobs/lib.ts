@@ -20,8 +20,8 @@ import type {
 } from "@/types";
 import i18n from "@/i18n";
 import { WEEK_ORDER } from "@/lib/backup-copy";
-import { displayPreferences, formatWallClock, scheduleZoneName } from "@/lib/time";
-import { zonedScheduleTime, type ScheduleDays } from "@/lib/schedule";
+import { displayPreferences, formatWallClock, isDisplayZone, scheduleZoneName } from "@/lib/time";
+import { scheduleTimeLabel, type ScheduleDays } from "@/lib/schedule";
 
 /**
  * Whether a job has a run in flight: the appliance counts an active session
@@ -49,9 +49,9 @@ function dayShortLabel(day: number): string {
 }
 
 /**
- * A wall-clock schedule's label in the job's zone, with the viewer's reading
- * of it when that differs: "Daily · 22:00 UTC (01:00 GMT+3)",
- * "Weekly · Sat 22:00 UTC (Sun 01:00 GMT+3)". See doc/TimeZones.md.
+ * A wall-clock schedule's label: "Daily · 22:00", "Weekly · Sat 22:00";
+ * "Daily · 22:00 UTC" for a schedule on a zone other than server time. See
+ * doc/TimeZones.md.
  */
 function zonedLabel(
   key: "jobs:schedule.daily" | "jobs:schedule.weekly" | "jobs:schedule.monthly",
@@ -59,29 +59,19 @@ function zonedLabel(
   zone: string | undefined,
   days: ScheduleDays,
 ): string {
-  const zoned = zonedScheduleTime(atTime, zone, days);
-  const params = { day: days.daysOfWeek?.map(dayShortLabel).join(", ") ?? days.dayOfMonth, time: zoned.time };
-  const label = i18n.t(key, params);
-  if (!zoned.viewerTime) return label;
-  const viewer =
-    key === "jobs:schedule.weekly" && zoned.viewerDays
-      ? `${zoned.viewerDays.map(dayShortLabel).join(", ")} ${zoned.viewerTime}`
-      : zoned.dayShift > 0
-        ? i18n.t("jobs:schedule.nextDay", { time: zoned.viewerTime })
-        : zoned.dayShift < 0
-          ? i18n.t("jobs:schedule.previousDay", { time: zoned.viewerTime })
-          : zoned.viewerTime;
-  return i18n.t("jobs:schedule.withViewerTime", { label, viewer });
+  const params = { day: days.daysOfWeek?.map(dayShortLabel).join(", ") ?? days.dayOfMonth, time: scheduleTimeLabel(atTime, zone) };
+  return i18n.t(key, params);
 }
 
-/** A cron schedule names its zone too: the expression is read on that clock. */
+/** A cron schedule names its zone when that is not server time: the
+ *  expression is read on that clock. */
 function cronLabel(cron: string, zone: string | undefined): string {
-  return i18n.t("jobs:schedule.customCron", { cron: `${cron} (${scheduleZoneName(zone)})` });
+  return i18n.t("jobs:schedule.customCron", { cron: zone && !isDisplayZone(zone) ? `${cron} (${scheduleZoneName(zone)})` : cron });
 }
 
 /**
  * Friendly, plain-spoken schedule label.
- * "Daily · 22:00 UTC (01:00 GMT+3)", "Every 1h", "Every 4h",
+ * "Daily · 22:00", "Daily · 22:00 UTC" (off server time), "Every 1h",
  * "Weekly · Sun 01:00 Europe/Berlin", "Disabled".
  */
 export function scheduleLabel(schedule: Schedule, disabled = false): string {
@@ -164,13 +154,14 @@ export function copyWindowRuleLabel(rule: CopyWindowRule): string {
   });
 }
 
-/** Every rule of a copy window, with the zone they are read in: "Mon, Tue
- *  22:00–06:00; Sat, Sun 00:00–24:00 (Europe/Berlin)", or "Any time". */
+/** Every rule of a copy window: "Mon, Tue 22:00–06:00; Sat, Sun 00:00–24:00",
+ *  or "Any time"; with the zone they are read in when that is not server
+ *  time ("… (Europe/Berlin)"). */
 export function copyWindowLabel(rules: CopyWindowRule[]): string {
   if (!rules.length) return i18n.t("jobs:copy.window.anyTime");
   const zones = [...new Set(rules.map((r) => scheduleZoneName(r.timezone)))];
   const list = rules.map(copyWindowRuleLabel).join("; ");
-  return zones.length === 1 ? `${list} (${zones[0]})` : list;
+  return zones.length === 1 && rules[0].timezone && !isDisplayZone(rules[0].timezone) ? `${list} (${zones[0]})` : list;
 }
 
 /**

@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { SidebarNav } from "./Sidebar";
 import { NotificationsBell } from "./NotificationsBell";
+import { ServerTime } from "./ServerTime";
 import { useUiStore } from "@/store/ui";
 import { useWorldStore } from "@/store/world";
 import { useAuthStore } from "@/store/auth";
@@ -116,6 +117,9 @@ export function Topbar() {
       )}
 
       <div className="flex-1" />
+
+      {/* The zone every time in the console is printed in, named once. */}
+      <ServerTime />
 
       {/* Whether the signed-in user's sign-in takes a code from their app; it
           opens the switch in Settings → Security. Live only: the demo world

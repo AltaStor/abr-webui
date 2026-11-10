@@ -25,16 +25,16 @@ What each user sees and can do follows their role on the appliance (see
 
 ## Times and time zones
 
-Every time the console prints is in your time zone and says so
-("23/10/2026 01:00 GMT+3"); hover it to see the same moment in UTC. Settings →
-Appearance sets the time zone ("Auto", the default, follows the browser), the
-date format (DD/MM/YYYY, MM/DD/YYYY, YYYY-MM-DD) and the time format (24-hour
-or 12-hour), for this browser. A job's schedule is shown in the job's own time
-zone, with your time beside it when the two differ
-("Daily · 22:00 UTC (01:00 GMT+3, next day)"). The job form shows the job's
-time zone, lets you choose it (a new job starts on yours), and says what the
-time you enter means on your clock. Settings → About shows the appliance's
-zone. Design and rules: [`doc/TimeZones.md`](doc/TimeZones.md).
+Every time the console prints is **server time**, the appliance's own time
+zone, written without a zone label ("4 Nov 2026 01:00"); the top bar names that
+zone once ("Server time 16:08 · Tallinn (UTC+2)"). Hover a time to see the
+same moment in UTC, and on your computer when your computer is on another
+clock. A new job runs on server time, and the job form takes its times as
+server time; a job saved on another zone (from the CLI, or an older console)
+names its zone ("Daily · 22:00 UTC") and can be moved to server time in the
+form. Settings → Appearance sets the date format (D MMM YYYY, the default;
+DD/MM/YYYY, MM/DD/YYYY, YYYY-MM-DD) and the time format (24-hour or 12-hour),
+for this browser. Design and rules: [`doc/TimeZones.md`](doc/TimeZones.md).
 
 ## Signing out
 

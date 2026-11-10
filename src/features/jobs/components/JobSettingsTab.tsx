@@ -28,7 +28,7 @@ import { formatFullDateTime, formatStorage, usagePercent } from "@/lib/format";
 import type { BackupCopySettings, BackupJob, Repository } from "@/types";
 import { copyWindowState } from "@/lib/backup-copy";
 import { copyModeLabel, copyWindowRuleLabel, fullScheduleLabel, jobScheduleLabel, retentionLabel } from "../lib";
-import { scheduleZoneName, utcTitle } from "@/lib/time";
+import { isDisplayZone, scheduleZoneName, utcTitle } from "@/lib/time";
 import { ReplicationSettingsCard } from "./ReplicationDetails";
 
 interface Props {
@@ -226,7 +226,10 @@ function CopySettingsCard({ job, copy }: { job: BackupJob; copy: BackupCopySetti
   const jobs = useWorldStore((s) => s.jobs);
   const jobIds = new Set(jobs.map((j) => j.id));
   const window = copy.window.length ? copyWindowState(copy.window) : null;
-  const zones = [...new Set(copy.window.map((r) => scheduleZoneName(r.timezone)))];
+  // Named only when the rules are read on a clock other than server time.
+  const zones = [
+    ...new Set(copy.window.filter((r) => r.timezone && !isDisplayZone(r.timezone)).map((r) => scheduleZoneName(r.timezone))),
+  ];
   const retries =
     copy.retry.count === 0
       ? t("copy.retry.shortNone")
@@ -299,7 +302,7 @@ function CopySettingsCard({ job, copy }: { job: BackupJob; copy: BackupCopySetti
                   </li>
                 ))}
                 <li className="text-xs text-muted-foreground">
-                  {t("copy.window.zone", { zone: zones.join(", ") })}{" "}
+                  {zones.length > 0 && <>{t("copy.window.zone", { zone: zones.join(", ") })} </>}
                   {window &&
                     (window.open
                       ? window.closesAt && t("copy.window.openUntil", { when: formatFullDateTime(window.closesAt.toISOString()) })

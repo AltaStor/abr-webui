@@ -90,7 +90,6 @@ export const DEFAULT_SETTINGS: AppSettings = {
     accent: "cyan",
     sidebarAutoCollapse: false,
     language: "en",
-    timeZone: DEFAULT_DISPLAY_PREFERENCES.timeZone,
     dateFormat: DEFAULT_DISPLAY_PREFERENCES.dateFormat,
     timeFormat: DEFAULT_DISPLAY_PREFERENCES.timeFormat,
   },
@@ -469,14 +468,14 @@ export const useSettingsStore = create<SettingsStore>((set, get) => {
   };
 });
 
-/* The time zone and the date and time formats reach lib/time.ts, which every
- * printed time goes through, before anything renders: the store hydrates from
- * localStorage when this module loads, so the first paint already uses them.
- * The subscription is made here, before any component's, so a change is in
- * place by the time React re-renders with it. */
+/* The date and time formats reach lib/time.ts, which every printed time goes
+ * through, before anything renders: the store hydrates from localStorage when
+ * this module loads, so the first paint already uses them. The subscription is
+ * made here, before any component's, so a change is in place by the time
+ * React re-renders with it. The zone is not the user's to pick: it is the
+ * appliance's (store/serverClock.ts). */
 function applyDisplayPreferences(appearance: AppearanceSettings): void {
   setDisplayPreferences({
-    timeZone: appearance.timeZone,
     dateFormat: appearance.dateFormat,
     timeFormat: appearance.timeFormat,
     locale: languageMeta(appearance.language).bcp47,

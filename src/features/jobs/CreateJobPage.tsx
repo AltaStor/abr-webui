@@ -28,9 +28,8 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Slider } from "@/components/ui/slider";
 import { TimeField } from "@/components/ui/time-field";
-import { TimeZoneField, ZoneExplanation } from "./components/TimeZoneField";
 import { nextWallClockRun } from "@/lib/schedule";
-import { formatDateTime, userTimeZone } from "@/lib/time";
+import { displayTimeZone, formatDateTime, isDisplayZone, scheduleZoneName } from "@/lib/time";
 import {
   Select,
   SelectContent,
@@ -309,11 +308,9 @@ function firstRunLabel(form: FormState): string {
         form.preset === "weekly" ? { daysOfWeek: form.daysOfWeek } : {},
       );
       if (!next) return i18n.t("jobs:create.firstRun.weeklyNoDay");
-      const onJobClock = formatDateTime(next, { zone: form.timezone, weekday: true });
-      const onViewerClock = formatDateTime(next, { weekday: true });
-      return onJobClock === onViewerClock
-        ? onJobClock
-        : i18n.t("jobs:schedule.withViewerTime", { label: onJobClock, viewer: onViewerClock });
+      // On server time, like every time in the console, whatever zone the
+      // schedule is read in.
+      return formatDateTime(next, { weekday: true });
     }
   }
 }
@@ -408,7 +405,7 @@ function JobWizard({
       storedCopy?.window[0]?.timezone ||
       existingJob?.syntheticFullSchedule?.timezone ||
       existingJob?.activeFullSchedule?.timezone ||
-      userTimeZone();
+      displayTimeZone();
     const copyMode: CopyMode = storedCopy?.mode ?? "periodic";
     const copyFields = {
       copyMode,
@@ -549,8 +546,11 @@ function JobWizard({
 
   const setOption = <K extends keyof JobOptions>(key: K, value: JobOptions[K]) =>
     setForm((f) => ({ ...f, options: { ...f.options, [key]: value } }));
-  /* Full schedules and copy window rules on the job's zone follow it to a new
-   * one; one set to a zone of its own (from the CLI) keeps it. */
+  /* A new job is on server time and has no zone to choose. A job saved on
+   * another zone (older, or set from the CLI) keeps it unless moved to server
+   * time; its full schedules and copy window rules on that zone move with it,
+   * and one set to a zone of its own keeps it. */
+  const moveToServerTime = () => setTimezone(displayTimeZone());
   const setTimezone = (zone: string) =>
     setForm((f) => {
       const follow = <T extends { timezone?: string }>(item: T): T =>
@@ -1658,7 +1658,16 @@ function JobWizard({
               {needsTime && (
                 <div className="flex flex-wrap items-end gap-3">
                   <div className="space-y-1.5">
-                    <Label htmlFor="run-time">{t("create.atTime")}</Label>
+                    <Label htmlFor="run-time">
+                      {t("create.atTime")}{" "}
+                      {/* The clock the time is read on: server time, or the job's
+                          own zone when it was saved on another. */}
+                      <span className="font-normal text-muted-foreground">
+                        {isDisplayZone(form.timezone)
+                          ? t("create.zone.serverTime")
+                          : t("create.zone.inZone", { zone: scheduleZoneName(form.timezone) })}
+                      </span>
+                    </Label>
                     <TimeField
                       id="run-time"
                       value={form.atTime}
@@ -1691,26 +1700,12 @@ function JobWizard({
                   )}
                 </div>
               )}
-              {needsTime && (
-                <div className="space-y-1.5">
-                  <TimeZoneField id="run-timezone" value={form.timezone} onChange={setTimezone} />
-                  <ZoneExplanation
-                    atTime={form.atTime}
-                    zone={form.timezone}
-                    days={form.preset === "weekly" ? { daysOfWeek: form.daysOfWeek } : {}}
-                  />
-                </div>
-              )}
+              {needsTime && <OtherZoneNote zone={form.timezone} onMove={moveToServerTime} />}
               </>
               )}
               {/* Without a schedule the zone still decides when the copy
                   window and the full backups below fall. */}
-              {isCopy && !showSchedule && (
-                <div className="space-y-1.5">
-                  <TimeZoneField id="run-timezone" value={form.timezone} onChange={setTimezone} />
-                  <p className="text-xs text-muted-foreground">{t("copy.form.zoneHint")}</p>
-                </div>
-              )}
+              {isCopy && !showSchedule && <OtherZoneNote zone={form.timezone} onMove={moveToServerTime} />}
               {isCopy && form.copyMode === "periodic" && (
                 <div className="space-y-1.5">
                   <Label htmlFor="copy-run-after">{t("copy.form.runAfter")}</Label>
@@ -2259,20 +2254,7 @@ function FullScheduleEditor({
             </div>
           )}
 
-          {!isCustom && (
-            <ZoneExplanation
-              className="text-[11px] text-muted-foreground"
-              atTime={value.atTime}
-              zone={value.timezone}
-              days={
-                value.frequency === "weekly"
-                  ? { daysOfWeek: value.daysOfWeek }
-                  : value.frequency === "monthly"
-                    ? { dayOfMonth: value.dayOfMonth }
-                    : {}
-              }
-            />
-          )}
+          {!isCustom && <OtherZoneNote zone={value.timezone} />}
           {!isCustom && value.frequency === "monthly" && value.dayOfMonth > 28 && (
             <p className="text-[11px] text-muted-foreground">
               {t("create.full.lastDayNote", { day: value.dayOfMonth })}
@@ -2287,6 +2269,26 @@ function FullScheduleEditor({
         </div>
       )}
     </div>
+  );
+}
+
+/**
+ * Under a schedule read on a zone other than server time: says which, since
+ * the form takes times on server time everywhere else. The job's own zone can
+ * be moved to server time; a full schedule follows the job's.
+ */
+function OtherZoneNote({ zone, onMove }: { zone: string | undefined; onMove?: () => void }) {
+  const { t } = useTranslation("jobs");
+  if (!zone || isDisplayZone(zone)) return null;
+  return (
+    <p className="text-[11px] text-muted-foreground" data-testid="other-zone-note">
+      {t("create.zone.otherZone", { zone: scheduleZoneName(zone) })}{" "}
+      {onMove && (
+        <button type="button" className="font-medium text-primary hover:underline" onClick={onMove}>
+          {t("create.zone.moveToServerTime")}
+        </button>
+      )}
+    </p>
   );
 }
 

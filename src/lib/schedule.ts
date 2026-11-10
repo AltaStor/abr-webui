@@ -2,7 +2,7 @@
 // Copyright © 2026 Norvitex OÜ
 
 import { addDays, format, isBefore, startOfDay } from "date-fns";
-import { dayKeyIn, formatWallClock, instantAt, scheduleZoneName, userTimeZone, wallTime, zoneLabel } from "@/lib/time";
+import { dayKeyIn, formatWallClock, instantAt, isDisplayZone, scheduleZoneName, wallTime } from "@/lib/time";
 import type { FullBackupSchedule, Schedule } from "@/types";
 
 /**
@@ -146,52 +146,16 @@ export function nextWallClockRun(atTime: string, zone: string, days: ScheduleDay
   return null;
 }
 
-/** How a schedule's time reads on the job's clock, and on the viewer's, in
- *  the user's time format. */
-export interface ZonedScheduleTime {
-  /** "22:00 UTC", "10:00 PM Europe/Berlin". */
-  time: string;
-  /** The schedule's days as the viewer's clock sees them, when that moves
-   *  them (weekly only). */
-  viewerDays?: number[];
-  /** "01:00 GMT+3": the same moment on the viewer's clock; null when it reads
-   *  the same there. */
-  viewerTime: string | null;
-  /** Days the viewer's clock is ahead (+1) or behind (−1) the job's at the
-   *  next run. */
-  dayShift: number;
-}
-
 /**
- * A schedule time in its own zone, plus the viewer's reading of the same
- * moment. The two are compared at the schedule's next run, so a DST change in
- * either zone is reflected from the run it first affects.
+ * A schedule time as the console prints it, in the user's time format: on
+ * server time it needs no zone ("22:00", "10:00 PM"); on any other zone (an
+ * older job, or one set from the CLI) it names it ("22:00 UTC",
+ * "10:00 PM Europe/Berlin"), since the run then falls at another server time
+ * as the two zones' daylight saving differ.
  */
-export function zonedScheduleTime(
-  atTime: string,
-  zone: string | null | undefined,
-  days: ScheduleDays = {},
-  viewerZone: string = userTimeZone(),
-): ZonedScheduleTime {
-  const jobZone = zone || "UTC";
-  const time = `${formatWallClock(atTime)} ${scheduleZoneName(jobZone)}`;
-  const next = nextWallClockRun(atTime, jobZone, days);
-  if (!next) return { time, viewerTime: null, dayShift: 0 };
-  const job = wallTime(next, jobZone);
-  const viewer = wallTime(next, viewerZone);
-  const dayShift = Math.round(
-    (Date.UTC(viewer.year, viewer.month - 1, viewer.day) - Date.UTC(job.year, job.month - 1, job.day)) / 86_400_000,
-  );
-  if (dayShift === 0 && viewer.hour === job.hour && viewer.minute === job.minute) {
-    return { time, viewerTime: null, dayShift: 0 };
-  }
-  const clock = formatWallClock(`${viewer.hour}:${String(viewer.minute).padStart(2, "0")}`);
-  return {
-    time,
-    viewerDays: days.daysOfWeek?.map((d) => (((d + dayShift) % 7) + 7) % 7),
-    viewerTime: `${clock} ${zoneLabel(viewerZone, next)}`,
-    dayShift,
-  };
+export function scheduleTimeLabel(atTime: string, zone: string | null | undefined): string {
+  const clock = formatWallClock(atTime);
+  return !zone || isDisplayZone(zone) ? clock : `${clock} ${scheduleZoneName(zone)}`;
 }
 
 /** Stable local-day key ("yyyy-MM-dd") of a calendar cell, which is a local

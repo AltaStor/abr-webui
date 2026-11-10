@@ -6,8 +6,9 @@ import type { FormatOptions, TimeInput } from "@/lib/time";
 import { useDateTimeFormat } from "@/lib/useDateTimeFormat";
 
 /**
- * One absolute time, the way every screen prints one: in the display zone
- * with its label ("23/10/2026 01:00 GMT+3"), and the same moment in UTC on hover.
+ * One absolute time, the way every screen prints one: on server time
+ * ("23 Oct 2026 01:00"), and the same moment in UTC (and on this computer,
+ * when that reads differently) on hover.
  * A `<time>` element, so assistive technology and tests get the ISO value.
  */
 export function DateTime({

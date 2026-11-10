@@ -15,8 +15,7 @@ import { SettingRow } from "../SettingRow";
 import { Switch } from "@/components/ui/switch";
 import { Segmented, SaveBar } from "../controls";
 import { ACCENT_SWATCHES, useDraft } from "../../lib";
-import { TimeZonePicker } from "../TimeZonePicker";
-import { formatDateTime, resolveTimeZone } from "@/lib/time";
+import { formatDateTime } from "@/lib/time";
 
 const DATE_FORMATS: { value: DateFormat; key: string }[] = [
   { value: "D MMM YYYY", key: "dMonthY" },
@@ -36,19 +35,17 @@ export function AppearanceSection() {
   // Language applies instantly like Theme, so keep it OUT of the Save/Discard
   // draft — switching it must not re-seed and clobber other unsaved edits.
   const language = appearance.language;
-  const { density, reduceMotion, accent, sidebarAutoCollapse, timeZone, dateFormat, timeFormat } = appearance;
+  const { density, reduceMotion, accent, sidebarAutoCollapse, dateFormat, timeFormat } = appearance;
   const { draft, patch, dirty, reset } = useDraft({
     density,
     reduceMotion,
     accent,
     sidebarAutoCollapse,
-    timeZone,
     dateFormat,
     timeFormat,
   });
-  // How a time reads with the zone and formats as picked, saved or not.
+  // How a time reads with the formats as picked, saved or not.
   const example = formatDateTime(Date.now(), {
-    zone: resolveTimeZone(draft.timeZone),
     dateFormat: draft.dateFormat,
     timeFormat: draft.timeFormat,
   });
@@ -93,18 +90,10 @@ export function AppearanceSection() {
 
       <SettingDivider />
 
-      {/* The zone and formats every printed time uses (doc/TimeZones.md).
-          They save with the section, like the rest of it. */}
-      <SettingRow
-        label={t("appearance.timeZone.label")}
-        description={t("appearance.timeZone.description", { example })}
-        htmlFor="ap-time-zone"
-      >
-        <TimeZonePicker id="ap-time-zone" value={draft.timeZone} onChange={(v) => patch({ timeZone: v })} />
-      </SettingRow>
-      <SettingDivider />
-
-      <SettingRow label={t("appearance.dateFormat.label")} description={t("appearance.dateFormat.description")}>
+      {/* The formats every printed time uses (doc/TimeZones.md); they save
+          with the section, like the rest of it. The zone is not a setting:
+          every time is server time, which the top bar names. */}
+      <SettingRow label={t("appearance.dateFormat.label")} description={t("appearance.dateFormat.description", { example })}>
         <Select value={draft.dateFormat} onValueChange={(v) => patch({ dateFormat: v as DateFormat })}>
           <SelectTrigger className="nums w-full" aria-label={t("appearance.dateFormat.label")} data-testid="date-format">
             <SelectValue />
