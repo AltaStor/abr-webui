@@ -384,7 +384,7 @@ function repoTypeOf(t: string): RepositoryType {
   }
 }
 
-function sessionStatusOf(state: string, hasErrors: boolean): SessionStatus {
+function sessionStatusOf(state: string, hasProblems: boolean): SessionStatus {
   switch (state) {
     case "queued":
       return "queued";
@@ -392,7 +392,7 @@ function sessionStatusOf(state: string, hasErrors: boolean): SessionStatus {
     case "stopping":
       return "running";
     case "completed":
-      return hasErrors ? "warning" : "success";
+      return hasProblems ? "warning" : "success";
     case "failed":
     case "stopped":
     case "canceled":
@@ -452,10 +452,17 @@ function mapEnvironment(inv: Dict): Environment {
 function mapSession(s: Dict): Session {
   const job = asDict(s.job);
   const errors = Array.isArray(s.errors) ? (s.errors as Dict[]) : [];
+  // What a run that still completed wants said: retention that could not
+  // delete, change tracking that was lost and forced a full, and the like. The
+  // appliance counts such a run as a warning in the job's last run
+  // (`_session_run_result`), and so does every list here (ABR-535).
+  const warnings = (Array.isArray(s.warnings) ? (s.warnings as Dict[]) : [])
+    .map((w) => str(asDict(w).message))
+    .filter(Boolean);
   const startedAt = str(s.started_at);
   const finishedAt = strOrNull(s.finished_at);
   const state = str(s.state);
-  const status = sessionStatusOf(state, errors.length > 0);
+  const status = sessionStatusOf(state, errors.length > 0 || warnings.length > 0);
   const resolvedBackupType = str(s.resolved_backup_type);
   const backupType = /inc/i.test(resolvedBackupType) ? "incremental" : "full";
   // A full that merged the stored chain instead of re-reading the VM. Only
@@ -493,7 +500,13 @@ function mapSession(s: Dict): Session {
       : isDelete
         ? deleteRunName(vmName)
         : str(job.name) || "—";
-  const message = errors.length ? friendlyError(str(errors[0].message)) : undefined;
+  const message = errors.length
+    ? friendlyError(str(errors[0].message))
+    : status === "warning"
+      ? warnings.length > 1
+        ? `${warnings[0]} (+${warnings.length - 1} more warning${warnings.length > 2 ? "s" : ""} in the log)`
+        : warnings[0]
+      : undefined;
   // The orchestrator's `message` field carries the live per-disk stage caption
   // while a session is running (see _emit_progress in vcenter_backup.py /
   // vcenter_restore.py — the same text the CLI's --watch prints) and the
