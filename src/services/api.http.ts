@@ -2352,13 +2352,35 @@ export async function startRestore(payload: {
  *  backup and the incrementals chained onto it (`RestorePointSegment.id`).
  *  `chainId` is `RestorePoint.chainId`, which the orchestrator's `/backups/{id}`
  *  DELETE resolves as a chain id; `segmentId` maps to its `?segment=` param. */
-export const deleteRestorePoint = (chainId: string, segmentId?: string, force = false) => {
+export interface BackupDeleteReport {
+  /** Every restore point of the request is gone. */
+  deleted: boolean;
+  /** Points the storage kept: held under S3 Object Lock, and older points they
+   *  need to restore. They are marked for deletion and go once the lock ends. */
+  heldPointIds: string[];
+  /** When the last of those locks ends; null when the appliance can't say. */
+  heldUntil: string | null;
+  /** The appliance's own account, when not everything went. */
+  message: string | null;
+}
+
+/** The answer of DELETE /backups/{id} (BackupDeleteResult). A 200 is not a
+ *  delete: Object Lock can refuse it, and the appliance then keeps the points,
+ *  marked for deletion, and says until when (ABR-536). */
+export async function deleteRestorePoint(chainId: string, segmentId?: string, force = false): Promise<BackupDeleteReport> {
   const params = new URLSearchParams();
   if (segmentId) params.set("segment", segmentId);
   if (force) params.set("force", "true");
   const query = params.toString();
-  return request<void>(`/backups/${chainId}${query ? `?${query}` : ""}`, { method: "DELETE" });
-};
+  const res = asDict(await request<Dict>(`/backups/${chainId}${query ? `?${query}` : ""}`, { method: "DELETE" }));
+  const ids = (v: unknown) => (Array.isArray(v) ? v.map((x) => str(x)).filter(Boolean) : []);
+  return {
+    deleted: res.deleted !== false,
+    heldPointIds: ids(res.pending_deletion_restore_point_ids ?? res.retained_restore_point_ids),
+    heldUntil: strOrNull(res.delete_after),
+    message: strOrNull(res.message),
+  };
+}
 
 /**
  * Starts an integrity check over one stored backup chain

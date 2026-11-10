@@ -725,7 +725,14 @@
     "gfsWarn_one": "{{count}} restore point here is marked for long-term retention (grandfather-father-son). Deleting it discards an archive copy the policy was holding.",
     "gfsWarn_other": "{{count}} restore points here are marked for long-term retention (grandfather-father-son). Deleting them discards archive copies the policy was holding.",
     "gfsWarnUnknown": "Some restore points here are marked for long-term retention (grandfather-father-son). Deleting them discards archive copies the policy was holding.",
-    "gfsConfirm": "Delete anyway"
+    "gfsConfirm": "Delete anyway",
+    "heldTitle": "Backup held by Object Lock",
+    "heldUntil_one": "{{count}} restore point of {{name}} stays until {{until}}: the storage refuses to delete it before its lock ends. It is marked for deletion, can't be restored meanwhile, and goes by itself once the lock ends.",
+    "heldUntil_other": "{{count}} restore points of {{name}} stay until {{until}}: the storage refuses to delete them before their lock ends. They are marked for deletion, can't be restored meanwhile, and go by themselves once the lock ends.",
+    "heldNoDate_one": "{{count}} restore point of {{name}} stays: the storage refuses to delete it while it is locked. It is marked for deletion and goes by itself once the lock ends.",
+    "heldNoDate_other": "{{count}} restore points of {{name}} stay: the storage refuses to delete them while they are locked. They are marked for deletion and go by themselves once the lock ends.",
+    "heldRemoved_one": "{{count}} other restore point was removed.",
+    "heldRemoved_other": "{{count}} other restore points were removed."
   },
   "scope": {
     "searchVmsPlaceholder": "Search VMs by name…",

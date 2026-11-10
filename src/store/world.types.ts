@@ -196,7 +196,9 @@ export type EnvDeleteResult =
 
 /** Outcome of a single restore-point delete. */
 export type RestorePointDeleteResult =
-  | { ok: true }
+  /** `held`: the storage kept some of the points under Object Lock; they are
+   *  marked for deletion and go once the lock ends, `until`. */
+  | { ok: true; held?: { pointIds: string[]; until: string | null } }
   | { ok: false; reason: "not-found" }
   | { ok: false; reason: "gfs-protected" }
   | { ok: false; reason: "error"; message: string };

@@ -1151,25 +1151,32 @@ export function createLiveDriver(handle: WorldHandle): WorldDriver {
 
     deleteRestorePoint: async (chainId, segmentId, force) => {
       try {
-        await api.deleteRestorePoint(chainId, segmentId, force);
+        const report = await api.deleteRestorePoint(chainId, segmentId, force);
+        // Points the storage kept under Object Lock are still there: only the
+        // rest leave the lists.
+        const held = new Set(report.heldPointIds);
         if (!stopped) {
           handle.set((s) => {
             if (segmentId === undefined) {
               return {
-                restorePoints: s.restorePoints.filter((p) => p.chainId !== chainId),
+                restorePoints: s.restorePoints.filter((p) => p.chainId !== chainId || held.has(p.id)),
                 revision: s.revision + 1,
               };
             }
             const chainPoints = s.restorePoints.filter((p) => p.chainId === chainId);
             const segment = segmentChainPoints(chainPoints).find((seg) => seg.id === segmentId);
-            const removeIds = new Set((segment?.points ?? []).map((p) => p.id));
+            const removeIds = new Set((segment?.points ?? []).map((p) => p.id).filter((id) => !held.has(id)));
             return {
               restorePoints: s.restorePoints.filter((p) => !removeIds.has(p.id)),
               revision: s.revision + 1,
             };
           });
         }
-        return { ok: true } as RestorePointDeleteResult;
+        return (
+          report.deleted || held.size === 0
+            ? { ok: true }
+            : { ok: true, held: { pointIds: report.heldPointIds, until: report.heldUntil } }
+        ) as RestorePointDeleteResult;
       } catch (err) {
         if (err instanceof api.ApiError) {
           if (err.status === 404) return { ok: false, reason: "not-found" };

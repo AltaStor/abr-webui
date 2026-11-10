@@ -78,6 +78,30 @@ export function DeleteJobVmBackupsDialog({
         toast.error(t("deleteBackup.errorTitle"), { description: failure.message });
         return;
       }
+      // Object Lock can keep points the appliance was asked to delete; then
+      // the toast says how many stay, and until when (ABR-536).
+      const heldIds = new Set(results.flatMap((r) => (r.ok && r.held ? r.held.pointIds : [])));
+      if (heldIds.size > 0) {
+        const until = results
+          .map((r) => (r.ok && r.held ? r.held.until : null))
+          .filter((u): u is string => !!u)
+          .sort()
+          .at(-1);
+        const removed = Math.max(0, vm.points.length - heldIds.size);
+        toast.warning(t("deleteBackup.heldTitle"), {
+          description: [
+            until
+              ? t("deleteBackup.heldUntil", { count: heldIds.size, name: vm.name, until: formatDateTime(until) })
+              : t("deleteBackup.heldNoDate", { count: heldIds.size, name: vm.name }),
+            removed > 0 ? t("deleteBackup.heldRemoved", { count: removed }) : null,
+          ]
+            .filter(Boolean)
+            .join(" "),
+          duration: 15_000,
+        });
+        onOpenChange(false);
+        return;
+      }
       toast.success(t("deleteBackup.successTitle"), {
         description: t("deleteBackup.successDesc", {
           count: vm.points.length,

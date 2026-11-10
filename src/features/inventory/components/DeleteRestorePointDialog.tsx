@@ -73,6 +73,27 @@ export function DeleteRestorePointDialog({
     setDeleting(true);
     try {
       const res = await deleteRestorePoint(point.chainId, point.id, overridingGfs);
+      if (res.ok && res.held) {
+        // Kept by Object Lock: the points stay until the lock ends (ABR-536).
+        const removed = Math.max(0, segment.length - res.held.pointIds.length);
+        toast.warning(t("deleteOne.heldTitle"), {
+          description: [
+            res.held.until
+              ? t("deleteOne.heldUntil", {
+                  count: res.held.pointIds.length,
+                  name: point.vmName,
+                  until: formatDateTime(res.held.until),
+                })
+              : t("deleteOne.heldNoDate", { count: res.held.pointIds.length, name: point.vmName }),
+            removed > 0 ? t("deleteOne.heldRemoved", { count: removed }) : null,
+          ]
+            .filter(Boolean)
+            .join(" "),
+          duration: 15_000,
+        });
+        onOpenChange(false);
+        return;
+      }
       if (res.ok) {
         toast.success(t("deleteOne.deletedTitle"), {
           description: t("deleteOne.deletedDesc", { count: segment.length, name: point.vmName }),
