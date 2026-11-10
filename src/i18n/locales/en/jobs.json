@@ -171,7 +171,9 @@
     "addJobNeedsRepo": "Add a repository before creating a backup job.",
     "addCopyJob": "Add backup copy job",
     "addCopyJobNeedsBackups": "There is nothing to copy yet: create a backup job first.",
-    "addCopyJobNeedsRepo": "Add a second repository first: copies can't go where the backups they copy are."
+    "addCopyJobNeedsRepo": "Add a second repository first: copies can't go where the backups they copy are.",
+    "addReplicationJob": "Add replication job",
+    "addReplicationJobNeedsSource": "A replica is built from a backup job of one VM that has a restore point. Create such a job and run it first."
   },
   "addMenu": {
     "vm": {
@@ -384,7 +386,8 @@
       "readingStaging": "Reading & staging source",
       "replicatingToTarget": "Replicating to target",
       "streamingToRepository": "Streaming to repository",
-      "inProgress": "Run in progress"
+      "inProgress": "Run in progress",
+      "replicationCompleted": "Replication completed"
     },
     "rate": {
       "averageTransfer": "Average transfer rate",
@@ -420,7 +423,6 @@
     "yourNewJob": "Your new job",
     "untitled": "Untitled job",
     "objects": "Objects",
-    "estSeedWindow": "Est. seed window",
     "estBackupWindow": "Est. backup window",
     "schedule": "Schedule",
     "firstRun": "First run",
@@ -429,8 +431,6 @@
     "host": "Host",
     "replicaName": "Replica name",
     "repository": "Repository",
-    "readyToFailOver": "Ready to fail over",
-    "readyToFailOverBody": "Each run resyncs a ready-to-run replica on the target host. During a disaster you power it on to keep running while the source recovers.",
     "saveChanges": "Save changes",
     "createReplication": "Create replication job",
     "createJob": "Create job",
@@ -859,7 +859,6 @@
     },
     "errors": {
       "name": "Give the job a name.",
-      "scopeReplication": "Select at least one VM to replicate.",
       "filesPaths": "Add at least one path on every selected server.",
       "targetEnv": "Pick a target environment for the replica.",
       "repository": "Pick a repository to store backups in.",
@@ -884,34 +883,17 @@
       "rejected": "The appliance rejected the job",
       "rejectedDesc": "Check the configuration and try again."
     },
-    "replicaPoints_one": "{{count}} point on the replica",
-    "replicaPoints_other": "{{count}} points on the replica",
-    "autoPlaces": "Auto — AltaStor places it",
-    "repl": {
-      "editTitle": "Edit replication job",
-      "title": "New replication job",
-      "editDescription": "Adjust scope, schedule, or the replica target — changes apply on the next resync.",
-      "description": "Pick what to replicate, which host to keep the replica on, and how often to resync. Defaults are pre-filled — adjust what you need."
-    },
     "editDescription": "Adjust scope, schedule, retention, or protection — changes apply on the next run.",
     "jobName": "Job name",
     "jobNamePlaceholder": "e.g. Daily — Production VMs",
     "nameHelp": "A name helps you find this job later.",
     "description": "Description",
-    "optional": "— optional",
-    "descPlaceholderReplication": "e.g. Keeps the SQL tier warm at the DR site",
     "descPlaceholderBackup": "e.g. Nightly protection for the production SQL tier",
-    "whatToReplicate": "What to replicate",
     "whatToBackUp": "Select objects to back up",
     "replicateTo": "Replicate to",
     "targetEnvironment": "Target environment",
     "chooseTargetEnv": "Choose a target environment",
-    "replicaDiffEnv": "A replica normally lands on a different environment than the source.",
     "targetHost": "Target host",
-    "autoPlace": "Auto — let AltaStor place it",
-    "hostSpec": "{{cores}} · {{ram}} RAM",
-    "replicaPrefix": "Replica name prefix",
-    "replicasNamed": "Replicas are named <1>{{example}}</1>.",
     "whereToStore": "Select backup repository",
     "freeSuffix": "{{free}} free",
     "elasticCapacity": "Elastic storage",
@@ -929,13 +911,9 @@
     },
     "atTime": "At time",
     "onDays": "On days",
-    "recoveryPointsToKeep": "Recovery points to keep",
     "howLongToKeep": "Set retention",
-    "retentionAriaReplication": "Recovery points to keep on the replica",
     "retentionAriaBackup": "Days to keep",
     "daysShort": "{{count}}d",
-    "keepReplicaNote_one": "Keep {{count}} recovery point on the replica — snapshots you can roll back to before failing over.",
-    "keepReplicaNote_other": "Keep {{count}} recovery points on the replica — snapshots you can roll back to before failing over.",
     "keepBackupNote_one": "Keep backups for {{count}} day before they are automatically deleted.",
     "keepBackupNote_other": "Keep backups for {{count}} days before they are automatically deleted.",
     "minFulls": "Always keep the newest full backups",
@@ -983,7 +961,6 @@
       "appAwareHelp": "Quiesces the OS and databases via VSS before the snapshot, so the backup is transaction-consistent (no half-written records).",
       "appAwareTerm": "application-aware processing",
       "encryption": "Encryption (AES-256)",
-      "encryptionHintReplication": "Encrypt replica data at rest",
       "encryptionHintBackup": "Encrypt restore points at rest",
       "dedup": "Deduplication",
       "dedupHint": "Block-level dedup to save space",
@@ -1268,5 +1245,143 @@
     },
     "group": "Copies",
     "groupTip": "Restore points a backup copy job made: copies of other jobs' backups, kept in a chain of their own."
+  },
+  "repl": {
+    "scope": "{{vm}} → {{target}}",
+    "mode": {
+      "create": "Replica created",
+      "incremental": "Updated",
+      "rebuild": "Disks rebuilt",
+      "up_to_date": "Already up to date"
+    },
+    "when": {
+      "afterSource": "After {{job}}",
+      "sourceJob": "the source backup",
+      "manual": "Started by hand",
+      "afterSourceToggle": "After the source backup",
+      "afterSourceHint": "Runs after each run of {{job}} that ends with success or warnings and leaves a new restore point. A failed or stopped backup starts nothing.",
+      "scheduleLocked": "This job has a schedule: it can be changed, not removed.",
+      "onScheduleOn": "Also runs at the times below. A run that falls due while one is going waits for it, once.",
+      "onScheduleOff": "No timetable of its own.",
+      "manualOnly": "With neither, the job runs only when someone starts it."
+    },
+    "firstRun": {
+      "afterSource": "After the next run of {{job}}",
+      "manual": "When someone starts it"
+    },
+    "form": {
+      "title": "New replication job",
+      "editTitle": "Edit replication job",
+      "description": "Keep a powered-off copy of one VM on another host, built from its backups. Every run brings the replica to the newest restore point; it never reads the production VM.",
+      "editDescription": "The replica hasn't been created yet, so every setting can still change.",
+      "editDescriptionLocked": "The replica exists, so its source and placement are fixed. The name, the schedule and when it follows the source backup can still change.",
+      "source": "Replicate from",
+      "sourceHint": "A backup job of exactly one VM, with at least one restore point. The replica reads its backups with the job's own keys.",
+      "startPoint": "Restore point for the first run",
+      "startPointNewest": "The newest one when the job first runs",
+      "startPointOption": "{{when}} · {{type}}",
+      "startPointHint": "The first run creates the replica from this point; every later run goes to the newest one.",
+      "startPointGone": "The point picked earlier is no longer listed. Pick another, or the first run fails.",
+      "targetHint": "The replica is created powered off, and stays so: no run powers it on.",
+      "samePlatform": "{{platform}} environments, like the source VM's: a replica stays on its own platform.",
+      "pickSourceFirst": "Pick the source first: the target has to be on the same platform.",
+      "pickHost": "Pick a host",
+      "pickDatastore": "Pick one",
+      "storage": "Storage location",
+      "datastore": "Datastore",
+      "noDatastores": "{{host}} reports no datastore. Rescan the environment, or pick another host.",
+      "replicaNameHint": "No VM of this name may be on the target already.",
+      "networks": "Network mapping",
+      "lockedNote": "These are fixed since the replica was created. To change them, create a new replication job.",
+      "renameNote": "The next run renames the replica, now {{name}}.",
+      "renameHint": "A new name renames the replica on the next run.",
+      "when": "When it runs"
+    },
+    "source": {
+      "noJobs": "There is no backup job yet. A replica is built from the restore points of a backup job of one VM.",
+      "detail_one": "{{vm}} · {{count}} restore point · newest {{newest}}",
+      "detail_other": "{{vm}} · {{count}} restore points · newest {{newest}}",
+      "problem": {
+        "notBackup": "Not a backup job.",
+        "noVm": "Backs up no VM.",
+        "severalVms": "Backs up {{count}} VMs: only a backup job of a single VM can be replicated.",
+        "noPoints": "No restore point yet: run the backup first."
+      }
+    },
+    "network": {
+      "loading": "Loading…",
+      "none": "The restore point lists no network adapter, so there is nothing to map.",
+      "sameName": "Network of the same name",
+      "targetFor": "Target network for {{source}}",
+      "noNamesake": "This host has no port group named {{source}}: its adapters are added disconnected unless you pick one.",
+      "noNamesakeHyperv": "This host has no virtual switch named {{source}}: its adapters are added disconnected unless you pick one.",
+      "pickHostFirst": "Pick the target host first: networks are per host.",
+      "sameNames": "Networks of the same name"
+    },
+    "errors": {
+      "source": "Pick the backup job to replicate.",
+      "sourceGone": "The source backup job no longer exists. Pick another.",
+      "platform": "The target environment must be on the same platform as the source VM.",
+      "host": "Pick the host the replica is created on.",
+      "datastore": "Pick the datastore for the replica's disks.",
+      "storage": "Pick the storage location for the replica's files.",
+      "loading": "Loading the target's hosts and datastores…",
+      "network": "{{target}} isn't reachable from this host: pick another network for {{source}}.",
+      "hypervRepository": "The source backups are in {{repository}}, a local folder the Hyper-V host can't read. A Hyper-V replica needs them in an S3 or SMB repository.",
+      "replicaName": "Name the replica VM."
+    },
+    "summary": {
+      "source": "Source",
+      "startPoint": "First run from",
+      "replicaExists": "Done: the replica exists",
+      "newestPoint": "The newest restore point",
+      "datastore": "Datastore",
+      "noteTitle": "A powered-off replica",
+      "noteBody": "Every run brings it to the newest restore point of the source. Leave it alone between runs: a replica that was powered on or changed is not updated again. To use it, power it on by hand."
+    },
+    "toast": {
+      "createdDesc": "Replica {{replica}} on {{target}} · {{schedule}}"
+    },
+    "stats": {
+      "source": "Source",
+      "replica": "Replica",
+      "notCreated": "Not created yet",
+      "lastUpdate": "Last update",
+      "never": "Never",
+      "pointOf": "Restore point of {{when}}",
+      "noPoint": "No restore point yet"
+    },
+    "about": {
+      "sourceJob": "Source job",
+      "sourceVm": "Source VM",
+      "target": "Target",
+      "datastore": "Datastore",
+      "replica": "Replica VM",
+      "replicaPoint": "Replica's restore point",
+      "lastUpdate": "Last update"
+    },
+    "pending": {
+      "run": "One more run starts when the current one ends: {{trigger}}, {{since}}.",
+      "runPlain": "One more run starts when the current one ends.",
+      "rename": "The next run renames the replica {{from}} to {{to}}."
+    },
+    "settings": {
+      "title": "Replication",
+      "afterSource": "After source backup",
+      "startPoint": "First run from",
+      "startPointUsed": "Used: the replica exists",
+      "notCreatedNamed": "{{name}} (not created yet)"
+    },
+    "delete": {
+      "body": "Its replica {{name}} stays on {{target}} as a powered-off VM that AltaStor no longer updates. Restore points are not touched. This can't be undone.",
+      "bodyNoReplica": "It hasn't created a replica yet. Restore points are not touched. This can't be undone.",
+      "bulkKept_one": "The replica of the replication job among them stays on its target.",
+      "bulkKept_other": "The replicas of the {{count}} replication jobs among them stay on their targets.",
+      "alsoReplica": "Also delete the replica {{name}}",
+      "alsoReplicaHint": "Deletes the VM and its disks on the target. Refused, and the job kept, while the replica is powered on or the target can't be reached.",
+      "confirmWithReplica": "Delete job and replica",
+      "replicaKept": "Replica {{name}} stays on {{target}} as an ordinary powered-off VM.",
+      "noReplica": "It hadn't created a replica yet."
+    }
   }
 }

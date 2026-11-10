@@ -74,19 +74,7 @@ export const router = createBrowserRouter([
       { path: "jobs/new", element: <Navigate to="/jobs/new/backup" replace /> },
       { path: "jobs/new/backup", element: <CreateJobPage kind="backup" /> },
       { path: "jobs/new/backup-copy", element: <CreateJobPage kind="backup-copy" /> },
-      // Replication has no orchestrator support. The wizard is hidden, and this
-      // route says so rather than quietly handing back the backup wizard —
-      // someone who asked for a replication job would otherwise fill in a
-      // backup job without noticing the substitution.
-      {
-        path: "jobs/new/replication",
-        element: (
-          <FeatureUnavailable
-            titleKey="featureUnavailable.replication.title"
-            descriptionKey="featureUnavailable.replication.description"
-          />
-        ),
-      },
+      { path: "jobs/new/replication", element: <CreateJobPage kind="replication" /> },
       { path: "jobs/:jobId", element: <JobDetailPage /> },
       { path: "jobs/:jobId/edit", element: <CreateJobPage /> },
       // The standalone Backups page is now the "Backups" tab on Jobs.
@@ -99,8 +87,8 @@ export const router = createBrowserRouter([
       { path: "inventory", element: <InventoryPage /> },
       { path: "inventory/:vmId", element: <VmDetailPage /> },
       { path: "repositories", element: <RepositoriesPage /> },
-      // Hidden: no orchestrator backing. Replication (replicas, failover/
-      // failback) is unimplemented server-side, so the page is off the nav —
+      // Hidden: replication jobs live with the other jobs, and failover/
+      // failback has no orchestrator backing, so this page is off the nav —
       // but a stale bookmark gets an explanation instead of a silent bounce to
       // the dashboard, which reads as the console losing the page.
       {

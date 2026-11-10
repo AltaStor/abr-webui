@@ -12,12 +12,12 @@
  * with no page changes.
  *
  * What is REAL (backed end-to-end for vSphere): environments/inventories, the
- * VM tree, backup jobs (CRUD + run + stop), sessions (poll + log + stop),
- * repositories (list/create/rescan/delete), restore points, and full-VM
- * out-of-place restore.
+ * VM tree, backup, backup copy and replication jobs (CRUD + run + stop),
+ * sessions (poll + log + stop), repositories (list/create/rescan/delete),
+ * restore points, and full-VM out-of-place restore.
  *
  * What is a graceful STUB (no orchestrator support yet — surfaced in the UI as
- * "Work in progress"): replication, threats/ransomware, the world store's audit
+ * "Work in progress"): replica failover/failback, threats/ransomware, the world store's audit
  * event feed (the Logs page reads the real audit log with `listAuditRecords`),
  * metrics history, appliance settings, first-boot provisioning, and the
  * Hyper-V agent lifecycle. These keep their export signatures so the
@@ -31,6 +31,12 @@ import { fileStamp } from "@/lib/download";
 import { currentZoneName, userTimeZone } from "@/lib/time";
 import { deleteRunName, restoreRunName, verifyRunName } from "@/lib/format";
 import { copyScopeSummary, mapBackupCopy, mapCopySource, windowRuleToWire } from "@/lib/backup-copy";
+import {
+  mapReplication,
+  mapReplicationReport,
+  networkMapToWire,
+  replicationScopeSummary,
+} from "@/lib/replication";
 import { useWorldStore } from "@/store/world";
 import type {
   Alert,
@@ -61,7 +67,7 @@ import type {
   OsFamily,
   PowerState,
   Replica,
-  ReplicaTarget,
+  ReplicationInput,
   Repository,
   RepositoryImmutability,
   RepositoryShareInput,
@@ -467,6 +473,9 @@ function mapSession(s: Dict): Session {
   // "backup" and inherited the default "full" below, so a deletion was listed
   // as a full backup of a job named "—".
   const isDelete = str(s.type) === "delete";
+  // A replication job's run updates its replica from a backup's restore
+  // points; like a copy it names its job, and its report says what it did.
+  const isReplication = str(s.type) === "replication";
   // The VM this run acts on, by name, straight from the orchestrator (see
   // _session_vm_names in abr_v41.py). For a restore that's the VM being
   // created; source_vm_name is where the point came from.
@@ -508,7 +517,7 @@ function mapSession(s: Dict): Session {
     id: str(s.id),
     jobId: str(job.id),
     jobName,
-    type: isRestore ? "restore" : isVerify ? "verify" : isDelete ? "delete" : "backup",
+    type: isRestore ? "restore" : isVerify ? "verify" : isDelete ? "delete" : isReplication ? "replication" : "backup",
     status,
     backupType,
     ...(resolvedBackupType ? {} : { typeUnknown: true }),
@@ -554,12 +563,13 @@ function mapSession(s: Dict): Session {
     outcome,
     stopping,
     triggeredBy: triggerOf(str(s.triggered_by)),
+    ...(isReplication ? { replication: mapReplicationReport(s.replication) } : {}),
   };
 }
 
 /** The triggers a backup copy job's runs start on by themselves
  *  (`_start_and_record` in backup_copy.py). */
-const COPY_TRIGGERS = new Set<string>(["immediate", "copy-backlog", "after-job", "copy-window"]);
+const COPY_TRIGGERS = new Set<string>(["immediate", "copy-backlog", "after-job", "copy-window", "after-source"]);
 
 /** Only the JobScheduler's own runs report "schedule", and a backup copy job's
  *  automatic runs their own trigger; Run now, restores and everything else are
@@ -759,7 +769,7 @@ function mapJob(job: Dict, sessions: Session[]): BackupJob {
   const repo = asDict(job.repository);
   const inventory = asDict(job.inventory);
   const jobType = str(job.job_type);
-  const type: JobType = jobType === "backup-copy" ? "backup-copy" : "backup";
+  const type: JobType = jobType === "backup-copy" || jobType === "replication" ? jobType : "backup";
   const vmIds = Array.isArray(job.vm_ids) ? (job.vm_ids as string[]) : [];
   const vmCount = num(job.vm_count, vmIds.length);
   const activeCount = num(job.active_session_count);
@@ -769,10 +779,13 @@ function mapJob(job: Dict, sessions: Session[]): BackupJob {
   const { recentRuns, successRate, lastStatus } = jobRunStats(sessions.filter((s) => s.jobId === id), lastRun);
   // A copy job may have no schedule at all; the appliance reports null then.
   const copy = type === "backup-copy" ? mapBackupCopy(job.backup_copy, job.schedule != null) : undefined;
+  const replication = type === "replication" ? mapReplication(job.replication, job.schedule != null) : undefined;
 
   const scopeSummary = copy
     ? copyScopeSummary(copy, vmIds.length)
-    : (str(inventory.name) ? `${str(inventory.name)} · ` : "") + `${vmCount} VM${vmCount === 1 ? "" : "s"}`;
+    : replication
+      ? replicationScopeSummary(replication)
+      : (str(inventory.name) ? `${str(inventory.name)} · ` : "") + `${vmCount} VM${vmCount === 1 ? "" : "s"}`;
 
   return {
     id,
@@ -808,6 +821,7 @@ function mapJob(job: Dict, sessions: Session[]): BackupJob {
     recentRuns,
     accent: accentFor(id),
     ...(copy ? { copy } : {}),
+    ...(replication ? { replication } : {}),
   };
 }
 
@@ -1706,10 +1720,11 @@ export interface CreateJobPayload {
   options: JobOptions;
   accent?: BackupJob["accent"];
   runNow?: boolean;
-  replicaTarget?: ReplicaTarget;
   /** Backup copy jobs: their sources, mode, window and retries. Its
    *  `scheduled` decides whether `schedule` is sent at all. */
   copy?: BackupCopySettings;
+  /** Replication jobs: source, target and when they run. */
+  replication?: ReplicationInput;
 }
 
 /** Domain Schedule → orchestrator schedule dict. */
@@ -1888,12 +1903,52 @@ function backupCopyJobBody(payload: Partial<CreateJobPayload>): Dict {
   return body;
 }
 
+/**
+ * A replication job's body, for POST /jobs/replication and PATCH /jobs/{id}
+ * (CreateReplicationJobRequest, UpdateJobRequest). It keeps no backups, so no
+ * repository, retention, full schedules or task parameters go with it: the
+ * appliance refuses them. Once the replica exists the source and placement
+ * are fixed, and an edit leaves them out.
+ */
+function replicationJobBody(payload: Partial<CreateJobPayload>): Dict {
+  const body: Dict = {};
+  if (payload.name !== undefined) body.name = payload.name;
+  if (payload.description !== undefined) body.description = payload.description;
+  const r = payload.replication;
+  if (!r) return body;
+  if (!r.placementLocked) {
+    body.source_job_id = r.sourceJobId;
+    if (r.sourceVmId) body.source_vm = r.sourceVmId;
+    body.target_inventory_id = r.targetEnvironmentId;
+    body.target_host = r.targetHost;
+    body.target_datastore = r.targetDatastore;
+    body.network_map = networkMapToWire(r.networkMap);
+    // "" is the newest restore point, which clears a start point set earlier.
+    body.restore_point_id = r.startPointId ?? "";
+  }
+  body.replica_name = r.replicaName;
+  body.run_after_source = r.runAfterSource;
+  if (r.scheduled && payload.schedule) body.schedule = scheduleToWire(payload.schedule);
+  return body;
+}
+
+function jobBodyFor(type: BackupJob["type"] | undefined, payload: Partial<CreateJobPayload>): Dict {
+  if (type === "backup-copy") return backupCopyJobBody(payload);
+  if (type === "replication") return replicationJobBody(payload);
+  return createJobBody(payload);
+}
+
+const CREATE_PATH: Record<BackupJob["type"], string> = {
+  backup: "/jobs",
+  "backup-copy": "/jobs/backup-copy",
+  replication: "/jobs/replication",
+};
+
 export async function createJob(payload: CreateJobPayload): Promise<BackupJob> {
-  const copy = payload.type === "backup-copy";
   const created = asDict(
-    await request<Dict>(copy ? "/jobs/backup-copy" : "/jobs", {
+    await request<Dict>(CREATE_PATH[payload.type ?? "backup"], {
       method: "POST",
-      body: JSON.stringify(copy ? backupCopyJobBody(payload) : createJobBody(payload)),
+      body: JSON.stringify(jobBodyFor(payload.type, payload)),
     }),
   );
   if (payload.runNow && created.id) {
@@ -1904,7 +1959,7 @@ export async function createJob(payload: CreateJobPayload): Promise<BackupJob> {
 
 export async function updateJob(id: string, patch: Partial<CreateJobPayload>): Promise<BackupJob> {
   const current = useWorldStore.getState().jobs.find((j) => j.id === id);
-  const body = (current?.type ?? patch.type) === "backup-copy" ? backupCopyJobBody(patch) : createJobBody(patch);
+  const body = jobBodyFor(current?.type ?? patch.type, patch);
   // A schedule sent without `enabled` is an enabled one, and the appliance
   // switches the job on with it — so saving any change to a disabled job used
   // to turn it back on. Its schedule goes out as off, the way it is.
@@ -1913,7 +1968,22 @@ export async function updateJob(id: string, patch: Partial<CreateJobPayload>): P
   return mapJob(updated, useWorldStore.getState().sessions);
 }
 
-export const deleteJob = (id: string) => request<void>(`/jobs/${id}`, { method: "DELETE" });
+export interface JobDeleteOutcome {
+  /** Replication jobs: the replica VM was deleted with the job. */
+  replicaDeleted: boolean;
+  /** The appliance's account of what it removed, kept and could not delete
+   *  (replication jobs deleted with their replica only). */
+  message: string | null;
+}
+
+/** DELETE /jobs/{id}. `deleteReplica` (replication jobs only) deletes the
+ *  replica VM and its disks too; the appliance refuses it, and keeps the job,
+ *  while the replica is powered on or its target cannot be reached. */
+export async function deleteJob(id: string, opts: { deleteReplica?: boolean } = {}): Promise<JobDeleteOutcome> {
+  const query = opts.deleteReplica ? "?delete_replica=true" : "";
+  const res = asDict(await request<Dict>(`/jobs/${id}${query}`, { method: "DELETE" }));
+  return { replicaDeleted: res.replica_deleted === true, message: strOrNull(res.message) };
+}
 
 export interface RunJobOptions {
   /** Re-read the whole VM: the orchestrator's "ActiveFull". */

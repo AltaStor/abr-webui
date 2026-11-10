@@ -31,12 +31,18 @@ export interface SummaryCopy {
   window: string;
 }
 
-/** Present only for replication jobs; drives the target-host recap on the right rail. */
+/** Present only for replication jobs: what the replica is built from and
+ *  where it lives, in place of a repository and a backup window. */
 export interface SummaryReplication {
+  /** "nightly · sql-01" */
+  source: string;
+  /** The restore point the first run uses, or that the replica exists. */
+  startPoint: string;
   targetEnvName: string;
   targetPlatform: string;
   targetHostName: string;
-  replicaNameExample: string;
+  datastoreName: string;
+  replicaName: string;
 }
 
 export interface SummaryData {
@@ -101,7 +107,16 @@ export function JobSummaryPanel({ data, editMode, submitting, onCreate, onCreate
       </div>
 
       <div className="space-y-3 p-4">
-        {data.copy ? (
+        {data.replication ? (
+          <>
+            <Row icon={DatabaseBackup} label={t("repl.summary.source")} wrap>
+              <span className="font-medium">{data.replication.source || t("common:generic.na")}</span>
+            </Row>
+            <Row icon={Layers} label={t("repl.summary.startPoint")} wrap>
+              <span className="font-medium">{data.replication.startPoint}</span>
+            </Row>
+          </>
+        ) : data.copy ? (
           <>
             <Row icon={HardDriveDownload} label={t("summary.copyFrom")} wrap>
               <span className="font-medium">{data.copy.sources}</span>
@@ -122,7 +137,7 @@ export function JobSummaryPanel({ data, editMode, submitting, onCreate, onCreate
               <span className="text-muted-foreground"> · {formatStorage(data.totalSizeGB)}</span>
             </Row>
 
-            <Row icon={Timer} label={isReplication ? t("summary.estSeedWindow") : t("summary.estBackupWindow")}>
+            <Row icon={Timer} label={t("summary.estBackupWindow")}>
               <span className="nums font-medium">{estSeconds > 0 ? `~${formatDuration(estSeconds)}` : t("common:generic.na")}</span>
             </Row>
           </>
@@ -153,9 +168,11 @@ export function JobSummaryPanel({ data, editMode, submitting, onCreate, onCreate
           <span className="font-medium">{data.firstRunLabel}</span>
         </Row>
 
-        <Row icon={Layers} label={t("summary.retention")}>
-          <span className="font-medium">{data.retentionLabel}</span>
-        </Row>
+        {!isReplication && (
+          <Row icon={Layers} label={t("summary.retention")}>
+            <span className="font-medium">{data.retentionLabel}</span>
+          </Row>
+        )}
 
         {isReplication ? (
           <>
@@ -171,11 +188,15 @@ export function JobSummaryPanel({ data, editMode, submitting, onCreate, onCreate
             </Row>
 
             <Row icon={Server} label={t("summary.host")}>
-              <span className="truncate font-medium">{data.replication!.targetHostName}</span>
+              <span className="truncate font-medium">{data.replication!.targetHostName || t("common:generic.na")}</span>
+            </Row>
+
+            <Row icon={Database} label={t("repl.summary.datastore")}>
+              <span className="truncate font-medium">{data.replication!.datastoreName || t("common:generic.na")}</span>
             </Row>
 
             <Row icon={CopyPlus} label={t("summary.replicaName")}>
-              <span className="truncate font-medium">{data.replication!.replicaNameExample}</span>
+              <span className="truncate font-medium">{data.replication!.replicaName || t("common:generic.na")}</span>
             </Row>
           </>
         ) : (
@@ -187,14 +208,13 @@ export function JobSummaryPanel({ data, editMode, submitting, onCreate, onCreate
         )}
 
         {isReplication && (
-          /* DR reassurance — a warm replica, ready to fail over */
+          /* What the replica is, and what using it takes: no button here
+             powers it on, and it must be left alone between runs. */
           <div className="flex items-start gap-2 border border-info/25 bg-info/[0.05] p-2.5 text-xs">
             <CopyPlus className="mt-0.5 h-4 w-4 shrink-0 text-info" />
             <div className="space-y-1">
-              <p className="font-medium text-info">{t("summary.readyToFailOver")}</p>
-              <p className="text-muted-foreground">
-                {t("summary.readyToFailOverBody")}
-              </p>
+              <p className="font-medium text-info">{t("repl.summary.noteTitle")}</p>
+              <p className="text-muted-foreground">{t("repl.summary.noteBody")}</p>
             </div>
           </div>
         )}

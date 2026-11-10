@@ -14,6 +14,7 @@
 
 import i18n from "@/i18n";
 import type { Session } from "@/types";
+import { replicationModeLabel } from "@/lib/replication";
 
 /**
  * Does this run produce a restore point at all?
@@ -25,12 +26,15 @@ import type { Session } from "@/types";
  * that removed their data.
  */
 export function producesBackup(session: Session): boolean {
-  return session.type === "backup" || session.type === "backup-copy" || session.type === "replication";
+  return session.type === "backup" || session.type === "backup-copy";
 }
 
 /** "Full" / "Synthetic full" / "Incremental", or null for a run that writes no
- *  restore point (see `producesBackup`). */
+ *  restore point (see `producesBackup`). A replication run writes none either;
+ *  what it did to the replica stands in its place ("Created", "Updated"…),
+ *  once the run has ended and the appliance says. */
 export function backupTypeLabel(session: Session): string | null {
+  if (session.type === "replication") return replicationModeLabel(session);
   if (!producesBackup(session)) return null;
   // A copy that reports no type found nothing new and copied nothing.
   if (session.type === "backup-copy" && session.typeUnknown) return i18n.t("jobs:runType.nothingCopied");

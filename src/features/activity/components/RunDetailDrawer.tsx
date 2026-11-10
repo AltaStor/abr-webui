@@ -133,7 +133,7 @@ function RunDetail({ session: s, jobExists, onClose }: { session: Session; jobEx
   // into which — or that there was nothing new.
   const resultMessage = failedSynthetic
     ? syntheticFullFailureMessage(s.message ?? "")
-    : (s.message ?? (s.type === "backup-copy" ? s.outcome : undefined));
+    : (s.message ?? (s.type === "backup-copy" || s.type === "replication" ? s.outcome : undefined));
   const consistencyNote = useConsistencyExplanation(s.consistency, s.consistencyReason);
   /* The same sentence for the per-VM row. It used to print the appliance's own
    * text while the banner above it printed the console's, so one failed merge

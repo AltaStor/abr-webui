@@ -247,6 +247,87 @@ export interface BackupCopySettings {
   scheduled: boolean;
 }
 
+/** One source network sent to a target network ("source=target" on the wire).
+ *  Both are names: a VMware port group, a Hyper-V virtual switch. */
+export interface ReplicaNetworkMapping {
+  source: string;
+  target: string;
+}
+
+/** The replica VM a replication job keeps, as the appliance last saw it. */
+export interface ReplicaVm {
+  /** Null until the first run has created it. */
+  vmId: string | null;
+  vmName: string | null;
+  /** The restore point of the source the replica is at. */
+  pointId: string | null;
+  pointCreatedAt: string | null;
+  /** When a run last brought it up to date. */
+  lastSuccessAt: string | null;
+  /** A new replica name the next run renames it to. */
+  pendingName: string | null;
+}
+
+/**
+ * A replication job's own settings (the job DTO's `replication`). It keeps one
+ * powered-off replica of one VM on a target environment, built from the
+ * restore points of a backup job, and never reads the production VM.
+ */
+export interface ReplicationSettings {
+  sourceJob: NamedRef | null;
+  sourceVm: NamedRef | null;
+  targetEnvironment: NamedRef | null;
+  /** By name as the appliance resolved it (or as it was given). */
+  targetHost: string | null;
+  /** Hyper-V: the storage location. */
+  targetDatastore: string | null;
+  networkMap: ReplicaNetworkMapping[];
+  replicaName: string;
+  /** Runs after each successful (or warning) run of the source job. */
+  runAfterSource: boolean;
+  /** The restore point the first run creates the replica from; null for the
+   *  newest. Meaningless once the replica exists. */
+  startPointId: string | null;
+  replica: ReplicaVm;
+  /** A trigger came while a run was going: one more run starts after it. */
+  pendingRun: { trigger: string | null; since: string | null } | null;
+  /** Whether the job runs on a schedule of its own. */
+  scheduled: boolean;
+}
+
+/** A replication job as the form sends it (POST /jobs/replication, PATCH). */
+export interface ReplicationInput {
+  sourceJobId: string;
+  sourceVmId?: string;
+  targetEnvironmentId: string;
+  /** Host and datastore ids, as the restore context lists them. */
+  targetHost: string;
+  targetDatastore: string;
+  networkMap: ReplicaNetworkMapping[];
+  replicaName: string;
+  runAfterSource: boolean;
+  /** Null: the newest restore point at the first run. */
+  startPointId: string | null;
+  /** Whether the job's `schedule` is sent at all. */
+  scheduled: boolean;
+  /** The replica exists, so the source and placement are left out of an edit:
+   *  the appliance refuses any change to them. */
+  placementLocked?: boolean;
+}
+
+/** What a replication session did (the session DTO's `replication`). */
+export interface ReplicationSessionReport {
+  /** Null while it runs, and for a run that failed. */
+  mode: "create" | "incremental" | "rebuild" | "up_to_date" | null;
+  sourceJobName: string | null;
+  restorePointId: string | null;
+  restorePointCreatedAt: string | null;
+  appliedPointIds: string[];
+  targetEnvironmentName: string | null;
+  targetHostName: string | null;
+  replicaVmName: string | null;
+}
+
 /** Where a restore point a backup copy job made was copied from
  *  (`copy_source`). */
 export interface RestorePointCopySource {
@@ -420,8 +501,11 @@ export interface BackupJob {
   /** Recent run statuses, newest last — drives the sparkline. */
   recentRuns: SessionStatus[];
   accent: AccentKey;
-  /** For replication jobs (type === "replication"): where the replica is kept. */
+  /** The demo world's replicas only (the hidden Replication page). */
   replicaTarget?: ReplicaTarget;
+  /** For replication jobs (type === "replication"): what they replicate,
+   *  where to, and the replica as it stands. */
+  replication?: ReplicationSettings;
   /** For backup copy jobs (type === "backup-copy"): what they copy, and when.
    *  Their `vmIds` are the VMs picked from the sources; empty copies every VM
    *  the sources back up. */
@@ -506,8 +590,19 @@ export interface Session {
    * restore point, "copy-backlog" for the next point that piled up behind it,
    * "after-job" when the run of the job it follows ended, and "copy-window"
    * for a copy stopped by its closing window and queued for the next opening.
+   * A replication job's "after-source" run follows a run of its source backup.
    */
-  triggeredBy: "schedule" | "manual" | "retry" | "immediate" | "copy-backlog" | "after-job" | "copy-window";
+  triggeredBy:
+    | "schedule"
+    | "manual"
+    | "retry"
+    | "immediate"
+    | "copy-backlog"
+    | "after-job"
+    | "copy-window"
+    | "after-source";
+  /** Replication sessions: what the run did to the replica. */
+  replication?: ReplicationSessionReport;
   /**
    * The appliance's own account of a run that finished without an error. For
    * a backup copy it names the restore point copied, its job and repository

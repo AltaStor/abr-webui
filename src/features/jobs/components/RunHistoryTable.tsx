@@ -90,7 +90,7 @@ export function RunHistoryTable({ sessions }: { sessions: Session[] }) {
               // or that nothing was new — the line a copy's history is read for.
               const resultMessage = failedSynthetic
                 ? syntheticFullFailureMessage(s.message ?? "")
-                : (s.message ?? (s.type === "backup-copy" ? s.outcome : undefined));
+                : (s.message ?? (s.type === "backup-copy" || s.type === "replication" ? s.outcome : undefined));
               return (
                 <Fragment key={s.id}>
                   <tr
@@ -126,7 +126,9 @@ export function RunHistoryTable({ sessions }: { sessions: Session[] }) {
                           label comes from the shared helper so this row and the
                           Overview's last-run footer cannot disagree. */}
                       <Badge variant={s.backupType === "full" && !s.typeUnknown ? "info" : "outline"}>
-                        {backupTypeLabel(s) ?? t("runType.full")}
+                        {/* A replication run says what it did to the replica,
+                            and nothing before it has said so. */}
+                        {backupTypeLabel(s) ?? (s.type === "replication" ? "—" : t("runType.full"))}
                       </Badge>
                     </td>
                     <td className="nums hidden py-2.5 pr-3 text-muted-foreground md:table-cell">

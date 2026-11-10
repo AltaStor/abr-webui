@@ -21,6 +21,7 @@ import {
 } from "@/lib/synthetic-full";
 import { formatDateTime, verifyRunName } from "@/lib/format";
 import { copyJobVmIds } from "@/lib/backup-copy";
+import { settingsFromInput } from "@/lib/replication";
 import { nextFullBackupRun } from "@/lib/schedule";
 import type {
   Alert,
@@ -33,6 +34,8 @@ import type {
   Hypervisor,
   ImmutabilityEffect,
   LogLine,
+  ReplicationInput,
+  ReplicationSettings,
   Repository,
   RepositoryImmutability,
   RepositoryValidationResult,
@@ -343,6 +346,27 @@ function seedLiveLogs(world: World): Record<string, LogLine[]> {
 }
 
 /* -------------------------------- driver -------------------------------- */
+
+/** A replication job's settings as the appliance would resolve them from the
+ *  form: names looked up in the demo world. */
+function simReplicationSettings(
+  state: Pick<World, "jobs" | "vms" | "environments" | "hosts">,
+  input: ReplicationInput,
+  previous?: ReplicationSettings,
+): ReplicationSettings {
+  return settingsFromInput(
+    input,
+    {
+      sourceJob: state.jobs.find((j) => j.id === input.sourceJobId)?.name,
+      sourceVm: state.vms.find((v) => v.id === input.sourceVmId)?.name,
+      targetEnvironment: state.environments.find((e) => e.id === input.targetEnvironmentId)?.name,
+      host: state.hosts.find((h) => h.id === input.targetHost)?.name,
+      datastore: input.targetDatastore.split("::").pop(),
+    },
+    previous,
+  );
+}
+
 export function createSimDriver(handle: WorldHandle): WorldDriver {
   let intervalId: ReturnType<typeof setInterval> | null = null;
   let autoRunAt: number | null = null;
@@ -772,10 +796,8 @@ export function createSimDriver(handle: WorldHandle): WorldDriver {
         successRate: 100,
         recentRuns: [],
         accent: input.accent,
-        // Replication jobs carry their target so the first run can materialize a
-        // replica (mirrors the server persisting replicaTarget on POST /jobs).
-        ...(input.type === "replication" && input.replicaTarget
-          ? { replicaTarget: input.replicaTarget }
+        ...(input.type === "replication" && input.replication
+          ? { replication: simReplicationSettings(state, input.replication) }
           : {}),
         ...(input.type === "backup-copy" && input.copy ? { copy: input.copy } : {}),
       };
@@ -799,7 +821,12 @@ export function createSimDriver(handle: WorldHandle): WorldDriver {
           existing?.type === "replication" && patch.type !== undefined && patch.type !== "replication";
         const jobs = state.jobs.map((j) => {
           if (j.id !== jobId) return j;
-          const next = { ...j, ...patch };
+          const { replication, ...rest } = patch;
+          const next: BackupJob = {
+            ...j,
+            ...rest,
+            ...(replication ? { replication: simReplicationSettings(state, replication, j.replication) } : {}),
+          };
           if (flippedOff) delete next.replicaTarget;
           // Like the appliance, only a schedule that was sent gets a new next
           // run, and a disabled job keeps none.
@@ -842,7 +869,7 @@ export function createSimDriver(handle: WorldHandle): WorldDriver {
       return Promise.resolve();
     },
 
-    deleteJob: (jobId) => {
+    deleteJob: (jobId, opts) => {
       handle.set((state) => {
         // A replication job's standby replicas are reaped on delete; a serving
         // (failover) replica is kept so it can still be failed back (mirrors the server).
@@ -855,7 +882,7 @@ export function createSimDriver(handle: WorldHandle): WorldDriver {
           revision: state.revision + 1,
         };
       });
-      return Promise.resolve();
+      return Promise.resolve({ replicaDeleted: Boolean(opts?.deleteReplica), message: null });
     },
 
     markAllAlertsRead: () => {

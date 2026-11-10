@@ -646,6 +646,56 @@ function buildThreats(): Threat[] {
 }
 
 /* ------------------------------- assemble ------------------------------- */
+/** The demo replication job as the appliance reports one: the first VM of a
+ *  backup job, kept on the DR environment and last updated at its last run. */
+function withReplicationSettings(
+  jobs: BackupJob[],
+  vms: VM[],
+  environments: Environment[],
+  hosts: Host[],
+  restorePoints: RestorePoint[],
+): BackupJob[] {
+  const source = jobs.find((j) => j.id === "job-sql-hourly");
+  const vm = vms.find((v) => v.id === source?.vmIds[0]);
+  return jobs.map((job) => {
+    const target = job.replicaTarget;
+    const env = environments.find((e) => e.id === target?.environmentId);
+    if (job.type !== "replication" || !target || !source || !vm || !env) return job;
+    const host = hosts.find((h) => h.environmentId === env.id);
+    const point = restorePoints
+      .filter((p) => p.jobId === source.id && p.vmId === vm.id)
+      .sort((a, b) => a.createdAt.localeCompare(b.createdAt))
+      .at(-1);
+    const replicaName = `${target.namePrefix}${vm.name}`;
+    return {
+      ...job,
+      vmIds: [vm.id],
+      scopeSummary: `${vm.name} → ${env.name}`,
+      replication: {
+        sourceJob: { id: source.id, name: source.name },
+        sourceVm: { id: vm.id, name: vm.name },
+        targetEnvironment: { id: env.id, name: env.name },
+        targetHost: host?.name ?? null,
+        targetDatastore: "dr-datastore-01",
+        networkMap: [{ source: "VM Network", target: "DR Network" }],
+        replicaName,
+        runAfterSource: true,
+        startPointId: null,
+        replica: {
+          vmId: `${vm.id}-replica`,
+          vmName: replicaName,
+          pointId: point?.id ?? null,
+          pointCreatedAt: point?.createdAt ?? null,
+          lastSuccessAt: job.lastRunAt,
+          pendingName: null,
+        },
+        pendingRun: null,
+        scheduled: true,
+      },
+    };
+  });
+}
+
 /** Ready-to-run replicas for replication jobs, in varied states (demo). */
 function buildReplicas(jobs: BackupJob[], vms: VM[], environments: Environment[], hosts: Host[]): Replica[] {
   const out: Replica[] = [];
@@ -713,9 +763,10 @@ export function createSeedWorld(): World {
   const hosts = buildHosts(environments);
   const vms = buildVms(environments, hosts);
   const repositories = buildRepositories();
-  const jobs = buildJobs(vms);
+  const baseJobs = buildJobs(vms);
+  const restorePoints = buildRestorePoints(vms, baseJobs);
+  const jobs = withReplicationSettings(baseJobs, vms, environments, hosts, restorePoints);
   const sessions = buildSessions(jobs, vms);
-  const restorePoints = buildRestorePoints(vms, jobs);
   const alerts = buildAlerts();
   const threats = buildThreats();
   const replicas = buildReplicas(jobs, vms, environments, hosts);

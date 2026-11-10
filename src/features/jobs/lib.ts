@@ -13,6 +13,7 @@ import type {
   CopyWindowRule,
   FullBackupSchedule,
   JobType,
+  ReplicationSettings,
   Retention,
   Schedule,
   Session,
@@ -111,10 +112,24 @@ export function scheduleLabel(schedule: Schedule, disabled = false): string {
 /**
  * When a job runs, as one label. A backup job's is its schedule's; a backup
  * copy job may also run after another job, by hand only, or after every
- * backup of its sources, and its `schedule` says nothing about those.
+ * backup of its sources, and its `schedule` says nothing about those. A
+ * replication job runs on its schedule, after its source backup, both, or
+ * only when started by hand.
  */
-export function jobScheduleLabel(job: Pick<BackupJob, "schedule" | "state" | "copy">): string {
+export function jobScheduleLabel(
+  job: Pick<BackupJob, "schedule" | "state" | "copy"> & {
+    replication?: Pick<ReplicationSettings, "scheduled" | "runAfterSource" | "sourceJob">;
+  },
+): string {
   const disabled = job.state === "disabled";
+  const repl = job.replication;
+  if (repl && !disabled) {
+    const after = repl.runAfterSource
+      ? i18n.t("jobs:repl.when.afterSource", { job: repl.sourceJob?.name ?? i18n.t("jobs:repl.when.sourceJob") })
+      : null;
+    if (!repl.scheduled) return after ?? i18n.t("jobs:repl.when.manual");
+    return after ? `${scheduleLabel(job.schedule)} · ${after}` : scheduleLabel(job.schedule);
+  }
   const copy = job.copy;
   if (!copy || disabled) return scheduleLabel(job.schedule, disabled);
   if (copy.mode === "immediate") return i18n.t("jobs:copy.when.immediate");

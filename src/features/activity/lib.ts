@@ -5,6 +5,7 @@ import {
   CalendarClock,
   ChevronsRight,
   Clock,
+  CopyPlus,
   DatabaseBackup,
   Hand,
   HardDriveDownload,
@@ -51,12 +52,14 @@ export function isDelete(session: Session): boolean {
   return session.type === "delete";
 }
 
-/** Human label for the kind of run — restore / verify / delete / backup. */
+/** Human label for the kind of run — restore / verify / delete / backup copy /
+ *  replication / backup. */
 export function runKind(session: Session): string {
   if (isRestore(session)) return i18n.t("activity:runKind.restore");
   if (session.type === "verify") return i18n.t("activity:runKind.verify");
   if (session.type === "delete") return i18n.t("activity:runKind.delete");
   if (session.type === "backup-copy") return i18n.t("activity:runKind.backupCopy");
+  if (session.type === "replication") return i18n.t("activity:runKind.replication");
   return i18n.t("activity:runKind.backup");
 }
 
@@ -68,6 +71,7 @@ export function runKindIcon(session: Session): LucideIcon {
   if (session.type === "verify") return ShieldCheck;
   if (session.type === "delete") return Trash2;
   if (session.type === "backup-copy") return HardDriveDownload;
+  if (session.type === "replication") return CopyPlus;
   return DatabaseBackup;
 }
 
@@ -84,6 +88,7 @@ export const TRIGGER_META: Record<Session["triggeredBy"], { readonly label: stri
   "copy-backlog": { get label() { return i18n.t("activity:trigger.copyBacklog"); }, icon: Layers },
   "after-job": { get label() { return i18n.t("activity:trigger.afterJob"); }, icon: ChevronsRight },
   "copy-window": { get label() { return i18n.t("activity:trigger.copyWindow"); }, icon: Clock },
+  "after-source": { get label() { return i18n.t("activity:trigger.afterSource"); }, icon: ChevronsRight },
 };
 
 /** ms since epoch for "now minus 24h". */

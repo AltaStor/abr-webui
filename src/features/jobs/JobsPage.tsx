@@ -50,6 +50,8 @@ import { useWorldStore } from "@/store/world";
 import type { BackupJob, Repository, Session, SessionStatus } from "@/types";
 import { DatabaseBackup } from "@/lib/icons";
 import { copyJobVmIds } from "@/lib/backup-copy";
+import { sourceJobProblem } from "@/lib/replication";
+import { deletedDescription, replicaOf } from "./components/DeleteJobDialog";
 import { accentColor, jobHasActiveRun, jobScheduleLabel, jobTypeMeta } from "./lib";
 import { JobActionsMenu } from "./components/JobActionsMenu";
 import { CancelRunDialog } from "@/components/CancelRunButton";
@@ -99,10 +101,9 @@ function matchesSchedule(job: BackupJob, filter: ScheduleFilter): boolean {
 export default function JobsPage() {
   const { t } = useTranslation("jobs");
   const navigate = useNavigate();
-  const allJobs = useWorldStore((s) => s.jobs);
-  // This page is the home for BACKUP jobs; replication jobs live on the
-  // Replication page (which lists and links them). Keep the two apart.
-  const jobs = useMemo(() => allJobs.filter((j) => j.type !== "replication"), [allJobs]);
+  // Backup, backup copy and replication jobs, side by side: each is set up,
+  // run and watched the same way.
+  const jobs = useWorldStore((s) => s.jobs);
   const repositories = useWorldStore((s) => s.repositories);
   const environments = useWorldStore((s) => s.environments);
   const restorePoints = useWorldStore((s) => s.restorePoints);
@@ -166,6 +167,10 @@ export default function JobsPage() {
       : repositories.length < 2
         ? t("page.addCopyJobNeedsRepo")
         : null;
+  // A replica is built from a backup job of one VM that has a restore point.
+  const addReplicationJobBlockedReason = jobs.some((j) => sourceJobProblem(j, restorePoints) === null)
+    ? null
+    : t("page.addReplicationJobNeedsSource");
 
   /* How many VMs a job covers. A copy job that picked none copies every VM its
    * sources back up, which is what it counts. */
@@ -259,12 +264,16 @@ export default function JobsPage() {
     }
   };
 
-  const handleDelete = async (job: BackupJob) => {
+  const handleDelete = async (job: BackupJob, deleteReplica = false) => {
     try {
-      await deleteJob(job.id);
-      toast.success(t("toast.deleted", { name: job.name }), { description: t("toast.pointsSafe") });
-    } catch {
-      toast.error(t("toast.deleteFailed", { name: job.name }), { description: t("toast.deleteFailedDesc") });
+      const outcome = await deleteJob(job.id, { deleteReplica });
+      toast.success(t("toast.deleted", { name: job.name }), {
+        description: deletedDescription(job, outcome),
+      });
+    } catch (err) {
+      toast.error(t("toast.deleteFailed", { name: job.name }), {
+        description: apiErrorMessage(err) ?? t("toast.deleteFailedDesc"),
+      });
     }
   };
 
@@ -558,6 +567,12 @@ export default function JobsPage() {
           tab === "jobs" && canCreate ? (
             <>
               <AddJobButton
+                blockedReason={addReplicationJobBlockedReason}
+                onClick={() => navigate("/jobs/new/replication")}
+                label={t("page.addReplicationJob")}
+                variant="outline"
+              />
+              <AddJobButton
                 blockedReason={addCopyJobBlockedReason}
                 onClick={() => navigate("/jobs/new/backup-copy")}
                 label={t("page.addCopyJob")}
@@ -748,8 +763,9 @@ export default function JobsPage() {
         open={!!deleteTarget}
         onOpenChange={(o) => !o && setDeleteTarget(null)}
         label={deleteTarget?.name ?? ""}
+        replica={replicaOf(liveDeleteTarget)}
         runningCount={liveDeleteTarget && jobHasActiveRun(liveDeleteTarget, sessions) ? 1 : 0}
-        onConfirm={() => deleteTarget && handleDelete(deleteTarget)}
+        onConfirm={({ deleteReplica }) => deleteTarget && handleDelete(deleteTarget, deleteReplica)}
       />
       <DeleteJobDialog
         open={bulkDeleteOpen}
@@ -757,6 +773,7 @@ export default function JobsPage() {
         label={selectedJobs.length === 1 ? selectedJobs[0].name : ""}
         count={selectedIds.length}
         runningCount={runningSelected}
+        replicationCount={selectedJobs.filter((j) => j.type === "replication").length}
         onConfirm={bulkDelete}
       />
       <CancelRunDialog

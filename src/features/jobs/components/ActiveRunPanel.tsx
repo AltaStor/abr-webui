@@ -95,12 +95,17 @@ export function ActiveRunPanel({ session }: { session: Session }) {
         ? "warning"
         : "danger"
     : "info";
+  const replication = session.type === "replication";
   const headline = terminal
     ? session.status === "success"
-      ? t("run.headline.backupCompleted")
+      ? replication
+        ? t("run.headline.replicationCompleted")
+        : t("run.headline.backupCompleted")
       : session.status === "warning"
         ? t("run.headline.completedWithWarnings")
-        : t("run.headline.backupFailed")
+        : replication
+          ? t("run.headline.replicationFailed")
+          : t("run.headline.backupFailed")
     : storing
       ? t("run.headline.streamingToRepository")
       : t("run.headline.inProgress");
@@ -157,7 +162,10 @@ export function ActiveRunPanel({ session }: { session: Session }) {
               title={terminal ? session.message : session.stageMessage}
             >
               {terminal ? (
-                session.message ?? <>{t("run.protected", { done: doneCount, total: session.vmCount, noun: objectNoun })}</>
+                session.message ??
+                (replication ? session.outcome : undefined) ?? (
+                  <>{t("run.protected", { done: doneCount, total: session.vmCount, noun: objectNoun })}</>
+                )
               ) : session.stageMessage ? (
                 session.stageMessage
               ) : storing ? (
@@ -168,7 +176,11 @@ export function ActiveRunPanel({ session }: { session: Session }) {
             </span>
             <span className={cn("nums shrink-0 text-2xl font-semibold", tc.text)}>{Math.round(session.progress)}%</span>
           </div>
-          <ProgressBar value={session.progress} tone={tone} active={!terminal} label={t("run.progressLabelBackup", { job: session.jobName })} />
+          <ProgressBar value={session.progress} tone={tone} active={!terminal} label={
+            replication
+              ? t("run.progressLabelReplication", { job: session.jobName })
+              : t("run.progressLabelBackup", { job: session.jobName })
+          } />
         </div>
 
         {/* Live pipeline (agent-backed): guest read → LAN → repository, each a

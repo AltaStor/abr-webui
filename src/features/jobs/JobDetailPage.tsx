@@ -10,6 +10,7 @@ import {
   CheckCircle2,
   ChevronDown,
   Clock,
+  CopyPlus,
   Database,
   DatabaseBackup,
   Layers,
@@ -58,7 +59,8 @@ import { ThroughputChart } from "./components/ThroughputChart";
 import { RunHistoryTable } from "./components/RunHistoryTable";
 import { JobObjectsTab } from "./components/JobObjectsTab";
 import { JobSettingsTab } from "./components/JobSettingsTab";
-import { DeleteJobDialog } from "./components/DeleteJobDialog";
+import { DeleteJobDialog, deletedDescription, replicaOf } from "./components/DeleteJobDialog";
+import { ReplicationAbout, ReplicationPendingNotes } from "./components/ReplicationDetails";
 import { RetentionDialog } from "./components/RetentionDialog";
 import { utcTitle } from "@/lib/time";
 
@@ -168,6 +170,8 @@ export default function JobDetailPage() {
   /* Both kinds take an active full and keep their own retention; a copy's
    * full reads the source's newest state again. */
   const runsFull = job.type === "backup" || job.type === "backup-copy";
+  /* A replication job keeps no backups: its tiles are about the replica. */
+  const repl = job.replication;
 
   /* ------------------------------- actions ------------------------------- */
   /* Console-owned sentence first, the appliance's own words underneath — they
@@ -212,10 +216,10 @@ export default function JobDetailPage() {
       });
     }
   };
-  const handleDelete = async () => {
+  const handleDelete = async (deleteReplica = false) => {
     try {
-      await deleteJob(job.id);
-      toast.success(t("toast.deleted", { name: job.name }), { description: t("toast.pointsSafe") });
+      const outcome = await deleteJob(job.id, { deleteReplica });
+      toast.success(t("toast.deleted", { name: job.name }), { description: deletedDescription(job, outcome) });
       navigate("/jobs");
     } catch (err) {
       toast.error(t("toast.deleteFailed", { name: job.name }), {
@@ -345,6 +349,7 @@ export default function JobDetailPage() {
           </p>
         </div>
       )}
+      {repl && <ReplicationPendingNotes replication={repl} />}
       <KpiBand className="grid-cols-2 sm:grid-cols-3 xl:grid-cols-6">
         <KpiCard
           density="compact"
@@ -372,6 +377,35 @@ export default function JobDetailPage() {
           value={<span className="nums">{job.lastRunAt ? `${job.successRate}%` : "—"}</span>}
           hint={t("detailStats.recentRuns")}
         />
+        {repl ? (
+          <>
+            <KpiCard
+              density="compact"
+              icon={DatabaseBackup}
+              tone={repl.sourceJob ? "neutral" : "muted"}
+              label={t("repl.stats.source")}
+              value={
+                <span className="truncate text-base font-semibold" title={repl.sourceJob?.name}>
+                  {repl.sourceJob?.name ?? t("common:generic.na")}
+                </span>
+              }
+              hint={repl.sourceVm?.name ?? t("common:generic.na")}
+            />
+            <KpiCard
+              density="compact"
+              icon={CopyPlus}
+              tone={repl.replica.vmId ? "neutral" : "muted"}
+              label={t("repl.stats.replica")}
+              value={
+                <span className="truncate text-base font-semibold" title={repl.replica.vmName ?? repl.replicaName}>
+                  {repl.replica.vmId ? (repl.replica.vmName ?? repl.replicaName) : t("repl.stats.notCreated")}
+                </span>
+              }
+              hint={[repl.targetEnvironment?.name, repl.targetHost].filter(Boolean).join(" · ") || t("common:generic.na")}
+            />
+          </>
+        ) : (
+        <>
         <KpiCard
           density="compact"
           icon={Server}
@@ -392,6 +426,8 @@ export default function JobDetailPage() {
           value={<span className="truncate text-base font-semibold" title={repository?.name}>{repository?.name ?? t("common:generic.na")}</span>}
           hint={repository ? REPO_TYPE_META[repository.type].short : t("common:generic.na")}
         />
+        </>
+        )}
         <KpiCard
           density="compact"
           icon={CalendarClock}
@@ -401,7 +437,7 @@ export default function JobDetailPage() {
             <span className="nums text-base font-semibold">
               {job.nextRunAt
                 ? formatRelative(job.nextRunAt)
-                : copy && !disabled
+                : (copy || repl) && !disabled
                   ? jobScheduleLabel(job)
                   : t("status.disabled")}
             </span>
@@ -411,14 +447,36 @@ export default function JobDetailPage() {
           hint={job.nextRunAt ? formatFullDateTime(job.nextRunAt) : t("detailStats.notScheduled")}
           hintTitle={utcTitle(job.nextRunAt)}
         />
-        <KpiCard
-          density="compact"
-          icon={Layers}
-          tone="neutral"
-          label={t("detailStats.retention")}
-          value={<span className="nums text-base font-semibold">{t("detailStats.daysValue", { count: job.retention.keepDays })}</span>}
-          hint={job.retention.gfs ? t("detailStats.gfsLongTerm") : retentionLabel(job.retention)}
-        />
+        {repl ? (
+          /* When the replica was last brought up to date, and to which restore
+             point of the source: how old the replica is if it is needed now. */
+          <KpiCard
+            density="compact"
+            icon={CheckCircle2}
+            tone={repl.replica.lastSuccessAt ? "neutral" : "muted"}
+            label={t("repl.stats.lastUpdate")}
+            value={
+              <span className="nums text-base font-semibold">
+                {repl.replica.lastSuccessAt ? formatRelative(repl.replica.lastSuccessAt) : t("repl.stats.never")}
+              </span>
+            }
+            hint={
+              repl.replica.pointCreatedAt
+                ? t("repl.stats.pointOf", { when: formatDateTime(repl.replica.pointCreatedAt) })
+                : t("repl.stats.noPoint")
+            }
+            hintTitle={utcTitle(repl.replica.pointCreatedAt)}
+          />
+        ) : (
+          <KpiCard
+            density="compact"
+            icon={Layers}
+            tone="neutral"
+            label={t("detailStats.retention")}
+            value={<span className="nums text-base font-semibold">{t("detailStats.daysValue", { count: job.retention.keepDays })}</span>}
+            hint={job.retention.gfs ? t("detailStats.gfsLongTerm") : retentionLabel(job.retention)}
+          />
+        )}
       </KpiBand>
 
       <Tabs defaultValue="overview">
@@ -459,19 +517,24 @@ export default function JobDetailPage() {
                       <Detail label={t("copy.about.window")} value={copyWindowLabel(copy.window)} />
                     </>
                   )}
-                  {job.type !== "replication" && (
+                  {repl ? (
+                    <ReplicationAbout replication={repl} />
+                  ) : (
                     <>
                       <Detail label={t("fullSchedule.active")} value={fullScheduleLabel(job.activeFullSchedule)} />
                       <Detail label={t("fullSchedule.synthetic")} value={fullScheduleLabel(job.syntheticFullSchedule)} />
+                      <Detail label={t("about.retention")} value={retentionLabel(job.retention)} />
+                      <Detail label={t("about.scope")} value={job.scopeSummary} />
+                      <Detail
+                        label={t("about.encryption")}
+                        value={job.options.encryption ? t("about.aes256") : t("state.off")}
+                      />
+                      <Detail
+                        label={t("about.compression")}
+                        value={t("settings.compressionLevel", { level: job.options.compression })}
+                      />
                     </>
                   )}
-                  <Detail label={t("about.retention")} value={retentionLabel(job.retention)} />
-                  <Detail label={t("about.scope")} value={job.scopeSummary} />
-                  <Detail label={t("about.encryption")} value={job.options.encryption ? t("about.aes256") : t("state.off")} />
-                  <Detail
-                    label={t("about.compression")}
-                    value={t("settings.compressionLevel", { level: job.options.compression })}
-                  />
                   <Detail label={t("about.created")} value={formatDateTime(job.createdAt)} />
                 </div>
               </Card>
@@ -501,7 +564,8 @@ export default function JobDetailPage() {
         onOpenChange={setDeleteOpen}
         label={job.name}
         runningCount={deleteBlocked ? 1 : 0}
-        onConfirm={handleDelete}
+        replica={replicaOf(job)}
+        onConfirm={({ deleteReplica }) => handleDelete(deleteReplica)}
       />
       {runsFull && <RetentionDialog job={job} open={retentionOpen} onOpenChange={setRetentionOpen} />}
     </div>

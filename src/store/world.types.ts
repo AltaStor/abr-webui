@@ -27,7 +27,7 @@ import type {
   LogLine,
   MetricSnapshot,
   Replica,
-  ReplicaTarget,
+  ReplicationInput,
   Repository,
   RepositoryImmutability,
   RepositoryShareInput,
@@ -216,10 +216,22 @@ export interface CreateJobInput {
   options: JobOptions;
   accent: AccentKey;
   runNow?: boolean;
-  /** For replication jobs — where the replica is maintained. */
-  replicaTarget?: ReplicaTarget;
   /** For backup copy jobs — what they copy, how and when. */
   copy?: BackupCopySettings;
+  /** For replication jobs — what they replicate, where to and when. */
+  replication?: ReplicationInput;
+}
+
+/** A change to a job. A replication job's settings go as the form's input,
+ *  which the appliance resolves into the job's `replication`. */
+export type JobPatch = Partial<Omit<BackupJob, "replication">> & { replication?: ReplicationInput };
+
+/** What deleting a job did beyond removing it. */
+export interface JobDeleteOutcome {
+  /** Replication jobs: the replica VM was deleted with the job. */
+  replicaDeleted: boolean;
+  /** The appliance's own account of it, when it gave one. */
+  message: string | null;
 }
 
 export interface RestoreInput {
@@ -280,9 +292,10 @@ export interface WorldState extends WorldData {
    *  request didn't reach it — the run keeps going and the caller says so. */
   stopSession(sessionId: string): Promise<boolean>;
   createJob(input: CreateJobInput): Promise<BackupJob>;
-  updateJob(jobId: string, patch: Partial<BackupJob>): Promise<void>;
+  updateJob(jobId: string, patch: JobPatch): Promise<void>;
   setJobEnabled(jobId: string, enabled: boolean): Promise<void>;
-  deleteJob(jobId: string): Promise<void>;
+  /** `deleteReplica` (replication jobs only) deletes the replica VM too. */
+  deleteJob(jobId: string, opts?: { deleteReplica?: boolean }): Promise<JobDeleteOutcome>;
   markAllAlertsRead(): Promise<void>;
   markAlertRead(id: string): Promise<void>;
   dismissThreat(id: string): Promise<void>;

@@ -41,7 +41,7 @@ export function LastRunSummary({ session }: { session: Session }) {
   const message =
     session.synthetic && session.status === "failed" && session.message
       ? syntheticFullFailureMessage(session.message)
-      : session.message;
+      : (session.message ?? (session.type === "replication" ? session.outcome : undefined));
 
   return (
     <Card className="p-5">
@@ -73,11 +73,19 @@ export function LastRunSummary({ session }: { session: Session }) {
       </div>
       <p className="mt-3 text-[11px] text-muted-foreground">
         {t("lastRun.avgPrefix")} {formatThroughput(session.throughputMBps)} ·{" "}
-        {backupTypeLabel(session) ?? t("runType.full")}
-        {/* "Nothing copied" is the whole story; "Full copy" needs its noun. */}
-        {session.type === "backup-copy"
-          ? !session.typeUnknown && ` ${t("lastRun.kindCopy")}`
-          : ` ${t("lastRun.kindBackup")}`}
+        {session.type === "replication" ? (
+          // "Updated" says it all; before the appliance reports what the run
+          // did, it is simply a replication.
+          (backupTypeLabel(session) ?? t("lastRun.kindReplication"))
+        ) : (
+          <>
+            {backupTypeLabel(session) ?? t("runType.full")}
+            {/* "Nothing copied" is the whole story; "Full copy" needs its noun. */}
+            {session.type === "backup-copy"
+              ? !session.typeUnknown && ` ${t("lastRun.kindCopy")}`
+              : ` ${t("lastRun.kindBackup")}`}
+          </>
+        )}
       </p>
     </Card>
   );

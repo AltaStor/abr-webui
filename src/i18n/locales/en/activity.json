@@ -12,7 +12,8 @@
     "diskBackup": "Disk backup",
     "fileBackup": "File backup",
     "serverBackup": "Server backup",
-    "backup": "Backup"
+    "backup": "Backup",
+    "replication": "Replication"
   },
   "objectNouns": {
     "disk": {
@@ -37,7 +38,8 @@
     "immediate": "New restore point",
     "copyBacklog": "Pending restore point",
     "afterJob": "After another job",
-    "copyWindow": "Copy window"
+    "copyWindow": "Copy window",
+    "afterSource": "After the source backup"
   },
   "filters": {
     "statusGroupLabel": "Filter runs by status",

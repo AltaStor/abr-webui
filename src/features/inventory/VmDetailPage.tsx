@@ -156,8 +156,8 @@ export default function VmDetailPage() {
   const host = hosts.find((h) => h.id === vm.hostId);
   const location = vmLocation(vm, hosts, environments);
   const powerMeta = POWER_META[vm.powerState];
-  // "Back up now" runs a backup, never a copy of one.
-  const primaryJob = coveringJobs.find((j) => j.type !== "backup-copy");
+  // "Back up now" runs a backup, never a copy or a replication of one.
+  const primaryJob = coveringJobs.find((j) => j.type === "backup");
   const isRunning = primaryJob?.state === "running";
   // Arriving from a job's Objects tab is a one-way trip unless the header says
   // so: the URL is the same /inventory/:vmId either way, so the origin job is

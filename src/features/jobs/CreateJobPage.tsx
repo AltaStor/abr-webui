@@ -2,7 +2,8 @@
 // Copyright © 2026 Norvitex OÜ
 
 import { useMemo, useState } from "react";
-import { useTranslation, Trans } from "react-i18next";
+import { useQuery } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import { Navigate, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import {
@@ -14,6 +15,7 @@ import {
   DatabaseBackup,
   Globe,
   HardDriveDownload,
+  Network,
   Repeat,
   RotateCw,
   Settings2,
@@ -51,7 +53,17 @@ import { NotPermitted } from "@/components/FeatureUnavailable";
 import { useCan } from "@/store/permissions";
 import { useWorldStore, type CreateJobInput } from "@/store/world";
 import { REPO_TYPE_META } from "@/features/repositories/components/repoMeta";
-import type { BackupCopySettings, BackupJob, CopyMode, CopyWindowRule, FullBackupSchedule, JobOptions, Schedule } from "@/types";
+import type {
+  BackupCopySettings,
+  BackupJob,
+  CopyMode,
+  CopyWindowRule,
+  FullBackupSchedule,
+  JobOptions,
+  ReplicaNetworkMapping,
+  ReplicationInput,
+  Schedule,
+} from "@/types";
 import i18n from "@/i18n";
 import {
   COPY_RETRY_DEFAULTS,
@@ -80,7 +92,10 @@ import {
   CopyWindowEditor,
   copyWindowRuleProblem,
 } from "./components/BackupCopyFields";
-import { countOf } from "@/lib/count";
+import { qk } from "@/lib/query";
+import { defaultReplicaName, replicaCreated, sourceJobProblem, sourcePoints } from "@/lib/replication";
+import { validateRestoredVmName } from "@/features/restore/components/ChooseModeStep";
+import { LockedSetting, NetworkMapFields, ReplicationSourcePicker, StartPointSelect } from "./components/ReplicationFields";
 
 type Preset = "hourly" | "every4h" | "daily" | "weekly";
 type JobTypeChoice = "backup" | "replication" | "backup-copy";
@@ -90,9 +105,6 @@ const DAY_KEYS = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
 /** Saturday, as an index into DAY_KEYS — the default day for both full backup
  *  schedules on a new job. */
 const FULL_BACKUP_DEFAULT_DAY = 6;
-const DEFAULT_NAME_PREFIX = "replica-";
-/** "" = auto — let AltaStor place the replica on any host in the target environment. */
-const AUTO_HOST = "";
 /** The "no job" choice of the run-after picker: a select item can't be "". */
 const NO_JOB = "none";
 
@@ -217,10 +229,23 @@ interface FormState {
   /** GFS archiving on/off, independent of the counts above — suspending it
    *  keeps the weekly/monthly/yearly figures so they can be resumed unchanged. */
   gfsEnabled: boolean;
-  // Replication target
+  /** Replication jobs only, from here on: the backup job the replica is
+   *  built from, and the restore point its first run uses ("" = the newest). */
+  sourceJobId: string;
+  startPointId: string;
   targetEnvironmentId: string;
+  /** Host and datastore: an id once picked. A job being edited starts from
+   *  what the appliance reports — a name — matched against the options. */
   targetHostId: string;
-  namePrefix: string;
+  targetDatastoreId: string;
+  /** "" until typed: the form proposes one from the source VM's name. */
+  replicaName: string;
+  /** Source network → target network name; "" or absent keeps a network of
+   *  the same name. */
+  networkMap: Record<string, string>;
+  runAfterSource: boolean;
+  /** Whether `preset` applies, besides (or instead of) the source backup. */
+  replScheduled: boolean;
   /** Backup copy jobs only, from here on. */
   copyMode: CopyMode;
   /** Periodic copies: whether `preset` applies, or the job runs only when
@@ -358,12 +383,19 @@ function JobWizard({
   const isReplication = kind === "replication";
   const isCopy = kind === "backup-copy";
   const storedCopy = existingJob?.copy;
+  const storedRepl = existingJob?.replication;
+  /* Once the replica exists its source and placement are fixed: the appliance
+   * refuses any change to them, so the form shows them instead of asking. */
+  const placementLocked = isReplication && replicaCreated(existingJob);
 
   // ----- initial state (prefill in edit mode, smart defaults for create) -----
   const [form, setForm] = useState<FormState>(() => {
     // A copy job without a schedule of its own has none to read a time or a
     // zone from: the appliance reports null, which reads as daily at 00:00.
-    const ownSchedule = existingJob && (!storedCopy || storedCopy.scheduled) ? existingJob.schedule : undefined;
+    const ownSchedule =
+      existingJob && (!storedCopy || storedCopy.scheduled) && (!storedRepl || storedRepl.scheduled)
+        ? existingJob.schedule
+        : undefined;
     // Full backups default to the job's own run time. A full that falls due
     // together with the regular backup replaces that run instead of adding one.
     const atTime = ownSchedule?.atTime ?? "22:00";
@@ -389,6 +421,20 @@ function JobWizard({
       copyWindow: storedCopy?.window ?? [],
       retryCount: storedCopy?.retry.count ?? COPY_RETRY_DEFAULTS[copyMode].count,
       retryIntervalMinutes: storedCopy?.retry.intervalMinutes ?? COPY_RETRY_DEFAULTS[copyMode].intervalMinutes,
+    };
+    /* A new replication job follows its source backup and has no schedule of
+     * its own: the replica is then as fresh as the newest backup, without a
+     * second timetable to keep in step with the first. */
+    const replicationFields = {
+      sourceJobId: storedRepl?.sourceJob?.id ?? "",
+      startPointId: storedRepl?.startPointId ?? "",
+      targetEnvironmentId: storedRepl?.targetEnvironment?.id ?? "",
+      targetHostId: storedRepl?.targetHost ?? "",
+      targetDatastoreId: storedRepl?.targetDatastore ?? "",
+      replicaName: storedRepl?.replicaName ?? "",
+      networkMap: Object.fromEntries((storedRepl?.networkMap ?? []).map((m) => [m.source, m.target])),
+      runAfterSource: storedRepl ? storedRepl.runAfterSource : true,
+      replScheduled: storedRepl ? storedRepl.scheduled : false,
     };
     // A new job starts with a weekly synthetic full. It is the cheaper kind,
     // and a job with retention needs at least one full schedule. A job being
@@ -432,9 +478,7 @@ function JobWizard({
         gfsMonthly: existingJob.retention.gfs?.monthly ?? 0,
         gfsYearly: existingJob.retention.gfs?.yearly ?? 0,
         gfsEnabled: existingJob.retention.gfs?.enabled ?? true,
-        targetEnvironmentId: existingJob.replicaTarget?.environmentId ?? "",
-        targetHostId: existingJob.replicaTarget?.hostId ?? AUTO_HOST,
-        namePrefix: existingJob.replicaTarget?.namePrefix ?? DEFAULT_NAME_PREFIX,
+        ...replicationFields,
         ...copyFields,
       };
     }
@@ -460,17 +504,16 @@ function JobWizard({
       // On, like the appliance's own default: a job that later gets GFS counts
       // should start archiving, not sit silently suspended.
       gfsEnabled: true,
-      targetEnvironmentId: "",
-      targetHostId: AUTO_HOST,
-      namePrefix: DEFAULT_NAME_PREFIX,
+      ...replicationFields,
       ...copyFields,
     };
   });
 
   const [selected, setSelected] = useState<Set<string>>(() => {
     if (existingJob) return new Set(existingJob.vmIds);
-    // A copy job picks from what its sources hold, and starts with every VM.
-    if (isCopy) return new Set();
+    // A copy job picks from what its sources hold, and starts with every VM;
+    // a replication job's VM is its source job's.
+    if (isCopy || isReplication) return new Set();
     if (preselectVmId && vms.some((v) => v.id === preselectVmId)) return new Set([preselectVmId]);
     // Default: pre-select the 'production' tag.
     return new Set(vms.filter((v) => v.tags.includes("production")).map((v) => v.id));
@@ -488,6 +531,10 @@ function JobWizard({
   // what freezes the derived default. Edit mode starts frozen so a saved name is
   // never overwritten.
   const [nameEdited, setNameEdited] = useState(!!existingJob);
+  // Likewise for the replica's name, which follows the source VM until typed.
+  const [replicaNameEdited, setReplicaNameEdited] = useState(!!existingJob);
+  const [replicaNameTouched, setReplicaNameTouched] = useState(false);
+  const getRestorePlacementOptions = useWorldStore((s) => s.getRestorePlacementOptions);
 
   const set = <K extends keyof FormState>(key: K, value: FormState[K]) =>
     setForm((f) => ({ ...f, [key]: value }));
@@ -559,7 +606,10 @@ function JobWizard({
    * A schedule the job already has stays: the appliance can't remove one. */
   const copyScheduleLocked = !!storedCopy?.scheduled;
   const copyScheduled = isCopy && form.copyMode === "periodic" && form.copyScheduled;
-  const showSchedule = !isCopy || copyScheduled;
+  /* A replication job, like a periodic copy, may run without a schedule; one
+   * it already has stays, since the appliance can't remove a schedule. */
+  const replScheduleLocked = !!storedRepl?.scheduled;
+  const showSchedule = isCopy ? copyScheduled : isReplication ? form.replScheduled : true;
   const runAfterJob = isCopy && form.copyMode === "periodic" ? jobs.find((j) => j.id === form.runAfterJobId) : undefined;
 
   // usedGB stays 0 until a VM's first full backup lands (see api.http.ts
@@ -598,33 +648,108 @@ function JobWizard({
     return rate > 0 ? rate : 120;
   }, [sessions, selected]);
 
-  // ----- replication target derivation -----
-  // A replica normally lands on a *different* environment than the source VMs, so
-  // exclude the source environments from the target picker (fall back to all
-  // connected envs if that would leave nothing to choose).
-  const sourceEnvIds = useMemo(
-    () => new Set(vms.filter((v) => selected.has(v.id)).map((v) => v.environmentId)),
-    [vms, selected],
+  // ----- replication derivation -----
+  /* The source: a backup job of one VM, and its restore points of that VM. */
+  const replSourceJob = isReplication ? jobs.find((j) => j.id === form.sourceJobId) : undefined;
+  const replVmId = replSourceJob?.vmIds[0] ?? storedRepl?.sourceVm?.id;
+  const replVm = vms.find((v) => v.id === replVmId);
+  const replVmName = replVm?.name ?? storedRepl?.sourceVm?.name ?? "";
+  const replPoints = useMemo(
+    () => (replSourceJob ? sourcePoints(replSourceJob, restorePoints) : []),
+    [replSourceJob, restorePoints],
   );
-  const targetEnvOptions = useMemo(() => {
-    const connected = environments.filter((e) => e.connected);
-    const distinct = connected.filter((e) => !sourceEnvIds.has(e.id));
-    return distinct.length > 0 ? distinct : connected;
-  }, [environments, sourceEnvIds]);
+  const replSourceProblem = replSourceJob ? sourceJobProblem(replSourceJob, restorePoints) : null;
+  const replStartPoint = replPoints.find((p) => p.id === form.startPointId) ?? replPoints.at(-1);
+  const replRepository = repositories.find((r) => r.id === replStartPoint?.repositoryId);
 
+  /* Hosts, datastores and networks come from the restore context of the
+   * point the replica starts from: the first run IS a restore of it, so these
+   * are exactly the choices that restore accepts, scoped per host. */
+  const placementPointId = isReplication && !placementLocked ? replStartPoint?.id : undefined;
+  const { data: placement, isLoading: placementLoading } = useQuery({
+    queryKey: qk.restorePlacement(placementPointId ?? ""),
+    queryFn: () => getRestorePlacementOptions(placementPointId as string),
+    enabled: !!placementPointId,
+  });
+
+  /* The target is the same platform as the source: VMware to VMware,
+   * Hyper-V to Hyper-V. */
+  const sourcePlatform = environments.find((e) => e.id === replVm?.environmentId)?.hypervisor;
+  const targetEnvOptions = useMemo(
+    () =>
+      environments.filter(
+        (e) =>
+          e.id === form.targetEnvironmentId ||
+          (e.connected && (!sourcePlatform || e.hypervisor === sourcePlatform)),
+      ),
+    [environments, sourcePlatform, form.targetEnvironmentId],
+  );
   const targetEnv = environments.find((e) => e.id === form.targetEnvironmentId);
-  const targetHostOptions = useMemo(
-    () => hosts.filter((h) => h.environmentId === form.targetEnvironmentId),
-    [hosts, form.targetEnvironmentId],
+  const targetHyperV = targetEnv?.hypervisor === "hyperv";
+
+  /** An option picked by id, or named by a job being edited. */
+  const resolveOption = <T extends { id: string; name: string }>(options: T[], ref: string): T | undefined =>
+    ref ? options.find((o) => o.id === ref) ?? options.find((o) => o.name.toLowerCase() === ref.toLowerCase()) : undefined;
+  // The restore context lists every host, including one that runs no VM yet
+  // and so is missing from the inventory tree; the tree is the fallback.
+  const targetHostOptions = useMemo(() => {
+    const listed = (placement?.hosts ?? []).filter((h) => h.environmentId === form.targetEnvironmentId);
+    if (listed.length) return listed.map((h) => ({ id: h.id, name: h.name }));
+    return hosts.filter((h) => h.environmentId === form.targetEnvironmentId).map((h) => ({ id: h.id, name: h.name }));
+  }, [placement, hosts, form.targetEnvironmentId]);
+  const targetHost = resolveOption(targetHostOptions, form.targetHostId);
+  const targetDatastoreOptions = useMemo(
+    () =>
+      (placement?.datastores ?? []).filter(
+        (d) => d.environmentId === form.targetEnvironmentId && (!targetHost || d.hostIds.includes(targetHost.id)),
+      ),
+    [placement, form.targetEnvironmentId, targetHost],
   );
-  const targetHost = hosts.find((h) => h.id === form.targetHostId);
+  const targetDatastore = resolveOption(targetDatastoreOptions, form.targetDatastoreId);
+  // A port group lives on one host's switches; one with no host scope is
+  // offered everywhere rather than hidden.
+  const targetNetworkNames = useMemo(
+    () => [
+      ...new Set(
+        (placement?.networks ?? [])
+          .filter(
+            (n) =>
+              n.environmentId === form.targetEnvironmentId &&
+              (!targetHost || n.hostIds.length === 0 || n.hostIds.includes(targetHost.id)),
+          )
+          .map((n) => n.name),
+      ),
+    ],
+    [placement, form.targetEnvironmentId, targetHost],
+  );
+  const sourceNetworks = useMemo(
+    () => [...new Set((placement?.sourceNics ?? []).map((n) => n.sourceNetwork).filter((n): n is string => !!n))],
+    [placement],
+  );
+  const existingVmNames = useMemo(
+    () =>
+      new Set(
+        (placement?.existingVms ?? [])
+          .filter((v) => v.environmentId === form.targetEnvironmentId)
+          .map((v) => v.name.trim().toLowerCase()),
+      ),
+    [placement, form.targetEnvironmentId],
+  );
+  /* The replica's name: the source VM's with a suffix until one is typed. A
+   * VM of that name on the target is refused — unless it is this job's own
+   * replica keeping its name. */
+  const replicaName = replicaNameEdited ? form.replicaName : replVmName ? defaultReplicaName(replVmName) : form.replicaName;
+  const keepsReplicaName = placementLocked && replicaName === storedRepl?.replicaName;
+  const replicaNameProblem = replicaName.trim()
+    ? validateRestoredVmName(replicaName, keepsReplicaName ? undefined : existingVmNames)
+    : "empty";
+  /* What goes on the wire: an explicit target for a source network the
+   * restore point carries. Before the context loads, keep what the job has. */
+  const networkMapping: ReplicaNetworkMapping[] = Object.entries(form.networkMap)
+    .filter(([source, target]) => target && (!placement || sourceNetworks.includes(source)))
+    .map(([source, target]) => ({ source, target }));
 
-  // Live preview: "replica-SQL-PROD-01" using the first selected VM (or a stand-in).
-  const firstSelectedVm = vms.find((v) => selected.has(v.id));
-  const namePrefixClean = form.namePrefix.trim() || DEFAULT_NAME_PREFIX;
-  const replicaNameExample = `${namePrefixClean}${firstSelectedVm?.name ?? "SQL-PROD-01"}`;
-
-  // ----- default job name -----
+    // ----- default job name -----
   // A plain placeholder the user is expected to replace, stepped past any name
   // already in use so the create call can't 409. Shown until they type their own
   // name, after which it never moves again.
@@ -661,10 +786,36 @@ function JobWizard({
   // block below already applied to its own weekly pickers.
   if (showSchedule && form.preset === "weekly" && form.daysOfWeek.length === 0)
     errors.push(t("create.errors.scheduleDays"));
-  if (selected.size === 0 && !isCopy)
-    errors.push(isReplication ? t("create.errors.scopeReplication") : t("create.vm.scopeError"));
-  if (isReplication && !form.targetEnvironmentId) errors.push(t("create.errors.targetEnv"));
+  if (selected.size === 0 && !isCopy && !isReplication) errors.push(t("create.vm.scopeError"));
   if (!isReplication && !repository) errors.push(isCopy ? t("copy.errors.destination") : t("create.errors.repository"));
+  // The appliance's own checks on a replication job (validate_replication_settings
+  // in replication_settings.py), made here so the form names them first. The
+  // source and placement are only checked while they can still change.
+  if (isReplication && !placementLocked) {
+    if (!form.sourceJobId) errors.push(t("repl.errors.source"));
+    else if (!replSourceJob) errors.push(t("repl.errors.sourceGone"));
+    else if (replSourceProblem) errors.push(t(`repl.source.problem.${replSourceProblem}`, { count: replSourceJob.vmIds.length }));
+    if (!form.targetEnvironmentId) errors.push(t("create.errors.targetEnv"));
+    else if (sourcePlatform && targetEnv && targetEnv.hypervisor !== sourcePlatform)
+      errors.push(t("repl.errors.platform"));
+    else if (!targetHost) errors.push(t("repl.errors.host"));
+    else if (!targetDatastore)
+      errors.push(
+        placementLoading ? t("repl.errors.loading") : t(targetHyperV ? "repl.errors.storage" : "repl.errors.datastore"),
+      );
+    const unreachable = networkMapping.find((m) => placement && !targetNetworkNames.includes(m.target));
+    if (unreachable) errors.push(t("repl.errors.network", { source: unreachable.source, target: unreachable.target }));
+    // A Hyper-V host reads the backup itself, and it reaches S3 and SMB
+    // repositories (through their share), never a local folder.
+    if (targetHyperV && replRepository && replRepository.type !== "object-lock-s3" && !replRepository.share)
+      errors.push(t("repl.errors.hypervRepository", { repository: replRepository.name }));
+  }
+  if (isReplication && replicaNameProblem)
+    errors.push(
+      replicaNameProblem === "empty"
+        ? t("repl.errors.replicaName")
+        : t(`restore:mode.restoredVmNameError.${replicaNameProblem}`),
+    );
   // The appliance's own checks on a copy job (apply_copy_settings and
   // validate_copy_job in backup_copy.py), made here so the form names them
   // before a save is refused.
@@ -819,15 +970,47 @@ function JobWizard({
       }
     : undefined;
   /** When the job runs, in the words the jobs list will use for it. */
-  const whenLabel = isCopy ? jobScheduleLabel({ schedule, state: "idle", copy: copySettings }) : scheduleLabel(schedule);
+  const whenLabel = isCopy
+    ? jobScheduleLabel({ schedule, state: "idle", copy: copySettings })
+    : isReplication
+      ? jobScheduleLabel({
+          schedule,
+          state: "idle",
+          replication: {
+            scheduled: form.replScheduled,
+            runAfterSource: form.runAfterSource,
+            sourceJob: replSourceJob ? { id: replSourceJob.id, name: replSourceJob.name } : storedRepl?.sourceJob ?? null,
+          },
+        })
+      : scheduleLabel(schedule);
+  /* A replication job's settings as the form sends them. Host and datastore
+   * go by id; the appliance resolves them and reports names back. */
+  const replicationInput: ReplicationInput | undefined = isReplication
+    ? {
+        sourceJobId: form.sourceJobId,
+        sourceVmId: replVmId,
+        targetEnvironmentId: form.targetEnvironmentId,
+        targetHost: targetHost?.id ?? form.targetHostId,
+        targetDatastore: targetDatastore?.id ?? form.targetDatastoreId,
+        networkMap: networkMapping,
+        replicaName: replicaName.trim(),
+        runAfterSource: form.runAfterSource,
+        startPointId: form.startPointId || null,
+        scheduled: form.replScheduled,
+        placementLocked,
+      }
+    : undefined;
   /** The VMs the job covers, as a count or "every VM of the sources". */
   const objectsLabel = (count: number) =>
     isCopy && form.copyAllVms ? t("copy.scope.allVms") : t("create.scope.vmSummary", { count });
 
   const buildInput = (runNow: boolean): CreateJobInput => {
-    // A copy job that copies every VM of its sources names none.
-    const ids = isCopy && form.copyAllVms ? [] : [...selected];
-    const scopeSummary = t("create.scope.vmSummary", { count: ids.length });
+    // A copy job that copies every VM of its sources names none; a
+    // replication job's VM is its source job's.
+    const ids = isReplication ? (replVmId ? [replVmId] : []) : isCopy && form.copyAllVms ? [] : [...selected];
+    const scopeSummary = isReplication
+      ? t("repl.scope", { vm: replVmName || t("common:generic.na"), target: targetEnv?.name ?? t("common:generic.na") })
+      : t("create.scope.vmSummary", { count: ids.length });
 
     // GFS long-term retention is a backup-only concept — replicas keep N points, no archival tail.
     const gfs =
@@ -840,17 +1023,9 @@ function JobWizard({
           }
         : undefined;
 
-    // The schema still requires a repositoryId for replication jobs; keep the current
-    // selection, falling back to the first repository so it's always a valid id.
-    const repositoryId = form.repositoryId || repositories[0]?.id || "";
-
-    const replicaTarget = isReplication
-      ? {
-          environmentId: form.targetEnvironmentId,
-          hostId: form.targetHostId || undefined,
-          namePrefix: form.namePrefix.trim() || DEFAULT_NAME_PREFIX,
-        }
-      : undefined;
+    // A replication job reads the repository its source point is in; the
+    // appliance reports that one as the job's.
+    const repositoryId = isReplication ? (replRepository?.id ?? existingJob?.repositoryId ?? "") : form.repositoryId;
 
     return {
       name: jobName,
@@ -868,8 +1043,8 @@ function JobWizard({
       options: keyEntered ? { ...form.options, encryptionKey } : form.options,
       accent: existingJob?.accent ?? pickAccent(jobCount),
       runNow,
-      replicaTarget,
       copy: copySettings,
+      replication: replicationInput,
     };
   };
 
@@ -899,7 +1074,7 @@ function JobWizard({
             : {}),
           retention: input.retention,
           options: input.options,
-          ...(isReplication ? { replicaTarget: input.replicaTarget } : {}),
+          ...(isReplication ? { replication: input.replication } : {}),
           ...(isCopy ? { copy: input.copy } : {}),
         });
         toast.success(t("create.toast.updated"), {
@@ -911,11 +1086,13 @@ function JobWizard({
 
       const job = await createJob(input);
       toast.success(runNow ? t("create.toast.createdRun", { name: job.name }) : t("create.toast.created", { name: job.name }), {
-        description: t("create.toast.createdDesc", {
-          objects: objectsLabel(input.vmIds.length),
-          schedule: whenLabel,
-          retention: retentionLabel(input.retention),
-        }),
+        description: isReplication
+          ? t("repl.toast.createdDesc", { replica: replicaName.trim(), target: targetEnv?.name ?? "", schedule: whenLabel })
+          : t("create.toast.createdDesc", {
+              objects: objectsLabel(input.vmIds.length),
+              schedule: whenLabel,
+              retention: retentionLabel(input.retention),
+            }),
       });
       navigate(`/jobs/${job.id}`);
     } catch (err) {
@@ -926,7 +1103,6 @@ function JobWizard({
     }
   };
 
-  const replicaPointsLabel = t("create.replicaPoints", { count: form.keepDays });
 
   /** When the first run happens. A copy job without a schedule waits for a
    *  person, for the job it follows, or for a source backup. */
@@ -938,6 +1114,13 @@ function JobWizard({
         : runAfterJob
           ? t("copy.firstRun.afterJob", { job: runAfterJob.name })
           : t("copy.firstRun.manual");
+  /** A replication job's first run creates the replica: on the schedule,
+   *  after the next source backup, or when someone starts it. */
+  const replFirstRunLabel = form.replScheduled
+    ? firstRunLabel(form)
+    : form.runAfterSource
+      ? t("repl.firstRun.afterSource", { job: replSourceJob?.name ?? t("repl.when.sourceJob") })
+      : t("repl.firstRun.manual");
 
   const summary: SummaryData = {
     name: jobName,
@@ -948,7 +1131,7 @@ function JobWizard({
     repository,
     scheduleLabel: whenLabel,
     retentionLabel: isReplication
-      ? replicaPointsLabel
+      ? ""
       : retentionLabel({
           keepDays: form.keepDays,
           minFulls: form.minFulls,
@@ -962,7 +1145,7 @@ function JobWizard({
                 }
               : undefined,
         }),
-    firstRunLabel: isCopy ? copyFirstRunLabel : firstRunLabel(form),
+    firstRunLabel: isCopy ? copyFirstRunLabel : isReplication ? replFirstRunLabel : firstRunLabel(form),
     fullBackups: hasFullSchedules
       ? {
           active: fullScheduleLabel(form.activeFull.on ? toFullSchedule(form.activeFull, true) : null),
@@ -972,10 +1155,19 @@ function JobWizard({
     errors,
     replication: isReplication
       ? {
-          targetEnvName: targetEnv?.name ?? "",
+          source: replSourceJob
+            ? `${replSourceJob.name} · ${replVmName || t("common:generic.na")}`
+            : storedRepl?.sourceJob?.name ?? "",
+          startPoint: placementLocked
+            ? t("repl.summary.replicaExists")
+            : replStartPoint && form.startPointId
+              ? formatDateTime(replStartPoint.createdAt)
+              : t("repl.summary.newestPoint"),
+          targetEnvName: targetEnv?.name ?? storedRepl?.targetEnvironment?.name ?? "",
           targetPlatform: targetEnv ? PLATFORM_META[targetEnv.hypervisor].short : "",
-          targetHostName: form.targetHostId ? targetHost?.name ?? "—" : t("create.autoPlaces"),
-          replicaNameExample,
+          targetHostName: placementLocked ? (storedRepl?.targetHost ?? "") : (targetHost?.name ?? ""),
+          datastoreName: placementLocked ? (storedRepl?.targetDatastore ?? "") : (targetDatastore?.name ?? ""),
+          replicaName: replicaName.trim(),
         }
       : undefined,
     copy: copySettings
@@ -1003,15 +1195,13 @@ function JobWizard({
             // sidebar saying "Sauvegarde". The edit crumb points at a page
             // titled with the job's own name, so it carries that name.
             ? { href: `/jobs/${jobId}`, label: existingJob?.name ?? tNav("backups") }
-            : isReplication
-              ? { href: "/replication", label: tNav("replication") }
-              : { href: "/jobs", label: tNav("backups") }
+            : { href: "/jobs", label: tNav("backups") }
         }
         title={
           isReplication
             ? editMode
-              ? t("create.repl.editTitle")
-              : t("create.repl.title")
+              ? t("repl.form.editTitle")
+              : t("repl.form.title")
             : isCopy
               ? editMode
                 ? t("copy.form.editTitle")
@@ -1023,8 +1213,10 @@ function JobWizard({
         description={
           isReplication
             ? editMode
-              ? t("create.repl.editDescription")
-              : t("create.repl.description")
+              ? placementLocked
+                ? t("repl.form.editDescriptionLocked")
+                : t("repl.form.editDescription")
+              : t("repl.form.description")
             : isCopy
               ? editMode
                 ? t("copy.form.editDescription")
@@ -1061,7 +1253,46 @@ function JobWizard({
           </Card>
 
           {/* What to back up / replicate / copy */}
-          {isCopy ? (
+          {isReplication ? (
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <Database className="h-4 w-4 text-muted-foreground" />
+                  {t("repl.form.source")}
+                </CardTitle>
+                <CardDescription className="text-xs">{t("repl.form.sourceHint")}</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4 pt-0">
+                {placementLocked ? (
+                  <div className="space-y-2">
+                    <LockedSetting label={t("repl.about.sourceJob")} value={storedRepl?.sourceJob?.name ?? t("common:generic.na")} />
+                    <LockedSetting label={t("repl.about.sourceVm")} value={storedRepl?.sourceVm?.name ?? t("common:generic.na")} />
+                  </div>
+                ) : (
+                  <>
+                    <ReplicationSourcePicker
+                      jobs={jobs.filter((j) => j.id !== existingJob?.id)}
+                      restorePoints={restorePoints}
+                      vms={vms}
+                      value={form.sourceJobId}
+                      onChange={(id) =>
+                        // A start point belongs to the job it was picked from.
+                        setForm((f) => ({ ...f, sourceJobId: id, startPointId: id === f.sourceJobId ? f.startPointId : "" }))
+                      }
+                    />
+                    {replSourceJob && !replSourceProblem && (
+                      <StartPointSelect
+                        job={replSourceJob}
+                        restorePoints={restorePoints}
+                        value={form.startPointId}
+                        onChange={(id) => set("startPointId", id)}
+                      />
+                    )}
+                  </>
+                )}
+              </CardContent>
+            </Card>
+          ) : isCopy ? (
             <>
               <Card>
                 <CardHeader className="pb-3">
@@ -1115,7 +1346,7 @@ function JobWizard({
               <CardHeader className="pb-3">
                 <CardTitle className="flex items-center gap-2 text-base">
                   <Database className="h-4 w-4 text-muted-foreground" />
-                  {isReplication ? t("create.whatToReplicate") : t("create.whatToBackUp")}
+                  {t("create.whatToBackUp")}
                 </CardTitle>
               </CardHeader>
               <CardContent className="pt-0">
@@ -1132,87 +1363,173 @@ function JobWizard({
                   <Globe className="h-4 w-4 text-muted-foreground" />
                   {t("create.replicateTo")}
                 </CardTitle>
+                <CardDescription className="text-xs">{t("repl.form.targetHint")}</CardDescription>
               </CardHeader>
-              <CardContent className="space-y-3 pt-0">
-                {/* Target environment */}
-                <div className="space-y-1.5">
-                  <Label htmlFor="target-env">{t("create.targetEnvironment")}</Label>
-                  <Select
-                    value={form.targetEnvironmentId}
-                    onValueChange={(v) => {
-                      // Changing environments invalidates the host — reset to Auto.
-                      setForm((f) => ({ ...f, targetEnvironmentId: v, targetHostId: AUTO_HOST }));
-                    }}
-                  >
-                    <SelectTrigger id="target-env" aria-label={t("create.targetEnvironment")}>
-                      <SelectValue placeholder={t("create.chooseTargetEnv")} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {targetEnvOptions.map((e) => (
-                        <SelectItem key={e.id} value={e.id}>
-                          <span className="flex items-center gap-2">
-                            {e.name}
-                            <span className="text-[11px] text-muted-foreground">
-                              · {PLATFORM_META[e.hypervisor].short}
-                            </span>
-                          </span>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <p className="text-[11px] text-muted-foreground">
-                    {t("create.replicaDiffEnv")}
-                  </p>
-                </div>
-
-                {/* Target host (optional) */}
-                <div className="space-y-1.5">
-                  <span className="flex items-center gap-1.5">
-                    <Label htmlFor="target-host">{t("create.targetHost")}</Label>
-                    <span className="text-[11px] font-normal text-muted-foreground">{t("create.optional")}</span>
-                  </span>
-                  <Select
-                    value={form.targetHostId}
-                    onValueChange={(v) => set("targetHostId", v)}
-                    disabled={!form.targetEnvironmentId}
-                  >
-                    <SelectTrigger id="target-host" aria-label={t("create.targetHost")}>
-                      <SelectValue placeholder={t("create.autoPlace")} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value={AUTO_HOST}>{t("create.autoPlace")}</SelectItem>
-                      {targetHostOptions.map((h) => (
-                        <SelectItem key={h.id} value={h.id}>
-                          <span className="flex items-center gap-2">
-                            {h.name}
-                            <span className="text-[11px] text-muted-foreground">
-                              · {t("create.hostSpec", { cores: countOf("core", h.cpuCores), ram: formatStorage(h.memoryGB) })}
-                            </span>
-                          </span>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {/* Replica name prefix + live preview */}
-                <div className="space-y-1.5">
-                  <Label htmlFor="name-prefix">{t("create.replicaPrefix")}</Label>
-                  <Input
-                    id="name-prefix"
-                    value={form.namePrefix}
-                    onChange={(e) => set("namePrefix", e.target.value)}
-                    placeholder={DEFAULT_NAME_PREFIX}
-                  />
-                  <p className="text-[11px] text-muted-foreground">
-                    <Trans
-                      i18nKey="create.replicasNamed"
-                      ns="jobs"
-                      values={{ example: replicaNameExample }}
-                      components={{ 1: <span className="nums font-medium text-foreground" /> }}
+              <CardContent className="space-y-4 pt-0">
+                {placementLocked ? (
+                  <div className="space-y-2">
+                    <LockedSetting label={t("create.targetEnvironment")} value={storedRepl?.targetEnvironment?.name ?? t("common:generic.na")} />
+                    <LockedSetting label={t("create.targetHost")} value={storedRepl?.targetHost ?? t("common:generic.na")} />
+                    <LockedSetting
+                      label={targetHyperV ? t("repl.form.storage") : t("repl.form.datastore")}
+                      value={storedRepl?.targetDatastore ?? t("common:generic.na")}
                     />
-                  </p>
-                </div>
+                    <LockedSetting
+                      label={t("repl.form.networks")}
+                      value={
+                        storedRepl?.networkMap.length
+                          ? storedRepl.networkMap.map((m) => `${m.source} → ${m.target}`).join(", ")
+                          : t("repl.network.sameNames")
+                      }
+                    />
+                    <p className="pt-1 text-[11px] text-muted-foreground">{t("repl.form.lockedNote")}</p>
+                  </div>
+                ) : (
+                  <>
+                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                      <div className="space-y-1.5">
+                        <Label htmlFor="target-env">{t("create.targetEnvironment")}</Label>
+                        <Select
+                          value={form.targetEnvironmentId}
+                          // Hosts and datastores belong to the environment.
+                          onValueChange={(v) =>
+                            setForm((f) => ({ ...f, targetEnvironmentId: v, targetHostId: "", targetDatastoreId: "" }))
+                          }
+                        >
+                          <SelectTrigger id="target-env" aria-label={t("create.targetEnvironment")}>
+                            <SelectValue placeholder={t("create.chooseTargetEnv")} />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {targetEnvOptions.map((e) => (
+                              <SelectItem key={e.id} value={e.id}>
+                                <span className="flex items-center gap-2">
+                                  {e.name}
+                                  <span className="text-[11px] text-muted-foreground">· {PLATFORM_META[e.hypervisor].short}</span>
+                                </span>
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <p className="text-[11px] text-muted-foreground">
+                          {sourcePlatform
+                            ? t("repl.form.samePlatform", { platform: PLATFORM_META[sourcePlatform].short })
+                            : t("repl.form.pickSourceFirst")}
+                        </p>
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label htmlFor="target-host">{t("create.targetHost")}</Label>
+                        <Select
+                          value={targetHost?.id ?? ""}
+                          // A datastore is offered per host.
+                          onValueChange={(v) => setForm((f) => ({ ...f, targetHostId: v, targetDatastoreId: "" }))}
+                          disabled={!form.targetEnvironmentId}
+                        >
+                          <SelectTrigger id="target-host" aria-label={t("create.targetHost")}>
+                            <SelectValue placeholder={t("repl.form.pickHost")} />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {targetHostOptions.map((h) => (
+                              <SelectItem key={h.id} value={h.id}>
+                                {h.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label htmlFor="target-datastore">
+                          {targetHyperV ? t("repl.form.storage") : t("repl.form.datastore")}
+                        </Label>
+                        <Select
+                          value={targetDatastore?.id ?? ""}
+                          onValueChange={(v) => set("targetDatastoreId", v)}
+                          disabled={!targetHost || placementLoading}
+                        >
+                          <SelectTrigger id="target-datastore">
+                            <SelectValue
+                              placeholder={placementLoading ? t("repl.network.loading") : t("repl.form.pickDatastore")}
+                            />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {targetDatastoreOptions.map((d) => (
+                              <SelectItem key={d.id} value={d.id}>
+                                <span className="flex items-center gap-2">
+                                  {d.name}
+                                  {d.freeBytes != null && (
+                                    <span className="text-[11px] text-muted-foreground">
+                                      · {t("create.freeSuffix", { free: formatStorage(d.freeBytes / 1024 ** 3, 0) })}
+                                    </span>
+                                  )}
+                                </span>
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        {targetHost && !placementLoading && targetDatastoreOptions.length === 0 && (
+                          <p className="text-[11px] text-warning-text">{t("repl.form.noDatastores", { host: targetHost.name })}</p>
+                        )}
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label htmlFor="replica-name">{t("summary.replicaName")}</Label>
+                        <Input
+                          id="replica-name"
+                          value={replicaName}
+                          onChange={(e) => {
+                            setReplicaNameEdited(true);
+                            set("replicaName", e.target.value);
+                          }}
+                          onBlur={() => setReplicaNameTouched(true)}
+                          aria-invalid={replicaNameTouched && !!replicaNameProblem}
+                          className={cn(replicaNameTouched && replicaNameProblem && "border-danger")}
+                        />
+                        {replicaNameTouched && replicaNameProblem && replicaNameProblem !== "empty" ? (
+                          <p className="text-[11px] text-danger">{t(`restore:mode.restoredVmNameError.${replicaNameProblem}`)}</p>
+                        ) : (
+                          <p className="text-[11px] text-muted-foreground">{t("repl.form.replicaNameHint")}</p>
+                        )}
+                      </div>
+                    </div>
+                    <div className="space-y-2 border-t border-border pt-4">
+                      <p className="flex items-center gap-1.5 text-sm font-medium">
+                        <Network className="h-3.5 w-3.5 text-muted-foreground" />
+                        {t("repl.form.networks")}
+                      </p>
+                      {form.targetEnvironmentId && targetHost ? (
+                        <NetworkMapFields
+                          sourceNetworks={sourceNetworks}
+                          targetNetworks={targetNetworkNames}
+                          value={form.networkMap}
+                          onChange={(next) => set("networkMap", next)}
+                          loading={placementLoading}
+                          hyperv={targetHyperV}
+                        />
+                      ) : (
+                        <p className="text-xs text-muted-foreground">{t("repl.network.pickHostFirst")}</p>
+                      )}
+                    </div>
+                  </>
+                )}
+                {placementLocked && (
+                  <div className="space-y-1.5 border-t border-border pt-4">
+                    <Label htmlFor="replica-name">{t("summary.replicaName")}</Label>
+                    <Input
+                      id="replica-name"
+                      value={replicaName}
+                      onChange={(e) => {
+                        setReplicaNameEdited(true);
+                        set("replicaName", e.target.value);
+                      }}
+                      onBlur={() => setReplicaNameTouched(true)}
+                      aria-invalid={replicaNameTouched && !!replicaNameProblem}
+                      className={cn("sm:w-80", replicaNameTouched && replicaNameProblem && "border-danger")}
+                    />
+                    <p className="text-[11px] text-muted-foreground">
+                      {replicaName.trim() !== storedRepl?.replicaName
+                        ? t("repl.form.renameNote", { name: storedRepl?.replicaName ?? "" })
+                        : t("repl.form.renameHint")}
+                    </p>
+                  </div>
+                )}
               </CardContent>
             </Card>
           ) : (
@@ -1273,10 +1590,38 @@ function JobWizard({
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-base">
                 <Repeat className="h-4 w-4 text-muted-foreground" />
-                {isCopy ? t("copy.form.when") : t("create.howOften")}
+                {isCopy ? t("copy.form.when") : isReplication ? t("repl.form.when") : t("create.howOften")}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3 pt-0">
+              {isReplication && (
+                <>
+                  <ToggleRow
+                    label={t("repl.when.afterSourceToggle")}
+                    hint={t("repl.when.afterSourceHint", {
+                      job: replSourceJob?.name ?? storedRepl?.sourceJob?.name ?? t("repl.when.sourceJob"),
+                    })}
+                    checked={form.runAfterSource}
+                    onChange={(v) => set("runAfterSource", v)}
+                  />
+                  <ToggleRow
+                    label={t("copy.form.onSchedule")}
+                    hint={
+                      replScheduleLocked
+                        ? t("repl.when.scheduleLocked")
+                        : form.replScheduled
+                          ? t("repl.when.onScheduleOn")
+                          : t("repl.when.onScheduleOff")
+                    }
+                    checked={form.replScheduled}
+                    onChange={(v) => set("replScheduled", v)}
+                    disabled={replScheduleLocked}
+                  />
+                  {!form.replScheduled && !form.runAfterSource && (
+                    <p className="text-xs text-muted-foreground">{t("repl.when.manualOnly")}</p>
+                  )}
+                </>
+              )}
               {isCopy && (
                 <CopyModeChoice
                   mode={form.copyMode}
@@ -1482,12 +1827,14 @@ function JobWizard({
             </Card>
           )}
 
-          {/* Retention — days of backups to keep, OR recovery points on the replica */}
+          {/* Retention — days of backups to keep. A replication job keeps none:
+              the replica is one VM, always at the newest restore point. */}
+          {!isReplication && (
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-base">
                 <Sliders className="h-4 w-4 text-muted-foreground" />
-                {isReplication ? t("create.recoveryPointsToKeep") : t("create.howLongToKeep")}
+                {t("create.howLongToKeep")}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3 pt-0">
@@ -1505,7 +1852,7 @@ function JobWizard({
                     )}
                     aria-pressed={form.keepDays === n}
                   >
-                    {isReplication ? n : t("create.daysShort", { count: n })}
+                    {t("create.daysShort", { count: n })}
                   </button>
                 ))}
               </div>
@@ -1517,50 +1864,49 @@ function JobWizard({
                   step={1}
                   onValueChange={([v]) => set("keepDays", v)}
                   className="flex-1"
-                  aria-label={isReplication ? t("create.retentionAriaReplication") : t("create.retentionAriaBackup")}
+                  aria-label={t("create.retentionAriaBackup")}
                 />
                 <span className="nums w-14 shrink-0 text-right font-display text-sm font-medium">
-                  {isReplication ? form.keepDays : t("create.daysShort", { count: form.keepDays })}
+                  {t("create.daysShort", { count: form.keepDays })}
                 </span>
               </div>
               <p className="text-xs text-muted-foreground">
-                {isReplication
-                  ? t("create.keepReplicaNote", { count: form.keepDays })
-                  : isCopy
-                    ? t("copy.keepNote", { count: form.keepDays })
-                    : t("create.keepBackupNote", { count: form.keepDays })}
+                {isCopy
+                  ? t("copy.keepNote", { count: form.keepDays })
+                  : t("create.keepBackupNote", { count: form.keepDays })}
               </p>
-              {!isReplication && (
-                <div className="space-y-2 border-t border-border pt-4" data-testid="retention-min-fulls">
-                  <Label htmlFor="retention-min-fulls">{t("create.minFulls")}</Label>
-                  <div className="flex items-center gap-3">
-                    <Input
-                      id="retention-min-fulls"
-                      type="number"
-                      inputMode="numeric"
-                      min={0}
-                      max={100}
-                      step={1}
-                      value={form.minFulls}
-                      onChange={(event) => {
-                        const value = Math.trunc(Number(event.target.value));
-                        set("minFulls", Number.isFinite(value) ? Math.min(100, Math.max(0, value)) : 0);
-                      }}
-                      className="w-24"
-                      aria-label={t("create.minFullsAria")}
-                    />
-                  </div>
-                  <p className="text-xs text-muted-foreground">
-                    {form.minFulls > 0
-                      ? t("create.minFullsOn", { count: form.minFulls })
-                      : t("create.minFullsOff")}
-                  </p>
+              <div className="space-y-2 border-t border-border pt-4" data-testid="retention-min-fulls">
+                <Label htmlFor="retention-min-fulls">{t("create.minFulls")}</Label>
+                <div className="flex items-center gap-3">
+                  <Input
+                    id="retention-min-fulls"
+                    type="number"
+                    inputMode="numeric"
+                    min={0}
+                    max={100}
+                    step={1}
+                    value={form.minFulls}
+                    onChange={(event) => {
+                      const value = Math.trunc(Number(event.target.value));
+                      set("minFulls", Number.isFinite(value) ? Math.min(100, Math.max(0, value)) : 0);
+                    }}
+                    className="w-24"
+                    aria-label={t("create.minFullsAria")}
+                  />
                 </div>
-              )}
+                <p className="text-xs text-muted-foreground">
+                  {form.minFulls > 0
+                    ? t("create.minFullsOn", { count: form.minFulls })
+                    : t("create.minFullsOff")}
+                </p>
+              </div>
             </CardContent>
           </Card>
+          )}
 
-          {/* Advanced disclosure */}
+          {/* Advanced disclosure — compression and encryption are the
+              backups', which a replication job reads with their own keys. */}
+          {!isReplication && (
           <Card>
             <button
               type="button"
@@ -1589,11 +1935,7 @@ function JobWizard({
                       <ToggleRow
                         label={t("create.opt.encryption")}
                         hint={
-                          isReplication
-                            ? t("create.opt.encryptionHintReplication")
-                            : isCopy
-                              ? t("copy.encryptionHint")
-                              : t("create.opt.encryptionHintBackup")
+                          isCopy ? t("copy.encryptionHint") : t("create.opt.encryptionHintBackup")
                         }
                         checked={form.options.encryption}
                         onChange={(v) => setOption("encryption", v)}
@@ -1623,7 +1965,7 @@ function JobWizard({
                     </div>
 
                     {/* A copy reads stored backups and never quiesces anything. */}
-                    {!isReplication && !isCopy && !hypervSelected && (
+                    {!isCopy && !hypervSelected && (
                       <ToggleRow
                         label={t("create.opt.quiesceFallback")}
                         hint={t("create.opt.quiesceFallbackHint")}
@@ -1675,64 +2017,63 @@ function JobWizard({
                       </div>
                     )}
 
-                    {/* GFS archival is backup-only — replicas keep N recovery points, no long-term tail. */}
-                    {!isReplication && (
-                      <div>
-                        <p className="mb-0.5 flex items-center gap-1.5 text-sm font-medium">
-                          {t("create.gfsTitle")}
-                          <HelpHint
-                            term={t("create.gfsTerm")}
-                            label={t("create.gfsHelp")}
-                          />
-                        </p>
-                        <p className="mb-2 text-[11px] text-muted-foreground">
-                          {t("create.gfsDescription")}
-                        </p>
-                        {/* Protection on/off is the appliance's own `gfs.enabled`,
-                            deliberately separate from the counts: suspending
-                            archiving must not make the operator retype the
-                            weekly/monthly/yearly figures to resume it. */}
-                        <ToggleRow
-                          label={t("create.gfsEnabledLabel")}
-                          hint={
-                            form.gfsEnabled
-                              ? gfsConfigured
-                                ? t("create.gfsEnabledHint")
-                                : t("create.gfsEnabledNoCounts")
-                              : t("create.gfsSuspendedHint")
-                          }
-                          help={t("create.gfsEnabledHelp")}
-                          helpTerm={t("create.gfsEnabledTerm")}
-                          checked={form.gfsEnabled}
-                          onChange={(v) => set("gfsEnabled", v)}
+                    {/* GFS archival — long-term restore points on top of the days kept. */}
+                    <div>
+                      <p className="mb-0.5 flex items-center gap-1.5 text-sm font-medium">
+                        {t("create.gfsTitle")}
+                        <HelpHint
+                          term={t("create.gfsTerm")}
+                          label={t("create.gfsHelp")}
                         />
-                        <div className="mt-3 grid grid-cols-3 gap-3">
-                          <GfsInput
-                            label={t("create.gfsWeekly")}
-                            value={form.gfsWeekly}
-                            onChange={(v) => set("gfsWeekly", v)}
-                            dimmed={!form.gfsEnabled}
-                          />
-                          <GfsInput
-                            label={t("create.gfsMonthly")}
-                            value={form.gfsMonthly}
-                            onChange={(v) => set("gfsMonthly", v)}
-                            dimmed={!form.gfsEnabled}
-                          />
-                          <GfsInput
-                            label={t("create.gfsYearly")}
-                            value={form.gfsYearly}
-                            onChange={(v) => set("gfsYearly", v)}
-                            dimmed={!form.gfsEnabled}
-                          />
-                        </div>
+                      </p>
+                      <p className="mb-2 text-[11px] text-muted-foreground">
+                        {t("create.gfsDescription")}
+                      </p>
+                      {/* Protection on/off is the appliance's own `gfs.enabled`,
+                          deliberately separate from the counts: suspending
+                          archiving must not make the operator retype the
+                          weekly/monthly/yearly figures to resume it. */}
+                      <ToggleRow
+                        label={t("create.gfsEnabledLabel")}
+                        hint={
+                          form.gfsEnabled
+                            ? gfsConfigured
+                              ? t("create.gfsEnabledHint")
+                              : t("create.gfsEnabledNoCounts")
+                            : t("create.gfsSuspendedHint")
+                        }
+                        help={t("create.gfsEnabledHelp")}
+                        helpTerm={t("create.gfsEnabledTerm")}
+                        checked={form.gfsEnabled}
+                        onChange={(v) => set("gfsEnabled", v)}
+                      />
+                      <div className="mt-3 grid grid-cols-3 gap-3">
+                        <GfsInput
+                          label={t("create.gfsWeekly")}
+                          value={form.gfsWeekly}
+                          onChange={(v) => set("gfsWeekly", v)}
+                          dimmed={!form.gfsEnabled}
+                        />
+                        <GfsInput
+                          label={t("create.gfsMonthly")}
+                          value={form.gfsMonthly}
+                          onChange={(v) => set("gfsMonthly", v)}
+                          dimmed={!form.gfsEnabled}
+                        />
+                        <GfsInput
+                          label={t("create.gfsYearly")}
+                          value={form.gfsYearly}
+                          onChange={(v) => set("gfsYearly", v)}
+                          dimmed={!form.gfsEnabled}
+                        />
                       </div>
-                    )}
+                    </div>
                   </div>
                 </motion.div>
               )}
             </AnimatePresence>
           </Card>
+          )}
         </div>
 
         {/* ------------------------------ SUMMARY ----------------------------- */}

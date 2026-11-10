@@ -19,6 +19,7 @@ import type { BackupJob, LogLine, RepositoryValidationResult, Session, VM } from
 import type {
   BlockingJobRef,
   EnvDeleteResult,
+  JobPatch,
   RepoDeleteResult,
   RepositoryWriteResult,
   RestorePointDeleteResult,
@@ -177,7 +178,7 @@ function mergeSessions(held: Session[], incoming: Session[]): Session[] {
 }
 
 /** Only the CreateJobInput-shaped fields of a job patch go over the wire. */
-function toJobPatchPayload(patch: Partial<BackupJob>): Partial<api.CreateJobPayload> {
+function toJobPatchPayload(patch: JobPatch): Partial<api.CreateJobPayload> {
   const out: Partial<api.CreateJobPayload> = {};
   if (patch.name !== undefined) out.name = patch.name;
   if (patch.type !== undefined) out.type = patch.type;
@@ -191,7 +192,7 @@ function toJobPatchPayload(patch: Partial<BackupJob>): Partial<api.CreateJobPayl
   if (patch.retention !== undefined) out.retention = patch.retention;
   if (patch.options !== undefined) out.options = patch.options;
   if (patch.accent !== undefined) out.accent = patch.accent;
-  if (patch.replicaTarget !== undefined) out.replicaTarget = patch.replicaTarget;
+  if (patch.replication !== undefined) out.replication = patch.replication;
   if (patch.copy !== undefined) out.copy = patch.copy;
   return out;
 }
@@ -909,11 +910,12 @@ export function createLiveDriver(handle: WorldHandle): WorldDriver {
       }
     },
 
-    deleteJob: async (jobId) => {
-      await api.deleteJob(jobId);
-      if (stopped) return;
+    deleteJob: async (jobId, opts) => {
+      const outcome = await api.deleteJob(jobId, opts);
+      if (stopped) return outcome;
       // Job only — sessions and restore points stay (console promise).
       handle.set((s) => ({ jobs: s.jobs.filter((j) => j.id !== jobId), revision: s.revision + 1 }));
+      return outcome;
     },
 
     markAllAlertsRead: async () => {

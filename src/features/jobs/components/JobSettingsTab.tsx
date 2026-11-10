@@ -29,6 +29,7 @@ import type { BackupCopySettings, BackupJob, Repository } from "@/types";
 import { copyWindowState } from "@/lib/backup-copy";
 import { copyModeLabel, copyWindowRuleLabel, fullScheduleLabel, jobScheduleLabel, retentionLabel } from "../lib";
 import { scheduleZoneName, utcTitle } from "@/lib/time";
+import { ReplicationSettingsCard } from "./ReplicationDetails";
 
 interface Props {
   job: BackupJob;
@@ -50,7 +51,7 @@ export function JobSettingsTab({ job, repository, onApplyRetention }: Props) {
 
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+      <div className={cn("grid grid-cols-1 gap-4", !job.replication && "md:grid-cols-3")}>
         {/* Schedule */}
         <Card>
           <CardHeader className="pb-3">
@@ -91,6 +92,10 @@ export function JobSettingsTab({ job, repository, onApplyRetention }: Props) {
           </CardContent>
         </Card>
 
+        {/* Retention and the repository — a replication job has neither: it
+            keeps one replica, described in its own card below. */}
+        {!job.replication && (
+        <>
         {/* Retention */}
         <Card>
           <CardHeader className="pb-3">
@@ -168,11 +173,16 @@ export function JobSettingsTab({ job, repository, onApplyRetention }: Props) {
               ))}
           </CardContent>
         </Card>
+        </>
+        )}
       </div>
 
       {job.copy && <CopySettingsCard job={job} copy={job.copy} />}
+      {job.replication && <ReplicationSettingsCard replication={job.replication} />}
 
-      {/* Processing options */}
+      {/* Processing options — the backups' own; a replication job reads them
+          as they were written, with the source job's keys. */}
+      {!job.replication && (
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="flex items-center gap-2 text-sm">
@@ -201,6 +211,7 @@ export function JobSettingsTab({ job, repository, onApplyRetention }: Props) {
           )}
         </CardContent>
       </Card>
+      )}
     </div>
   );
 }

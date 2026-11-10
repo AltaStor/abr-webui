@@ -31,7 +31,7 @@ import {
   type WorldState,
 } from "./world.types";
 
-export type { CreateJobInput, RestoreInput, WorldMode } from "./world.types";
+export type { CreateJobInput, JobDeleteOutcome, JobPatch, RestoreInput, WorldMode } from "./world.types";
 
 const STORAGE_KEY = "basalt.world-mode";
 
@@ -79,7 +79,8 @@ export const useWorldStore = create<WorldState>(() => ({
     driver?.actions.updateJob(jobId, patch) ?? Promise.resolve(),
   setJobEnabled: (jobId, enabled) =>
     driver?.actions.setJobEnabled(jobId, enabled) ?? Promise.resolve(),
-  deleteJob: (jobId) => driver?.actions.deleteJob(jobId) ?? Promise.resolve(),
+  deleteJob: (jobId, opts) =>
+    driver?.actions.deleteJob(jobId, opts) ?? Promise.resolve({ replicaDeleted: false, message: null }),
   markAllAlertsRead: () => driver?.actions.markAllAlertsRead() ?? Promise.resolve(),
   markAlertRead: (id) => driver?.actions.markAlertRead(id) ?? Promise.resolve(),
   dismissThreat: (id) => driver?.actions.dismissThreat(id) ?? Promise.resolve(),
