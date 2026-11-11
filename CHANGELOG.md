@@ -72,6 +72,13 @@ All notable changes to the AltaStor WebUI are documented in this file.
   plainly that the script runs on the appliance as the service account and what
   it receives. Read-only for an Auditor, without the output; switched off with
   an explanation where the appliance has `ABR_NOTIFICATION_SCRIPTS=0`.
+- Settings → Storage → Default repository: the folder of the appliance's own
+  repository, and the Support Hyper-V backups switch, which has the appliance
+  make (or remove) a hidden SMB share and an account for it and then shows the
+  share and the account, never the password. Without a default repository it
+  offers Create default repository. Repository cards and details carry a
+  Hyper-V tag, beside Default, on every repository Hyper-V jobs can use: S3,
+  and SMB through its share.
 - Time zones: every absolute time shows its zone ("Oct 23, 01:00 GMT+3") in
   one format across the console, with UTC on hover; schedules show the job's
   zone and the viewer's equivalent ("Daily · 22:00 UTC (01:00 GMT+3, next

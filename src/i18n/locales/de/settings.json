@@ -28,6 +28,10 @@
       "label": "Sicherheit",
       "blurb": "Zugriff, Sitzungen & HTTPS"
     },
+    "storage": {
+      "label": "Speicher",
+      "blurb": "Standard-Repository & Hyper-V"
+    },
     "users": {
       "label": "Benutzer",
       "blurb": "Benutzer, Rollen & Berechtigungen"
@@ -322,6 +326,28 @@
         "doneDescription": "{{jobs}} und {{backups}} samt ihren Verschlüsselungsschlüsseln. Bewahren Sie das Archiv außerhalb dieser Appliance auf.",
         "failed": "Katalog konnte nicht exportiert werden",
         "failedDescription": "Die Appliance hat kein Archiv erzeugt. Versuchen Sie es gleich noch einmal."
+      }
+    }
+  },
+  "storage": {
+    "defaultRepository": {
+      "title": "Standard-Repository",
+      "description": "Das lokale Repository der Appliance. Fehlt es, legt die Appliance es beim Start an.",
+      "folder": "Ordner",
+      "folderHint": "Hier speichert {{name}} seine Backups auf dieser Appliance. Die Appliance wählt den Ordner.",
+      "missing": "Kein Standard-Repository",
+      "missingHint": "Das lokale Repository der Appliance fehlt. Legen Sie es an, um auf die Festplatte dieser Appliance zu sichern.",
+      "create": "Standard-Repository anlegen",
+      "creating": "Wird angelegt…",
+      "hypervLabel": "Hyper-V-Backups unterstützen",
+      "hypervHint": "Hyper-V-Hosts schreiben ihre Backups über SMB. Ist dies eingeschaltet, legt die Appliance eine versteckte SMB-Freigabe für den Ordner des Repositorys und ein eigenes Dienstkonto an, das nur diese Freigabe zulässt. Beides erzeugt die Appliance selbst; das Passwort behält sie für sich.",
+      "share": "Freigabe",
+      "account": "Konto",
+      "passwordNote": "Das Passwort des Kontos wird verschlüsselt auf der Appliance gespeichert und nie angezeigt.",
+      "toast": {
+        "created": "Standard-Repository angelegt",
+        "hypervOn": "Hyper-V-Unterstützung von {{name}} eingeschaltet",
+        "hypervOff": "Hyper-V-Unterstützung von {{name}} ausgeschaltet"
       }
     }
   },

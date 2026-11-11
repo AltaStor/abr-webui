@@ -18,7 +18,6 @@ import { RepositoryCard } from "./components/RepositoryCard";
 import { RepositoryDetailDialog } from "./components/RepositoryDetailDialog";
 import { EditRepositoryDialog } from "./components/EditRepositoryDialog";
 import { DeleteRepositoryDialog } from "./components/DeleteRepositoryDialog";
-import { DefaultRepositoryStrip } from "./components/DefaultRepository";
 import type { RepositoryActions } from "./components/RepositoryActionsMenu";
 import { useRepositoryManagement } from "./useRepositoryManagement";
 import { useCan } from "@/store/permissions";
@@ -124,8 +123,6 @@ export default function RepositoriesPage() {
           hint={t("kpi.usedHint", { pct: Math.round(summary.usedPct) })}
         />
       </KpiBand>
-
-      <DefaultRepositoryStrip />
 
       {/* Storage-health strip */}
       {hasHealthSignals && (

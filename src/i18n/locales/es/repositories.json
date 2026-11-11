@@ -197,6 +197,8 @@
   "card": {
     "openDetails": "Abrir detalles de {{name}}",
     "importedSubtitle": "Copias de seguridad importadas · solo lectura",
+    "hyperV": "Hyper-V",
+    "hyperVTitle": "Los trabajos de Hyper-V pueden hacer copias en este repositorio y restaurar desde él",
     "threatLockedTitle": "Sellado por respuesta a amenazas — conserva puntos de restauración para {{names}}",
     "threatLocked": "Bloqueado por amenaza",
     "maintenance": "Mantenimiento",
@@ -392,39 +394,9 @@
     "accountHint": "El recurso debe escribir como el usuario con el que se ejecuta el appliance (force user de Samba). Sin cuenta, los hosts lo abren con la del inventario de Hyper-V."
   },
   "default": {
-    "title": "Repositorio predeterminado",
-    "missing": "No hay repositorio predeterminado",
-    "missingHint": "Falta el repositorio local de la appliance. Créelo para hacer copias en el disco de esta appliance.",
-    "create": "Crear repositorio predeterminado",
-    "hypervAction": "Compatibilidad con Hyper-V…",
-    "hypervOn": "Compatibilidad con Hyper-V activada",
-    "hypervOff": "Compatibilidad con Hyper-V desactivada: los hosts Hyper-V no pueden escribir en él",
-    "account": "cuenta {{account}}",
-    "on": "Activada",
-    "off": "Desactivada",
     "chip": "Predeterminado",
-    "chipHyperV": "Hyper-V",
-    "managedShare": "El recurso compartido por el que escriben los hosts Hyper-V, y su cuenta, pertenecen a la compatibilidad con Hyper-V del repositorio predeterminado: la appliance los creó y los gestiona. Desactive y vuelva a activar la compatibilidad con Hyper-V en la página Repositorios para obtener un recurso y una cuenta nuevos.",
-    "toast": {
-      "created": "Repositorio predeterminado creado",
-      "changed": "Se cambió la compatibilidad con Hyper-V de {{name}}"
-    },
-    "dialog": {
-      "createTitle": "Crear el repositorio predeterminado",
-      "createDescription": "Un repositorio local en una carpeta de esta appliance, que elige la propia appliance.",
-      "hypervTitle": "Compatibilidad con Hyper-V",
-      "hypervDescription": "Si los hosts Hyper-V pueden hacer copias en {{name}}.",
-      "hypervLabel": "Admitir copias de Hyper-V",
-      "hypervHint": "Los hosts Hyper-V escriben sus copias por SMB. Al activarlo se crea un recurso compartido SMB oculto para la carpeta del repositorio y una cuenta de servicio dedicada que solo ese recurso admite. La appliance genera ambos y se guarda la contraseña.",
-      "creating": "Creando…",
-      "saving": "Guardando…",
-      "created": "Creado",
-      "saved": "Guardado",
-      "createdButShare": "El repositorio se creó, pero no se pudo activar la compatibilidad con Hyper-V:",
-      "path": "Carpeta",
-      "share": "Recurso compartido",
-      "accountLabel": "Cuenta",
-      "passwordNote": "La contraseña de la cuenta se guarda cifrada en la appliance y nunca se muestra."
-    }
+    "hypervLabel": "Admitir copias de Hyper-V",
+    "off": "Desactivada",
+    "managedShare": "El recurso compartido por el que escriben los hosts Hyper-V, y su cuenta, pertenecen a la compatibilidad con Hyper-V del repositorio predeterminado: la appliance los creó y los gestiona. Desactive y vuelva a activar la compatibilidad con Hyper-V en Configuración → Almacenamiento para obtener un recurso y una cuenta nuevos."
   }
 }

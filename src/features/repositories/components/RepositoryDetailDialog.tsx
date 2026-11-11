@@ -38,7 +38,7 @@ import type { BackupJob, Repository, RepositoryValidationResult } from "@/types"
 import { immutabilityLabel, REPO_STATUS_META, REPO_TYPE_META } from "./repoMeta";
 import { RepositoryActionsMenu, type RepositoryActions } from "./RepositoryActionsMenu";
 import { ValidationResultPanel } from "./ValidationResultPanel";
-import { formatUnc } from "./share";
+import { formatUnc, reachableFromHyperV } from "./share";
 import { DateTime } from "@/components/DateTime";
 
 interface RepositoryDetailDialogProps {
@@ -136,7 +136,9 @@ function RepositoryDetailBody({
           <div className="min-w-0 flex-1">
             <DialogTitle className="truncate">{repo.name}</DialogTitle>
             <DialogDescription className="mt-1">
-              {repo.isDefault ? `${typeMeta.label} · ${t("default.chip")}` : typeMeta.label}
+              {[typeMeta.label, repo.isDefault && t("default.chip"), reachableFromHyperV(repo) && t("card.hyperV")]
+                .filter(Boolean)
+                .join(" · ")}
             </DialogDescription>
           </div>
           <div className="flex shrink-0 items-center gap-1">
@@ -186,7 +188,7 @@ function RepositoryDetailBody({
           {/* The default repository's share is the appliance's own, made and
               removed by its Hyper-V switch; say whether it is on either way. */}
           {repo.isDefault && !repo.supportsHyperV && (
-            <Field icon={Network} label={t("default.dialog.hypervLabel")}>
+            <Field icon={Network} label={t("default.hypervLabel")}>
               <span className="text-xs text-muted-foreground">{t("default.off")}</span>
             </Field>
           )}

@@ -197,6 +197,8 @@
   "card": {
     "openDetails": "Ouvrir les détails de {{name}}",
     "importedSubtitle": "Sauvegardes importées · lecture seule",
+    "hyperV": "Hyper-V",
+    "hyperVTitle": "Les tâches Hyper-V peuvent sauvegarder dans ce référentiel et y restaurer",
     "threatLockedTitle": "Scellé par la réponse aux menaces — conserve les points de restauration pour {{names}}",
     "threatLocked": "Verrouillé par menace",
     "maintenance": "Maintenance",
@@ -392,39 +394,9 @@
     "accountHint": "Le partage doit écrire en tant qu’utilisateur sous lequel tourne l’appliance (force user de Samba). Sans compte, les hôtes l’ouvrent avec celui de l’inventaire Hyper-V."
   },
   "default": {
-    "title": "Référentiel par défaut",
-    "missing": "Aucun référentiel par défaut",
-    "missingHint": "Le référentiel local de l’appliance est absent. Créez-le pour sauvegarder sur le disque de cette appliance.",
-    "create": "Créer le référentiel par défaut",
-    "hypervAction": "Prise en charge Hyper-V…",
-    "hypervOn": "Prise en charge Hyper-V activée",
-    "hypervOff": "Prise en charge Hyper-V désactivée — les hôtes Hyper-V ne peuvent pas y écrire",
-    "account": "compte {{account}}",
-    "on": "Activée",
-    "off": "Désactivée",
     "chip": "Par défaut",
-    "chipHyperV": "Hyper-V",
-    "managedShare": "Le partage par lequel écrivent les hôtes Hyper-V, et son compte, relèvent de la prise en charge Hyper-V du référentiel par défaut : l’appliance les a créés et les gère. Désactivez puis réactivez la prise en charge Hyper-V sur la page Référentiels pour obtenir un nouveau partage et un nouveau compte.",
-    "toast": {
-      "created": "Référentiel par défaut créé",
-      "changed": "Prise en charge Hyper-V de {{name}} modifiée"
-    },
-    "dialog": {
-      "createTitle": "Créer le référentiel par défaut",
-      "createDescription": "Un référentiel local dans un dossier de cette appliance, choisi par l’appliance.",
-      "hypervTitle": "Prise en charge Hyper-V",
-      "hypervDescription": "Indique si les hôtes Hyper-V peuvent sauvegarder dans {{name}}.",
-      "hypervLabel": "Prendre en charge les sauvegardes Hyper-V",
-      "hypervHint": "Les hôtes Hyper-V écrivent leurs sauvegardes via SMB. Activer cette option crée un partage SMB masqué pour le dossier du référentiel et un compte de service dédié que seul ce partage accepte. L’appliance génère les deux et garde le mot de passe pour elle.",
-      "creating": "Création…",
-      "saving": "Enregistrement…",
-      "created": "Créé",
-      "saved": "Enregistré",
-      "createdButShare": "Le référentiel a été créé, mais la prise en charge Hyper-V n’a pas pu être activée :",
-      "path": "Dossier",
-      "share": "Partage",
-      "accountLabel": "Compte",
-      "passwordNote": "Le mot de passe du compte est stocké chiffré sur l’appliance et n’est jamais affiché."
-    }
+    "hypervLabel": "Prendre en charge les sauvegardes Hyper-V",
+    "off": "Désactivée",
+    "managedShare": "Le partage par lequel écrivent les hôtes Hyper-V, et son compte, relèvent de la prise en charge Hyper-V du référentiel par défaut : l’appliance les a créés et les gère. Désactivez puis réactivez la prise en charge Hyper-V dans Paramètres → Stockage pour obtenir un nouveau partage et un nouveau compte."
   }
 }

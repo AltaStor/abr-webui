@@ -28,6 +28,10 @@
       "label": "Seguridad",
       "blurb": "Acceso, sesiones y HTTPS"
     },
+    "storage": {
+      "label": "Almacenamiento",
+      "blurb": "Repositorio predeterminado y Hyper-V"
+    },
     "users": {
       "label": "Usuarios",
       "blurb": "Usuarios, roles y permisos"
@@ -322,6 +326,28 @@
         "doneDescription": "{{jobs}} y {{backups}}, con sus claves de cifrado. Guárdelo fuera de este dispositivo.",
         "failed": "No se pudo exportar el catálogo",
         "failedDescription": "El dispositivo no generó ningún archivo. Inténtelo de nuevo en un momento."
+      }
+    }
+  },
+  "storage": {
+    "defaultRepository": {
+      "title": "Repositorio predeterminado",
+      "description": "El repositorio local de la appliance. La appliance lo crea al iniciarse si falta.",
+      "folder": "Carpeta",
+      "folderHint": "Donde {{name}} guarda sus copias en esta appliance. La appliance elige la carpeta.",
+      "missing": "No hay repositorio predeterminado",
+      "missingHint": "Falta el repositorio local de la appliance. Créelo para hacer copias en el disco de esta appliance.",
+      "create": "Crear repositorio predeterminado",
+      "creating": "Creando…",
+      "hypervLabel": "Admitir copias de Hyper-V",
+      "hypervHint": "Los hosts Hyper-V escriben sus copias por SMB. Al activarlo se crea un recurso compartido SMB oculto para la carpeta del repositorio y una cuenta de servicio dedicada que solo ese recurso admite. La appliance genera ambos y se guarda la contraseña.",
+      "share": "Recurso compartido",
+      "account": "Cuenta",
+      "passwordNote": "La contraseña de la cuenta se guarda cifrada en la appliance y nunca se muestra.",
+      "toast": {
+        "created": "Repositorio predeterminado creado",
+        "hypervOn": "Compatibilidad con Hyper-V de {{name}} activada",
+        "hypervOff": "Compatibilidad con Hyper-V de {{name}} desactivada"
       }
     }
   },

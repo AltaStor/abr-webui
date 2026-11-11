@@ -28,6 +28,10 @@
       "label": "Security",
       "blurb": "Access, sessions & HTTPS"
     },
+    "storage": {
+      "label": "Storage",
+      "blurb": "Default repository & Hyper-V"
+    },
     "users": {
       "label": "Users",
       "blurb": "Users, roles & permissions"
@@ -382,6 +386,28 @@
         "doneDescription": "{{jobs}} and {{backups}}, with their encryption keys. Store it off this appliance.",
         "failed": "Couldn't export the catalog",
         "failedDescription": "The appliance didn't produce an archive. Try again in a moment."
+      }
+    }
+  },
+  "storage": {
+    "defaultRepository": {
+      "title": "Default repository",
+      "description": "The appliance's own local repository. The appliance creates it at startup when it is missing.",
+      "folder": "Folder",
+      "folderHint": "Where {{name}} keeps its backups on this appliance. The appliance chooses it.",
+      "missing": "No default repository",
+      "missingHint": "The appliance's own local repository is missing. Create it to back up to this appliance's disk.",
+      "create": "Create default repository",
+      "creating": "Creating…",
+      "hypervLabel": "Support Hyper-V backups",
+      "hypervHint": "Hyper-V hosts write their backups over SMB. Turning this on creates a hidden SMB share for the repository's folder and a dedicated service account that only this share admits. The appliance generates both, and keeps the password to itself.",
+      "share": "Share",
+      "account": "Account",
+      "passwordNote": "The account's password is stored encrypted on the appliance and is never shown.",
+      "toast": {
+        "created": "Default repository created",
+        "hypervOn": "Hyper-V support of {{name}} turned on",
+        "hypervOff": "Hyper-V support of {{name}} turned off"
       }
     }
   },

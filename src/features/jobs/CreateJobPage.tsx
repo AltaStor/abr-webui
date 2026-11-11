@@ -52,6 +52,7 @@ import { NotPermitted } from "@/components/FeatureUnavailable";
 import { useCan } from "@/store/permissions";
 import { useWorldStore, type CreateJobInput } from "@/store/world";
 import { REPO_TYPE_META } from "@/features/repositories/components/repoMeta";
+import { reachableFromHyperV } from "@/features/repositories/components/share";
 import type {
   BackupCopySettings,
   BackupJob,
@@ -807,7 +808,7 @@ function JobWizard({
     if (unreachable) errors.push(t("repl.errors.network", { source: unreachable.source, target: unreachable.target }));
     // A Hyper-V host reads the backup itself, and it reaches S3 and SMB
     // repositories (through their share), never a local folder.
-    if (targetHyperV && replRepository && replRepository.type !== "object-lock-s3" && !replRepository.share)
+    if (targetHyperV && replRepository && !reachableFromHyperV(replRepository))
       errors.push(t("repl.errors.hypervRepository", { repository: replRepository.name }));
   }
   if (isReplication && replicaNameProblem)
@@ -846,15 +847,14 @@ function JobWizard({
     // and SMB repositories (through their share), never a local folder.
     if (
       repository &&
-      repository.type !== "object-lock-s3" &&
-      !repository.share &&
+      !reachableFromHyperV(repository) &&
       copySourcesHyperV(copySources, copiedVmIds, { jobs, restorePoints, vms, environments }, existingJob?.id)
     )
       errors.push(t("copy.errors.hypervDestination", { repository: repository.name }));
   }
   // abr-vhdx-tool moves Hyper-V disks on the host itself, which reaches S3 and
   // SMB repositories (through the share they name), never a local folder.
-  if (hypervSelected && repository && repository.type !== "object-lock-s3" && !repository.share)
+  if (hypervSelected && repository && !reachableFromHyperV(repository))
     errors.push(t("create.errors.hypervRepository", { repository: repository.name }));
 
   // Full backup schedules belong to backup and backup copy jobs: a copy job's

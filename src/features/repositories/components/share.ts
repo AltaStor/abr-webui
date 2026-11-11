@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 // Copyright © 2026 Norvitex OÜ
 
-import type { RepositoryShare, RepositoryShareInput } from "@/types";
+import type { Repository, RepositoryShare, RepositoryShareInput } from "@/types";
 
 /** An SMB repository's share as the form holds it: one UNC path rather
  *  than the appliance's server and share fields, because that is how the
@@ -24,6 +24,15 @@ export function parseUnc(unc: string): { server: string; share: string } | null 
 
 export function formatUnc(share: RepositoryShare): string {
   return `\\\\${share.server}\\${share.share}`;
+}
+
+/** Whether Hyper-V jobs can back up into this repository and restore from it.
+ *  abr-vhdx-tool runs on the Hyper-V host, which reaches S3 repositories and
+ *  SMB repositories through the share they name (the default repository's
+ *  too, while its Hyper-V support is on), never a folder on the appliance.
+ *  The appliance's own rule is `ensure_hyperv_repository`. */
+export function reachableFromHyperV(repo: Pick<Repository, "type" | "share">): boolean {
+  return repo.type === "object-lock-s3" || Boolean(repo.share);
 }
 
 export function shareToDraft(share: RepositoryShare | null | undefined): ShareDraft {
