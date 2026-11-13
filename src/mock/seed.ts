@@ -8,6 +8,7 @@ import type {
   Alert,
   BackupJob,
   Environment,
+  EnvironmentVsphereAccess,
   FullBackupSchedule,
   Host,
   Replica,
@@ -20,6 +21,7 @@ import type {
   Threat,
   VM,
   VmRunResult,
+  VsphereApi,
 } from "@/types";
 
 export interface World {
@@ -91,11 +93,40 @@ const TAG_POOL = [
 ];
 
 /* ----------------------------- environments ----------------------------- */
+
+/** The library a demo appliance's VDDK directory gives: the bundle next to abr-vmdk-tool. */
+export const SIM_VDDK_LIBRARY = "/opt/altastor-backup/tools/vddk/lib64/libvixDiskLib.so";
+
+/** A demo vSphere environment's access after an edit (or as seeded, with no
+ *  edit): the demo appliance's server-wide API is the VDDK and its library
+ *  follows the VDDK directory, like a fresh appliance. */
+export function simVsphereAccess(
+  current?: EnvironmentVsphereAccess,
+  edit: { vsphereApi?: VsphereApi | "inherit"; vddkLibrary?: string } = {},
+): EnvironmentVsphereAccess {
+  const apiSetting = edit.vsphereApi ?? current?.apiSetting ?? "inherit";
+  const library =
+    edit.vddkLibrary === undefined
+      ? (current?.library ?? null)
+      : edit.vddkLibrary.trim() === "" || edit.vddkLibrary === "inherit"
+        ? null
+        : edit.vddkLibrary.trim();
+  return {
+    api: apiSetting === "inherit" ? "vddk" : apiSetting,
+    apiSetting,
+    apiSource: apiSetting === "inherit" ? "global" : "inventory",
+    library,
+    effectiveLibrary: library ?? SIM_VDDK_LIBRARY,
+    librarySource: library ? "inventory" : "vddk_directory",
+    libraryFile: library ? (library.split("/").pop() ?? null) : "libvixDiskLib.so.9.1.0.0",
+  };
+}
+
 function buildEnvironments(): Environment[] {
   return [
-    { id: "env-hq", name: "HQ Datacenter", type: "vcenter", hypervisor: "vmware", version: "vSphere 8.0 U3", endpoint: "vcsa-hq.corp.local", connected: true, hostCount: 5, vmCount: 0 },
-    { id: "env-dr", name: "DR Site — West", type: "vcenter", hypervisor: "vmware", version: "vSphere 8.0 U2", endpoint: "vcsa-dr.corp.local", connected: true, hostCount: 3, vmCount: 0 },
-    { id: "env-edge", name: "Branch Office", type: "esxi-standalone", hypervisor: "vmware", version: "ESXi 7.0 U3", endpoint: "esxi-bo1.corp.local", connected: true, hostCount: 1, vmCount: 0 },
+    { id: "env-hq", name: "HQ Datacenter", type: "vcenter", hypervisor: "vmware", version: "vSphere 8.0 U3", endpoint: "vcsa-hq.corp.local", connected: true, hostCount: 5, vmCount: 0, vsphere: simVsphereAccess() },
+    { id: "env-dr", name: "DR Site — West", type: "vcenter", hypervisor: "vmware", version: "vSphere 8.0 U2", endpoint: "vcsa-dr.corp.local", connected: true, hostCount: 3, vmCount: 0, vsphere: simVsphereAccess() },
+    { id: "env-edge", name: "Branch Office", type: "esxi-standalone", hypervisor: "vmware", version: "ESXi 7.0 U3", endpoint: "esxi-bo1.corp.local", connected: true, hostCount: 1, vmCount: 0, vsphere: simVsphereAccess() },
     { id: "env-prox", name: "Migration Cluster", type: "proxmox", hypervisor: "proxmox", version: "Proxmox VE 8.2", endpoint: "pve-mig.corp.local", connected: true, hostCount: 2, vmCount: 0 },
   ];
 }

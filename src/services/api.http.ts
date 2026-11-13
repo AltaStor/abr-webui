@@ -50,6 +50,7 @@ import type {
   CreateRepositoryInput,
   DashboardSummary,
   Environment,
+  EnvironmentVsphereAccess,
   EnvironmentType,
   FullBackupSchedule,
   Host,
@@ -85,7 +86,12 @@ import type {
   Session,
   SessionStatus,
   Threat,
+  SessionDiskAccess,
   VM,
+  VsphereApi,
+  VsphereSettingSource,
+  VsphereSettings,
+  VsphereSettingsPatch,
   WinrmProtocol,
 } from "@/types";
 
@@ -446,7 +452,97 @@ function mapEnvironment(inv: Dict): Environment {
     statusError: strOrNull(discovery.last_scan_error),
     hostCount: num(inv.host_count),
     vmCount: num(inv.vm_count),
+    ...(hypervisor === "vmware" && vsphereApiOf(inv.transport) ? { vsphere: mapEnvironmentVsphere(inv) } : {}),
   };
+}
+
+/* ---------------------------------------------------------------------- */
+/* vSphere API and VDDK library (ABR-497; core: disk_transport.py)         */
+/* ---------------------------------------------------------------------- */
+
+function vsphereApiOf(v: unknown): VsphereApi | null {
+  return v === "vddk" || v === "soap" ? v : null;
+}
+
+function vsphereSourceOf(v: unknown): VsphereSettingSource | undefined {
+  return v === "job" || v === "inventory" || v === "global" || v === "vddk_directory" ? v : undefined;
+}
+
+function mapEnvironmentVsphere(inv: Dict): EnvironmentVsphereAccess {
+  const api = vsphereApiOf(inv.transport) ?? "vddk";
+  return {
+    api,
+    apiSetting: vsphereApiOf(inv.transport_setting) ?? "inherit",
+    apiSource: vsphereSourceOf(inv.transport_source) ?? "global",
+    library: strOrNull(inv.vddk_library),
+    effectiveLibrary: str(inv.effective_vddk_library),
+    librarySource: vsphereSourceOf(inv.vddk_library_source) ?? "vddk_directory",
+    libraryFile: strOrNull(inv.vddk_library_file),
+  };
+}
+
+/** What a vSphere session recorded about how it reaches the disks; undefined
+ *  for any other session, and for one from before the appliance recorded it. */
+function mapSessionDiskAccess(s: Dict): SessionDiskAccess | undefined {
+  const api = vsphereApiOf(s.transport);
+  if (!api) return undefined;
+  return {
+    api,
+    apiSource: vsphereSourceOf(s.transport_source),
+    library: strOrNull(s.vddk_library) ?? undefined,
+    libraryFile: strOrNull(s.vddk_library_file) ?? undefined,
+    librarySource: vsphereSourceOf(s.vddk_library_source),
+  };
+}
+
+function mapVsphereSettings(res: Dict): VsphereSettings {
+  const transports = asDict(res.transports);
+  const problemOf = (api: VsphereApi): string | null => {
+    const entry = asDict(transports[api]);
+    return entry.available === false ? (strOrNull(entry.problem) ?? "") : null;
+  };
+  const inventories = Array.isArray(res.inventories) ? (res.inventories as Dict[]) : [];
+  return {
+    api: vsphereApiOf(res.transport) ?? "vddk",
+    library: strOrNull(res.vddk_library),
+    effectiveLibrary: str(res.effective_vddk_library),
+    librarySource: vsphereSourceOf(res.vddk_library_source) ?? "vddk_directory",
+    libraryFile: strOrNull(res.vddk_library_file),
+    directory: str(res.vddk_directory),
+    directorySource: res.vddk_directory_source === "environment" ? "environment" : "default",
+    defaultLibrary: str(res.default_vddk_library),
+    defaultLibraryFile: strOrNull(res.default_vddk_library_file),
+    libraryFileSupported: res.library_file_supported !== false,
+    unavailable: { vddk: problemOf("vddk"), soap: problemOf("soap") },
+    overriding: inventories
+      .map(asDict)
+      .filter((inv) => inv.has_own_settings === true)
+      .map((inv) => ({ id: str(inv.id), name: str(inv.name) })),
+    updatedAt: strOrNull(res.updated_at),
+    updatedBy: strOrNull(res.updated_by),
+  };
+}
+
+export async function getVsphereSettings(): Promise<VsphereSettings> {
+  return mapVsphereSettings(asDict(await request<Dict>("/system/vsphere")));
+}
+
+/** Saves the change, or rejects with a 422 whose problem `apiErrorFields`
+ *  returns under "vddk_library", or a 503 transport_unavailable. Resolves with
+ *  the settings and the environments handed back to them. */
+export async function updateVsphereSettings(
+  patch: VsphereSettingsPatch,
+): Promise<{ settings: VsphereSettings; updated: { id: string; name: string }[] }> {
+  const body: Dict = {};
+  if (patch.api !== undefined) body.transport = patch.api;
+  if (patch.library !== undefined) body.vddk_library = patch.library;
+  if (patch.applyToExistingEnvironments) body.apply_to_existing_inventories = true;
+  const res = asDict(await request<Dict>("/system/vsphere", { method: "PUT", body: JSON.stringify(body) }));
+  const updated = (Array.isArray(res.updated_inventories) ? (res.updated_inventories as Dict[]) : []).map((inv) => ({
+    id: str(asDict(inv).id),
+    name: str(asDict(inv).name),
+  }));
+  return { settings: mapVsphereSettings(res), updated };
 }
 
 function mapSession(s: Dict): Session {
@@ -577,6 +673,7 @@ function mapSession(s: Dict): Session {
     stopping,
     triggeredBy: triggerOf(str(s.triggered_by)),
     ...(isReplication ? { replication: mapReplicationReport(s.replication) } : {}),
+    diskAccess: mapSessionDiskAccess(s),
   };
 }
 
@@ -1490,6 +1587,10 @@ export interface EnvironmentPatch {
   password?: string;
   /** Skip TLS certificate verification (self-signed lab certs). */
   insecure?: boolean;
+  /** vSphere only: "vddk", "soap", or "inherit" for the server-wide API. */
+  vsphereApi?: VsphereApi | "inherit";
+  /** vSphere only: a library file, or "inherit" for the server-wide one. */
+  vddkLibrary?: string;
 }
 
 export async function patchEnvironment(id: string, patch: EnvironmentPatch): Promise<Environment> {
@@ -1501,6 +1602,8 @@ export async function patchEnvironment(id: string, patch: EnvironmentPatch): Pro
   if (patch.username !== undefined) body.username = patch.username;
   if (patch.password !== undefined) body.password = patch.password;
   if (patch.insecure !== undefined) body.insecure = patch.insecure;
+  if (patch.vsphereApi !== undefined) body.transport = patch.vsphereApi;
+  if (patch.vddkLibrary !== undefined) body.vddk_library = patch.vddkLibrary;
   return mapEnvironment(
     asDict(await request<Dict>(`/inventories/${id}`, { method: "PATCH", body: JSON.stringify(body) })),
   );

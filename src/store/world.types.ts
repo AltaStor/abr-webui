@@ -43,6 +43,7 @@ import type {
   Session,
   Threat,
   VM,
+  VsphereApi,
   WinrmProtocol,
 } from "@/types";
 
@@ -111,6 +112,10 @@ export interface EnvironmentEdit {
   password?: string;
   /** Skip TLS certificate verification (self-signed lab certs). */
   insecure?: boolean;
+  /** vSphere only: the environment's own API, or "inherit" for the server-wide one. */
+  vsphereApi?: VsphereApi | "inherit";
+  /** vSphere only: the environment's own VDDK library file, or "inherit" for the server-wide one. */
+  vddkLibrary?: string;
 }
 
 /** A backup job referencing an environment/repository that blocks its deletion. */
@@ -308,6 +313,9 @@ export interface WorldState extends WorldData {
    *  must not hold a dialog open on an environment that is already created. */
   createEnvironment(input: CreateEnvironmentInput): Promise<Environment | null>;
   editEnvironment(id: string, patch: EnvironmentEdit): Promise<void>;
+  /** Read the environments again, after a change the appliance made to several
+   *  at once (Settings → VMware handing them back to the server-wide values). */
+  reloadEnvironments(): Promise<void>;
   deleteEnvironment(id: string): Promise<EnvDeleteResult>;
   /** Re-scan an environment; resolves with the discovered VM count, or with
    *  the appliance's reason when discovery failed (null when it gave none,
@@ -380,6 +388,7 @@ export type WorldActions = Pick<
   | "dismissThreat"
   | "createEnvironment"
   | "editEnvironment"
+  | "reloadEnvironments"
   | "deleteEnvironment"
   | "rescanEnvironment"
   | "loadOlderSessions"

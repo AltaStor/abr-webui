@@ -32,6 +32,70 @@ export interface Environment {
   statusError?: string | null;
   hostCount: number;
   vmCount: number;
+  /** vCenter and ESXi only: how AltaStor reaches the disks (ABR-497). */
+  vsphere?: EnvironmentVsphereAccess;
+}
+
+/** How abr-vmdk-tool reaches vSphere disks: the VMware VDDK, or the vSphere SOAP API. */
+export type VsphereApi = "vddk" | "soap";
+
+/** Where a value in effect comes from: set for the job, set for the environment,
+ *  the server-wide default (Settings → VMware), or — for the VDDK library only —
+ *  the VDDK directory's `lib64/libvixDiskLib.so` when nothing names a library. */
+export type VsphereSettingSource = "job" | "inventory" | "global" | "vddk_directory";
+
+/** An environment's own API and VDDK library (null/"inherit" = the server-wide
+ *  one), and what its sessions use now. */
+export interface EnvironmentVsphereAccess {
+  api: VsphereApi;
+  apiSetting: VsphereApi | "inherit";
+  apiSource: VsphereSettingSource;
+  library: string | null;
+  effectiveLibrary: string;
+  librarySource: VsphereSettingSource;
+  /** The file `effectiveLibrary` resolves to, e.g. libvixDiskLib.so.9.1.0.0; null when it is missing. */
+  libraryFile: string | null;
+}
+
+/** What a vSphere session recorded when it was created: the API it reads or
+ *  writes disks over, and for the VDDK the library, the file it resolved to,
+ *  and where each came from. */
+export interface SessionDiskAccess {
+  api: VsphereApi;
+  apiSource?: VsphereSettingSource;
+  library?: string;
+  libraryFile?: string;
+  librarySource?: VsphereSettingSource;
+}
+
+/** The server-wide API and VDDK library (GET /system/vsphere). */
+export interface VsphereSettings {
+  api: VsphereApi;
+  /** Null when the library follows the VDDK directory. */
+  library: string | null;
+  effectiveLibrary: string;
+  librarySource: VsphereSettingSource;
+  libraryFile: string | null;
+  directory: string;
+  /** "environment" = ABR_VMDK_TOOL_VDDK_DIR; "default" = the vddk folder next to abr-vmdk-tool. */
+  directorySource: "environment" | "default";
+  defaultLibrary: string;
+  defaultLibraryFile: string | null;
+  /** False when this server's abr-vmdk-tool is too old to take a library file. */
+  libraryFileSupported: boolean;
+  /** Why this server cannot use each API now; null when it can. */
+  unavailable: Record<VsphereApi, string | null>;
+  /** vSphere environments that have their own API or library. */
+  overriding: { id: string; name: string }[];
+  updatedAt: string | null;
+  updatedBy: string | null;
+}
+
+export interface VsphereSettingsPatch {
+  api?: VsphereApi;
+  /** null resets it to follow the VDDK directory. */
+  library?: string | null;
+  applyToExistingEnvironments?: boolean;
 }
 
 /** Payload for registering a hypervisor environment (POST /inventories). */
@@ -603,6 +667,8 @@ export interface Session {
     | "after-source";
   /** Replication sessions: what the run did to the replica. */
   replication?: ReplicationSessionReport;
+  /** vSphere sessions: the API and VDDK library the run uses (ABR-497). */
+  diskAccess?: SessionDiskAccess;
   /**
    * The appliance's own account of a run that finished without an error. For
    * a backup copy it names the restore point copied, its job and repository
