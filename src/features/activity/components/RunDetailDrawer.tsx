@@ -32,6 +32,7 @@ import { syntheticFullFailureMessage } from "@/lib/synthetic-full";
 import { backupTypeLabel } from "@/lib/run-type";
 import { formatDuration, formatStorage, formatThroughput } from "@/lib/format";
 import { DateTime } from "@/components/DateTime";
+import { DiskAccessFacts } from "@/components/DiskAccessFacts";
 import { useWorldStore } from "@/store/world";
 import { getSessionLog } from "@/services/api.http";
 import type { LogLevel, LogLine, Session, VmRunResult } from "@/types";
@@ -286,6 +287,8 @@ function RunDetail({ session: s, jobExists, onClose }: { session: Session; jobEx
         {s.consistency === "crash_consistent" && consistencyNote && (
           <p className="border border-warning/30 bg-warning/10 px-3 py-2 text-xs text-warning-text">{consistencyNote}</p>
         )}
+
+        {s.diskAccess && <DiskAccessFacts access={s.diskAccess} />}
 
         {/* Per-VM breakdown */}
         <section>

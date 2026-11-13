@@ -19,6 +19,7 @@ import { SESSION_META } from "@/lib/status";
 import type { Session, VmRunResult } from "@/types";
 import i18n from "@/i18n";
 import { DateTime } from "@/components/DateTime";
+import { DiskAccessFacts } from "@/components/DiskAccessFacts";
 
 /**
  * Per-object run result → tone + the word we show for it.
@@ -160,6 +161,7 @@ export function RunHistoryTable({ sessions }: { sessions: Session[] }) {
                                   {resultMessage}
                                 </p>
                               )}
+                              {s.diskAccess && <DiskAccessFacts access={s.diskAccess} className="mb-3" />}
                               <div className="overflow-hidden border border-border">
                                 <table className="w-full text-xs">
                                   <thead>
