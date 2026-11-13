@@ -100,5 +100,21 @@
       "title": "No se puede acceder a la appliance: se muestran datos de demostración",
       "description": "Todo lo de abajo es un ejemplo autónomo, no sus sistemas. Compruebe que la appliance está encendida y es accesible, y recargue. ⌘K → «Conectar con la appliance» para reintentar."
     }
+  },
+  "vsphere": {
+    "api": {
+      "vddk": "VDDK",
+      "soap": "vSphere SOAP"
+    },
+    "source": {
+      "job": "definido para el trabajo",
+      "inventory": "definido para el entorno",
+      "global": "valor predeterminado del servidor",
+      "vddk_directory": "directorio VDDK (alternativa)"
+    },
+    "diskAccess": "Acceso a los discos",
+    "apiLabel": "API",
+    "libraryLabel": "Biblioteca VDDK",
+    "override": "Sobrescrito"
   }
 }

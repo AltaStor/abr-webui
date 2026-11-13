@@ -431,6 +431,19 @@
       "failed": {
         "description": "No se pudo actualizar el entorno. Vuelva a intentarlo en un momento."
       }
+    },
+    "advanced": {
+      "title": "Configuración avanzada",
+      "description": "Cómo accede AltaStor a los discos de este entorno. Los valores definidos aquí tienen prioridad sobre Configuración → VMware.",
+      "apiLabel": "API",
+      "inherit": "Heredar del global (actualmente: {{api}})",
+      "inheritUnknown": "Heredar del global",
+      "libraryLabel": "Biblioteca VDDK",
+      "libraryHint": "Ruta completa del archivo de biblioteca vixDiskLib en el appliance. Déjela vacía para heredarla.",
+      "libraryNotUsed": "No se usa ninguna biblioteca VDDK: este entorno accede a sus discos por vSphere SOAP.",
+      "libraryUnsupported": "El abr-vmdk-tool de este appliance no puede cargar un archivo de biblioteca con nombre.",
+      "reset": "Restablecer valor predeterminado",
+      "inEffect": "En vigor"
     }
   },
   "winrm": {

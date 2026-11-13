@@ -100,5 +100,21 @@
       "title": "Appliance nicht erreichbar — Demodaten werden angezeigt",
       "description": "Alles unten ist ein in sich abgeschlossenes Beispiel, nicht Ihre Systeme. Prüfen Sie, ob die Appliance eingeschaltet und erreichbar ist, und laden Sie neu. ⌘K → „Mit Live-Appliance verbinden“ versucht es erneut."
     }
+  },
+  "vsphere": {
+    "api": {
+      "vddk": "VDDK",
+      "soap": "vSphere SOAP"
+    },
+    "source": {
+      "job": "für den Job festgelegt",
+      "inventory": "für die Umgebung festgelegt",
+      "global": "serverweiter Standard",
+      "vddk_directory": "VDDK-Verzeichnis (Fallback)"
+    },
+    "diskAccess": "Datenträgerzugriff",
+    "apiLabel": "API",
+    "libraryLabel": "VDDK-Bibliothek",
+    "override": "Überschrieben"
   }
 }

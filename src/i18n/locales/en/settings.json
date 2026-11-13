@@ -32,6 +32,10 @@
       "label": "Storage",
       "blurb": "Default repository & Hyper-V"
     },
+    "vmware": {
+      "label": "VMware",
+      "blurb": "VDDK or vSphere SOAP & VDDK library"
+    },
     "users": {
       "label": "Users",
       "blurb": "Users, roles & permissions"
@@ -410,6 +414,50 @@
         "hypervOff": "Hyper-V support of {{name}} turned off"
       }
     }
+  },
+  "vmware": {
+    "title": "VMware access",
+    "description": "How AltaStor reads and writes the disks of vCenter and ESXi VMs. Every environment without its own API or VDDK library uses these; an environment's Advanced settings override them.",
+    "liveOnly": "Connect to a live appliance to see and change how it reaches VMware disks.",
+    "loading": "Reading the VMware access settings…",
+    "loadFailed": "The VMware access settings could not be read.",
+    "api": {
+      "label": "Default API",
+      "hint": "VDDK loads VMware's Virtual Disk Development Kit, or a compatible library such as openVDDK. vSphere SOAP needs no library on the appliance.",
+      "optionUnavailable": "{{api}} (not available)"
+    },
+    "library": {
+      "label": "Default VDDK library",
+      "hint": "Full path of the vixDiskLib library file on the appliance. Leave it empty to use the library of the VDDK directory.",
+      "reset": "Reset to default",
+      "inEffect": "In effect",
+      "missing": "no such file on the appliance",
+      "unsupported": "This appliance's abr-vmdk-tool cannot load a named library file. Install a newer AltaStor build to choose one; until then the library of the VDDK directory is used."
+    },
+    "directory": {
+      "label": "VDDK directory",
+      "environment": "Set with ABR_VMDK_TOOL_VDDK_DIR on the appliance. A library left at its default is lib64/libvixDiskLib.so in it.",
+      "default": "The vddk folder next to abr-vmdk-tool. A library left at its default is lib64/libvixDiskLib.so in it."
+    },
+    "updateAll": {
+      "label": "Update all existing environment settings",
+      "hintNone": "No environment has its own API or VDDK library.",
+      "hint_one": "{{count}} environment has its own API or VDDK library: {{names}}. Saving with this checked removes them, so it uses these values.",
+      "hint_other": "{{count}} environments have their own API or VDDK library: {{names}}. Saving with this checked removes them, so they use these values."
+    },
+    "confirm": {
+      "title_one": "Update {{count}} environment?",
+      "title_other": "Update {{count}} environments?",
+      "description": "The API and VDDK library set on {{names}} are removed, so they use the server-wide values from now on. Sessions already created keep what they started with.",
+      "action_one": "Update {{count}} environment and save",
+      "action_other": "Update {{count}} environments and save"
+    },
+    "save": "Save",
+    "saving": "Saving…",
+    "saved": "VMware access saved",
+    "updated_one": "{{count}} environment now uses these values: {{names}}",
+    "updated_other": "{{count}} environments now use these values: {{names}}",
+    "saveFailed": "VMware access was not saved"
   },
   "about": {
     "brand": {
