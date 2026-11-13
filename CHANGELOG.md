@@ -5,6 +5,21 @@ All notable changes to the AltaStor WebUI are documented in this file.
 ## Unreleased
 
 ### Added
+- VMware access (ABR-497). Settings → VMware sets the server-wide API (VDDK
+  or vSphere SOAP) and VDDK library file every vCenter and ESXi environment
+  without its own uses, shows the VDDK directory a library left empty
+  follows and the file the library resolves to (e.g.
+  libvixDiskLib.so.9.1.0.0), marks an API this appliance cannot use with the
+  appliance's reason, and "Update all existing environment settings" hands
+  every environment back to these values after a confirmation that names
+  them. An environment's Edit → Advanced settings sets its own API (or
+  inherits) and VDDK library (or inherits, with Reset to default), each
+  marked as an override and with the value in effect and where it comes
+  from; the library is not offered while the API is vSphere SOAP. A library
+  the appliance refuses is named next to the field. The run drawer and a
+  job's run history show the API, VDDK library, resolved file and source
+  each session recorded. Needs `GET`/`PUT /api/v1/system/vsphere` and the
+  inventory `transport`/`vddk_library` fields of abr-core.
 - Backup copy jobs. Backup → Add backup copy job copies the restore points
   of backup jobs, or of whole repositories, into another repository, where
   the copies keep a chain, retention, GFS, Object Lock dates and encryption
