@@ -438,6 +438,19 @@
       "failed": {
         "description": "The environment could not be updated. Try again in a moment."
       }
+    },
+    "advanced": {
+      "title": "Advanced settings",
+      "description": "How AltaStor reaches this environment's disks. Values set here take priority over Settings → VMware.",
+      "apiLabel": "API",
+      "inherit": "Inherit from global (currently: {{api}})",
+      "inheritUnknown": "Inherit from global",
+      "libraryLabel": "VDDK library",
+      "libraryHint": "Full path of the vixDiskLib library file on the appliance. Leave it empty to inherit.",
+      "libraryNotUsed": "No VDDK library is used: this environment reaches its disks over vSphere SOAP.",
+      "libraryUnsupported": "This appliance's abr-vmdk-tool cannot load a named library file.",
+      "reset": "Reset to default",
+      "inEffect": "In effect"
     }
   },
   "winrm": {

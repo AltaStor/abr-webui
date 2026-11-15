@@ -100,5 +100,21 @@
       "title": "Appliance injoignable — affichage de données de démonstration",
       "description": "Tout ce qui suit est un exemple autonome, pas vos systèmes. Vérifiez que l’appliance est sous tension et joignable, puis rechargez. ⌘K → « Se connecter à l’appliance » pour réessayer."
     }
+  },
+  "vsphere": {
+    "api": {
+      "vddk": "VDDK",
+      "soap": "vSphere SOAP"
+    },
+    "source": {
+      "job": "défini pour la tâche",
+      "hypervisor": "défini pour l’environnement",
+      "global": "valeur par défaut du serveur",
+      "vddk_directory": "répertoire VDDK (repli)"
+    },
+    "diskAccess": "Accès aux disques",
+    "apiLabel": "API",
+    "libraryLabel": "Bibliothèque VDDK",
+    "override": "Remplacé"
   }
 }

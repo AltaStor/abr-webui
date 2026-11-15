@@ -18,6 +18,7 @@ import { AppearanceSection } from "./components/sections/AppearanceSection";
 import { NotificationsSection } from "./components/sections/NotificationsSection";
 import { SecuritySection } from "./components/sections/SecuritySection";
 import { StorageSection } from "./components/sections/StorageSection";
+import { VmwareSection } from "./components/sections/VmwareSection";
 import { AboutSection } from "./components/sections/AboutSection";
 import { UsersSection } from "./components/sections/UsersSection";
 import { NotPermitted } from "@/components/FeatureUnavailable";
@@ -28,6 +29,7 @@ const SECTION_VIEW: Record<SectionKey, React.ComponentType> = {
   notifications: NotificationsSection,
   security: SecuritySection,
   storage: StorageSection,
+  vmware: VmwareSection,
   users: UsersSection,
   about: AboutSection,
 };

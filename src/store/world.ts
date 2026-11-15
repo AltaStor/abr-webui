@@ -86,6 +86,7 @@ export const useWorldStore = create<WorldState>(() => ({
   dismissThreat: (id) => driver?.actions.dismissThreat(id) ?? Promise.resolve(),
   createEnvironment: (input) => driver?.actions.createEnvironment(input) ?? Promise.resolve(null),
   editEnvironment: (id, patch) => driver?.actions.editEnvironment(id, patch) ?? Promise.resolve(),
+  reloadEnvironments: () => driver?.actions.reloadEnvironments() ?? Promise.resolve(),
   deleteEnvironment: (id) =>
     driver?.actions.deleteEnvironment(id) ??
     Promise.resolve({ ok: false, reason: "error", message: "world not started" } as const),

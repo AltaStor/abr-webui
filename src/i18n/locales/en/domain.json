@@ -111,5 +111,21 @@
       "quiesce_failed": "Crash-consistent: quiescing the guest failed, and the job is set to take a crash-consistent backup instead of failing.",
       "not_quiesced": "Crash-consistent: VMware Tools did not quiesce the guest."
     }
+  },
+  "vsphere": {
+    "api": {
+      "vddk": "VDDK",
+      "soap": "vSphere SOAP"
+    },
+    "source": {
+      "job": "set for the job",
+      "hypervisor": "set for the environment",
+      "global": "server-wide default",
+      "vddk_directory": "VDDK directory (fallback)"
+    },
+    "diskAccess": "Disk access",
+    "apiLabel": "API",
+    "libraryLabel": "VDDK library",
+    "override": "Override"
   }
 }

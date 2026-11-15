@@ -2,6 +2,7 @@
 // Copyright © 2026 Norvitex OÜ
 
 import { useEffect, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { AlertTriangle, Loader2, Pencil } from "@/lib/icons";
 import {
@@ -24,7 +25,9 @@ import {
   resourceNameErrorKey,
   resourceNameProblem,
 } from "@/lib/resource-name";
-import { apiErrorMessage } from "@/services/api.http";
+import { qk } from "@/lib/query";
+import { apiErrorFields, apiErrorMessage, getVsphereSettings } from "@/services/api.http";
+import { useCan } from "@/store/permissions";
 import { useWorldStore } from "@/store/world";
 import type { EnvironmentEdit } from "@/store/world.types";
 import type { Environment, WinrmProtocol } from "@/types";
@@ -36,6 +39,7 @@ import {
   WinrmProtocolSelect,
   portAfterProtocolChange,
 } from "./WinrmProtocolSelect";
+import { VsphereAccessFields, vsphereDraftOf, type VsphereAccessDraft } from "./VsphereAccessFields";
 
 interface EditEnvironmentDialogProps {
   environment: Environment | null;
@@ -52,7 +56,7 @@ interface EditEnvironmentDialogProps {
 export function EditEnvironmentDialog({ environment, open, onOpenChange }: EditEnvironmentDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
+      <DialogContent className={environment?.vsphere ? "max-w-lg" : "max-w-md"}>
         {environment && (
           <EditEnvironmentForm key={environment.id} environment={environment} onClose={() => onOpenChange(false)} />
         )}
@@ -77,8 +81,23 @@ function EditEnvironmentForm({ environment, onClose }: { environment: Environmen
   const [insecure, setInsecure] = useState(Boolean(environment.insecure));
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [vsphere, setVsphere] = useState<VsphereAccessDraft | null>(
+    environment.vsphere ? vsphereDraftOf(environment.vsphere) : null,
+  );
+  const [libraryError, setLibraryError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
+  // What an environment inherits comes from the appliance's server-wide
+  // settings; the demo has none, and the fields then fall back to what the
+  // environment itself reports.
+  const live = useWorldStore((s) => s.mode === "live" && s.ready);
+  const canViewSettings = useCan("inventory.view");
+  const settingsQuery = useQuery({
+    queryKey: qk.vsphereSettings,
+    queryFn: getVsphereSettings,
+    enabled: live && canViewSettings && Boolean(environment.vsphere),
+  });
 
   useEffect(() => {
     setName(environment.name);
@@ -88,6 +107,8 @@ function EditEnvironmentForm({ environment, onClose }: { environment: Environmen
     setInsecure(Boolean(environment.insecure));
     setUsername("");
     setPassword("");
+    setVsphere(environment.vsphere ? vsphereDraftOf(environment.vsphere) : null);
+    setLibraryError(null);
     setError(null);
   }, [environment]);
 
@@ -119,6 +140,11 @@ function EditEnvironmentForm({ environment, onClose }: { environment: Environmen
     if (insecure !== Boolean(environment.insecure)) patch.insecure = insecure;
     if (username.trim() !== "") patch.username = username.trim();
     if (password !== "") patch.password = password;
+    if (vsphere && environment.vsphere) {
+      if (vsphere.api !== environment.vsphere.apiSetting) patch.vsphereApi = vsphere.api;
+      const library = vsphere.library.trim();
+      if (library !== (environment.vsphere.library ?? "")) patch.vddkLibrary = library || "inherit";
+    }
 
     if (Object.keys(patch).length === 0) {
       onClose();
@@ -127,13 +153,19 @@ function EditEnvironmentForm({ environment, onClose }: { environment: Environmen
 
     setSaving(true);
     setError(null);
+    setLibraryError(null);
     try {
       await editEnvironment(environment.id, patch);
+      if (patch.vsphereApi !== undefined || patch.vddkLibrary !== undefined) {
+        void queryClient.invalidateQueries({ queryKey: qk.vsphereSettings });
+      }
       toast.success(t("editEnvironment.toast.saved.title"), {
         description: t("editEnvironment.toast.saved.description", { name }),
       });
       onClose();
     } catch (err) {
+      // A library the appliance refuses is named next to the field as well.
+      setLibraryError(apiErrorFields(err)?.vddk_library ?? null);
       setError(apiErrorMessage(err) ?? t("editEnvironment.toast.failed.description"));
       setSaving(false);
     }
@@ -234,6 +266,19 @@ function EditEnvironmentForm({ environment, onClose }: { environment: Environmen
             </span>
             <Switch checked={insecure} onCheckedChange={setInsecure} />
           </label>
+        )}
+
+        {vsphere && environment.vsphere && (
+          <VsphereAccessFields
+            access={environment.vsphere}
+            draft={vsphere}
+            onChange={(next) => {
+              setVsphere(next);
+              setLibraryError(null);
+            }}
+            settings={settingsQuery.data}
+            libraryError={libraryError}
+          />
         )}
       </div>
 

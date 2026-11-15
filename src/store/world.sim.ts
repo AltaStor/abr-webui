@@ -11,7 +11,7 @@
  * through the shared `WorldHandle`; every mutation resolves immediately.
  */
 import { clamp, pick, seededRandom } from "@/lib/utils";
-import { createSeedWorld, type World } from "@/mock/seed";
+import { createSeedWorld, simVsphereAccess, type World } from "@/mock/seed";
 import { applyReadState, persistAllAlertsRead, persistAlertRead } from "@/store/notifications.persist";
 import { segmentChainPoints, simChainId, simCompressionRatio } from "@/lib/restore-points";
 import {
@@ -927,6 +927,9 @@ export function createSimDriver(handle: WorldHandle): WorldDriver {
       return Promise.resolve(env);
     },
 
+    // The demo has no server-wide VMware settings to hand environments back to.
+    reloadEnvironments: () => Promise.resolve(),
+
     editEnvironment: (id, patch) => {
       // Credentials (username/password) aren't part of the domain model — the
       // sim has nowhere to hold them, same as the appliance never returning
@@ -942,6 +945,10 @@ export function createSimDriver(handle: WorldHandle): WorldDriver {
                 ...(patch.port !== undefined && { port: patch.port }),
                 ...(patch.protocol !== undefined && { protocol: patch.protocol }),
                 ...(patch.insecure !== undefined && { insecure: patch.insecure }),
+                ...(e.vsphere &&
+                  (patch.vsphereApi !== undefined || patch.vddkLibrary !== undefined) && {
+                    vsphere: simVsphereAccess(e.vsphere, patch),
+                  }),
               }
             : e,
         ),

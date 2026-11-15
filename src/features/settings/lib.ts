@@ -2,14 +2,14 @@
 // Copyright © 2026 Norvitex OÜ
 
 import { useCallback, useEffect, useState } from "react";
-import { Bell, HardDrive, Info, Palette, ShieldCheck, Users, type LucideIcon } from "@/lib/icons";
+import { Bell, HardDrive, Info, Palette, ServerCog, ShieldCheck, Users, type LucideIcon } from "@/lib/icons";
 import type { AccentKey } from "@/types";
 import i18n from "@/i18n";
 import { usePermissionsStore } from "@/store/permissions";
 
 /* ----------------------------------- nav ---------------------------------- */
 
-export type SectionKey = "appearance" | "notifications" | "security" | "storage" | "users" | "about";
+export type SectionKey = "appearance" | "notifications" | "security" | "storage" | "vmware" | "users" | "about";
 
 export interface SectionDef {
   key: SectionKey;
@@ -26,6 +26,7 @@ export const SECTIONS: SectionDef[] = [
   { key: "notifications", get label() { return i18n.t("settings:sections.notifications.label"); }, icon: Bell, get blurb() { return i18n.t("settings:sections.notifications.blurb"); } },
   { key: "security", get label() { return i18n.t("settings:sections.security.label"); }, icon: ShieldCheck, get blurb() { return i18n.t("settings:sections.security.blurb"); } },
   { key: "storage", get label() { return i18n.t("settings:sections.storage.label"); }, icon: HardDrive, get blurb() { return i18n.t("settings:sections.storage.blurb"); }, functions: ["repository.view"] },
+  { key: "vmware", get label() { return i18n.t("settings:sections.vmware.label"); }, icon: ServerCog, get blurb() { return i18n.t("settings:sections.vmware.blurb"); }, functions: ["inventory.view"] },
   { key: "users", get label() { return i18n.t("settings:sections.users.label"); }, icon: Users, get blurb() { return i18n.t("settings:sections.users.blurb"); }, functions: ["user.view", "role.view"] },
   { key: "about", get label() { return i18n.t("settings:sections.about.label"); }, icon: Info, get blurb() { return i18n.t("settings:sections.about.blurb"); } },
 ];

@@ -971,6 +971,8 @@ export function createLiveDriver(handle: WorldHandle): WorldDriver {
       return env;
     },
 
+    reloadEnvironments: () => refreshEnvironments(),
+
     editEnvironment: async (id, patch) => {
       try {
         const env = await api.patchEnvironment(id, patch);

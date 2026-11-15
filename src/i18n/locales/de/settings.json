@@ -32,6 +32,10 @@
       "label": "Speicher",
       "blurb": "Standard-Repository & Hyper-V"
     },
+    "vmware": {
+      "label": "VMware",
+      "blurb": "VDDK oder vSphere SOAP & VDDK-Bibliothek"
+    },
     "users": {
       "label": "Benutzer",
       "blurb": "Benutzer, Rollen & Berechtigungen"
@@ -350,6 +354,50 @@
         "hypervOff": "Hyper-V-Unterstützung von {{name}} ausgeschaltet"
       }
     }
+  },
+  "vmware": {
+    "title": "VMware-Zugriff",
+    "description": "Wie AltaStor die Datenträger von vCenter- und ESXi-VMs liest und schreibt. Jede Umgebung ohne eigene API oder VDDK-Bibliothek verwendet diese Werte; die erweiterten Einstellungen einer Umgebung überschreiben sie.",
+    "liveOnly": "Verbinden Sie sich mit einer Live-Appliance, um zu sehen und zu ändern, wie sie VMware-Datenträger erreicht.",
+    "loading": "VMware-Zugriffseinstellungen werden gelesen …",
+    "loadFailed": "Die VMware-Zugriffseinstellungen konnten nicht gelesen werden.",
+    "api": {
+      "label": "Standard-API",
+      "hint": "VDDK lädt das Virtual Disk Development Kit von VMware oder eine kompatible Bibliothek wie openVDDK. vSphere SOAP benötigt keine Bibliothek auf der Appliance.",
+      "optionUnavailable": "{{api}} (nicht verfügbar)"
+    },
+    "library": {
+      "label": "Standard-VDDK-Bibliothek",
+      "hint": "Vollständiger Pfad der vixDiskLib-Bibliotheksdatei auf der Appliance. Leer lassen, um die Bibliothek des VDDK-Verzeichnisses zu verwenden.",
+      "reset": "Auf Standard zurücksetzen",
+      "inEffect": "Wirksam",
+      "missing": "Datei existiert nicht auf der Appliance",
+      "unsupported": "Das abr-vmdk-tool dieser Appliance kann keine benannte Bibliotheksdatei laden. Installieren Sie einen neueren AltaStor-Build, um eine zu wählen; bis dahin wird die Bibliothek des VDDK-Verzeichnisses verwendet."
+    },
+    "directory": {
+      "label": "VDDK-Verzeichnis",
+      "environment": "Mit ABR_VMDK_TOOL_VDDK_DIR auf der Appliance festgelegt. Eine Bibliothek auf ihrem Standard ist lib64/libvixDiskLib.so darin.",
+      "default": "Der Ordner vddk neben abr-vmdk-tool. Eine Bibliothek auf ihrem Standard ist lib64/libvixDiskLib.so darin."
+    },
+    "updateAll": {
+      "label": "Alle bestehenden Umgebungseinstellungen aktualisieren",
+      "hintNone": "Keine Umgebung hat eine eigene API oder VDDK-Bibliothek.",
+      "hint_one": "{{count}} Umgebung hat eine eigene API oder VDDK-Bibliothek: {{names}}. Speichern mit dieser Option entfernt sie, sodass sie diese Werte verwendet.",
+      "hint_other": "{{count}} Umgebungen haben eine eigene API oder VDDK-Bibliothek: {{names}}. Speichern mit dieser Option entfernt sie, sodass sie diese Werte verwenden."
+    },
+    "confirm": {
+      "title_one": "{{count}} Umgebung aktualisieren?",
+      "title_other": "{{count}} Umgebungen aktualisieren?",
+      "description": "Die für {{names}} festgelegte API und VDDK-Bibliothek werden entfernt, sodass ab jetzt die serverweiten Werte gelten. Bereits erstellte Sitzungen behalten, womit sie begonnen haben.",
+      "action_one": "{{count}} Umgebung aktualisieren und speichern",
+      "action_other": "{{count}} Umgebungen aktualisieren und speichern"
+    },
+    "save": "Speichern",
+    "saving": "Wird gespeichert …",
+    "saved": "VMware-Zugriff gespeichert",
+    "updated_one": "{{count}} Umgebung verwendet jetzt diese Werte: {{names}}",
+    "updated_other": "{{count}} Umgebungen verwenden jetzt diese Werte: {{names}}",
+    "saveFailed": "VMware-Zugriff wurde nicht gespeichert"
   },
   "about": {
     "brand": {
