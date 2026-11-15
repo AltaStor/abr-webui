@@ -452,7 +452,7 @@ function mapEnvironment(inv: Dict): Environment {
     statusError: strOrNull(discovery.last_scan_error),
     hostCount: num(inv.host_count),
     vmCount: num(inv.vm_count),
-    ...(hypervisor === "vmware" && vsphereApiOf(inv.transport) ? { vsphere: mapEnvironmentVsphere(inv) } : {}),
+    ...(hypervisor === "vmware" && vsphereApiOf(inv.effective_api) ? { vsphere: mapEnvironmentVsphere(inv) } : {}),
   };
 }
 
@@ -465,15 +465,15 @@ function vsphereApiOf(v: unknown): VsphereApi | null {
 }
 
 function vsphereSourceOf(v: unknown): VsphereSettingSource | undefined {
-  return v === "job" || v === "inventory" || v === "global" || v === "vddk_directory" ? v : undefined;
+  return v === "job" || v === "hypervisor" || v === "global" || v === "vddk_directory" ? v : undefined;
 }
 
 function mapEnvironmentVsphere(inv: Dict): EnvironmentVsphereAccess {
-  const api = vsphereApiOf(inv.transport) ?? "vddk";
+  const api = vsphereApiOf(inv.effective_api) ?? "vddk";
   return {
     api,
-    apiSetting: vsphereApiOf(inv.transport_setting) ?? "inherit",
-    apiSource: vsphereSourceOf(inv.transport_source) ?? "global",
+    apiSetting: vsphereApiOf(inv.api) ?? "inherit",
+    apiSource: vsphereSourceOf(inv.api_source) ?? "global",
     library: strOrNull(inv.vddk_library),
     effectiveLibrary: str(inv.effective_vddk_library),
     librarySource: vsphereSourceOf(inv.vddk_library_source) ?? "vddk_directory",
@@ -488,7 +488,7 @@ function mapSessionDiskAccess(s: Dict): SessionDiskAccess | undefined {
   if (!api) return undefined;
   return {
     api,
-    apiSource: vsphereSourceOf(s.transport_source),
+    apiSource: vsphereSourceOf(s.api_source),
     library: strOrNull(s.vddk_library) ?? undefined,
     libraryFile: strOrNull(s.vddk_library_file) ?? undefined,
     librarySource: vsphereSourceOf(s.vddk_library_source),
@@ -496,14 +496,14 @@ function mapSessionDiskAccess(s: Dict): SessionDiskAccess | undefined {
 }
 
 function mapVsphereSettings(res: Dict): VsphereSettings {
-  const transports = asDict(res.transports);
+  const apis = asDict(res.apis);
   const problemOf = (api: VsphereApi): string | null => {
-    const entry = asDict(transports[api]);
+    const entry = asDict(apis[api]);
     return entry.available === false ? (strOrNull(entry.problem) ?? "") : null;
   };
-  const inventories = Array.isArray(res.inventories) ? (res.inventories as Dict[]) : [];
+  const hypervisors = Array.isArray(res.hypervisors) ? (res.hypervisors as Dict[]) : [];
   return {
-    api: vsphereApiOf(res.transport) ?? "vddk",
+    api: vsphereApiOf(res.api) ?? "vddk",
     library: strOrNull(res.vddk_library),
     effectiveLibrary: str(res.effective_vddk_library),
     librarySource: vsphereSourceOf(res.vddk_library_source) ?? "vddk_directory",
@@ -514,7 +514,7 @@ function mapVsphereSettings(res: Dict): VsphereSettings {
     defaultLibraryFile: strOrNull(res.default_vddk_library_file),
     libraryFileSupported: res.library_file_supported !== false,
     unavailable: { vddk: problemOf("vddk"), soap: problemOf("soap") },
-    overriding: inventories
+    overriding: hypervisors
       .map(asDict)
       .filter((inv) => inv.has_own_settings === true)
       .map((inv) => ({ id: str(inv.id), name: str(inv.name) })),
@@ -534,11 +534,11 @@ export async function updateVsphereSettings(
   patch: VsphereSettingsPatch,
 ): Promise<{ settings: VsphereSettings; updated: { id: string; name: string }[] }> {
   const body: Dict = {};
-  if (patch.api !== undefined) body.transport = patch.api;
+  if (patch.api !== undefined) body.api = patch.api;
   if (patch.library !== undefined) body.vddk_library = patch.library;
-  if (patch.applyToExistingEnvironments) body.apply_to_existing_inventories = true;
+  if (patch.applyToExistingEnvironments) body.apply_to_existing_hypervisors = true;
   const res = asDict(await request<Dict>("/system/vsphere", { method: "PUT", body: JSON.stringify(body) }));
-  const updated = (Array.isArray(res.updated_inventories) ? (res.updated_inventories as Dict[]) : []).map((inv) => ({
+  const updated = (Array.isArray(res.updated_hypervisors) ? (res.updated_hypervisors as Dict[]) : []).map((inv) => ({
     id: str(asDict(inv).id),
     name: str(asDict(inv).name),
   }));
@@ -1602,7 +1602,7 @@ export async function patchEnvironment(id: string, patch: EnvironmentPatch): Pro
   if (patch.username !== undefined) body.username = patch.username;
   if (patch.password !== undefined) body.password = patch.password;
   if (patch.insecure !== undefined) body.insecure = patch.insecure;
-  if (patch.vsphereApi !== undefined) body.transport = patch.vsphereApi;
+  if (patch.vsphereApi !== undefined) body.api = patch.vsphereApi;
   if (patch.vddkLibrary !== undefined) body.vddk_library = patch.vddkLibrary;
   return mapEnvironment(
     asDict(await request<Dict>(`/inventories/${id}`, { method: "PATCH", body: JSON.stringify(body) })),

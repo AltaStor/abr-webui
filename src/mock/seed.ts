@@ -114,10 +114,10 @@ export function simVsphereAccess(
   return {
     api: apiSetting === "inherit" ? "vddk" : apiSetting,
     apiSetting,
-    apiSource: apiSetting === "inherit" ? "global" : "inventory",
+    apiSource: apiSetting === "inherit" ? "global" : "hypervisor",
     library,
     effectiveLibrary: library ?? SIM_VDDK_LIBRARY,
-    librarySource: library ? "inventory" : "vddk_directory",
+    librarySource: library ? "hypervisor" : "vddk_directory",
     libraryFile: library ? (library.split("/").pop() ?? null) : "libvixDiskLib.so.9.1.0.0",
   };
 }

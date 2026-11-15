@@ -31,7 +31,7 @@ function inherited(access: EnvironmentVsphereAccess, settings: VsphereSettings |
     api: settings?.api ?? (access.apiSource === "global" ? access.api : undefined),
     library: settings
       ? { path: settings.effectiveLibrary, file: settings.libraryFile, source: settings.librarySource }
-      : access.librarySource !== "inventory"
+      : access.librarySource !== "hypervisor"
         ? { path: access.effectiveLibrary, file: access.libraryFile, source: access.librarySource }
         : undefined,
   };
@@ -107,7 +107,7 @@ export function VsphereAccessFields({
             </Select>
             {effectiveApi && (
               <InEffect>
-                {apiName(effectiveApi)} · {sourceName(draft.api === "inherit" ? "global" : "inventory")}
+                {apiName(effectiveApi)} · {sourceName(draft.api === "inherit" ? "global" : "hypervisor")}
               </InEffect>
             )}
             {unavailable && (
@@ -156,7 +156,7 @@ export function VsphereAccessFields({
                   <code className="nums break-all">{ownLibrary}</code>
                   {ownLibrary === access.library && access.libraryFile && <ResolvesTo path={ownLibrary} file={access.libraryFile} />}
                   {" · "}
-                  {sourceName("inventory")}
+                  {sourceName("hypervisor")}
                 </InEffect>
               ) : parent.library ? (
                 <InEffect>

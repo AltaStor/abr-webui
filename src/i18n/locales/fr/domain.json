@@ -108,7 +108,7 @@
     },
     "source": {
       "job": "défini pour la tâche",
-      "inventory": "défini pour l’environnement",
+      "hypervisor": "défini pour l’environnement",
       "global": "valeur par défaut du serveur",
       "vddk_directory": "répertoire VDDK (repli)"
     },

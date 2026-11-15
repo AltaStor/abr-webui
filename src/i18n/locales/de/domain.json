@@ -108,7 +108,7 @@
     },
     "source": {
       "job": "für den Job festgelegt",
-      "inventory": "für die Umgebung festgelegt",
+      "hypervisor": "für die Umgebung festgelegt",
       "global": "serverweiter Standard",
       "vddk_directory": "VDDK-Verzeichnis (Fallback)"
     },

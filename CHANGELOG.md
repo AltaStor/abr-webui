@@ -19,7 +19,7 @@ All notable changes to the AltaStor WebUI are documented in this file.
   the appliance refuses is named next to the field. The run drawer and a
   job's run history show the API, VDDK library, resolved file and source
   each session recorded. Needs `GET`/`PUT /api/v1/system/vsphere` and the
-  inventory `transport`/`vddk_library` fields of abr-core.
+  inventory `api`/`vddk_library` fields of abr-core.
 - Backup copy jobs. Backup → Add backup copy job copies the restore points
   of backup jobs, or of whole repositories, into another repository, where
   the copies keep a chain, retention, GFS, Object Lock dates and encryption

@@ -108,7 +108,7 @@
     },
     "source": {
       "job": "definido para el trabajo",
-      "inventory": "definido para el entorno",
+      "hypervisor": "definido para el entorno",
       "global": "valor predeterminado del servidor",
       "vddk_directory": "directorio VDDK (alternativa)"
     },

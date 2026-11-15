@@ -42,7 +42,7 @@ export type VsphereApi = "vddk" | "soap";
 /** Where a value in effect comes from: set for the job, set for the environment,
  *  the server-wide default (Settings → VMware), or — for the VDDK library only —
  *  the VDDK directory's `lib64/libvixDiskLib.so` when nothing names a library. */
-export type VsphereSettingSource = "job" | "inventory" | "global" | "vddk_directory";
+export type VsphereSettingSource = "job" | "hypervisor" | "global" | "vddk_directory";
 
 /** An environment's own API and VDDK library (null/"inherit" = the server-wide
  *  one), and what its sessions use now. */

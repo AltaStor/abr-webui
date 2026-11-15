@@ -119,7 +119,7 @@
     },
     "source": {
       "job": "set for the job",
-      "inventory": "set for the environment",
+      "hypervisor": "set for the environment",
       "global": "server-wide default",
       "vddk_directory": "VDDK directory (fallback)"
     },
