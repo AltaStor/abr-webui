@@ -330,6 +330,41 @@
         "doneDescription": "{{jobs}} et {{backups}}, avec leurs clés de chiffrement. Conservez l’archive hors de cette appliance.",
         "failed": "Impossible d’exporter le catalogue",
         "failedDescription": "L’appliance n’a produit aucune archive. Réessayez dans un instant."
+      },
+      "import": {
+        "title": "Importer une archive",
+        "description": "Récupérez les tâches et les points de restauration, avec leurs clés de chiffrement, depuis une archive exportée ici ou sur une autre appliance : après une reconstruction, ou sur une nouvelle.",
+        "open": "Importer une archive…",
+        "dialogTitle": "Importer une archive du catalogue",
+        "dialogDescription": "Les tâches de l’archive, les points de restauration avec leurs clés de chiffrement, les référentiels, les environnements et les utilisateurs entrent dans le catalogue de cette appliance.",
+        "warning": "Les enregistrements de même ID sont remplacés par ceux de l’archive, et tout le reste ici est conservé. Un compte portant le même nom qu’un compte de l’archive est remplacé par celui-ci et déconnecté, le vôtre aussi s’il en fait partie. Les paramètres du serveur contenus dans l’archive ne sont pas appliqués.",
+        "fileLabel": "Fichier d’archive",
+        "chooseFile": "Choisir un fichier…",
+        "noFile": "Aucun fichier choisi (.abrsnap)",
+        "fileRequired": "Choisissez l’archive à importer.",
+        "passwordRequired": "Saisissez le mot de passe avec lequel l’archive a été exportée.",
+        "submit": "Importer",
+        "importing": "Importation…",
+        "toast": "Archive du catalogue importée",
+        "failed": "L’archive n’a pas pu être importée. Réessayez dans un instant.",
+        "refusal": {
+          "wrong_password": "Ce mot de passe n’ouvre pas cette archive.",
+          "invalid_export": "Ce fichier n’est pas une archive du catalogue issue du séquestre des clés. {{detail}}",
+          "incompatible_export": "Cette archive provient d’une version que cette appliance ne peut pas importer. {{detail}}"
+        },
+        "done": "{{file}} importé.",
+        "tables": {
+          "jobs": "Tâches",
+          "backups": "Points de restauration",
+          "repositories": "Référentiels",
+          "hypervisors": "Environnements",
+          "users": "Utilisateurs"
+        },
+        "replacedUsers": "Remplacés par les comptes de même nom de l’archive, et déconnectés : {{list}}.",
+        "settings_one": "L’archive contient aussi {{count}} paramètre du serveur, qu’une importation n’applique pas.",
+        "settings_other": "L’archive contient aussi {{count}} paramètres du serveur, qu’une importation n’applique pas.",
+        "downloadSettings": "Les télécharger",
+        "settingsHeader": "# Paramètres du serveur issus d’une archive du catalogue. Les secrets apparaissent comme *** : renseignez-les avant usage."
       }
     }
   },

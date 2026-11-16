@@ -390,6 +390,41 @@
         "doneDescription": "{{jobs}} and {{backups}}, with their encryption keys. Store it off this appliance.",
         "failed": "Couldn't export the catalog",
         "failedDescription": "The appliance didn't produce an archive. Try again in a moment."
+      },
+      "import": {
+        "title": "Import an archive",
+        "description": "Bring jobs and restore points back, with their encryption keys, from an archive exported here or on another appliance: after a rebuild, or onto a new one.",
+        "open": "Import archive…",
+        "dialogTitle": "Import a catalog archive",
+        "dialogDescription": "The archive's jobs, restore points with their encryption keys, repositories, environments and users go into this appliance's catalog.",
+        "warning": "Records with the same ID are overwritten by the archive's, and everything else here is kept. An account with the same name as one in the archive is replaced by it and signed out, yours too if it is among them. Server settings in the archive are not applied.",
+        "fileLabel": "Archive file",
+        "chooseFile": "Choose file…",
+        "noFile": "No file chosen (.abrsnap)",
+        "fileRequired": "Choose the archive to import.",
+        "passwordRequired": "Enter the password the archive was exported with.",
+        "submit": "Import",
+        "importing": "Importing…",
+        "toast": "Catalog archive imported",
+        "failed": "The archive could not be imported. Try again in a moment.",
+        "refusal": {
+          "wrong_password": "That password does not open this archive.",
+          "invalid_export": "This file is not a catalog archive from Encryption key escrow. {{detail}}",
+          "incompatible_export": "This archive comes from a version this appliance cannot import. {{detail}}"
+        },
+        "done": "Imported {{file}}.",
+        "tables": {
+          "jobs": "Jobs",
+          "backups": "Restore points",
+          "repositories": "Repositories",
+          "hypervisors": "Environments",
+          "users": "Users"
+        },
+        "replacedUsers": "Replaced by the archive's accounts of the same name, and signed out: {{list}}.",
+        "settings_one": "The archive also holds {{count}} server setting, which an import does not apply.",
+        "settings_other": "The archive also holds {{count}} server settings, which an import does not apply.",
+        "downloadSettings": "Download them",
+        "settingsHeader": "# Server settings from a catalog archive. Secrets show as ***: fill them in before use."
       }
     }
   },

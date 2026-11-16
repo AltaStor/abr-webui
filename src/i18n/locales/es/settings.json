@@ -330,6 +330,41 @@
         "doneDescription": "{{jobs}} y {{backups}}, con sus claves de cifrado. Guárdelo fuera de este dispositivo.",
         "failed": "No se pudo exportar el catálogo",
         "failedDescription": "El dispositivo no generó ningún archivo. Inténtelo de nuevo en un momento."
+      },
+      "import": {
+        "title": "Importar un archivo",
+        "description": "Recupere los trabajos y los puntos de restauración, con sus claves de cifrado, desde un archivo exportado aquí o en otro appliance: tras una reconstrucción, o en uno nuevo.",
+        "open": "Importar archivo…",
+        "dialogTitle": "Importar un archivo del catálogo",
+        "dialogDescription": "Los trabajos del archivo, los puntos de restauración con sus claves de cifrado, los repositorios, los entornos y los usuarios pasan al catálogo de este appliance.",
+        "warning": "Los registros con el mismo ID se sobrescriben con los del archivo, y todo lo demás se conserva. Una cuenta con el mismo nombre que una del archivo se sustituye por ella y se cierra su sesión, también la suya si está entre ellas. La configuración del servidor del archivo no se aplica.",
+        "fileLabel": "Archivo",
+        "chooseFile": "Elegir archivo…",
+        "noFile": "Ningún archivo elegido (.abrsnap)",
+        "fileRequired": "Elija el archivo que desea importar.",
+        "passwordRequired": "Introduzca la contraseña con la que se exportó el archivo.",
+        "submit": "Importar",
+        "importing": "Importando…",
+        "toast": "Archivo del catálogo importado",
+        "failed": "No se pudo importar el archivo. Vuelva a intentarlo en un momento.",
+        "refusal": {
+          "wrong_password": "Esa contraseña no abre este archivo.",
+          "invalid_export": "Este fichero no es un archivo del catálogo de la custodia de claves. {{detail}}",
+          "incompatible_export": "Este archivo procede de una versión que este appliance no puede importar. {{detail}}"
+        },
+        "done": "{{file}} importado.",
+        "tables": {
+          "jobs": "Trabajos",
+          "backups": "Puntos de restauración",
+          "repositories": "Repositorios",
+          "hypervisors": "Entornos",
+          "users": "Usuarios"
+        },
+        "replacedUsers": "Sustituidas por las cuentas del archivo con el mismo nombre, y con la sesión cerrada: {{list}}.",
+        "settings_one": "El archivo también contiene {{count}} ajuste del servidor, que una importación no aplica.",
+        "settings_other": "El archivo también contiene {{count}} ajustes del servidor, que una importación no aplica.",
+        "downloadSettings": "Descargarlos",
+        "settingsHeader": "# Configuración del servidor de un archivo del catálogo. Los secretos aparecen como ***: complételos antes de usarla."
       }
     }
   },

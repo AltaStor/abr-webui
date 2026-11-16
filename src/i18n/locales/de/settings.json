@@ -330,6 +330,41 @@
         "doneDescription": "{{jobs}} und {{backups}} samt ihren Verschlüsselungsschlüsseln. Bewahren Sie das Archiv außerhalb dieser Appliance auf.",
         "failed": "Katalog konnte nicht exportiert werden",
         "failedDescription": "Die Appliance hat kein Archiv erzeugt. Versuchen Sie es gleich noch einmal."
+      },
+      "import": {
+        "title": "Archiv importieren",
+        "description": "Holen Sie Jobs und Wiederherstellungspunkte mit ihren Verschlüsselungsschlüsseln aus einem Archiv zurück, das hier oder auf einer anderen Appliance exportiert wurde: nach einem Neuaufbau oder auf eine neue Appliance.",
+        "open": "Archiv importieren…",
+        "dialogTitle": "Katalogarchiv importieren",
+        "dialogDescription": "Die Jobs des Archivs, Wiederherstellungspunkte mit ihren Verschlüsselungsschlüsseln, Repositorys, Umgebungen und Benutzer kommen in den Katalog dieser Appliance.",
+        "warning": "Datensätze mit derselben ID werden durch die des Archivs überschrieben, alles andere hier bleibt erhalten. Ein Konto mit demselben Namen wie eines im Archiv wird durch dieses ersetzt und abgemeldet, auch Ihres, falls es dazugehört. Servereinstellungen im Archiv werden nicht angewendet.",
+        "fileLabel": "Archivdatei",
+        "chooseFile": "Datei auswählen…",
+        "noFile": "Keine Datei ausgewählt (.abrsnap)",
+        "fileRequired": "Wählen Sie das zu importierende Archiv.",
+        "passwordRequired": "Geben Sie das Passwort ein, mit dem das Archiv exportiert wurde.",
+        "submit": "Importieren",
+        "importing": "Wird importiert…",
+        "toast": "Katalogarchiv importiert",
+        "failed": "Das Archiv konnte nicht importiert werden. Versuchen Sie es gleich noch einmal.",
+        "refusal": {
+          "wrong_password": "Dieses Passwort öffnet das Archiv nicht.",
+          "invalid_export": "Diese Datei ist kein Katalogarchiv aus der Schlüsselhinterlegung. {{detail}}",
+          "incompatible_export": "Dieses Archiv stammt aus einer Version, die diese Appliance nicht importieren kann. {{detail}}"
+        },
+        "done": "{{file}} importiert.",
+        "tables": {
+          "jobs": "Jobs",
+          "backups": "Wiederherstellungspunkte",
+          "repositories": "Repositorys",
+          "hypervisors": "Umgebungen",
+          "users": "Benutzer"
+        },
+        "replacedUsers": "Durch gleichnamige Konten des Archivs ersetzt und abgemeldet: {{list}}.",
+        "settings_one": "Das Archiv enthält außerdem {{count}} Servereinstellung, die ein Import nicht anwendet.",
+        "settings_other": "Das Archiv enthält außerdem {{count}} Servereinstellungen, die ein Import nicht anwendet.",
+        "downloadSettings": "Herunterladen",
+        "settingsHeader": "# Servereinstellungen aus einem Katalogarchiv. Geheimnisse erscheinen als ***: vor der Verwendung eintragen."
       }
     }
   },

@@ -3003,6 +3003,59 @@ export async function exportCatalogSnapshot(
   };
 }
 
+export interface CatalogImportResult {
+  /** Records written, by table: jobs, backups, repositories, hypervisors,
+   *  users, roles, tasks, resources. */
+  restored: Record<string, number>;
+  /** Accounts of this appliance the archive replaced with a same-named one
+   *  (their sessions ended). */
+  replacedUsers: string[];
+  /** The exporting appliance's server settings, secrets masked. An import
+   *  does not apply them. */
+  configuration: Record<string, string>;
+  exportedAt: string | null;
+  productVersion: string | null;
+}
+
+/** A file's bytes as base64, without holding a second binary-string copy. */
+function fileAsBase64(file: Blob): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result).replace(/^data:[^,]*,/, ""));
+    reader.onerror = () => reject(reader.error ?? new Error("The file could not be read"));
+    reader.readAsDataURL(file);
+  });
+}
+
+/**
+ * Bring an archive from `exportCatalogSnapshot` back into this appliance's
+ * catalog (`POST /system/catalog-restore`, the same as `abr system import`):
+ * the other half of key escrow. The archive's records are written over the
+ * ones with the same ID and the rest are kept; an account with the same name
+ * but another ID is replaced. Refused with `wrong_password`, `invalid_export`
+ * or `incompatible_export`.
+ */
+export async function importCatalogSnapshot(file: Blob, password: string): Promise<CatalogImportResult> {
+  const res = asDict(
+    await request<Dict>("/system/catalog-restore", {
+      method: "POST",
+      body: JSON.stringify({ password, archive_base64: await fileAsBase64(file) }),
+    }),
+  );
+  const restored: Record<string, number> = {};
+  for (const [table, value] of Object.entries(asDict(res.restored))) restored[table] = num(value, 0);
+  const configuration: Record<string, string> = {};
+  for (const [key, value] of Object.entries(asDict(res.configuration))) configuration[key] = str(value);
+  const manifest = asDict(res.manifest);
+  return {
+    restored,
+    replacedUsers: strList(res.replaced_users),
+    configuration,
+    exportedAt: strOrNull(manifest.exported_at),
+    productVersion: strOrNull(manifest.product_version),
+  };
+}
+
 export interface AuditQuery {
   category?: string;
   severity?: string;

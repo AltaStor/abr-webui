@@ -30,13 +30,14 @@ import { useCan } from "@/store/permissions";
 export function SecuritySection() {
   const canViewCertificate = useCan("tls.view");
   const canExport = useCan("system.export");
+  const canImport = useCan("system.import");
   return (
     <div className="space-y-4">
       <AccessPolicyCard />
       <TwoFactorCard />
       <SessionCard />
       {canViewCertificate && <TlsCertificateCard />}
-      {canExport && <KeyEscrowCard />}
+      {(canExport || canImport) && <KeyEscrowCard />}
     </div>
   );
 }

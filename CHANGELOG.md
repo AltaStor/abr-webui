@@ -5,6 +5,16 @@ All notable changes to the AltaStor WebUI are documented in this file.
 ## Unreleased
 
 ### Added
+- Settings → Security → Encryption key escrow imports an archive too
+  ("Import archive…"): the archive file and its password bring its jobs,
+  restore points with their encryption keys, repositories, environments and
+  users into this appliance's catalog, as `abr system import` does. The
+  dialog warns that records with the same ID are overwritten and that an
+  account with the same name is replaced and signed out, names a wrong
+  password or a file that is no catalog archive, and afterwards lists what
+  came in, the accounts it replaced, and the server settings the archive
+  holds (an import does not apply them) to download as a .env file. Shown
+  with `system.import`. Needs `POST /api/v1/system/catalog-restore`.
 - VMware access (ABR-497). Settings → VMware sets the server-wide API (VDDK
   or vSphere SOAP) and VDDK library file every vCenter and ESXi environment
   without its own uses, shows the VDDK directory a library left empty
