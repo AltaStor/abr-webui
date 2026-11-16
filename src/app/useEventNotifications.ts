@@ -37,7 +37,7 @@ import { useWorldStore } from "@/store/world";
 import type { Alert, AlertSeverity, Session, SessionStatus } from "@/types";
 
 /** Statuses a run can no longer move out of. */
-const TERMINAL: ReadonlySet<SessionStatus> = new Set<SessionStatus>(["success", "warning", "failed"]);
+const TERMINAL: ReadonlySet<SessionStatus> = new Set<SessionStatus>(["success", "warning", "failed", "stopped"]);
 
 function isTerminal(status: SessionStatus): boolean {
   return TERMINAL.has(status);
@@ -46,7 +46,7 @@ function isTerminal(status: SessionStatus): boolean {
 /** A finished run's severity, used for both the toast and the bell glyph. */
 function severityOf(status: SessionStatus): AlertSeverity {
   if (status === "failed") return "critical";
-  if (status === "warning") return "warning";
+  if (status === "warning" || status === "stopped") return "warning";
   return "success";
 }
 
@@ -62,7 +62,9 @@ function severityOf(status: SessionStatus): AlertSeverity {
  */
 function eventKeyFor(session: Session): "jobFailure" | "jobSuccess" | "restoreCompleted" {
   if (session.type === "restore") return "restoreCompleted";
-  return session.status === "failed" ? "jobFailure" : "jobSuccess";
+  // A stopped run did not complete either, so it answers to the same switch
+  // as a failure, though it is not reported as one (ABR-543).
+  return session.status === "failed" || session.status === "stopped" ? "jobFailure" : "jobSuccess";
 }
 
 /** Whether a run began after the watch took its baseline. An unparseable or
@@ -148,7 +150,7 @@ export function useEventNotifications(): void {
       const name = session.jobName;
       const title =
         key === "restoreCompleted"
-          ? t(`notifications.event.restore.${session.status === "failed" ? "failed" : "done"}`, { name })
+          ? t(`notifications.event.restore.${session.status === "failed" || session.status === "stopped" ? session.status : "done"}`, { name })
           : t(`notifications.event.job.${session.status}`, { name });
       const body = session.message?.trim() || t(`notifications.event.body.${session.status}`, { name });
 

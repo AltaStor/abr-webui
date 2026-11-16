@@ -136,7 +136,7 @@
       "title": "Cierre de sesión por inactividad",
       "description": "Cuánto tiempo sigue abierta la sesión de la consola mientras no está. Un clic, una tecla, un desplazamiento o un cambio de página cuentan como actividad; las actualizaciones en segundo plano de la consola y mover el puntero no.",
       "label": "Cerrar sesión tras",
-      "hint": "Se aplica de inmediato a esta sesión y a los próximos inicios de sesión en este navegador. Un minuto antes, la consola pregunta si sigue ahí.",
+      "hint": "Se aplica de inmediato a esta sesión y a sus próximos inicios de sesión en este navegador; las demás cuentas conservan el suyo. Un minuto antes, la consola pregunta si sigue ahí.",
       "savedDescription": "Tiempo de inactividad actualizado.",
       "applyFailed": {
         "title": "Tiempo de inactividad no aplicado",
@@ -625,6 +625,7 @@
     "enable": "Enviar notificaciones por correo",
     "on": "Activadas",
     "off": "Desactivadas",
+    "unsaved": "Sin guardar",
     "liveOnly": "Conéctese a un appliance real para configurar las notificaciones por correo.",
     "loading": "Leyendo la configuración de correo…",
     "loadFailed": "No se pudo leer la configuración de correo del appliance.",

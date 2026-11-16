@@ -139,6 +139,7 @@
     "done": "Done",
     "warning": "Warning",
     "failed": "Failed",
+    "stopped": "Stopped",
     "running": "Running",
     "queued": "Queued"
   },
@@ -379,7 +380,9 @@
       "backupCompleted": "Backup completed",
       "completedWithWarnings": "Completed with warnings",
       "replicationFailed": "Replication failed",
+      "replicationStopped": "Replication stopped",
       "backupFailed": "Backup failed",
+      "backupStopped": "Backup stopped",
       "readingStaging": "Reading & staging source",
       "replicatingToTarget": "Replicating to target",
       "streamingToRepository": "Streaming to repository",

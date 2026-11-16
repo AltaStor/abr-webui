@@ -196,7 +196,7 @@
       "title": "Sign-out after inactivity",
       "description": "How long the console stays signed in while you are away. A click, a key press, a scroll or a page change counts as activity; the console's own background refreshes and a moving pointer do not.",
       "label": "Sign out after",
-      "hint": "Applies immediately to this session, and to future sign-ins on this browser. A minute before, the console asks whether you are still there.",
+      "hint": "Applies immediately to this session, and to your future sign-ins on this browser; other accounts keep their own. A minute before, the console asks whether you are still there.",
       "savedDescription": "Inactivity timeout updated.",
       "applyFailed": {
         "title": "Inactivity timeout not applied",
@@ -693,6 +693,7 @@
     "enable": "Send e-mail notifications",
     "on": "On",
     "off": "Off",
+    "unsaved": "Not saved",
     "liveOnly": "Connect to a live appliance to set up e-mail notifications.",
     "loading": "Reading the e-mail settings…",
     "loadFailed": "Couldn't read the e-mail settings from the appliance.",

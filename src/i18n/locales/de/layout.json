@@ -57,16 +57,19 @@
       "job": {
         "success": "{{name}} abgeschlossen",
         "warning": "{{name}} mit Warnungen abgeschlossen",
-        "failed": "{{name}} fehlgeschlagen"
+        "failed": "{{name}} fehlgeschlagen",
+        "stopped": "{{name}} gestoppt"
       },
       "restore": {
         "done": "Wiederherstellung beendet – {{name}}",
-        "failed": "Wiederherstellung fehlgeschlagen – {{name}}"
+        "failed": "Wiederherstellung fehlgeschlagen – {{name}}",
+        "stopped": "Wiederherstellung gestoppt – {{name}}"
       },
       "body": {
         "success": "Der Lauf wurde ohne Fehler abgeschlossen.",
         "warning": "Der Lauf wurde abgeschlossen, die Appliance meldete jedoch Warnungen.",
-        "failed": "Die Appliance hat den Lauf als fehlgeschlagen gemeldet."
+        "failed": "Die Appliance hat den Lauf als fehlgeschlagen gemeldet.",
+        "stopped": "Der Lauf wurde gestoppt, bevor er abgeschlossen war."
       },
       "capacity": {
         "warn": "{{name}} füllt sich",

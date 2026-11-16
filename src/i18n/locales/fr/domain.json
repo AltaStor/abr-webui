@@ -8,6 +8,7 @@
     "success": "Réussi",
     "warning": "Avertissement",
     "failed": "Échoué",
+    "stopped": "Arrêté",
     "running": "En cours",
     "queued": "En file d’attente"
   },

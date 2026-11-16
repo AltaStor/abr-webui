@@ -8,6 +8,7 @@
     "success": "Erfolgreich",
     "warning": "Warnung",
     "failed": "Fehlgeschlagen",
+    "stopped": "Gestoppt",
     "running": "Läuft",
     "queued": "In Warteschlange"
   },

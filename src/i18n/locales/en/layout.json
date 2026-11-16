@@ -59,16 +59,19 @@
       "job": {
         "success": "{{name}} completed",
         "warning": "{{name}} completed with warnings",
-        "failed": "{{name}} failed"
+        "failed": "{{name}} failed",
+        "stopped": "{{name}} stopped"
       },
       "restore": {
         "done": "Recovery finished — {{name}}",
-        "failed": "Recovery failed — {{name}}"
+        "failed": "Recovery failed — {{name}}",
+        "stopped": "Recovery stopped — {{name}}"
       },
       "body": {
         "success": "The run finished with no errors.",
         "warning": "The run finished, but the appliance reported warnings.",
-        "failed": "The appliance reported the run as failed."
+        "failed": "The appliance reported the run as failed.",
+        "stopped": "The run was stopped before it finished."
       },
       "capacity": {
         "warn": "{{name}} is filling up",

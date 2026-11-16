@@ -16,7 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuthStore } from "@/store/auth";
 import { INTRO_FLAG } from "@/components/brand/IntroOverlay";
-import { useSettingsStore } from "@/store/settings";
+import { savedIdleTimeout } from "@/lib/idle-timeout";
 import { useWorldStore } from "@/store/world";
 import { AuthFailureNotice, AuthLayout, SignedOutNotice } from "./components/AuthLayout";
 import { sessionDurationLabel } from "@/lib/session";
@@ -41,10 +41,6 @@ export default function LoginPage() {
   const totpRequired = useAuthStore((s) => s.totpRequired);
   const cancelTotp = useAuthStore((s) => s.cancelTotp);
   const signOutNotice = useAuthStore((s) => s.signOutNotice);
-
-  // Session length lives in Settings → Security now, not on the login form —
-  // this reads whatever the operator (or its shipped 1-hour default) last set.
-  const sessionDurationSec = useSettingsStore((s) => s.security.sessionDurationSec);
 
   const [name, setName] = useState("");
   const [password, setPassword] = useState("");
@@ -96,7 +92,9 @@ export default function LoginPage() {
       : useRecoveryCode
         ? { recovery_code: code.trim() }
         : { totp_code: code.replace(/\s/g, "") };
-    const ok = await login(name, password, sessionDurationSec, secondFactor);
+    // The inactivity timeout this account chose in Settings → Security on this
+    // browser; none, and the appliance's default applies (ABR-542).
+    const ok = await login(name, password, savedIdleTimeout(name), secondFactor);
     if (!ok) {
       // A failed attempt starts over from a fresh code, and being asked for a
       // code at all is not a mistake to flag on the empty field.

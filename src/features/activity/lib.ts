@@ -22,7 +22,7 @@ import type { Tone } from "@/lib/status";
 import i18n from "@/i18n";
 
 /** Filter buckets shown in the segmented control. */
-export type StatusFilter = "all" | "running" | "success" | "warning" | "failed";
+export type StatusFilter = "all" | "running" | "success" | "warning" | "failed" | "stopped";
 
 export const STATUS_FILTERS: { key: StatusFilter; label: string; tone: Tone }[] = [
   { key: "all", get label() { return i18n.t("common:generic.all"); }, tone: "muted" },
@@ -30,6 +30,7 @@ export const STATUS_FILTERS: { key: StatusFilter; label: string; tone: Tone }[] 
   { key: "success", get label() { return i18n.t("domain:session.success"); }, tone: "success" },
   { key: "warning", get label() { return i18n.t("domain:session.warning"); }, tone: "warning" },
   { key: "failed", get label() { return i18n.t("domain:session.failed"); }, tone: "danger" },
+  { key: "stopped", get label() { return i18n.t("domain:session.stopped"); }, tone: "warning" },
 ];
 
 /** A restore run is a session of type "restore" — it has no backing job. */

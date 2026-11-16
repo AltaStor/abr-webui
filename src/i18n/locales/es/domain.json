@@ -8,6 +8,7 @@
     "success": "Correcto",
     "warning": "Advertencia",
     "failed": "Fallido",
+    "stopped": "Detenido",
     "running": "En ejecución",
     "queued": "En cola"
   },

@@ -374,7 +374,7 @@ export default function JobDetailPage() {
           icon={CheckCircle2}
           tone={job.lastRunAt ? rateTone(job.successRate) : "muted"}
           label={t("detailStats.successRate")}
-          value={<span className="nums">{job.lastRunAt ? `${job.successRate}%` : "—"}</span>}
+          value={<span className="nums">{job.lastRunAt && job.successRate !== null ? `${job.successRate}%` : "—"}</span>}
           hint={t("detailStats.recentRuns")}
         />
         {repl ? (

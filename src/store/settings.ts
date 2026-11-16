@@ -115,7 +115,6 @@ export const DEFAULT_SETTINGS: AppSettings = {
   },
   security: {
     mfaRequired: true,
-    sessionDurationSec: 3600,
     passwordMinLength: 12,
     auditRetentionDays: 365,
     autoLockThreatResponse: true,

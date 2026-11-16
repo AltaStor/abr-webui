@@ -136,7 +136,7 @@
       "title": "Abmeldung bei Inaktivität",
       "description": "Wie lange die Konsole angemeldet bleibt, während Sie nicht da sind. Ein Klick, ein Tastendruck, Scrollen oder ein Seitenwechsel zählen als Aktivität; die Hintergrundaktualisierungen der Konsole und ein bloß bewegter Mauszeiger nicht.",
       "label": "Abmelden nach",
-      "hint": "Gilt sofort für diese Sitzung und für künftige Anmeldungen in diesem Browser. Eine Minute vorher fragt die Konsole, ob Sie noch da sind.",
+      "hint": "Gilt sofort für diese Sitzung und für Ihre künftigen Anmeldungen in diesem Browser; andere Konten behalten ihre eigene Einstellung. Eine Minute vorher fragt die Konsole, ob Sie noch da sind.",
       "savedDescription": "Inaktivitäts-Zeitlimit aktualisiert.",
       "applyFailed": {
         "title": "Inaktivitäts-Zeitlimit nicht übernommen",
@@ -625,6 +625,7 @@
     "enable": "E-Mail-Benachrichtigungen senden",
     "on": "Ein",
     "off": "Aus",
+    "unsaved": "Nicht gespeichert",
     "liveOnly": "Verbinden Sie sich mit einer Live-Appliance, um E-Mail-Benachrichtigungen einzurichten.",
     "loading": "E-Mail-Einstellungen werden gelesen …",
     "loadFailed": "Die E-Mail-Einstellungen konnten nicht von der Appliance gelesen werden.",

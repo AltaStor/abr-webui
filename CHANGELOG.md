@@ -143,6 +143,15 @@ All notable changes to the AltaStor WebUI are documented in this file.
   jobs list and on the job page, with the appliance's warning in a tooltip.
 
 ### Changed
+- A run stopped before it finished, by an operator or by a backup copy's
+  window, reads Stopped, in amber, instead of Failed (ABR-543): on the job
+  page (last run banner, Last run, the run panel's "Backup stopped"), in the
+  jobs list, in Activity (with a Stopped filter), in the run drawer and run
+  history, and in the bell ("Nightly stopped", a warning). A stopped run is
+  left out of the job's and the 24 h success rates; with no other run the
+  rate reads "—".
+- VM details → Specs shows each icon beside its parameter, not its value,
+  and every parameter has one; an unknown IP address reads "—" (ABR-559).
 - Every date reads in the date format, DD/MM/YYYY by default, with its year:
   "23/10/2026 01:00 GMT+3" instead of "Oct 23, 01:00 GMT+3".
 - Settings → Security → Two-factor sign-in is a switch. Switching it on asks
@@ -163,6 +172,17 @@ All notable changes to the AltaStor WebUI are documented in this file.
   platform.
 
 ### Fixed
+- The On/Off badge beside Settings → Notifications → E-mail notifications
+  and Custom script follows the switch, with "Not saved" until it is saved;
+  it showed the saved setting only, so turning the switch on still read Off.
+  A card also takes up a change another console made while it has no edits
+  of its own, and looks again when its tab comes back to the front; it used
+  to keep the answer it first rendered, often a cached one, so the switch and
+  the badge disagreed (ABR-566).
+- "Sign out after inactivity" is remembered per account on this browser: an
+  account sends its own choice when it signs in, and one that never chose
+  gets the appliance's default, which the slider then shows. It was one value
+  per browser, so the next account to sign in inherited it (ABR-542).
 - Saving any change to a disabled job no longer turns it back on: the form
   sent the job's schedule without its `enabled` flag, which the appliance
   reads as on.

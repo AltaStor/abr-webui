@@ -8,6 +8,7 @@
     "success": "Success",
     "warning": "Warning",
     "failed": "Failed",
+    "stopped": "Stopped",
     "running": "Running",
     "queued": "Queued"
   },

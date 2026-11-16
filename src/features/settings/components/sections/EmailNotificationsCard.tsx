@@ -1,11 +1,10 @@
 // SPDX-License-Identifier: Apache-2.0
 // Copyright © 2026 Norvitex OÜ
 
-import { useEffect, useMemo, useState } from "react";
+import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { AlertTriangle, CheckCircle2, Loader2, Mail, XCircle } from "@/lib/icons";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PasswordInput } from "@/components/ui/password-input";
@@ -33,7 +32,7 @@ import { SettingsSection } from "../SettingsSection";
 import { Field } from "../FormField";
 import { ChipList, Segmented } from "../controls";
 import { ADDRESS, DEFAULT_PORTS, draftOf, patchOf, problemsOf, type Draft, type Secret } from "./emailForm";
-import { EventSwitches, HistoryList } from "./notificationParts";
+import { EnabledSwitch, EventSwitches, HistoryList, useSettingsDraft } from "./notificationParts";
 
 /**
  * Settings → Notifications → E-mail: the SMTP server, how the appliance signs
@@ -69,22 +68,20 @@ export function EmailNotificationsCard() {
   const canEdit = useCan("notification.edit");
   const canTest = useCan("notification.test");
   const queryClient = useQueryClient();
-  const query = useQuery({ queryKey: qk.emailNotifications, queryFn: getEmailNotifications, enabled: live });
+  // Another console may change these: look again on coming back to the tab.
+  const query = useQuery({
+    queryKey: qk.emailNotifications,
+    queryFn: getEmailNotifications,
+    enabled: live,
+    refetchOnWindowFocus: true,
+  });
   const state = query.data;
 
-  const [draft, setDraft] = useState<Draft | null>(null);
+  const [draft, setDraft, dirty] = useSettingsDraft(state, draftOf);
   const [showErrors, setShowErrors] = useState(false);
   const [serverErrors, setServerErrors] = useState<Record<string, string>>({});
   const [testTo, setTestTo] = useState("");
   const [outcome, setOutcome] = useState<TestOutcome | null>(null);
-
-  // Seed the draft from the first answer, and again after each save.
-  useEffect(() => {
-    if (state && draft === null) setDraft(draftOf(state));
-  }, [state, draft]);
-
-  const pristine = useMemo(() => (state ? JSON.stringify(draftOf(state)) : ""), [state]);
-  const dirty = draft !== null && JSON.stringify(draft) !== pristine;
 
   const save = useMutation({
     mutationFn: (d: Draft) => updateEmailNotifications(patchOf(d)),
@@ -222,16 +219,14 @@ export function EmailNotificationsCard() {
       description={t("email.description")}
       icon={Mail}
       headerAside={
-        <label className="flex items-center gap-2 text-sm font-medium">
-          <Badge variant={state.enabled ? "success" : "outline"}>{state.enabled ? t("email.on") : t("email.off")}</Badge>
-          <Switch
-            checked={draft.enabled}
-            onCheckedChange={(enabled) => update({ enabled })}
-            disabled={readOnly}
-            aria-label={t("email.enable")}
-            data-testid="email-enabled"
-          />
-        </label>
+        <EnabledSwitch
+          checked={draft.enabled}
+          saved={state.enabled}
+          onChange={(enabled) => update({ enabled })}
+          disabled={readOnly}
+          label={t("email.enable")}
+          testId="email-enabled"
+        />
       }
       footer={
         <div className="flex w-full flex-wrap items-center justify-end gap-2">

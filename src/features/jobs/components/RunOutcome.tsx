@@ -3,7 +3,7 @@
 
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { AlertTriangle, XCircle } from "@/lib/icons";
+import { AlertTriangle, MinusCircle, XCircle } from "@/lib/icons";
 import { cn } from "@/lib/utils";
 import type { JobLastRun, JobRunResult, Session } from "@/types";
 import { countOf } from "@/lib/count";
@@ -35,7 +35,7 @@ export function LastRunCounts({ run }: { run?: JobLastRun | null }) {
     <span
       className={cn(
         "mt-0.5 block text-[11px]",
-        run.result === "failed" || run.result === "stopped" ? "text-danger-text" : "text-muted-foreground",
+        run.result === "failed" ? "text-danger-text" : run.result === "stopped" ? "text-warning-text" : "text-muted-foreground",
       )}
     >
       {summary}
@@ -48,7 +48,8 @@ export function LastRunProblems({ run }: { run?: JobLastRun | null }) {
   const summary = useRunSummary(run);
   const problems = (run?.vms ?? []).filter((vm) => (PROBLEMS as JobRunResult[]).includes(vm.result));
   if (!run || !summary || !problems.length) return null;
-  const severe = run.failed > 0 || run.stopped > 0;
+  // Only a failure is red: a stopped VM was stopped on purpose (ABR-543).
+  const severe = run.failed > 0;
   return (
     <div
       className={cn(
@@ -58,6 +59,8 @@ export function LastRunProblems({ run }: { run?: JobLastRun | null }) {
     >
       {severe ? (
         <XCircle className="mt-0.5 h-4 w-4 shrink-0 text-danger" aria-hidden="true" />
+      ) : run.result === "stopped" ? (
+        <MinusCircle className="mt-0.5 h-4 w-4 shrink-0 text-warning" aria-hidden="true" />
       ) : (
         <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-warning" aria-hidden="true" />
       )}
@@ -109,7 +112,7 @@ export function lastRunAsSession(run: JobLastRun | null | undefined, sessions: S
   const problem = run.vms.find((vm) => PROBLEMS.includes(vm.result as RunProblem) && vm.message);
   return {
     ...newest,
-    status: run.result === "stopped" ? "failed" : run.result,
+    status: run.result,
     vmCount: run.vmCount,
     startedAt: new Date(started).toISOString(),
     finishedAt: finished ? new Date(finished).toISOString() : newest.finishedAt,

@@ -76,7 +76,7 @@ type RunStatusFilter = "all" | SessionStatus | "never";
 
 /** Column order, and therefore filter order. "never" is the pill a job with no
  *  runs yet wears (JOB_NEVER_RUN_META), so it is a value of this column too. */
-const RUN_STATUS_VALUES: SessionStatus[] = ["success", "warning", "failed", "running", "queued"];
+const RUN_STATUS_VALUES: SessionStatus[] = ["success", "warning", "failed", "stopped", "running", "queued"];
 
 /** Enablement, filtered on its own and labelled as what it is. */
 type ScheduleFilter = "all" | "enabled" | "disabled";

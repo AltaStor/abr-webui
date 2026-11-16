@@ -26,6 +26,7 @@ const VM_TONE: Record<VmRunResult["status"], string> = {
   success: "success",
   warning: "warning",
   failed: "danger",
+  stopped: "warning",
   running: "info",
   pending: "muted",
 };
@@ -36,6 +37,7 @@ const VM_LABEL: Record<VmRunResult["status"], () => string> = {
   success: () => i18n.t("jobs:vmStatus.done"),
   warning: () => i18n.t("jobs:vmStatus.warning"),
   failed: () => i18n.t("jobs:vmStatus.failed"),
+  stopped: () => i18n.t("jobs:vmStatus.stopped"),
   running: () => i18n.t("jobs:vmStatus.running"),
   pending: () => i18n.t("jobs:vmStatus.queued"),
 };
@@ -91,7 +93,7 @@ export function ActiveRunPanel({ session }: { session: Session }) {
   const tone = terminal
     ? session.status === "success"
       ? "success"
-      : session.status === "warning"
+      : session.status === "warning" || session.status === "stopped"
         ? "warning"
         : "danger"
     : "info";
@@ -103,9 +105,13 @@ export function ActiveRunPanel({ session }: { session: Session }) {
         : t("run.headline.backupCompleted")
       : session.status === "warning"
         ? t("run.headline.completedWithWarnings")
-        : replication
-          ? t("run.headline.replicationFailed")
-          : t("run.headline.backupFailed")
+        : session.status === "stopped"
+          ? replication
+            ? t("run.headline.replicationStopped")
+            : t("run.headline.backupStopped")
+          : replication
+            ? t("run.headline.replicationFailed")
+            : t("run.headline.backupFailed")
     : storing
       ? t("run.headline.streamingToRepository")
       : t("run.headline.inProgress");
@@ -249,7 +255,7 @@ export function ActiveRunPanel({ session }: { session: Session }) {
   );
 }
 
-const TERMINAL = new Set(["success", "warning", "failed"]);
+const TERMINAL = new Set(["success", "warning", "failed", "stopped"]);
 
 /** A per-VM row that ripples — a tone-flash + label pop — the moment it completes. */
 function VmRunRow({ r, hideBytes }: { r: VmRunResult; hideBytes?: boolean }) {
@@ -299,6 +305,7 @@ function VmRunRow({ r, hideBytes }: { r: VmRunResult; hideBytes?: boolean }) {
           r.status === "running" && "text-info",
           r.status === "warning" && "text-warning",
           r.status === "failed" && "text-danger",
+          r.status === "stopped" && "text-warning",
           r.status === "pending" && "text-muted-foreground",
         )}
       >

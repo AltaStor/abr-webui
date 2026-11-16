@@ -12,8 +12,14 @@ import { Slider } from "@/components/ui/slider";
 import { apiErrorMessage, extendSession } from "@/services/api.http";
 import { formatDateTime } from "@/lib/time";
 import { sessionDurationLabel } from "@/lib/session";
+import {
+  IDLE_TIMEOUT_DEFAULT_SECONDS,
+  IDLE_TIMEOUT_MAX_SECONDS,
+  IDLE_TIMEOUT_MIN_SECONDS,
+  saveIdleTimeout,
+  savedIdleTimeout,
+} from "@/lib/idle-timeout";
 import { useAuthStore } from "@/store/auth";
-import { useSettingsStore } from "@/store/settings";
 import { useWorldStore } from "@/store/world";
 import { SettingsSection } from "../SettingsSection";
 import { TlsCertificateCard } from "./TlsCertificateCard";
@@ -37,33 +43,40 @@ export function SecuritySection() {
 
 /* ------------------------------------------------------------------ session -- */
 
-/** Mirrors the appliance's `web_session_ttl_min/max_seconds()` bounds — see
- *  `SecuritySettings.sessionDurationSec`. */
-const SESSION_MIN_SECONDS = 300;
-const SESSION_MAX_SECONDS = 7200;
 const SESSION_STEP_SECONDS = 300;
+
+/** The signed-in account's inactivity timeout: what it chose on this browser,
+ *  else what this session got, else the appliance's shipped default. */
+function useIdleTimeout(): number {
+  const userName = useAuthStore((s) => s.user?.name ?? null);
+  const sessionTimeout = useAuthStore((s) => s.idleTimeoutSec);
+  return (userName ? savedIdleTimeout(userName) : undefined) ?? sessionTimeout ?? IDLE_TIMEOUT_DEFAULT_SECONDS;
+}
 
 function SessionCard() {
   const { t } = useTranslation("settings");
-  const sessionDurationSec = useSettingsStore((s) => s.security.sessionDurationSec);
-  const updateSecurity = useSettingsStore((s) => s.updateSecurity);
+  const idleTimeout = useIdleTimeout();
+  const userName = useAuthStore((s) => s.user?.name ?? null);
   const mode = useWorldStore((s) => s.mode);
   const signedIn = useAuthStore((s) => s.status === "signed-in");
   const absoluteExpiresAt = useAuthStore((s) => s.absoluteExpiresAt);
   const noteExpiry = useAuthStore((s) => s.noteExpiry);
 
-  // Local drag state for live label feedback; committed (persisted + sent to
-  // the appliance) only on release via onValueCommit, not on every tick.
-  const [draft, setDraft] = useState(sessionDurationSec);
+  // Local drag state for live label feedback; committed (remembered for this
+  // account + sent to the appliance) only on release via onValueCommit, not on
+  // every tick.
+  const [draft, setDraft] = useState(idleTimeout);
   const [applying, setApplying] = useState(false);
 
   useEffect(() => {
-    setDraft(sessionDurationSec);
-  }, [sessionDurationSec]);
+    setDraft(idleTimeout);
+  }, [idleTimeout]);
 
   const commit = async (value: number) => {
     setDraft(value);
-    updateSecurity({ sessionDurationSec: value });
+    // Remembered for the signed-in account only, never for whoever signs in
+    // next on this browser (ABR-542).
+    if (userName) saveIdleTimeout(userName, value);
     if (mode !== "live") return;
     setApplying(true);
     try {
@@ -90,8 +103,8 @@ function SessionCard() {
         <Slider
           id="security-session-duration"
           value={[draft]}
-          min={SESSION_MIN_SECONDS}
-          max={SESSION_MAX_SECONDS}
+          min={IDLE_TIMEOUT_MIN_SECONDS}
+          max={IDLE_TIMEOUT_MAX_SECONDS}
           step={SESSION_STEP_SECONDS}
           onValueChange={([v]) => setDraft(v)}
           onValueCommit={([v]) => void commit(v)}

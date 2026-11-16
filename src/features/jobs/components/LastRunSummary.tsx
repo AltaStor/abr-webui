@@ -2,7 +2,7 @@
 // Copyright © 2026 Norvitex OÜ
 
 import { useTranslation } from "react-i18next";
-import { CheckCircle2, AlertTriangle, XCircle } from "@/lib/icons";
+import { CheckCircle2, AlertTriangle, MinusCircle, XCircle } from "@/lib/icons";
 import { Card } from "@/components/ui/card";
 import { Metric } from "@/components/Metric";
 import { StatusPill } from "@/components/StatusPill";
@@ -26,13 +26,15 @@ export function LastRunSummary({ session }: { session: Session }) {
   const Icon =
     session.status === "failed"
       ? XCircle
-      : session.status === "warning"
-        ? AlertTriangle
-        : CheckCircle2;
+      : session.status === "stopped"
+        ? MinusCircle
+        : session.status === "warning"
+          ? AlertTriangle
+          : CheckCircle2;
   const tone =
     session.status === "failed"
       ? "text-danger"
-      : session.status === "warning"
+      : session.status === "warning" || session.status === "stopped"
         ? "text-warning"
         : "text-success";
   // The same sentence the run's detail panel and the manual-run dialog show for

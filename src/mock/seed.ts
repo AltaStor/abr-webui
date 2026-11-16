@@ -528,7 +528,7 @@ function buildSessions(jobs: BackupJob[], vms: VM[]): Session[] {
       const startedAt = hoursAgo(i * stepHours + (job.id === "job-sql-hourly" ? 0 : 2));
       const statusRoll = rand();
       const status: SessionStatus =
-        job.successRate >= 99
+        (job.successRate ?? 100) >= 99
           ? "success"
           : statusRoll > 0.9
             ? "warning"

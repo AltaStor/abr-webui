@@ -733,9 +733,9 @@ export function createSimDriver(handle: WorldHandle): WorldDriver {
     /* -------------------------- stopSession ---------------------------- */
     /* The demo world has no engine to unwind, so a cancel lands immediately —
      * where the live driver only flags the run and waits for the appliance.
-     * A cancelled run is a FAILED run with a reason, not a quiet disappearance:
+     * A cancelled run is a STOPPED run with a reason, not a quiet disappearance:
      * whatever it had already read is real, and the history has to show it was
-     * stopped rather than that it never happened. */
+     * stopped rather than that it never happened — or that it failed. */
     stopSession: (sessionId) => {
       const state = handle.get();
       const session = state.sessions.find((s) => s.id === sessionId);
@@ -747,21 +747,21 @@ export function createSimDriver(handle: WorldHandle): WorldDriver {
           s.id === sessionId
             ? {
                 ...s,
-                status: "failed",
+                status: "stopped",
                 finishedAt: nowIso(),
                 throughputMBps: 0,
                 message: "Cancelled by operator",
                 // Whatever hadn't started never will; what was in flight stopped
                 // where it stood.
                 vmResults: s.vmResults.map((r) =>
-                  r.status === "running" || r.status === "pending" ? { ...r, status: "failed" } : r,
+                  r.status === "running" || r.status === "pending" ? { ...r, status: "stopped" } : r,
                 ),
               }
             : s,
         ),
         jobs: state.jobs.map((j) =>
           j.id === session.jobId && j.state === "running"
-            ? { ...j, state: "idle", lastStatus: "failed", lastRunAt: nowIso() }
+            ? { ...j, state: "idle", lastStatus: "stopped", lastRunAt: nowIso() }
             : j,
         ),
         liveLogs: { ...state.liveLogs, [sessionId]: log.slice(-400) },

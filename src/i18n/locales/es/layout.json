@@ -57,16 +57,19 @@
       "job": {
         "success": "{{name}} completado",
         "warning": "{{name}} completado con advertencias",
-        "failed": "{{name}} ha fallado"
+        "failed": "{{name}} ha fallado",
+        "stopped": "{{name}} detenido"
       },
       "restore": {
         "done": "Recuperación finalizada: {{name}}",
-        "failed": "La recuperación ha fallado: {{name}}"
+        "failed": "La recuperación ha fallado: {{name}}",
+        "stopped": "Recuperación detenida: {{name}}"
       },
       "body": {
         "success": "La ejecución finalizó sin errores.",
         "warning": "La ejecución finalizó, pero el appliance informó de advertencias.",
-        "failed": "El appliance informó de que la ejecución falló."
+        "failed": "El appliance informó de que la ejecución falló.",
+        "stopped": "La ejecución se detuvo antes de terminar."
       },
       "capacity": {
         "warn": "{{name}} se está llenando",

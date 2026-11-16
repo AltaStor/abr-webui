@@ -400,10 +400,13 @@ function sessionStatusOf(state: string, hasProblems: boolean): SessionStatus {
     case "completed":
       return hasProblems ? "warning" : "success";
     case "failed":
+      return "failed";
+    // Stopped before it finished: by an operator, or by a backup copy's window
+    // closing. Not a failure, and not shown as one (ABR-543).
     case "stopped":
     case "canceled":
     case "cancelled":
-      return "failed";
+      return "stopped";
     default:
       return "queued";
   }
@@ -619,7 +622,7 @@ function mapSession(s: Dict): Session {
   const stopping = state === "stopping";
   const progress = num(s.progress);
   const resultStatus =
-    status === "success" || status === "warning" || status === "failed" || status === "running"
+    status === "success" || status === "warning" || status === "failed" || status === "stopped" || status === "running"
       ? status
       : "pending";
   return {
@@ -831,11 +834,6 @@ function mapLastRun(raw: unknown): JobLastRun | null {
   };
 }
 
-/** A stopped run is shown like a stopped session: failed. */
-function runStatusOf(result: JobRunResult): SessionStatus {
-  return result === "stopped" ? "failed" : result;
-}
-
 function jobRunStats(
   jobSessions: Session[],
   lastRun?: JobLastRun | null,
@@ -844,13 +842,15 @@ function jobRunStats(
     (a, b) => new Date(a.startedAt).getTime() - new Date(b.startedAt).getTime(),
   );
   const recentRuns = mine.slice(-12).map((s) => s.status);
+  // A stopped run says nothing about whether the job works, so like a running
+  // one it is left out of the rate; with nothing else there is no rate.
   const finished = mine.filter((s) => s.status === "success" || s.status === "warning" || s.status === "failed");
   return {
     recentRuns,
     successRate: finished.length
       ? Math.round((finished.filter((s) => s.status === "success").length / finished.length) * 100)
-      : 100,
-    lastStatus: lastRun ? runStatusOf(lastRun.result) : mine.length ? mine[mine.length - 1].status : null,
+      : null,
+    lastStatus: lastRun ? lastRun.result : mine.length ? mine[mine.length - 1].status : null,
   };
 }
 
@@ -2854,7 +2854,6 @@ const EMPTY_SETTINGS: ApplianceSettings = {
   },
   security: {
     mfaRequired: false,
-    sessionDurationSec: 3600,
     passwordMinLength: 12,
     auditRetentionDays: 90,
     autoLockThreatResponse: false,

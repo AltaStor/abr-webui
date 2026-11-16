@@ -42,6 +42,7 @@ const VM_TONE: Record<VmRunResult["status"], string> = {
   success: "success",
   warning: "warning",
   failed: "danger",
+  stopped: "warning",
   running: "info",
   pending: "muted",
 };

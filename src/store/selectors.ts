@@ -65,10 +65,13 @@ export function computeDashboardSummary(world: World): DashboardSummary {
   const counts = countByProtection(vms);
   const totalVms = vms.length;
 
+  // A stopped run is no verdict on the job either way, so like a running one
+  // it stays out of the rate (ABR-543).
   const last24h = sessions.filter(
     (s) =>
       s.status !== "running" &&
       s.status !== "queued" &&
+      s.status !== "stopped" &&
       Date.now() - new Date(s.finishedAt ?? s.startedAt).getTime() < DAY,
   );
   const success24h = last24h.filter((s) => s.status === "success").length;

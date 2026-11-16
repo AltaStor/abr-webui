@@ -136,7 +136,7 @@
       "title": "Déconnexion après inactivité",
       "description": "Combien de temps la console reste connectée pendant votre absence. Un clic, une frappe, un défilement ou un changement de page comptent comme activité ; les actualisations en arrière-plan de la console et un pointeur qui bouge seulement ne comptent pas.",
       "label": "Se déconnecter après",
-      "hint": "S’applique immédiatement à cette session et aux prochaines connexions sur ce navigateur. Une minute avant, la console demande si vous êtes toujours là.",
+      "hint": "S’applique immédiatement à cette session et à vos prochaines connexions sur ce navigateur ; les autres comptes gardent leur propre réglage. Une minute avant, la console demande si vous êtes toujours là.",
       "savedDescription": "Délai d’inactivité mis à jour.",
       "applyFailed": {
         "title": "Délai d’inactivité non appliqué",
@@ -625,6 +625,7 @@
     "enable": "Envoyer les notifications par e-mail",
     "on": "Activées",
     "off": "Désactivées",
+    "unsaved": "Non enregistré",
     "liveOnly": "Connectez-vous à une appliance réelle pour configurer les notifications par e-mail.",
     "loading": "Lecture des réglages e-mail…",
     "loadFailed": "Impossible de lire les réglages e-mail sur l’appliance.",

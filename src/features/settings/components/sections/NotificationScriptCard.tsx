@@ -1,11 +1,10 @@
 // SPDX-License-Identifier: Apache-2.0
 // Copyright © 2026 Norvitex OÜ
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { AlertTriangle, CheckCircle2, FileText, FolderOpen, Loader2, Play, Terminal, Trash2, XCircle } from "@/lib/icons";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -16,7 +15,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Switch } from "@/components/ui/switch";
 import { toast } from "@/components/ui/sonner";
 import { DateTime } from "@/components/DateTime";
 import { qk } from "@/lib/query";
@@ -37,7 +35,7 @@ import { useCan } from "@/store/permissions";
 import { useWorldStore } from "@/store/world";
 import { SettingsSection } from "../SettingsSection";
 import { Field } from "../FormField";
-import { EventSwitches, HistoryList } from "./notificationParts";
+import { EnabledSwitch, EventSwitches, HistoryList, useSettingsDraft } from "./notificationParts";
 
 /**
  * Settings → Notifications → Custom script: a script the appliance runs when a
@@ -78,23 +76,22 @@ export function NotificationScriptCard() {
   const live = useWorldStore((s) => s.mode === "live" && s.ready);
   const allowed = useCan("notification.script");
   const queryClient = useQueryClient();
-  const query = useQuery({ queryKey: qk.notificationScript, queryFn: getNotificationScript, enabled: live });
+  // Another console may change these: look again on coming back to the tab.
+  const query = useQuery({
+    queryKey: qk.notificationScript,
+    queryFn: getNotificationScript,
+    enabled: live,
+    refetchOnWindowFocus: true,
+  });
   const state = query.data;
 
   const fileInput = useRef<HTMLInputElement>(null);
-  const [draft, setDraft] = useState<Draft | null>(null);
+  const [draft, setDraft, dirty] = useSettingsDraft(state, draftOf);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [outcome, setOutcome] = useState<NotificationScriptRun | null>(null);
   const [viewing, setViewing] = useState(false);
   const [confirmRemove, setConfirmRemove] = useState(false);
-
-  useEffect(() => {
-    if (state && draft === null) setDraft(draftOf(state));
-  }, [state, draft]);
-
-  const pristine = useMemo(() => (state ? JSON.stringify(draftOf(state)) : ""), [state]);
-  const dirty = draft !== null && JSON.stringify(draft) !== pristine;
 
   /** Takes the appliance's answer as the new starting point: saving, and
    *  removing the script, which also switches it off. */
@@ -215,16 +212,14 @@ export function NotificationScriptCard() {
       description={t("script.description")}
       icon={Terminal}
       headerAside={
-        <label className="flex items-center gap-2 text-sm font-medium">
-          <Badge variant={state.enabled ? "success" : "outline"}>{state.enabled ? t("email.on") : t("email.off")}</Badge>
-          <Switch
-            checked={draft.enabled}
-            onCheckedChange={(enabled) => update({ enabled })}
-            disabled={readOnly || !file}
-            aria-label={t("script.enable")}
-            data-testid="script-enabled"
-          />
-        </label>
+        <EnabledSwitch
+          checked={draft.enabled}
+          saved={state.enabled}
+          onChange={(enabled) => update({ enabled })}
+          disabled={readOnly || !file}
+          label={t("script.enable")}
+          testId="script-enabled"
+        />
       }
       footer={
         allowed && state.available ? (

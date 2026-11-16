@@ -32,7 +32,8 @@ export function ActivitySummary() {
 
   const running = sessions.filter((s) => s.status === "running");
   const last24 = within24h(sessions);
-  const finished24 = last24.filter((s) => s.status !== "running" && s.status !== "queued");
+  // A stopped run did not finish, and says nothing about the jobs either way.
+  const finished24 = last24.filter((s) => s.status !== "running" && s.status !== "queued" && s.status !== "stopped");
   const ok24 = finished24.filter((s) => s.status === "success").length;
   // null, not 100: with nothing finished in the window there is no rate to
   // report, and a healthy tile beside a "0 of 0" hint invents an all-clear.

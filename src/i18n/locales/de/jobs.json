@@ -139,6 +139,7 @@
     "done": "Fertig",
     "warning": "Warnung",
     "failed": "Fehlgeschlagen",
+    "stopped": "Gestoppt",
     "running": "Wird ausgeführt",
     "queued": "In Warteschlange"
   },
@@ -371,7 +372,9 @@
       "backupCompleted": "Backup abgeschlossen",
       "completedWithWarnings": "Mit Warnungen abgeschlossen",
       "replicationFailed": "Replikation fehlgeschlagen",
+      "replicationStopped": "Replikation gestoppt",
       "backupFailed": "Backup fehlgeschlagen",
+      "backupStopped": "Backup gestoppt",
       "readingStaging": "Quelle wird gelesen & bereitgestellt",
       "replicatingToTarget": "Wird zum Ziel repliziert",
       "streamingToRepository": "Wird zum Repository gestreamt",

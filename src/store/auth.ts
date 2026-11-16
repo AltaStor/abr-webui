@@ -42,6 +42,7 @@ import {
 import { refreshWorld, useWorldStore } from "@/store/world";
 import { roleRef, usePermissionsStore } from "@/store/permissions";
 import { DemoCredentialsError, simLogin } from "@/mock/auth";
+import { idleTimeoutFromExpiry } from "@/lib/idle-timeout";
 
 const STORAGE_KEY = "basalt.session";
 const SIGN_OUT_KEY = "basalt.signOut";
@@ -209,7 +210,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           : simLogin(name, password, durationSeconds);
       setAuthToken(result.token);
       usePermissionsStore.getState().setGrants(result.permissions, roleRef(result.user.role));
-      const idleTimeoutSec = durationSeconds ?? null;
+      // Asked for, or the appliance's default, which only the expiry tells.
+      const idleTimeoutSec = durationSeconds ?? idleTimeoutFromExpiry(result, serverNow());
       writeStoredSession({
         token: result.token,
         expiresAt: result.expiresAt,

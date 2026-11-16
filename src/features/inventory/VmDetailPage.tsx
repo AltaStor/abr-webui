@@ -12,14 +12,17 @@ import {
   Cloud,
   Cluster,
   Cpu,
+  Database,
   HardDrive,
   History,
   MapPin,
   MemoryStick,
   Layers,
   Menu,
+  Monitor,
   Network,
   Play,
+  Power,
   RotateCcw,
   Server,
   ServerOff,
@@ -294,42 +297,30 @@ export default function VmDetailPage() {
             </CardHeader>
             <CardContent className="pt-0">
               <div className="divide-y divide-border/60">
-                <SpecRow label={t("vmDetail.powerState")}>
+                <SpecRow label={t("vmDetail.powerState")} icon={Power}>
                   <span className="inline-flex items-center gap-1.5">
                     <StatusDot tone={powerMeta.tone === "muted" ? "muted-foreground" : powerMeta.tone} />
                     {powerMeta.label}
                   </span>
                 </SpecRow>
-                <SpecRow label={t("vmDetail.vcpus")}>
-                  <span className="inline-flex items-center gap-1.5">
-                    <Cpu className="h-3.5 w-3.5 text-muted-foreground" />
-                    <span className="nums">{vm.vcpus}</span>
-                  </span>
+                <SpecRow label={t("vmDetail.vcpus")} icon={Cpu}>
+                  <span className="nums">{vm.vcpus}</span>
                 </SpecRow>
-                <SpecRow label={t("vmDetail.memory")}>
-                  <span className="inline-flex items-center gap-1.5">
-                    <MemoryStick className="h-3.5 w-3.5 text-muted-foreground" />
-                    <span className="nums">
-                      {vm.memoryGB > 0 ? formatStorage(vm.memoryGB) : t("common:generic.na")}
-                    </span>
-                  </span>
+                <SpecRow label={t("vmDetail.memory")} icon={MemoryStick}>
+                  <span className="nums">{vm.memoryGB > 0 ? formatStorage(vm.memoryGB) : t("common:generic.na")}</span>
                 </SpecRow>
-                <SpecRow label={t("vmDetail.provisioned")}>
+                <SpecRow label={t("vmDetail.provisioned")} icon={Database}>
                   <span className="nums">{formatStorage(vm.provisionedGB, 0)}</span>
                 </SpecRow>
-                <SpecRow label={t("vmDetail.used")}>
-                  <span className="inline-flex items-center gap-1.5">
-                    <HardDrive className="h-3.5 w-3.5 text-muted-foreground" />
-                    <span className="nums">{formatStorage(vm.usedGB, 0)}</span>
-                  </span>
+                <SpecRow label={t("vmDetail.used")} icon={HardDrive}>
+                  <span className="nums">{formatStorage(vm.usedGB, 0)}</span>
                 </SpecRow>
-                <SpecRow label={t("vmDetail.ipAddress")}>
-                  <span className="inline-flex items-center gap-1.5">
-                    <Network className="h-3.5 w-3.5 text-muted-foreground" />
-                    <span className="nums">{vm.ipAddress}</span>
-                  </span>
+                <SpecRow label={t("vmDetail.ipAddress")} icon={Network}>
+                  <span className="nums">{vm.ipAddress || t("common:generic.na")}</span>
                 </SpecRow>
-                <SpecRow label={t("vmDetail.guestOs")}>{osFamilyLabel(vm.osFamily)}</SpecRow>
+                <SpecRow label={t("vmDetail.guestOs")} icon={Monitor}>
+                  {osFamilyLabel(vm.osFamily)}
+                </SpecRow>
               </div>
             </CardContent>
           </Card>

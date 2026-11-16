@@ -139,6 +139,7 @@
     "done": "Completado",
     "warning": "Advertencia",
     "failed": "Fallido",
+    "stopped": "Detenido",
     "running": "En ejecución",
     "queued": "En cola"
   },
@@ -371,7 +372,9 @@
       "backupCompleted": "Copia de seguridad completada",
       "completedWithWarnings": "Completada con advertencias",
       "replicationFailed": "Replicación fallida",
+      "replicationStopped": "Replicación detenida",
       "backupFailed": "Copia de seguridad fallida",
+      "backupStopped": "Copia de seguridad detenida",
       "readingStaging": "Leyendo y preparando la fuente",
       "replicatingToTarget": "Replicando al destino",
       "streamingToRepository": "Transmitiendo al repositorio",

@@ -35,6 +35,7 @@ const VM_RESULT_META: Record<VmRunResult["status"], { tone: string; label: strin
   success: { tone: "success", get label() { return i18n.t("jobs:vmStatus.done"); } },
   warning: { tone: "warning", get label() { return i18n.t("jobs:vmStatus.warning"); } },
   failed: { tone: "danger", get label() { return i18n.t("jobs:vmStatus.failed"); } },
+  stopped: { tone: "warning", get label() { return i18n.t("jobs:vmStatus.stopped"); } },
   running: { tone: "info", get label() { return i18n.t("jobs:vmStatus.running"); } },
   pending: { tone: "muted", get label() { return i18n.t("jobs:vmStatus.queued"); } },
 };

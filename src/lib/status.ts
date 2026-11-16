@@ -7,6 +7,7 @@ import {
   Clock,
   DatabaseLock,
   Loader2,
+  MinusCircle,
   Power,
   ShieldAlert,
   ShieldCheck,
@@ -92,6 +93,9 @@ export const SESSION_META: Record<SessionStatus, StatusMeta> = {
   success: { get label() { return i18n.t("domain:session.success"); }, tone: "success", icon: CheckCircle2 },
   warning: { get label() { return i18n.t("domain:session.warning"); }, tone: "warning", icon: AlertTriangle },
   failed: { get label() { return i18n.t("domain:session.failed"); }, tone: "danger", icon: XCircle },
+  // Stopped before it finished — by an operator, or by a backup copy's window
+  // closing. Nothing went wrong, so it is amber rather than red (ABR-543).
+  stopped: { get label() { return i18n.t("domain:session.stopped"); }, tone: "warning", icon: MinusCircle },
   running: { get label() { return i18n.t("domain:session.running"); }, tone: "info", icon: Loader2, spin: true },
   queued: { get label() { return i18n.t("domain:session.queued"); }, tone: "muted", icon: Clock },
 };

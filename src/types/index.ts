@@ -560,8 +560,9 @@ export interface BackupJob {
   clockWarnings?: string[];
   nextRunAt: string | null;
   createdAt: string;
-  /** 0–100, success ratio over recent runs. */
-  successRate: number;
+  /** 0–100, success ratio over recent runs; null when none of them finished
+   *  (all stopped, or still going). */
+  successRate: number | null;
   /** Recent run statuses, newest last — drives the sparkline. */
   recentRuns: SessionStatus[];
   accent: AccentKey;
@@ -578,12 +579,12 @@ export interface BackupJob {
 
 export type AccentKey = "emerald" | "cyan" | "blue" | "violet" | "amber";
 
-export type SessionStatus = "success" | "warning" | "failed" | "running" | "queued";
+export type SessionStatus = "success" | "warning" | "failed" | "stopped" | "running" | "queued";
 
 export interface VmRunResult {
   vmId: string;
   vmName: string;
-  status: "success" | "warning" | "failed" | "running" | "pending";
+  status: "success" | "warning" | "failed" | "stopped" | "running" | "pending";
   processedGB: number;
   transferredGB: number;
   durationSec: number;
@@ -1364,10 +1365,6 @@ export interface NotificationSettings {
 
 export interface SecuritySettings {
   mfaRequired: boolean;
-  /** How long a web console sign-in stays active, in seconds. Sent as
-   *  `duration_seconds` to `POST /auth/login` (bounded by the appliance's
-   *  `web_session_ttl_min/max_seconds()`, 300–7200). */
-  sessionDurationSec: number;
   passwordMinLength: number;
   auditRetentionDays: number;
   autoLockThreatResponse: boolean;

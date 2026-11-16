@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 // Copyright © 2026 Norvitex OÜ
 
-import type { ReactNode } from "react";
+import { useEffect, useRef, useState, type Dispatch, type ReactNode, type SetStateAction } from "react";
 import { useTranslation } from "react-i18next";
 import { History } from "@/lib/icons";
 import { Badge } from "@/components/ui/badge";
@@ -9,8 +9,68 @@ import { Switch } from "@/components/ui/switch";
 import { DateTime } from "@/components/DateTime";
 import type { NotificationEventSetting } from "@/services/api.http";
 
-/* What the e-mail and script cards have in common: choosing events, and the
- * list of what was delivered. */
+/* What the e-mail and script cards have in common: the form's draft, the
+ * on/off switch, choosing events, and the list of what was delivered. */
+
+/**
+ * The form's draft of the appliance's settings: seeded from the first answer,
+ * and kept in step with the appliance while nothing here has been edited.
+ *
+ * Seeding only once left a console showing what the appliance said when the
+ * card first rendered — often a cached answer from before another console
+ * changed it — while the badge beside the switch showed the newer one (ABR-566).
+ */
+export function useSettingsDraft<S, D>(
+  state: S | undefined,
+  draftOf: (state: S) => D,
+): [D | null, Dispatch<SetStateAction<D | null>>, boolean] {
+  const [draft, setDraft] = useState<D | null>(null);
+  const seeded = useRef<string | null>(null);
+  useEffect(() => {
+    if (!state) return;
+    const previous = seeded.current;
+    seeded.current = JSON.stringify(draftOf(state));
+    setDraft((d) => (d === null || JSON.stringify(d) === previous ? draftOf(state) : d));
+    // draftOf is a plain mapping; only a new answer reseeds.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state]);
+  const dirty = draft !== null && state !== undefined && JSON.stringify(draft) !== JSON.stringify(draftOf(state));
+  return [draft, setDraft, dirty];
+}
+
+/**
+ * A card's on/off switch. The badge says what the switch says, and "Not saved"
+ * while that differs from the appliance's setting: it once showed the saved
+ * setting only, so turning the switch on left it reading "Off" (ABR-566).
+ */
+export function EnabledSwitch({
+  checked,
+  saved,
+  onChange,
+  disabled,
+  label,
+  testId,
+}: {
+  checked: boolean;
+  saved: boolean;
+  onChange: (checked: boolean) => void;
+  disabled?: boolean;
+  label: string;
+  testId?: string;
+}) {
+  const { t } = useTranslation("settings");
+  return (
+    <label className="flex items-center gap-2 text-sm font-medium">
+      {checked !== saved && (
+        <span className="text-xs font-normal text-warning-text" data-testid={testId && `${testId}-unsaved`}>
+          {t("email.unsaved")}
+        </span>
+      )}
+      <Badge variant={checked ? "success" : "outline"}>{checked ? t("email.on") : t("email.off")}</Badge>
+      <Switch checked={checked} onCheckedChange={onChange} disabled={disabled} aria-label={label} data-testid={testId} />
+    </label>
+  );
+}
 
 /** One switch per event. `extra` adds a control under an event's description. */
 export function EventSwitches({
