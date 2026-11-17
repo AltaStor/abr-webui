@@ -396,6 +396,8 @@
     "liveOnly": "Conéctese a un appliance real para ver y cambiar cómo accede a los discos de VMware.",
     "loading": "Leyendo la configuración de acceso a VMware…",
     "loadFailed": "No se pudo leer la configuración de acceso a VMware.",
+    "unconfirmed": "Estos son los valores con los que arrancó el appliance; nadie los ha elegido todavía. Guárdelos tal como están o cámbielos primero.",
+    "unconfirmedReadOnly": "Estos son los valores con los que arrancó el appliance; un administrador todavía no los ha elegido.",
     "api": {
       "label": "API predeterminada",
       "hint": "VDDK carga el Virtual Disk Development Kit de VMware o una biblioteca compatible como openVDDK. vSphere SOAP no necesita ninguna biblioteca en el appliance.",

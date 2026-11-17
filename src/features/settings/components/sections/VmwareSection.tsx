@@ -49,10 +49,12 @@ const draftOf = (settings: VsphereSettings): Draft => ({
 });
 
 /** The change a draft makes; a library equal to the VDDK directory's own is
- *  the default, which the appliance stores as no library at all. */
+ *  the default, which the appliance stores as no library at all. While nobody
+ *  has confirmed the values, the API is always sent: saving them as they are
+ *  confirms them. */
 function patchOf(draft: Draft, settings: VsphereSettings): VsphereSettingsPatch {
   const patch: VsphereSettingsPatch = {};
-  if (draft.api !== settings.api) patch.api = draft.api;
+  if (draft.api !== settings.api || !settings.confirmed) patch.api = draft.api;
   const library = draft.library.trim();
   if (library !== (settings.library ?? "")) patch.library = library === "" ? null : library;
   if (draft.updateAll) patch.applyToExistingEnvironments = true;
@@ -164,6 +166,12 @@ function VmwareAccessCard() {
     <>
       {section(
         <>
+          {!settings.confirmed && (
+            <p className="flex items-start gap-2 border-b border-border/60 pb-3.5 pt-1 text-[13px] leading-relaxed text-muted-foreground">
+              <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-warning-text" />
+              {t(canEdit ? "vmware.unconfirmed" : "vmware.unconfirmedReadOnly")}
+            </p>
+          )}
           <SettingRow label={t("vmware.api.label")} description={t("vmware.api.hint")} htmlFor="vmware-api">
             <div className="space-y-1.5">
               <Select value={draft.api} onValueChange={(v) => update({ api: v as VsphereApi })} disabled={readOnly}>

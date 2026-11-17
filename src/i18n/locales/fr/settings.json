@@ -396,6 +396,8 @@
     "liveOnly": "Connectez-vous à une appliance réelle pour voir et modifier son accès aux disques VMware.",
     "loading": "Lecture des paramètres d’accès VMware…",
     "loadFailed": "Les paramètres d’accès VMware n’ont pas pu être lus.",
+    "unconfirmed": "Ce sont les valeurs avec lesquelles l’appliance a démarré ; personne ne les a encore choisies. Enregistrez-les telles quelles, ou modifiez-les d’abord.",
+    "unconfirmedReadOnly": "Ce sont les valeurs avec lesquelles l’appliance a démarré ; un administrateur ne les a pas encore choisies.",
     "api": {
       "label": "API par défaut",
       "hint": "VDDK charge le Virtual Disk Development Kit de VMware, ou une bibliothèque compatible comme openVDDK. vSphere SOAP ne demande aucune bibliothèque sur l’appliance.",

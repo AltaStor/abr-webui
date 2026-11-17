@@ -31,6 +31,7 @@ const SetupPage = lazyRoute(() => import("@/features/setup/SetupPage"));
 const LogsPage = lazyRoute(() => import("@/features/logs/LogsPage"));
 const LoginPage = lazyRoute(() => import("@/features/auth/LoginPage"));
 const ChangePasswordPage = lazyRoute(() => import("@/features/auth/ChangePasswordPage"));
+const VmwareAccessPage = lazyRoute(() => import("@/features/auth/VmwareAccessPage"));
 
 export const router = createBrowserRouter([
   {
@@ -61,6 +62,17 @@ export const router = createBrowserRouter([
     element: (
       <Suspense fallback={<div className="min-h-screen bg-background" aria-hidden />}>
         <ChangePasswordPage />
+      </Suspense>
+    ),
+    errorElement: <RouteError />,
+  },
+  {
+    /* The server-wide VMware API and VDDK library, asked after sign-in while
+     * nobody has chosen them (AppShell's first-boot gate sends the user). */
+    path: "/vmware-access",
+    element: (
+      <Suspense fallback={<div className="min-h-screen bg-background" aria-hidden />}>
+        <VmwareAccessPage />
       </Suspense>
     ),
     errorElement: <RouteError />,
