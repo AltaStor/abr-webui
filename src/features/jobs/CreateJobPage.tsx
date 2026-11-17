@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 // Copyright © 2026 Norvitex OÜ
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { Navigate, useNavigate, useParams, useSearchParams } from "react-router-dom";
@@ -50,6 +50,7 @@ import { encryptionKeyProblem } from "@/lib/encryption-key";
 import { apiErrorMessage, fullScheduleKey } from "@/services/api.http";
 import { NotPermitted } from "@/components/FeatureUnavailable";
 import { useCan } from "@/store/permissions";
+import { useServerClockStore } from "@/store/serverClock";
 import { useWorldStore, type CreateJobInput } from "@/store/world";
 import { REPO_TYPE_META } from "@/features/repositories/components/repoMeta";
 import { reachableFromHyperV } from "@/features/repositories/components/share";
@@ -386,27 +387,28 @@ function JobWizard({
    * refuses any change to them, so the form shows them instead of asking. */
   const placementLocked = isReplication && replicaCreated(existingJob);
 
+  // A copy job without a schedule of its own has none to read a time or a
+  // zone from: the appliance reports null, which reads as daily at 00:00.
+  const ownSchedule =
+    existingJob && (!storedCopy || storedCopy.scheduled) && (!storedRepl || storedRepl.scheduled)
+      ? existingJob.schedule
+      : undefined;
+  // A job keeps the zone it has (the appliance reports its own for one saved
+  // without); a copy job without a schedule keeps the zone its copy window or
+  // full backups are on. A new job has none: it is on server time.
+  const storedZone =
+    ownSchedule?.timezone ||
+    storedCopy?.window[0]?.timezone ||
+    existingJob?.syntheticFullSchedule?.timezone ||
+    existingJob?.activeFullSchedule?.timezone ||
+    undefined;
+
   // ----- initial state (prefill in edit mode, smart defaults for create) -----
   const [form, setForm] = useState<FormState>(() => {
-    // A copy job without a schedule of its own has none to read a time or a
-    // zone from: the appliance reports null, which reads as daily at 00:00.
-    const ownSchedule =
-      existingJob && (!storedCopy || storedCopy.scheduled) && (!storedRepl || storedRepl.scheduled)
-        ? existingJob.schedule
-        : undefined;
     // Full backups default to the job's own run time. A full that falls due
     // together with the regular backup replaces that run instead of adding one.
     const atTime = ownSchedule?.atTime ?? "22:00";
-    // A job keeps the zone it has (the appliance reports its own for one saved
-    // without); a new one starts on the viewer's, which is what "22:00" means
-    // to the person typing it. A copy job without a schedule keeps the zone
-    // its copy window or full backups are on.
-    const timezone =
-      ownSchedule?.timezone ||
-      storedCopy?.window[0]?.timezone ||
-      existingJob?.syntheticFullSchedule?.timezone ||
-      existingJob?.activeFullSchedule?.timezone ||
-      displayTimeZone();
+    const timezone = storedZone || displayTimeZone();
     const copyMode: CopyMode = storedCopy?.mode ?? "periodic";
     const copyFields = {
       copyMode,
@@ -551,9 +553,13 @@ function JobWizard({
    * another zone (older, or set from the CLI) keeps it unless moved to server
    * time; its full schedules and copy window rules on that zone move with it,
    * and one set to a zone of its own keeps it. */
-  const moveToServerTime = () => setTimezone(displayTimeZone());
+  const moveToServerTime = () => {
+    setOnServerTime(true);
+    setTimezone(displayTimeZone());
+  };
   const setTimezone = (zone: string) =>
     setForm((f) => {
+      if (f.timezone === zone) return f;
       const follow = <T extends { timezone?: string }>(item: T): T =>
         !item.timezone || item.timezone === f.timezone ? { ...item, timezone: zone } : item;
       return {
@@ -564,6 +570,19 @@ function JobWizard({
         copyWindow: f.copyWindow.map(follow),
       };
     });
+  /* "On server time" means the appliance's zone, whichever it turns out to be.
+   * On a first visit the form opens before the appliance has named it, on the
+   * browser's zone as a stand-in, and the label and summary are read again
+   * only when the form next draws — typing a time used to turn the new job
+   * into one on the browser's zone (ABR-575). So a job on server time moves
+   * with the zone when it arrives, or when the appliance's own changes. */
+  const serverZone = useServerClockStore((s) => s.zone);
+  const [onServerTime, setOnServerTime] = useState(!storedZone);
+  useEffect(() => {
+    if (onServerTime) setTimezone(displayTimeZone());
+    // setTimezone is a fresh closure each render but only calls setForm.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [onServerTime, serverZone]);
   /* The retries follow the mode's defaults until the operator sets their own,
    * so switching a new job to immediate gives it the appliance's 3 × 10 min. */
   const setCopyMode = (mode: CopyMode) =>

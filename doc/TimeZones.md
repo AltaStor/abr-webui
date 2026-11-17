@@ -43,7 +43,10 @@ History and what was rejected:
 
 Before the appliance has answered (first visit, or a role without
 `system.view`) and in the demo world, the browser's zone stands in for the
-server zone. Every built-in role holds `system.view`.
+server zone. Every built-in role holds `system.view`. A screen that computes
+with the zone (the job form, the Date format note) draws again when the
+appliance's arrives, through `useServerClockStore` or `useDateTimeFormat`; a
+plain call to `lib/time.ts` reads it but is not told of the change.
 
 The date and time formats are stored in the browser with the rest of
 Appearance (`basalt.settings` → `appearance.dateFormat`: `D MMM YYYY`
@@ -121,7 +124,10 @@ and `src/features/jobs/lib.ts` (`scheduleLabel`, `fullScheduleLabel`,
   - The time field reads "At time (server time)", or "At time (UTC)" on a job
     saved on another zone. There is no zone field.
   - A new job, its full schedules and its copy window rules are on the server
-    zone (sent explicitly as `timezone`).
+    zone (sent explicitly as `timezone`). A form opened before the appliance
+    has named its zone starts on the browser's stand-in and moves to the
+    appliance's zone when it arrives, as does a job moved with **Use server
+    time** (ABR-575).
   - An edited job keeps its zone. When that is not server time, a note under
     the time says so ("This schedule runs on UTC, not server time, …") with
     **Use server time**, which moves the job and every full schedule and copy

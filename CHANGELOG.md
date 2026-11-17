@@ -187,6 +187,17 @@ All notable changes to the AltaStor WebUI are documented in this file.
   platform.
 
 ### Fixed
+- A new job stays on server time when its time is typed (ABR-575). On a
+  computer on another zone, a console that had not yet heard the appliance's
+  zone opened the form on the browser's zone; typing a time then showed
+  "At time (Asia/Kolkata)" with the "Use server time" note, named the zone in
+  the summary, computed the first run on it and saved the job on it. A job on
+  server time now moves to the appliance's zone when it arrives; a job saved
+  on another zone keeps it until "Use server time".
+- The time in Settings → Appearance → Date format's note is the appliance's
+  clock on server time, as the top bar reads it, and draws again when the
+  appliance's zone arrives (ABR-576); it showed the computer's time. The note
+  and the top bar's clock both turn over with the appliance's minute.
 - The On/Off badge beside Settings → Notifications → E-mail notifications
   and Custom script follows the switch, with "Not saved" until it is saved;
   it showed the saved setting only, so turning the switch on still read Off.

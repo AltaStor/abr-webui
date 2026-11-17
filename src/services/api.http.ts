@@ -1845,9 +1845,9 @@ export interface CreateJobPayload {
 
 /** Domain Schedule → orchestrator schedule dict. */
 function scheduleToWire(s: Schedule): Dict {
-  // The form always names one; the browser's zone is what a time typed
-  // without one means to the person who typed it. Sent by its current name:
-  // an appliance on Debian 13 refuses "Europe/Kiev".
+  // The form always names one; a time without one is on server time, like
+  // every time in the console. Sent by its current name: an appliance on
+  // Debian 13 refuses "Europe/Kiev".
   const timezone = currentZoneName(s.timezone || displayTimeZone());
   switch (s.frequency) {
     case "weekly":

@@ -16,6 +16,8 @@ import { Switch } from "@/components/ui/switch";
 import { Segmented, SaveBar } from "../controls";
 import { ACCENT_SWATCHES, useDraft } from "../../lib";
 import { formatDateTime } from "@/lib/time";
+import { useDateTimeFormat } from "@/lib/useDateTimeFormat";
+import { useServerNow } from "@/store/serverClock";
 
 const DATE_FORMATS: { value: DateFormat; key: string }[] = [
   { value: "D MMM YYYY", key: "dMonthY" },
@@ -44,8 +46,12 @@ export function AppearanceSection() {
     dateFormat,
     timeFormat,
   });
-  // How a time reads with the formats as picked, saved or not.
-  const example = formatDateTime(Date.now(), {
+  // How a time reads with the formats as picked, saved or not: the
+  // appliance's clock now, on server time, as the top bar has it. The hook
+  // draws the note again once the appliance has named its zone — until then
+  // the browser's stands in (ABR-576).
+  useDateTimeFormat();
+  const example = formatDateTime(useServerNow(), {
     dateFormat: draft.dateFormat,
     timeFormat: draft.timeFormat,
   });

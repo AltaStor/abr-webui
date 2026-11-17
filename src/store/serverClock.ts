@@ -11,6 +11,7 @@
  * is already on server time; until the appliance has answered once, the
  * browser's zone stands in.
  */
+import { useEffect, useState } from "react";
 import { create } from "zustand";
 import { AUTO_TIME_ZONE, isValidTimeZone, preferredZoneName, setDisplayPreferences } from "@/lib/time";
 
@@ -57,3 +58,26 @@ export const useServerClockStore = create<ServerClockState>((set) => ({
     set({ zone: known, skewMs: Number.isFinite(at) ? at - Date.now() : 0 });
   },
 }));
+
+/**
+ * The appliance's clock now (ms since the epoch), for a component that prints
+ * it to the minute: it draws again when the appliance's minute turns, and when
+ * a reading moves the clock. Every component that uses it turns over at the
+ * same moment, so the top bar and any other "now" never read a minute apart.
+ */
+export function useServerNow(): number {
+  const skewMs = useServerClockStore((s) => s.skewMs);
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    let timer = 0;
+    const tick = () => {
+      const at = Date.now();
+      setNow(at);
+      // Just past the next whole minute on the appliance's clock.
+      timer = window.setTimeout(tick, 60_000 - ((at + skewMs) % 60_000) + 50);
+    };
+    tick();
+    return () => window.clearTimeout(timer);
+  }, [skewMs]);
+  return now + skewMs;
+}

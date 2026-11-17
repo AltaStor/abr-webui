@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: Apache-2.0
 // Copyright © 2026 Norvitex OÜ
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { Clock } from "@/lib/icons";
 import { Hint } from "@/components/ui/tooltip";
 import { getSystemClock, inBackground } from "@/services/api.http";
 import { useCan } from "@/store/permissions";
-import { useServerClockStore } from "@/store/serverClock";
+import { useServerClockStore, useServerNow } from "@/store/serverClock";
 import { useWorldStore } from "@/store/world";
 import { useDateTimeFormat } from "@/lib/useDateTimeFormat";
 import {
@@ -71,22 +71,16 @@ function useServerClockReading() {
 export function ServerTime() {
   const { t } = useTranslation("layout");
   useServerClockReading();
-  const skewMs = useServerClockStore((s) => s.skewMs);
   // Re-renders when the zone becomes known or the time format changes.
   useDateTimeFormat();
-  const [now, setNow] = useState(() => Date.now());
+  // The appliance's clock, turning over with its minute.
+  const at = useServerNow();
 
   // The tooltip's "on your computer" line, in the console's language.
   useEffect(() => {
     setDisplayPreferences({ localSuffix: t("serverTime.onYourComputer") });
   }, [t]);
 
-  useEffect(() => {
-    const id = window.setInterval(() => setNow(Date.now()), 10_000);
-    return () => window.clearInterval(id);
-  }, []);
-
-  const at = now + skewMs;
   const zone = displayTimeZone();
   const offset = utcOffsetLabel(offsetMinutes(zone, at));
   const isUtc = scheduleZoneName(zone) === UTC;
