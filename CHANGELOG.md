@@ -162,6 +162,11 @@ All notable changes to the AltaStor WebUI are documented in this file.
   rate reads "—".
 - VM details → Specs shows each icon beside its parameter, not its value,
   and every parameter has one; an unknown IP address reads "—" (ABR-559).
+  Power state, Provisioned, Used, IP address and Guest OS use the design's
+  own glyphs (Figma Altastore-UI, VM details → Specs). The Hyper-V
+  configuration card has an icon by each parameter too (Generation,
+  Configuration version, Runs on, Checkpoints), and its Disks and Network
+  adapters headings use the design's glyphs.
 - Every date reads in the date format, DD/MM/YYYY by default, with its year:
   "23/10/2026 01:00 GMT+3" instead of "Oct 23, 01:00 GMT+3".
 - Settings → Security → Two-factor sign-in is a switch. Switching it on asks

@@ -12,17 +12,17 @@ import {
   Cloud,
   Cluster,
   Cpu,
-  Database,
-  HardDrive,
+  DiskProvisioned,
+  DiskUsed,
+  GuestOs,
   History,
+  IpAddress,
   MapPin,
   MemoryStick,
   Layers,
   Menu,
-  Monitor,
-  Network,
   Play,
-  Power,
+  PowerState,
   RotateCcw,
   Server,
   ServerOff,
@@ -297,7 +297,7 @@ export default function VmDetailPage() {
             </CardHeader>
             <CardContent className="pt-0">
               <div className="divide-y divide-border/60">
-                <SpecRow label={t("vmDetail.powerState")} icon={Power}>
+                <SpecRow label={t("vmDetail.powerState")} icon={PowerState}>
                   <span className="inline-flex items-center gap-1.5">
                     <StatusDot tone={powerMeta.tone === "muted" ? "muted-foreground" : powerMeta.tone} />
                     {powerMeta.label}
@@ -309,16 +309,16 @@ export default function VmDetailPage() {
                 <SpecRow label={t("vmDetail.memory")} icon={MemoryStick}>
                   <span className="nums">{vm.memoryGB > 0 ? formatStorage(vm.memoryGB) : t("common:generic.na")}</span>
                 </SpecRow>
-                <SpecRow label={t("vmDetail.provisioned")} icon={Database}>
+                <SpecRow label={t("vmDetail.provisioned")} icon={DiskProvisioned}>
                   <span className="nums">{formatStorage(vm.provisionedGB, 0)}</span>
                 </SpecRow>
-                <SpecRow label={t("vmDetail.used")} icon={HardDrive}>
+                <SpecRow label={t("vmDetail.used")} icon={DiskUsed}>
                   <span className="nums">{formatStorage(vm.usedGB, 0)}</span>
                 </SpecRow>
-                <SpecRow label={t("vmDetail.ipAddress")} icon={Network}>
+                <SpecRow label={t("vmDetail.ipAddress")} icon={IpAddress}>
                   <span className="nums">{vm.ipAddress || t("common:generic.na")}</span>
                 </SpecRow>
-                <SpecRow label={t("vmDetail.guestOs")} icon={Monitor}>
+                <SpecRow label={t("vmDetail.guestOs")} icon={GuestOs}>
                   {osFamilyLabel(vm.osFamily)}
                 </SpecRow>
               </div>

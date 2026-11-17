@@ -353,6 +353,144 @@ export const ClipboardLines = makeSvg(
   ]),
 );
 
+/* ----- VM specs glyphs (ABR-559) -----
+   The labels of the Specs card on a VM's page. Drawn on a 14 px frame with a
+   1.05 stroke, which is this set's 1.8 on 24; the vCPUs, Memory and card-title
+   glyphs there are Cpu, MemoryStick and Server as they are. Caps and joins
+   are the file's, path by path.
+   Figma: Altastore-UI, VM details → Specs (node 457:660) — geometry exported
+   from the file, not redrawn. */
+
+/** A power symbol whose ring nearly closes over the bar.
+ *  Figma: `power state`. */
+export const PowerState = makeSvg(
+  "PowerState",
+  els([
+    ["path", { d: "M12 2V12", strokeLinecap: "butt", strokeLinejoin: "round" }],
+    ["path", { d: "M17.32 5.68C18.86 6.8 20.01 8.38 20.6 10.19C21.18 12 21.18 13.95 20.59 15.76C20 17.57 18.85 19.14 17.31 20.26C15.76 21.37 13.91 21.97 12 21.96C10.1 21.96 8.25 21.35 6.71 20.22C5.18 19.09 4.04 17.51 3.46 15.69C2.88 13.88 2.89 11.93 3.49 10.12C4.09 8.32 5.25 6.75 6.8 5.64", strokeLinecap: "butt" }],
+  ]),
+);
+
+/** A drive: a sloped top over a separate box with two lights — the space
+ *  the VM's disks are given. Figma: `Provisioned`. */
+export const DiskProvisioned = makeSvg(
+  "DiskProvisioned",
+  els([
+    ["path", { d: "M20.88 13.52L17.8 4.31H5.25L2.16 13.53" }],
+    ["path", { d: "M21.11 14.97H1.92V21.38H21.11V14.97Z" }],
+    ["path", { d: "M4.38 18.23H4.39" }],
+    ["path", { d: "M8.38 18.23H8.39" }],
+  ]),
+);
+
+/** A pie with a quarter lifted out — the part of that space in use.
+ *  Figma: `used`. */
+export const DiskUsed = makeSvg(
+  "DiskUsed",
+  els([
+    ["path", { d: "M22 12C22 6.48 17.52 2 12 2V12H22Z" }],
+    ["path", { d: "M8.94 2.57C7.39 3.13 6 4.06 4.91 5.29C3.82 6.53 3.06 8.01 2.7 9.62C2.33 11.22 2.38 12.89 2.84 14.47C3.29 16.05 4.14 17.5 5.3 18.66C6.46 19.83 7.9 20.68 9.47 21.15C11.05 21.61 12.72 21.67 14.33 21.31C15.94 20.96 17.43 20.21 18.67 19.12C19.9 18.04 20.85 16.66 21.41 15.11", strokeLinecap: "butt" }],
+  ]),
+);
+
+/** A globe on a stem, tied into a line by a node.
+ *  Figma: `IP address`. */
+export const IpAddress = makeSvg(
+  "IpAddress",
+  els([
+    ["path", { d: "M12 17.45V20.05" }],
+    ["path", { d: "M13.56 21.61H20.3" }],
+    ["path", { d: "M3.7 21.61H10.44" }],
+    ["path", { d: "M13.1 20.51C13.71 21.11 13.71 22.1 13.1 22.71C12.5 23.31 11.51 23.31 10.91 22.71C10.3 22.1 10.3 21.11 10.91 20.51C11.51 19.9 12.5 19.9 13.1 20.51Z", strokeLinecap: "round", strokeLinejoin: "round" }],
+    ["path", { d: "M12 17.44C11.86 17.44 11.73 17.44 11.59 17.44C7.4 17.23 4.08 13.78 4.08 9.54C4.08 5.29 7.19 2.06 11.2 1.66C11.42 1.64 12.02 1.63 12.2 1.64C12.4 1.64 12.66 1.66 12.8 1.67C13.02 1.7 13.24 1.73 13.46 1.76C17.15 2.45 19.93 5.66 19.93 9.55C19.93 13.76 16.66 17.18 12.52 17.45C12.4 17.45 12.01 17.45 12.01 17.45L12 17.44Z" }],
+    ["path", { d: "M10.39 2.55C7.84 6.8 7.84 12.27 10.39 16.52C11.13 17.76 12.87 17.76 13.61 16.52C16.16 12.27 16.16 6.8 13.61 2.55C12.87 1.31 11.13 1.31 10.39 2.55Z" }],
+    ["path", { d: "M4.76 9.54H19.42" }],
+  ]),
+);
+
+/** A monitor with a cog in its top-right corner — the guest's operating
+ *  system. Drawn a little heavier than its neighbours (2 on 24), as in the
+ *  file. Figma: `Guest OS`. */
+export const GuestOs = makeSvg(
+  "GuestOs",
+  els([
+    ["path", { d: "M12 17V21", strokeWidth: 2, strokeLinecap: "round", strokeLinejoin: "round" }],
+    ...[
+      "M14.31 7.53L15.23 7.15",
+      "M15.23 4.85L14.31 4.47",
+      "M16.85 3.23L16.47 2.3",
+      "M16.85 8.77L16.47 9.7",
+      "M19.15 3.23L19.53 2.3",
+      "M19.53 9.7L19.15 8.77",
+      "M20.77 4.85L21.7 4.47",
+      "M20.77 7.15L21.7 7.53",
+    ].map((d): [string, Record<string, string | number>] => ["path", { d, strokeWidth: 2, strokeLinejoin: "round" }]),
+    ["path", { d: "M22 13V15V17H20H4H2L2 15V5L2 3L4 3H11", strokeWidth: 2, strokeLinecap: "butt" }],
+    ["path", { d: "M8 21H16", strokeWidth: 2, strokeLinecap: "butt", strokeLinejoin: "round" }],
+    ["path", { d: "M21 6C21 7.66 19.66 9 18 9C16.34 9 15 7.66 15 6C15 4.34 16.34 3 18 3C19.66 3 21 4.34 21 6Z", strokeWidth: 2, strokeLinecap: "round", strokeLinejoin: "round" }],
+  ]),
+);
+
+/* The Hyper-V configuration card below Specs, drawn the same way. Its title,
+   Runs on and Disks glyphs are Settings2, Server and DiskProvisioned as they
+   are. Figma: Altastore-UI, BUGS → "Icons only" (node 464:1729). */
+
+/** A board with two nodes on crossing traces — the VM's generation.
+ *  Figma: `Generation`. */
+export const HvGeneration = makeSvg(
+  "HvGeneration",
+  els([
+    ["path", { d: "M1.22 1.22H22.78C22.78 1.22 22.78 2.29 22.78 3.61V20.39C22.78 21.71 22.78 22.78 22.78 22.78H1.22C1.22 22.78 1.22 21.71 1.22 20.39V3.61C1.22 2.29 1.22 1.22 1.22 1.22Z", strokeLinecap: "round" }],
+    ["path", { d: "M11 8.51H15C15.53 8.51 17 8.51 17 8.51C17 8.51 17 7.04 17 6.51V2.51" }],
+    ["path", { d: "M11 8.51C11 9.61 10.1 10.51 9 10.51C7.9 10.51 7 9.61 7 8.51C7 7.4 7.9 6.51 9 6.51C10.1 6.51 11 7.4 11 8.51Z", strokeLinecap: "round", strokeLinejoin: "round" }],
+    ["path", { d: "M7 21.57V17.57C7 17.04 7 15.57 7 15.57C7 15.57 8.47 15.57 9 15.57H13" }],
+    ["path", { d: "M17 15.57C17 16.68 16.1 17.57 15 17.57C13.9 17.57 13 16.68 13 15.57C13 14.47 13.9 13.57 15 13.57C16.1 13.57 17 14.47 17 15.57Z", strokeLinecap: "round", strokeLinejoin: "round" }],
+  ]),
+);
+
+/** A page with a cog at its foot — the configuration version. Two of the
+ *  cog's teeth are a little heavier, as in the file.
+ *  Figma: `Configuration version`. */
+export const HvConfigVersion = makeSvg(
+  "HvConfigVersion",
+  els([
+    ["path", { d: "M13.78 22.06H19.94V7.9L14 2H6L4 2L4 4V10.59M14 2V7.9H19.94" }],
+    ...([
+      ["M3.31 19.53L4.23 19.15", 1.8],
+      ["M4.23 16.85L3.3 16.47", 1.8],
+      ["M5.85 15.23L5.47 14.3", 1.8],
+      ["M5.85 20.77L5.47 21.7", 2],
+      ["M8.15 15.23L8.53 14.3", 1.8],
+      ["M8.53 21.7L8.15 20.77", 2],
+      ["M9.77 16.85L10.69 16.47", 1.8],
+      ["M9.77 19.15L10.69 19.53", 1.8],
+    ] as [string, number][]).map(([d, width]): [string, Record<string, string | number>] => ["path", { d, strokeWidth: width, strokeLinejoin: "round" }]),
+    ["path", { d: "M10 18C10 19.66 8.66 21 7 21C5.34 21 4 19.66 4 18C4 16.34 5.34 15 7 15C8.66 15 10 16.34 10 18Z", strokeLinecap: "round", strokeLinejoin: "round" }],
+  ]),
+);
+
+/** A camera — the VM's checkpoints. Figma: `checkpoint`. */
+export const HvCheckpoints = makeSvg(
+  "HvCheckpoints",
+  els([
+    ["path", { d: "M15.22 9.9C16.96 11.64 16.96 14.46 15.22 16.2C13.48 17.94 10.66 17.94 8.92 16.2C7.18 14.46 7.18 11.64 8.92 9.9C10.66 8.16 13.48 8.16 15.22 9.9Z" }],
+    ["path", { d: "M22.07 6.35L22.06 20.88H1.94V6.35H6.41L8.37 3H15.58L17.6 6.35H22.07Z" }],
+  ]),
+);
+
+/** Lucide's network with its two bends square, as the file draws it — the
+ *  network adapters. Figma: `Icon` by "Network adapters". */
+export const HvNetworkAdapters = makeSvg(
+  "HvNetworkAdapters",
+  els([
+    ["path", { d: "M16 16H22V22H16V16Z" }],
+    ["path", { d: "M2 16H8V22H2V16Z" }],
+    ["path", { d: "M9 2H15V8H9V2Z" }],
+    ["path", { d: "M5 16V13C5 12.73 5 12 5 12C5 12 5.73 12 6 12H18C18.27 12 19 12 19 12C19 12 19 12.73 19 13V16" }],
+    ["path", { d: "M12 12V8" }],
+  ]),
+);
+
 /* ----- Dashboard glyph set (design-provided 20×20 paths) -----
    These four came with the production dashboard and have no Lucide
    equivalent at the same optical weight, so they survive the icon-set

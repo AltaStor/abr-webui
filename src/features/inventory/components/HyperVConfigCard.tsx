@@ -13,7 +13,16 @@
 import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { HardDrive, Info, Network, Settings2 } from "@/lib/icons";
+import {
+  DiskProvisioned,
+  HvCheckpoints,
+  HvConfigVersion,
+  HvGeneration,
+  HvNetworkAdapters,
+  Info,
+  Server,
+  Settings2,
+} from "@/lib/icons";
 import { formatStorage } from "@/lib/format";
 import type { HyperVDisk, HyperVVmDetails } from "@/types";
 import { SpecRow } from "./SpecRow";
@@ -45,16 +54,16 @@ export function HyperVConfigCard({ details }: { details: HyperVVmDetails }) {
       </CardHeader>
       <CardContent className="space-y-4 pt-0">
         <div className="divide-y divide-border/60">
-          <SpecRow label={t("hypervConfig.generation")}>{generation}</SpecRow>
-          <SpecRow label={t("hypervConfig.configurationVersion")}>
+          <SpecRow label={t("hypervConfig.generation")} icon={HvGeneration}>{generation}</SpecRow>
+          <SpecRow label={t("hypervConfig.configurationVersion")} icon={HvConfigVersion}>
             <span className="nums">{details.configurationVersion ?? t("hypervConfig.unknown")}</span>
           </SpecRow>
-          <SpecRow label={t("hypervConfig.placement")}>
+          <SpecRow label={t("hypervConfig.placement")} icon={Server}>
             {details.clustered
               ? t("hypervConfig.clustered", { node: details.ownerNode ?? t("hypervConfig.unknown") })
               : t("hypervConfig.standalone", { node: details.ownerNode ?? t("hypervConfig.unknown") })}
           </SpecRow>
-          <SpecRow label={t("hypervConfig.checkpoints")}>
+          <SpecRow label={t("hypervConfig.checkpoints")} icon={HvCheckpoints}>
             <span className="nums">{details.checkpointCount}</span>
           </SpecRow>
         </div>
@@ -67,7 +76,7 @@ export function HyperVConfigCard({ details }: { details: HyperVVmDetails }) {
 
         <div className="space-y-1.5">
           <p className="label-overline flex items-center gap-1.5">
-            <HardDrive className="h-3.5 w-3.5" />
+            <DiskProvisioned className="h-3.5 w-3.5" />
             {t("hypervConfig.disks")}
           </p>
           {details.disks.length === 0 ? (
@@ -106,7 +115,7 @@ export function HyperVConfigCard({ details }: { details: HyperVVmDetails }) {
 
         <div className="space-y-1.5">
           <p className="label-overline flex items-center gap-1.5">
-            <Network className="h-3.5 w-3.5" />
+            <HvNetworkAdapters className="h-3.5 w-3.5" />
             {t("hypervConfig.adapters")}
           </p>
           {details.networkAdapters.length === 0 ? (
