@@ -181,6 +181,8 @@ All notable changes to the AltaStor WebUI are documented in this file.
 - Settings → Storage is gone with the Default repository card: the
   appliance's own repository is now the Initial Repo, shared like any other
   local repository from its settings.
+- Settings → VMware shows the VDDK directory only while VDDK is chosen,
+  like the VDDK library.
 - A run stopped before it finished, by an operator or by a backup copy's
   window, reads Stopped, in amber, instead of Failed (ABR-543): on the job
   page (last run banner, Last run, the run panel's "Backup stopped"), in the

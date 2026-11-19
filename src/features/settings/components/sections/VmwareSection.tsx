@@ -247,13 +247,20 @@ function VmwareAccessCard() {
             </>
           )}
 
-          <SettingDivider />
-          <SettingRow
-            label={t("vmware.directory.label")}
-            description={t(`vmware.directory.${settings.directorySource}`)}
-          >
-            <code className="nums block break-all bg-muted/60 px-2 py-1 text-xs sm:text-right">{settings.directory}</code>
-          </SettingRow>
+          {/* SOAP reads disks without VDDK, so its folder means nothing here. */}
+          {draft.api === "vddk" && (
+            <>
+              <SettingDivider />
+              <SettingRow
+                label={t("vmware.directory.label")}
+                description={t(`vmware.directory.${settings.directorySource}`)}
+              >
+                <code className="nums block break-all bg-muted/60 px-2 py-1 text-xs sm:text-right">
+                  {settings.directory}
+                </code>
+              </SettingRow>
+            </>
+          )}
 
           {canEdit && (
             <>
