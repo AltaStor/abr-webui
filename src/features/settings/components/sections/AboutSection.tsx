@@ -47,9 +47,9 @@ function formatUptime(seconds: number): string {
 }
 
 const LINKS: { label: string; href: string; blurb: string }[] = [
-  { get label() { return i18n.t("settings:about.links.documentation.label"); }, href: "https://docs.altastor.example", get blurb() { return i18n.t("settings:about.links.documentation.blurb"); } },
-  { get label() { return i18n.t("settings:about.links.github.label"); }, href: "https://github.com/altastor/altastor", get blurb() { return i18n.t("settings:about.links.github.blurb"); } },
-  { get label() { return i18n.t("settings:about.links.community.label"); }, href: "https://community.altastor.example", get blurb() { return i18n.t("settings:about.links.community.blurb"); } },
+  { get label() { return i18n.t("settings:about.links.documentation.label"); }, href: "https://altastor.com/docs", get blurb() { return i18n.t("settings:about.links.documentation.blurb"); } },
+  { get label() { return i18n.t("settings:about.links.github.label"); }, href: "https://github.com/AltaStor", get blurb() { return i18n.t("settings:about.links.github.blurb"); } },
+  { get label() { return i18n.t("settings:about.links.community.label"); }, href: "https://altastor.discourse.group", get blurb() { return i18n.t("settings:about.links.community.blurb"); } },
 ];
 
 export function AboutSection() {

@@ -183,6 +183,9 @@ All notable changes to the AltaStor WebUI are documented in this file.
   local repository from its settings.
 - Settings → VMware shows the VDDK directory only while VDDK is chosen,
   like the VDDK library.
+- Settings → About → Resources: Documentation, GitHub and Community open
+  https://altastor.com/docs, https://github.com/AltaStor and
+  https://altastor.discourse.group instead of placeholder addresses.
 - A run stopped before it finished, by an operator or by a backup copy's
   window, reads Stopped, in amber, instead of Failed (ABR-543): on the job
   page (last run banner, Last run, the run panel's "Backup stopped"), in the
