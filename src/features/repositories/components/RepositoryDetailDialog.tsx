@@ -136,7 +136,12 @@ function RepositoryDetailBody({
           <div className="min-w-0 flex-1">
             <DialogTitle className="truncate">{repo.name}</DialogTitle>
             <DialogDescription className="mt-1">
-              {[typeMeta.label, repo.isDefault && t("default.chip"), reachableFromHyperV(repo) && t("card.hyperV")]
+              {[
+                typeMeta.label,
+                repo.isDefault && t("default.chip"),
+                repo.shared && t("card.shared"),
+                reachableFromHyperV(repo) && t("card.hyperV"),
+              ]
                 .filter(Boolean)
                 .join(" · ")}
             </DialogDescription>
@@ -180,21 +185,22 @@ function RepositoryDetailBody({
           {/* Path */}
           <Field
             icon={ServerCog}
-            label={repo.type === "smb" && !repo.isDefault ? t("detail.mountPath") : t("detail.storagePath")}
+            label={repo.type === "smb" ? t("detail.mountPath") : t("detail.storagePath")}
           >
             <code className="nums bg-muted/60 px-2 py-1 text-xs">{repo.path}</code>
           </Field>
 
-          {/* The default repository's share is the appliance's own, made and
-              removed by its Hyper-V switch; say whether it is on either way. */}
-          {repo.isDefault && !repo.supportsHyperV && (
-            <Field icon={Network} label={t("default.hypervLabel")}>
-              <span className="text-xs text-muted-foreground">{t("default.off")}</span>
+          {/* A local repository's share is the appliance's own, made and
+              removed by the switch in its settings; say whether it is on
+              either way. */}
+          {repo.type === "local" && !repo.shared && (
+            <Field icon={Network} label={t("detail.smbShare")}>
+              <span className="text-xs text-muted-foreground">{t("detail.notShared")}</span>
             </Field>
           )}
 
           {repo.share && (
-            <Field icon={Network} label={t("detail.hypervShare")}>
+            <Field icon={Network} label={repo.shared ? t("detail.smbShare") : t("detail.hypervShare")}>
               <code className="nums bg-muted/60 px-2 py-1 text-xs">{formatUnc(repo.share)}</code>
               <span className="ml-2 text-xs text-muted-foreground">
                 {repo.share.username

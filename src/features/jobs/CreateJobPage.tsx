@@ -495,8 +495,9 @@ function JobWizard({
       activeFull: activeDefaults,
       syntheticFull: syntheticDefaults,
       // A copy job's destination is picked, never assumed: it has to differ
-      // from every source, and none are picked yet.
-      repositoryId: isCopy ? "" : "repo-immutable",
+      // from every source, and none are picked yet. A backup job starts on
+      // the default repository ("Set as default" on the Repositories page).
+      repositoryId: isCopy ? "" : (repositories.find((r) => r.isDefault)?.id ?? ""),
       options: { appAware: true, encryption: false, compression: 3, dedup: true, onQuiesceFailure: "fail" },
       gfsWeekly: 0,
       gfsMonthly: 0,
@@ -535,6 +536,14 @@ function JobWizard({
   const [replicaNameEdited, setReplicaNameEdited] = useState(!!existingJob);
   const [replicaNameTouched, setReplicaNameTouched] = useState(false);
   const getRestorePlacementOptions = useWorldStore((s) => s.getRestorePlacementOptions);
+
+  // Opened straight from its URL, the page can be up before the repositories
+  // are: take the default once it arrives, unless one was picked already.
+  const defaultRepositoryId = repositories.find((r) => r.isDefault)?.id;
+  useEffect(() => {
+    if (existingJob || isCopy || !defaultRepositoryId) return;
+    setForm((f) => (f.repositoryId ? f : { ...f, repositoryId: defaultRepositoryId }));
+  }, [existingJob, isCopy, defaultRepositoryId]);
 
   const set = <K extends keyof FormState>(key: K, value: FormState[K]) =>
     setForm((f) => ({ ...f, [key]: value }));
@@ -1563,7 +1572,7 @@ function JobWizard({
               <CardContent className="space-y-3 pt-0">
                 <Select value={form.repositoryId} onValueChange={(v) => set("repositoryId", v)}>
                   <SelectTrigger aria-label={isCopy ? t("copy.form.copyTo") : t("create.whereToStore")}>
-                    <SelectValue placeholder={isCopy ? t("copy.form.pickDestination") : undefined} />
+                    <SelectValue placeholder={t("copy.form.pickDestination")} />
                   </SelectTrigger>
                   <SelectContent>
                     {repositories.map((r) => (

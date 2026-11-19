@@ -32,6 +32,7 @@ export function useRepositoryManagement() {
   const [verifications, setVerifications] = useState<Record<string, RepositoryValidationResult>>({});
 
   const rescanRepository = useWorldStore((s) => s.rescanRepository);
+  const setDefaultRepository = useWorldStore((s) => s.setDefaultRepository);
   const verifyRepository = useWorldStore((s) => s.verifyRepository);
 
   // Defer opening to the next tick so a triggering DropdownMenu finishes closing
@@ -98,6 +99,24 @@ export function useRepositoryManagement() {
     [verifyRepository],
   );
 
+  /** "Set as default": where the job wizard starts. The appliance moves the
+   *  mark off the previous default, so there is nothing to confirm. */
+  const setDefault = useCallback(
+    async (repo: Repository) => {
+      const result = await setDefaultRepository(repo.id);
+      if (result.ok) {
+        toast.success(i18n.t("repositories:toast.defaultSet.title", { name: repo.name }), {
+          description: i18n.t("repositories:toast.defaultSet.description"),
+        });
+      } else {
+        toast.error(i18n.t("repositories:toast.defaultFailed.title", { name: repo.name }), {
+          description: result.message,
+        });
+      }
+    },
+    [setDefaultRepository],
+  );
+
   /** A scan is in flight when the store has flipped integrity to "scanning". */
   const isScanning = useCallback((repo: Repository) => repo.integrityStatus === "scanning", []);
   const isVerifying = useCallback((repo: Repository) => verifying.has(repo.id), [verifying]);
@@ -113,6 +132,7 @@ export function useRepositoryManagement() {
     closeDialog,
     rescan,
     verify,
+    setDefault,
     isScanning,
     isVerifying,
     verificationFor,

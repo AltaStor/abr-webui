@@ -3,6 +3,7 @@
 
 import { useTranslation } from "react-i18next";
 import {
+  CheckCircle2,
   MoreHorizontal,
   Pencil,
   RefreshCw,
@@ -22,6 +23,9 @@ import {
  *  signed-in role does not allow. */
 export interface RepositoryActions {
   onEdit?: () => void;
+  /** Make it the default repository new backup jobs start with. Left out for
+   *  the one that already is. */
+  onSetDefault?: () => void;
   onRescan?: () => void;
   /** Full repository validation — reachable, Object Lock still as configured,
    *  stored backups still consistent. Distinct from rescan, which only re-reads
@@ -47,6 +51,7 @@ interface RepositoryActionsMenuProps extends RepositoryActions {
  */
 export function RepositoryActionsMenu({
   onEdit,
+  onSetDefault,
   onRescan,
   onVerify,
   onDelete,
@@ -56,7 +61,7 @@ export function RepositoryActionsMenu({
   repoName,
 }: RepositoryActionsMenuProps) {
   const { t } = useTranslation("repositories");
-  if (!onEdit && !onRescan && !onVerify && !onDelete) return null;
+  if (!onEdit && !onSetDefault && !onRescan && !onVerify && !onDelete) return null;
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -78,6 +83,12 @@ export function RepositoryActionsMenu({
           <DropdownMenuItem onSelect={onEdit}>
             <Pencil className="h-4 w-4" />
             {t("actions.editSettings")}
+          </DropdownMenuItem>
+        )}
+        {onSetDefault && (
+          <DropdownMenuItem onSelect={onSetDefault}>
+            <CheckCircle2 className="h-4 w-4" />
+            {t("actions.setDefault")}
           </DropdownMenuItem>
         )}
         {onRescan && (

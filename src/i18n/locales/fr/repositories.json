@@ -158,6 +158,7 @@
   "actions": {
     "manage": "Gérer {{name}}",
     "editSettings": "Modifier les paramètres",
+    "setDefault": "Définir par défaut",
     "scanning": "Analyse en cours…",
     "rescan": "Réanalyser / vérifier l'intégrité",
     "verify": "Vérifier le référentiel",
@@ -181,6 +182,13 @@
     "verifyFailed": {
       "title": "{{name}} a échoué à la validation"
     },
+    "defaultSet": {
+      "title": "{{name}} est le référentiel par défaut",
+      "description": "Les nouvelles tâches de sauvegarde y stockent, sauf si vous choisissez un autre référentiel."
+    },
+    "defaultFailed": {
+      "title": "Impossible de définir {{name}} comme référentiel par défaut"
+    },
     "maintenanceOn": {
       "title": "Mode maintenance activé",
       "description": "{{name}} est en lecture seule et les tâches sont suspendues pendant que vous en effectuez la maintenance."
@@ -198,7 +206,9 @@
     "openDetails": "Ouvrir les détails de {{name}}",
     "importedSubtitle": "Sauvegardes importées · lecture seule",
     "hyperV": "Hyper-V",
+    "shared": "Partagé",
     "hyperVTitle": "Les tâches Hyper-V peuvent sauvegarder dans ce référentiel et y restaurer",
+    "sharedTitle": "Cette appliance partage le dossier du référentiel en SMB, pour que les hôtes Hyper-V puissent y sauvegarder",
     "threatLockedTitle": "Scellé par la réponse aux menaces — conserve les points de restauration pour {{names}}",
     "threatLocked": "Verrouillé par menace",
     "maintenance": "Maintenance",
@@ -221,6 +231,8 @@
     "storagePath": "Chemin de stockage",
     "mountPath": "Monté dans",
     "hypervShare": "Partage Hyper-V",
+    "smbShare": "Partage SMB",
+    "notShared": "Non partagé — activez-le dans les paramètres du référentiel",
     "hypervShareAccount": "en tant que {{account}}",
     "hypervShareInventoryAccount": "avec le compte de l’inventaire Hyper-V",
     "immutability": "Immuabilité",
@@ -267,6 +279,9 @@
         "smbDirect": "{{name}} — monté, direct (sans déduplication), prêt à recevoir des sauvegardes.",
         "ready": "{{name}} — {{size}} prêts à recevoir des sauvegardes.",
         "readyElastic": "{{name}} — stockage élastique, prêt à recevoir des sauvegardes."
+      },
+      "notShared": {
+        "title": "{{name}} a été ajouté, mais n’est pas partagé"
       }
     },
     "trigger": "Ajouter un référentiel",
@@ -281,6 +296,7 @@
     "pathLabel": "Chemin",
     "mountPathLabel": "Monté sur cette appliance dans",
     "mountPathHint": "Le dossier où cette appliance a monté ce même partage. Elle y tient les manifestes, fusionne les chaînes et vérifie les sauvegardes.",
+    "sharedHint": "Cette appliance partage aussitôt en SMB le dossier d’un référentiel local, pour que les hôtes Hyper-V puissent y sauvegarder. Vous pouvez le désactiver dans les paramètres du référentiel.",
     "mountPathRequired": "Saisissez le dossier où cette appliance monte le partage.",
     "shareCredentials": "Identifiants du partage",
     "username": "Nom d'utilisateur",
@@ -369,13 +385,24 @@
       "failed": {
         "title": "Impossible d'enregistrer les paramètres du référentiel",
         "description": "Les modifications de {{name}} n'ont pas été appliquées. Réessayez dans un instant."
-      }
+      },
+      "shareFailed": "Impossible de partager le référentiel",
+      "unshareFailed": "Impossible d’arrêter le partage du référentiel"
     },
     "title": "Modifier le référentiel",
     "description": {
       "name": "Modifiez le nom de ce référentiel.",
+      "local": "Modifiez le nom de ce référentiel, et choisissez si cette appliance partage son dossier en SMB.",
       "smb": "Modifiez le nom de ce référentiel, le chemin du partage par lequel les hôtes Hyper-V l’atteignent et le compte avec lequel ils ouvrent le partage.",
       "s3": "Modifiez le nom de ce référentiel et son paramètre Object Lock."
+    },
+    "share": {
+      "label": "Partager en SMB",
+      "hint": "Les hôtes Hyper-V sauvegardent par un partage SMB masqué de ce dossier, que seul un compte généré par l’appliance peut ouvrir. Son mot de passe reste sur l’appliance.",
+      "share": "Partage",
+      "account": "Compte",
+      "willShare": "L’enregistrement crée le partage et son compte.",
+      "willUnshare": "L’enregistrement supprime le partage et son compte ; les sauvegardes restent. L’appliance refuse tant que des tâches Hyper-V y sauvegardent."
     },
     "saving": "Enregistrement en cours…",
     "saveSettings": "Enregistrer les paramètres",
@@ -395,8 +422,6 @@
   },
   "default": {
     "chip": "Par défaut",
-    "hypervLabel": "Prendre en charge les sauvegardes Hyper-V",
-    "off": "Désactivée",
-    "managedShare": "Le partage par lequel écrivent les hôtes Hyper-V, et son compte, relèvent de la prise en charge Hyper-V du référentiel par défaut : l’appliance les a créés et les gère. Désactivez puis réactivez la prise en charge Hyper-V dans Paramètres → Stockage pour obtenir un nouveau partage et un nouveau compte."
+    "chipTitle": "Les nouvelles tâches de sauvegarde y stockent, sauf si vous choisissez un autre référentiel"
   }
 }

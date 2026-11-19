@@ -953,7 +953,9 @@ function mapRepository(r: Dict): Repository {
   return {
     id: str(r.id),
     name: str(r.name) || "Repository",
-    type: repoTypeOf(str(r.type)),
+    // A local repository the appliance shares is stored as an SMB one, but it
+    // is still the appliance's own folder: the console keeps calling it local.
+    type: r.support_hyperv === true ? "local" : repoTypeOf(str(r.type)),
     path: str(r.path) || str(r.address) || str(r.location),
     capacityGB,
     usedGB,
@@ -970,7 +972,8 @@ function mapRepository(r: Dict): Repository {
         ? { server: str(r.server), share: str(r.share), username: strOrNull(r.username) }
         : null,
     isDefault: r.default === true,
-    supportsHyperV: r.support_hyperv === true,
+    isInitial: r.initial === true,
+    shared: r.support_hyperv === true,
     deleteBlock:
       r.can_delete === false
         ? {
@@ -2599,28 +2602,9 @@ function mapImmutabilityEffect(raw: unknown): ImmutabilityEffect | null {
   };
 }
 
-/**
- * Create the default repository when it is missing, and/or turn its Hyper-V
- * support on or off — `POST /repositories/default`. Leaving `supportHyperV`
- * out keeps the current setting. With it on, the appliance creates a hidden
- * SMB share for the repository's folder and an account only that share
- * admits; the account's password stays on the appliance.
- */
-export async function setUpDefaultRepository(
-  supportHyperV?: boolean,
-): Promise<{ created: boolean; changed: boolean; repository: Repository }> {
-  const body = supportHyperV === undefined ? {} : { support_hyperv: supportHyperV };
-  const res = asDict(await request<Dict>("/repositories/default", { method: "POST", body: JSON.stringify(body) }));
-  return {
-    created: res.created === true,
-    changed: res.changed === true,
-    repository: mapRepository(asDict(res.repository)),
-  };
-}
-
 export async function createRepository(
   input: CreateRepositoryInput,
-): Promise<{ repository: Repository; immutabilityEffect: ImmutabilityEffect | null }> {
+): Promise<{ repository: Repository; immutabilityEffect: ImmutabilityEffect | null; shareError: string | null }> {
   const wireType =
     input.type === "object-lock-s3" ? "s3" : input.type === "nfs" || input.type === "smb" ? input.type : "local";
   const body: Dict = { name: input.name, type: wireType, address: input.path, description: "" };
@@ -2642,7 +2626,27 @@ export async function createRepository(
   return {
     repository: mapRepository(created),
     immutabilityEffect: mapImmutabilityEffect(created.immutability_effect),
+    // A new local repository is shared right away; when that fails it is
+    // still added, unshared, and this says why.
+    shareError: strOrNull(created.share_error),
   };
+}
+
+/** Share a local repository's folder over SMB from the appliance, or stop
+ *  sharing it (`POST` / `DELETE /repositories/{id}/share`). The answer is a
+ *  share summary, not the repository, so the repository is read back. */
+export async function setRepositoryShared(id: string, shared: boolean): Promise<Repository> {
+  await request(`/repositories/${id}/share`, shared ? { method: "POST", body: "{}" } : { method: "DELETE" });
+  return mapRepository(asDict(await request<Dict>(`/repositories/${id}`)));
+}
+
+/** Make a repository the default, where a new backup job stores unless
+ *  another is picked (`PATCH /repositories/{id}` with `default: true`). The
+ *  appliance moves the mark off the previous default. */
+export async function setDefaultRepository(id: string): Promise<Repository> {
+  return mapRepository(
+    asDict(await request<Dict>(`/repositories/${id}`, { method: "PATCH", body: JSON.stringify({ default: true }) })),
+  );
 }
 
 /** Real pre-create S3 connectivity test — probes the given settings through

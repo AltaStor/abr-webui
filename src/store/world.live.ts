@@ -1267,37 +1267,43 @@ export function createLiveDriver(handle: WorldHandle): WorldDriver {
 
     createRepository: async (input) => {
       try {
-        const { repository, immutabilityEffect } = await api.createRepository(input);
+        const { repository, immutabilityEffect, shareError } = await api.createRepository(input);
         if (!stopped) {
           handle.set((s) => ({
             repositories: [...s.repositories, repository],
             revision: s.revision + 1,
           }));
         }
-        return { ok: true, repository, immutabilityEffect };
+        return { ok: true, repository, immutabilityEffect, shareError };
       } catch (err) {
         return repositoryWriteFailure(err);
       }
     },
 
-    setUpDefaultRepository: async (supportHyperV) => {
+    setDefaultRepository: async (id) => {
       try {
-        const res = await api.setUpDefaultRepository(supportHyperV);
+        await api.setDefaultRepository(id);
+        // The appliance moved the mark off the previous default too.
+        if (!stopped) await refreshRepositories();
+        return { ok: true };
+      } catch (err) {
+        return { ok: false, message: apiFailureMessage(err) };
+      }
+    },
+
+    setRepositoryShared: async (id, shared) => {
+      try {
+        const repository = await api.setRepositoryShared(id, shared);
         if (!stopped) {
           handle.set((s) => ({
-            repositories: s.repositories.some((r) => r.id === res.repository.id)
-              ? s.repositories.map((r) => (r.id === res.repository.id ? res.repository : r))
-              : [...s.repositories, res.repository],
+            repositories: s.repositories.map((r) => (r.id === id ? repository : r)),
             revision: s.revision + 1,
           }));
         }
-        return { ok: true, ...res };
+        return { ok: true, repository, immutabilityEffect: null };
       } catch (err) {
-        // The create may have gone through before the share failed: read the
-        // list back so the page shows what the appliance now holds.
         if (!stopped) await refreshRepositories();
-        const repository = handle.get().repositories.find((r) => r.isDefault) ?? null;
-        return { ok: false, message: apiFailureMessage(err), repository };
+        return repositoryWriteFailure(err);
       }
     },
 

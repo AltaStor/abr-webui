@@ -870,7 +870,7 @@
       "targetEnv": "Pick a target environment for the replica.",
       "repository": "Pick a repository to store backups in.",
       "scheduleDays": "Pick at least one day for the backup schedule.",
-      "hypervRepository": "Hyper-V VMs need an S3 or SMB repository: abr-vhdx-tool writes their disks from the Hyper-V host, which cannot reach {{repository}}, a folder of this appliance. Pick an S3 or SMB repository, or add one under Repositories."
+      "hypervRepository": "Hyper-V VMs need an S3 or SMB repository, or a shared local one: abr-vhdx-tool writes their disks from the Hyper-V host, which cannot reach {{repository}}, an unshared folder of this appliance. Pick another repository, or share this one in its settings under Repositories."
     },
     "scope": {
       "filesSummary_one": "{{count}} path on {{servers}}",
@@ -1215,7 +1215,7 @@
       "windowDays": "Pick at least one day for each copy window rule.",
       "windowSameTime": "A copy window rule starts and ends at the same time. Pick another end, or 00:00 to 00:00 for the whole day.",
       "encryptedSources": "The sources hold encrypted restore points. Turn on encryption under Advanced, with a key of this job's own, so the copies stay encrypted.",
-      "hypervDestination": "The sources hold Hyper-V VMs. A Hyper-V restore reads its disks from the Hyper-V host, which can't reach {{repository}}, a folder of this appliance. Copy them to an S3 repository, or an SMB repository with its share."
+      "hypervDestination": "The sources hold Hyper-V VMs. A Hyper-V restore reads its disks from the Hyper-V host, which can't reach {{repository}}, an unshared folder of this appliance. Copy them to an S3 repository, an SMB repository with its share, or a shared local repository."
     },
     "firstRun": {
       "immediate": "After the next backup of a source",

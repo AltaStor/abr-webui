@@ -82,6 +82,7 @@ export default function RepositoriesPage() {
   // role may do, so the menus and the detail footer offer nothing it can't.
   const actionsFor = (repo: Repository): RepositoryActions => ({
     onEdit: canEdit ? () => mgmt.openEdit(repo) : undefined,
+    onSetDefault: canEdit && !repo.isDefault ? () => void mgmt.setDefault(repo) : undefined,
     onRescan: canRescan ? () => mgmt.rescan(repo) : undefined,
     onVerify: canVerify ? () => void mgmt.verify(repo) : undefined,
     onDelete: canDelete ? () => mgmt.openDelete(repo) : undefined,

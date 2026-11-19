@@ -285,6 +285,15 @@ function AddRepositoryDialogBody() {
     // in its effect report, and that is worth more than a toast — carry it into
     // a second toast rather than dropping it on the floor.
     reportImmutabilityEffect(result.immutabilityEffect, repo.name);
+    // A new local repository is shared right away; when the appliance could
+    // not (no Samba, or its broker is not running), the repository is still
+    // added, and the operator should know why Hyper-V hosts cannot reach it.
+    if (result.shareError) {
+      toast.warning(t("add.toast.notShared.title", { name: repo.name }), {
+        description: result.shareError,
+        duration: 12000,
+      });
+    }
     setOpen(false);
     reset();
   }
@@ -535,8 +544,10 @@ function AddRepositoryDialogBody() {
                 />
                 {showMountPathError ? (
                   <p className="text-xs text-danger">{t("add.mountPathRequired")}</p>
+                ) : isSmb ? (
+                  <p className="text-xs text-muted-foreground">{t("add.mountPathHint")}</p>
                 ) : (
-                  isSmb && <p className="text-xs text-muted-foreground">{t("add.mountPathHint")}</p>
+                  type === "local" && <p className="text-xs text-muted-foreground">{t("add.sharedHint")}</p>
                 )}
               </div>
             </>

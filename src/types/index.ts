@@ -998,17 +998,22 @@ export interface Repository {
    *  authority for which repositories the dialog may offer. Undefined for a
    *  world that doesn't report it (the demo simulation). */
   supportsSyntheticFull?: boolean;
-  /** SMB repositories only: the share Hyper-V hosts reach its folder by
-   *  (abr-vhdx-tool writes Hyper-V backups there from the host), while the
-   *  appliance reaches the same storage at `path`, where it mounts it. */
+  /** The share Hyper-V hosts reach the repository's folder by (abr-vhdx-tool
+   *  writes Hyper-V backups there from the host). An SMB repository's own,
+   *  whose storage the appliance reaches at `path`, where it mounts it; or,
+   *  for a `shared` local repository, the one the appliance made for `path`. */
   share?: RepositoryShare | null;
-  /** The appliance's own local repository, which the server creates at
-   *  startup when it is missing (`default`). At most one. */
+  /** The default repository (`default`): a new backup job stores here unless
+   *  another one is picked. At most one; "Set as default" moves it. */
   isDefault?: boolean;
-  /** Default repository only: Hyper-V hosts write to it through a hidden SMB
-   *  share with a generated account (`support_hyperv`). The appliance manages
-   *  that share; its password is never sent to the console. */
-  supportsHyperV?: boolean;
+  /** The Initial Repo (`initial`): the local repository the appliance made at
+   *  its first start. */
+  isInitial?: boolean;
+  /** A local repository the appliance shares over SMB (`support_hyperv`), so
+   *  Hyper-V hosts can write to it: a hidden share with a generated account,
+   *  in `share`. The appliance manages both; the password is never sent to
+   *  the console. New local repositories are shared right away. */
+  shared?: boolean;
   /** Why the appliance will refuse to delete this repository (`can_delete`
    *  false), so the console can say so before anyone confirms. Null when
    *  nothing stands in the way; absent for a world that doesn't report it. */

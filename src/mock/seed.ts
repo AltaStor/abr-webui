@@ -266,6 +266,8 @@ function buildRepositories(): Repository[] {
     {
       id: "repo-immutable",
       name: "AltaStor Hardened Repository",
+      // Where the job wizard starts, until "Set as default" picks another.
+      isDefault: true,
       type: "hardened-immutable",
       path: "/mnt/altastor/hardened",
       capacityGB: 40960,

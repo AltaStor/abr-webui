@@ -158,6 +158,7 @@
   "actions": {
     "manage": "{{name}} verwalten",
     "editSettings": "Einstellungen bearbeiten",
+    "setDefault": "Als Standard festlegen",
     "scanning": "Wird geprüft…",
     "rescan": "Integrität erneut prüfen / verifizieren",
     "verify": "Repository überprüfen",
@@ -181,6 +182,13 @@
     "verifyFailed": {
       "title": "{{name}} hat die Validierung nicht bestanden"
     },
+    "defaultSet": {
+      "title": "{{name}} ist das Standard-Repository",
+      "description": "Neue Backup-Jobs sichern hierhin, sofern Sie kein anderes Repository wählen."
+    },
+    "defaultFailed": {
+      "title": "{{name}} konnte nicht als Standard-Repository festgelegt werden"
+    },
     "maintenanceOn": {
       "title": "Wartungsmodus aktiv",
       "description": "{{name}} ist schreibgeschützt und Jobs sind pausiert, während Sie es warten."
@@ -198,7 +206,9 @@
     "openDetails": "Details zu {{name}} öffnen",
     "importedSubtitle": "Importierte Backups · schreibgeschützt",
     "hyperV": "Hyper-V",
+    "shared": "Freigegeben",
     "hyperVTitle": "Hyper-V-Jobs können in dieses Repository sichern und daraus wiederherstellen",
+    "sharedTitle": "Diese Appliance gibt den Ordner des Repositorys per SMB frei, damit Hyper-V-Hosts dorthin sichern können",
     "threatLockedTitle": "Durch Bedrohungsreaktion versiegelt — hält Wiederherstellungspunkte für {{names}}",
     "threatLocked": "Bedrohungsgesperrt",
     "maintenance": "Wartung",
@@ -221,6 +231,8 @@
     "storagePath": "Speicherpfad",
     "mountPath": "Eingehängt unter",
     "hypervShare": "Hyper-V-Freigabe",
+    "smbShare": "SMB-Freigabe",
+    "notShared": "Nicht freigegeben – einschalten in den Einstellungen des Repositorys",
     "hypervShareAccount": "als {{account}}",
     "hypervShareInventoryAccount": "mit dem Konto des Hyper-V-Inventars",
     "immutability": "Unveränderlichkeit",
@@ -267,6 +279,9 @@
         "smbDirect": "{{name}} — eingebunden, direkt (kein Dedup), bereit für Backups.",
         "ready": "{{name}} — {{size}} bereit für Backups.",
         "readyElastic": "{{name}} — elastischer Speicher, bereit für Backups."
+      },
+      "notShared": {
+        "title": "{{name}} wurde hinzugefügt, ist aber nicht freigegeben"
       }
     },
     "trigger": "Repository hinzufügen",
@@ -281,6 +296,7 @@
     "pathLabel": "Pfad",
     "mountPathLabel": "Auf dieser Appliance eingehängt unter",
     "mountPathHint": "Der Ordner, unter dem diese Appliance dieselbe Freigabe eingehängt hat. Dort verwaltet sie die Manifeste, führt Ketten zusammen und prüft Sicherungen.",
+    "sharedHint": "Diese Appliance gibt den Ordner eines lokalen Repositorys sofort per SMB frei, damit Hyper-V-Hosts dorthin sichern können. Abschalten können Sie das in den Einstellungen des Repositorys.",
     "mountPathRequired": "Geben Sie den Ordner ein, unter dem diese Appliance die Freigabe einhängt.",
     "shareCredentials": "Freigabe-Anmeldedaten",
     "username": "Benutzername",
@@ -369,13 +385,24 @@
       "failed": {
         "title": "Repository-Einstellungen konnten nicht gespeichert werden",
         "description": "Die Änderungen an {{name}} wurden nicht angewendet. Versuchen Sie es gleich erneut."
-      }
+      },
+      "shareFailed": "Repository konnte nicht freigegeben werden",
+      "unshareFailed": "Freigabe des Repositorys konnte nicht aufgehoben werden"
     },
     "title": "Repository bearbeiten",
     "description": {
       "name": "Ändern Sie den Namen dieses Repositorys.",
+      "local": "Ändern Sie den Namen dieses Repositorys und ob diese Appliance seinen Ordner per SMB freigibt.",
       "smb": "Ändern Sie den Namen dieses Repositorys, den Freigabepfad, über den die Hyper-V-Hosts es erreichen, und das Konto, mit dem sie die Freigabe öffnen.",
       "s3": "Ändern Sie den Namen dieses Repositorys und seine Object-Lock-Einstellung."
+    },
+    "share": {
+      "label": "Per SMB freigeben",
+      "hint": "Hyper-V-Hosts sichern über eine versteckte SMB-Freigabe dieses Ordners, die nur ein von der Appliance erzeugtes Konto öffnen kann. Dessen Passwort bleibt auf der Appliance.",
+      "share": "Freigabe",
+      "account": "Konto",
+      "willShare": "Beim Speichern werden die Freigabe und ihr Konto angelegt.",
+      "willUnshare": "Beim Speichern werden die Freigabe und ihr Konto entfernt; die Sicherungen bleiben. Die Appliance lehnt das ab, solange Hyper-V-Jobs hierhin sichern."
     },
     "saving": "Wird gespeichert…",
     "saveSettings": "Einstellungen speichern",
@@ -395,8 +422,6 @@
   },
   "default": {
     "chip": "Standard",
-    "hypervLabel": "Hyper-V-Backups unterstützen",
-    "off": "Aus",
-    "managedShare": "Die Freigabe, über die Hyper-V-Hosts schreiben, und ihr Konto gehören zur Hyper-V-Unterstützung des Standard-Repositorys: Die Appliance hat sie angelegt und verwaltet sie. Schalten Sie die Hyper-V-Unterstützung unter „Einstellungen → Speicher“ aus und wieder ein, um eine neue Freigabe und ein neues Konto zu erhalten."
+    "chipTitle": "Neue Backup-Jobs sichern hierhin, sofern Sie kein anderes Repository wählen"
   }
 }

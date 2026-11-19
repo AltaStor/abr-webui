@@ -166,6 +166,21 @@ All notable changes to the AltaStor WebUI are documented in this file.
   jobs list and on the job page, with the appliance's warning in a tooltip.
 
 ### Changed
+- Repositories: "Set as default" in a repository's menu (with Edit settings
+  and Delete) makes it the default repository, tagged Default on its card;
+  a new backup job starts with it picked. The appliance moves the mark off
+  the previous default (`PATCH /repositories/{id}` with `default: true`).
+- Local repositories are shared over SMB by the appliance as soon as they
+  are added, so Hyper-V hosts can back up into them; the Add dialog says so,
+  and warns when the appliance could not share the new one. A shared one is
+  tagged Shared and keeps showing as Local storage, and its Edit settings
+  has a "Share over SMB" switch (with the share and its account) that adds
+  or removes the share on Save. The details show the share, or "Not
+  shared". Needs abr-core with `share_error`, `initial` and `default` on
+  repositories.
+- Settings → Storage is gone with the Default repository card: the
+  appliance's own repository is now the Initial Repo, shared like any other
+  local repository from its settings.
 - A run stopped before it finished, by an operator or by a backup copy's
   window, reads Stopped, in amber, instead of Failed (ABR-543): on the job
   page (last run banner, Last run, the run panel's "Backup stopped"), in the

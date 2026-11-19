@@ -158,6 +158,7 @@
   "actions": {
     "manage": "Manage {{name}}",
     "editSettings": "Edit settings",
+    "setDefault": "Set as default",
     "scanning": "Scanning…",
     "rescan": "Rescan",
     "verify": "Verify repository",
@@ -181,6 +182,13 @@
     "verifyFailed": {
       "title": "{{name}} failed validation"
     },
+    "defaultSet": {
+      "title": "{{name}} is the default repository",
+      "description": "New backup jobs store here unless you pick another repository."
+    },
+    "defaultFailed": {
+      "title": "Couldn't make {{name}} the default repository"
+    },
     "maintenanceOn": {
       "title": "Maintenance mode on",
       "description": "{{name}} is read-only and jobs are paused while you service it."
@@ -198,7 +206,9 @@
     "openDetails": "Open {{name}} details",
     "importedSubtitle": "Imported backups · read-only",
     "hyperV": "Hyper-V",
+    "shared": "Shared",
     "hyperVTitle": "Hyper-V jobs can back up into this repository and restore from it",
+    "sharedTitle": "This appliance shares the repository's folder over SMB, so Hyper-V hosts can back up into it",
     "threatLockedTitle": "Sealed by threat response — holds restore points for {{names}}",
     "threatLocked": "Threat-locked",
     "maintenance": "Maintenance",
@@ -221,6 +231,8 @@
     "storagePath": "Storage path",
     "mountPath": "Mounted at",
     "hypervShare": "Hyper-V share",
+    "smbShare": "SMB share",
+    "notShared": "Not shared — turn it on in the repository's settings",
     "hypervShareAccount": "as {{account}}",
     "hypervShareInventoryAccount": "with the Hyper-V inventory's account",
     "immutability": "Immutability",
@@ -267,6 +279,9 @@
         "smbDirect": "{{name}} — mounted, direct (no dedup), ready to receive backups.",
         "ready": "{{name}} — {{size}} ready to receive backups.",
         "readyElastic": "{{name}} — elastic storage, ready to receive backups."
+      },
+      "notShared": {
+        "title": "{{name}} was added, but isn't shared"
       }
     },
     "trigger": "Add repository",
@@ -281,6 +296,7 @@
     "pathLabel": "Path",
     "mountPathLabel": "Mounted on this appliance at",
     "mountPathHint": "The folder where this appliance has the same share mounted. It keeps the manifests, merges chains and verifies backups there.",
+    "sharedHint": "This appliance shares a local repository's folder over SMB right away, so Hyper-V hosts can back up into it. You can turn that off in the repository's settings.",
     "mountPathRequired": "Enter the folder this appliance mounts the share at.",
     "shareCredentials": "Share credentials",
     "username": "Username",
@@ -369,13 +385,24 @@
       "failed": {
         "title": "Couldn't save repository settings",
         "description": "{{name}}'s changes were not applied. Try again in a moment."
-      }
+      },
+      "shareFailed": "Couldn't share the repository",
+      "unshareFailed": "Couldn't stop sharing the repository"
     },
     "title": "Edit repository",
     "description": {
       "name": "Change this repository's name.",
+      "local": "Change this repository's name, and whether this appliance shares its folder over SMB.",
       "smb": "Change this repository's name, the share path the Hyper-V hosts reach it by, and the account they open the share with.",
       "s3": "Change this repository's name and its Object Lock setting."
+    },
+    "share": {
+      "label": "Share over SMB",
+      "hint": "Hyper-V hosts back up through a hidden SMB share of this folder, which only an account the appliance generates can open. Its password stays on the appliance.",
+      "share": "Share",
+      "account": "Account",
+      "willShare": "Saving creates the share and its account.",
+      "willUnshare": "Saving removes the share and its account; the backups stay. The appliance refuses while Hyper-V jobs back up here."
     },
     "saving": "Saving…",
     "saveSettings": "Save settings",
@@ -395,8 +422,6 @@
   },
   "default": {
     "chip": "Default",
-    "hypervLabel": "Support Hyper-V backups",
-    "off": "Off",
-    "managedShare": "The share Hyper-V hosts write through, and its account, belong to the default repository's Hyper-V support: the appliance made them and keeps them. Turn Hyper-V support off and on again in Settings → Storage to get a new share and account."
+    "chipTitle": "New backup jobs store here unless you pick another repository"
   }
 }

@@ -98,12 +98,23 @@ export function RepositoryCard({
           <StatusPill meta={{ ...statusMeta, icon: Database }} size="sm" />
         </div>
 
-        {/* Status chips row: default / Hyper-V / immutability / threat-lock / scanning */}
-        {(repo.isDefault || hyperV || lockLabel || threatLock || scanning || verifying) && (
+        {/* Status chips row: default / shared / Hyper-V / immutability / threat-lock / scanning */}
+        {(repo.isDefault || repo.shared || hyperV || lockLabel || threatLock || scanning || verifying) && (
           <div className="mt-3 flex flex-wrap items-center gap-1.5">
             {repo.isDefault && (
-              <span className="inline-flex items-center gap-1 bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
+              <span
+                className="inline-flex items-center gap-1 bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground"
+                title={t("default.chipTitle")}
+              >
                 {t("default.chip")}
+              </span>
+            )}
+            {repo.shared && (
+              <span
+                className="inline-flex items-center gap-1 bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground"
+                title={t("card.sharedTitle")}
+              >
+                {t("card.shared")}
               </span>
             )}
             {hyperV && (

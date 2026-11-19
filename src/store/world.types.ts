@@ -169,15 +169,15 @@ export type SyntheticFullStartResult =
  * setting now does, and what it cannot reach.
  */
 export type RepositoryWriteResult =
-  | { ok: true; repository: Repository; immutabilityEffect: ImmutabilityEffect | null }
+  | {
+      ok: true;
+      repository: Repository;
+      immutabilityEffect: ImmutabilityEffect | null;
+      /** Create only: why a new local repository could not be shared (it is
+       *  added unshared). */
+      shareError?: string | null;
+    }
   | { ok: false; message: string; checks: S3ConnectionCheck[] };
-
-/** Outcome of setting up the default repository. A failure can follow a
- *  successful create (the repository exists, its Hyper-V share does not), so
- *  `repository` is what the appliance holds afterwards, if anything. */
-export type DefaultRepositoryResult =
-  | { ok: true; created: boolean; changed: boolean; repository: Repository }
-  | { ok: false; message: string; repository: Repository | null };
 
 /** Outcome of a repository delete — the guard reasons are surfaced to the UI. */
 export type RepoDeleteResult =
@@ -347,9 +347,10 @@ export interface WorldState extends WorldData {
   runRetention(jobId: string, dryRun: boolean): Promise<RetentionRunResult>;
   /* -------- repository lifecycle (advanced storage management) -------- */
   createRepository(input: CreateRepositoryInput): Promise<RepositoryWriteResult>;
-  /** Create the default repository if it is missing and set its Hyper-V
-   *  support (`POST /repositories/default`). */
-  setUpDefaultRepository(supportHyperV: boolean): Promise<DefaultRepositoryResult>;
+  /** Make the repository the default one new backup jobs store to. */
+  setDefaultRepository(id: string): Promise<{ ok: true } | { ok: false; message: string }>;
+  /** Share a local repository over SMB from the appliance, or stop sharing it. */
+  setRepositoryShared(id: string, shared: boolean): Promise<RepositoryWriteResult>;
   editRepository(id: string, patch: RepositoryEdit): Promise<RepositoryWriteResult>;
   deleteRepository(id: string): Promise<RepoDeleteResult>;
   rescanRepository(id: string): Promise<void>;
@@ -399,7 +400,8 @@ export type WorldActions = Pick<
   | "runSyntheticFull"
   | "runRetention"
   | "createRepository"
-  | "setUpDefaultRepository"
+  | "setDefaultRepository"
+  | "setRepositoryShared"
   | "editRepository"
   | "deleteRepository"
   | "rescanRepository"

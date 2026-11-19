@@ -27,10 +27,10 @@ export function formatUnc(share: RepositoryShare): string {
 }
 
 /** Whether Hyper-V jobs can back up into this repository and restore from it.
- *  abr-vhdx-tool runs on the Hyper-V host, which reaches S3 repositories and
- *  SMB repositories through the share they name (the default repository's
- *  too, while its Hyper-V support is on), never a folder on the appliance.
- *  The appliance's own rule is `ensure_hyperv_repository`. */
+ *  abr-vhdx-tool runs on the Hyper-V host, which reaches S3 repositories, SMB
+ *  repositories through the share they name, and local repositories the
+ *  appliance shares through its share, never an unshared folder on the
+ *  appliance. The appliance's own rule is `ensure_hyperv_repository`. */
 export function reachableFromHyperV(repo: Pick<Repository, "type" | "share">): boolean {
   return repo.type === "object-lock-s3" || Boolean(repo.share);
 }
