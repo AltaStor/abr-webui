@@ -53,6 +53,7 @@ import {
   retentionLabel,
 } from "./lib";
 import { ActiveRunPanel } from "./components/ActiveRunPanel";
+import { CancelRunButton } from "@/components/CancelRunButton";
 import { LastRunSummary } from "./components/LastRunSummary";
 import { LastRunProblems, lastRunAsSession } from "./components/RunOutcome";
 import { ThroughputChart } from "./components/ThroughputChart";
@@ -165,8 +166,8 @@ export default function JobDetailPage() {
   /* Copies queued behind a closed copy window are not stuck, and the page says
    * so — with when they will move. */
   const windowState = copy?.window.length ? copyWindowState(copy.window) : null;
-  const waitingForWindow =
-    windowState && !windowState.open && jobSessions.some((s) => s.status === "queued") ? windowState : null;
+  const queuedSessions = jobSessions.filter((s) => s.status === "queued");
+  const waitingForWindow = windowState && !windowState.open && queuedSessions.length > 0 ? windowState : null;
   /* Both kinds take an active full and keep their own retention; a copy's
    * full reads the source's newest state again. */
   const runsFull = job.type === "backup" || job.type === "backup-copy";
@@ -339,7 +340,7 @@ export default function JobDetailPage() {
       {waitingForWindow && copy && (
         <div className="flex items-start gap-2.5 border border-info/30 bg-info/[0.06] px-3 py-2.5" role="status">
           <Clock className="mt-0.5 h-4 w-4 shrink-0 text-info" aria-hidden="true" />
-          <p className="text-xs text-foreground">
+          <p className="min-w-0 flex-1 text-xs text-foreground">
             {waitingForWindow.opensAt
               ? t("copy.waiting", {
                   window: copyWindowLabel(copy.window),
@@ -347,6 +348,11 @@ export default function JobDetailPage() {
                 })
               : t("copy.waitingNever", { window: copyWindowLabel(copy.window) })}
           </p>
+          {/* A copy started outside its window by mistake need not wait for
+              it (ABR-589): it ends as stopped, before it started. */}
+          {queuedSessions.map((s) => (
+            <CancelRunButton key={s.id} session={s} className="h-7 shrink-0" />
+          ))}
         </div>
       )}
       {repl && <ReplicationPendingNotes replication={repl} />}

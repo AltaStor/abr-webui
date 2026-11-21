@@ -243,6 +243,12 @@ All notable changes to the AltaStor WebUI are documented in this file.
   even after a rename only, gave it a daily schedule at 00:00. It now reads
   "When started by hand", the form opens on "Manual only", and the schedule
   is sent only when it changed (`schedule: null` takes it away).
+- A backup copy waiting for its copy window can be cancelled (ABR-589):
+  "Cancel run" in the job page's waiting note and in the run's details.
+- The details of a backup copy run no longer show the guest read rate, the
+  consistency and the "VMware Tools was not running" note, which belong to
+  a backup of the guest (ABR-590); the live panel calls its rate the copy
+  rate.
 - A new job stays on server time when its time is typed (ABR-575). On a
   computer on another zone, a console that had not yet heard the appliance's
   zone opened the form on the browser's zone; typing a time then showed

@@ -386,6 +386,7 @@
       "stagingSource": "Préparation de la source",
       "replicaWrite": "Écriture réplique · cible",
       "repositoryWrite": "Écriture référentiel · physique",
+      "copy": "Débit de copie",
       "guestRead": "Débit de lecture invité"
     },
     "sr": {

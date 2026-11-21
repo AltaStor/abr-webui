@@ -115,6 +115,12 @@ function RunDetail({ session: s, jobExists, onClose }: { session: Session; jobEx
 
   const logLines = buffered && buffered.length ? buffered : fetched ?? [];
   const running = s.status === "running";
+  // A queued run can be stopped too: a backup copy waits in the queue for its
+  // copy window, which can be hours away (ABR-589).
+  const stoppable = running || s.status === "queued";
+  // A backup copy reads stored backups, never the VM: nothing of the guest
+  // (its read rate, how consistent the snapshot was) belongs to it (ABR-590).
+  const copyRun = s.type === "backup-copy";
   const restore = isRestore(s);
   // A verification re-reads a stored chain in place: the appliance reports only
   // percent + a stage message for it, so every byte and rate figure below is
@@ -136,7 +142,7 @@ function RunDetail({ session: s, jobExists, onClose }: { session: Session; jobEx
   const resultMessage = failedSynthetic
     ? syntheticFullFailureMessage(s.message ?? "")
     : (s.message ?? (s.type === "backup-copy" || s.type === "replication" ? s.outcome : undefined));
-  const consistencyNote = useConsistencyExplanation(s.consistency, s.consistencyReason);
+  const consistencyNote = useConsistencyExplanation(copyRun ? undefined : s.consistency, s.consistencyReason);
   /* The same sentence for the per-VM row. It used to print the appliance's own
    * text while the banner above it printed the console's, so one failed merge
    * explained itself twice, in two different wordings. The log below keeps the
@@ -244,7 +250,7 @@ function RunDetail({ session: s, jobExists, onClose }: { session: Session; jobEx
           )}
           <Metric label={t("drawer.stat.duration")} value={running ? "—" : formatDuration(s.durationSec)} />
           <Metric label={t("objectNouns.vm.compact")} value={s.vmCount} />
-          {s.consistency && (
+          {s.consistency && !copyRun && (
             <Metric
               label={t("drawer.stat.consistency")}
               value={<ConsistencyBadge consistency={s.consistency} reason={s.consistencyReason} />}
@@ -257,10 +263,12 @@ function RunDetail({ session: s, jobExists, onClose }: { session: Session; jobEx
                 label={t("drawer.stat.transferred")}
                 value={s.transferredGB > 0 ? formatStorage(s.transferredGB) : "—"}
               />
-              <Metric
-                label={t("drawer.stat.guestRead")}
-                value={s.guestReadMBps && s.guestReadMBps > 0 ? formatThroughput(s.guestReadMBps) : "—"}
-              />
+              {!copyRun && (
+                <Metric
+                  label={t("drawer.stat.guestRead")}
+                  value={s.guestReadMBps && s.guestReadMBps > 0 ? formatThroughput(s.guestReadMBps) : "—"}
+                />
+              )}
               <Metric
                 label={t("drawer.stat.throughput")}
                 value={s.throughputMBps > 0 ? formatThroughput(s.throughputMBps) : "—"}
@@ -285,7 +293,7 @@ function RunDetail({ session: s, jobExists, onClose }: { session: Session; jobEx
           </p>
         )}
 
-        {s.consistency === "crash_consistent" && consistencyNote && (
+        {s.consistency === "crash_consistent" && !copyRun && consistencyNote && (
           <p className="border border-warning/30 bg-warning/10 px-3 py-2 text-xs text-warning-text">{consistencyNote}</p>
         )}
 
@@ -371,7 +379,7 @@ function RunDetail({ session: s, jobExists, onClose }: { session: Session; jobEx
           {/* Inspecting a live run is exactly when you decide to stop it, so the
               action belongs here and not only on the job page — which a run
               whose job was deleted no longer has. */}
-          {running && <CancelRunButton session={s} />}
+          {stoppable && <CancelRunButton session={s} />}
           {restore ? (
             <Button size="sm" variant="outline" onClick={() => go("/restore")}>
               {t("drawer.footer.openRestore")}

@@ -386,6 +386,7 @@
       "stagingSource": "Preparando la fuente",
       "replicaWrite": "Escritura de réplica · destino",
       "repositoryWrite": "Escritura de repositorio · físico",
+      "copy": "Velocidad de copia",
       "guestRead": "Velocidad de lectura del invitado"
     },
     "sr": {

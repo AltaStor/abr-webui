@@ -386,6 +386,7 @@
       "stagingSource": "Quelle wird bereitgestellt",
       "replicaWrite": "Replikat-Schreibvorgang · Ziel",
       "repositoryWrite": "Repository-Schreibvorgang · physisch",
+      "copy": "Kopierrate",
       "guestRead": "Gast-Leserate"
     },
     "sr": {

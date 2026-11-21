@@ -98,6 +98,8 @@ export function ActiveRunPanel({ session }: { session: Session }) {
         : "danger"
     : "info";
   const replication = session.type === "replication";
+  // A backup copy reads stored backups, never the guest (ABR-590).
+  const copyRun = session.type === "backup-copy";
   const headline = terminal
     ? session.status === "success"
       ? replication
@@ -124,7 +126,9 @@ export function ActiveRunPanel({ session }: { session: Session }) {
     ? t("run.rate.averageTransfer")
     : hasPipeline
       ? t("run.rate.repositoryWrite")
-      : t("run.rate.guestRead");
+      : copyRun
+        ? t("run.rate.copy")
+        : t("run.rate.guestRead");
   const tc = TONE_CLASS[tone];
 
   return (

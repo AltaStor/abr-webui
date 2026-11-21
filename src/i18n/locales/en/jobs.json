@@ -395,6 +395,7 @@
       "stagingSource": "Staging source",
       "replicaWrite": "Replica write · target",
       "repositoryWrite": "Repository write · physical",
+      "copy": "Copy rate",
       "guestRead": "Guest read rate"
     },
     "sr": {
