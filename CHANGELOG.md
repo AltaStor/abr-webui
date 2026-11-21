@@ -254,6 +254,16 @@ All notable changes to the AltaStor WebUI are documented in this file.
   consistency and the "VMware Tools was not running" note, which belong to
   a backup of the guest (ABR-590); the live panel calls its rate the copy
   rate.
+- The console no longer asks for the appliance's version and clock for a
+  role without `system.view` (ABR-614): the clock-jump banner, the update
+  check and Settings → About did, and each refusal went into the audit log
+  as a denied record. Such a role sees no top bar clock.
+- Times are on server time once the appliance has named its zone
+  (ABR-579, ABR-615): the System log's lines kept the computer's zone for
+  the whole visit on about half the loads, and a job page or form kept it
+  until something else redrew it. The page now draws again when the zone
+  arrives, the log redraws its lines, and the top bar shows no clock before
+  it.
 - A new job stays on server time when its time is typed (ABR-575). On a
   computer on another zone, a console that had not yet heard the appliance's
   zone opened the form on the browser's zone; typing a time then showed

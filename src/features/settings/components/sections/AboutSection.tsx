@@ -22,6 +22,7 @@ import type { LucideIcon } from "@/lib/icons";
 import i18n from "@/i18n";
 import { useSettingsStore } from "@/store/settings";
 import { useWorldStore } from "@/store/world";
+import { useCan } from "@/store/permissions";
 import { getSystemClock, getSystemInfo } from "@/services/api.http";
 import type { ApplianceInfo } from "@/services/api.http";
 import { formatDateTime, scheduleZoneName, utcTitle, zoneLabel } from "@/lib/time";
@@ -56,6 +57,10 @@ export function AboutSection() {
   const { t } = useTranslation("settings");
   const general = useSettingsStore((s) => s.general);
   const mode = useWorldStore((s) => s.mode);
+  // The appliance's information and clock need system.view; a role without
+  // it is not asked for them, since the refusal would only fill the audit log.
+  const canRead = useCan("system.view");
+  const live = mode === "live" && canRead;
 
   // In live mode, source identity/hardware from the real appliance. `info`
   // stays null when the probe fails (or in the demo world, which has no node to
@@ -63,14 +68,14 @@ export function AboutSection() {
   // so the section can say why.
   const [info, setInfo] = useState<ApplianceInfo | null>(null);
   const [failed, setFailed] = useState(false);
-  const [loading, setLoading] = useState(mode === "live");
+  const [loading, setLoading] = useState(live);
   // Bumped by the Retry button to re-run the probe effect.
   const [probeAttempt, setProbeAttempt] = useState(0);
   const retryProbe = () => setProbeAttempt((n) => n + 1);
   const [clock, setClock] = useState<SystemClockStatus | null>(null);
 
   useEffect(() => {
-    if (mode !== "live") {
+    if (!live) {
       setClock(null);
       return;
     }
@@ -85,10 +90,10 @@ export function AboutSection() {
     return () => {
       cancelled = true;
     };
-  }, [mode, probeAttempt]);
+  }, [live, probeAttempt]);
 
   useEffect(() => {
-    if (mode !== "live") {
+    if (!live) {
       setInfo(null);
       setFailed(false);
       setLoading(false);
@@ -113,7 +118,7 @@ export function AboutSection() {
     return () => {
       cancelled = true;
     };
-  }, [mode, probeAttempt]);
+  }, [live, probeAttempt]);
 
   // While the live fetch is in flight, render a subtle placeholder rather than
   // flashing UNKNOWN for a probe that is about to answer.

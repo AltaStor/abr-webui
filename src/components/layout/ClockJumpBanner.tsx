@@ -36,10 +36,13 @@ export function ClockJumpBanner() {
   const mode = useWorldStore((s) => s.mode);
   const ready = useWorldStore((s) => s.ready);
   const canConfirm = useCan("system.clock_confirm");
+  // GET /system/clock needs system.view. Asking without it is only refused,
+  // and every refusal goes into the audit log as the user's (ABR-614).
+  const canRead = useCan("system.view");
   const [status, setStatus] = useState<SystemClockStatus | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
 
-  const live = mode === "live" && ready;
+  const live = mode === "live" && ready && canRead;
 
   const refresh = useCallback(() => {
     inBackground(getSystemClock)

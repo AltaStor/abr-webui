@@ -18,6 +18,7 @@ import { VMWARE_CHOICE_PATH, isVmwareChoiceSkipped } from "@/features/auth/vmwar
 import { getProvisioning, getVsphereSettings, inBackground } from "@/services/api.http";
 import { useAuthStore } from "@/store/auth";
 import { useWorldStore } from "@/store/world";
+import { useServerClockStore } from "@/store/serverClock";
 import { hydrateSettingsFromServer, useSettingsStore } from "@/store/settings";
 import { useAppearanceEffects } from "@/app/appearance";
 import { useLanguageEffects } from "@/i18n/apply";
@@ -59,6 +60,9 @@ export function AppShell() {
   const mode = useWorldStore((s) => s.mode);
   const ready = useWorldStore((s) => s.ready);
   const reduceMotion = useSettingsStore((s) => s.appearance.reduceMotion);
+  // The appliance's zone, which every time on a page is printed in. Null
+  // until it has answered once in this browser.
+  const serverZone = useServerClockStore((s) => s.zone);
   const authStatus = useAuthStore((s) => s.status);
   const mustChangePassword = useAuthStore((s) => s.mustChangePassword);
 
@@ -169,9 +173,13 @@ export function AppShell() {
                   rise on a smooth ease-out. Keyed by pathname so it plays per navigation
                   (not on query-only changes or live store updates). Also keyed by language
                   so switching it remounts the page, refreshing any non-hook readers of the
-                  `*_META` getter maps. */}
+                  `*_META` getter maps. And keyed by the server's zone: a page drawn
+                  before the appliance named it printed its times in the browser's
+                  zone, and not every time on a page reads the zone through a hook,
+                  so the page is drawn again once, when the zone becomes known
+                  (ABR-579, ABR-615). */}
               <motion.div
-                key={`${location.pathname}::${i18n.language}`}
+                key={`${location.pathname}::${i18n.language}::${serverZone ?? ""}`}
                 initial={reduceMotion ? false : { opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: reduceMotion ? 0 : 0.34, ease: [0.16, 1, 0.3, 1] }}

@@ -7,6 +7,7 @@ import { ArrowDown, ArrowDownToLine } from "@/lib/icons";
 import { cn } from "@/lib/utils";
 import { formatClock } from "@/lib/format";
 import { utcTitle } from "@/lib/time";
+import { useDateTimeFormat } from "@/lib/useDateTimeFormat";
 import type { LogLine, LogLevel } from "@/types";
 import { Button } from "./ui/button";
 import { EmptyState } from "./EmptyState";
@@ -76,6 +77,10 @@ const timeOf = (line: LogLine) => Date.parse(line.ts);
  */
 export function LogViewer({ lines, className, height = 320, live }: LogViewerProps) {
   const { t } = useTranslation("components");
+  // How times read: the zone (the browser's until the server's is known) and
+  // the format. A change draws every line again.
+  const { zone, dateFormat, timeFormat } = useDateTimeFormat();
+  const clock = `${zone}|${dateFormat}|${timeFormat}`;
   const [filter, setFilter] = useState<"all" | LogLevel>("all");
   const [following, setFollowingState] = useState(true);
   /** IDs of entries that arrived while not following. */
@@ -301,7 +306,7 @@ export function LogViewer({ lines, className, height = 320, live }: LogViewerPro
           {filtered.length === 0 ? (
             <EmptyState icon={Terminal} title={t("logViewer.empty.title")} description={t("logViewer.empty.description")} compact />
           ) : (
-            filtered.map((l) => <LogRow key={l.id} line={l} />)
+            filtered.map((l) => <LogRow key={l.id} line={l} clock={clock} />)
           )}
         </div>
         {!following && newCount > 0 && (
@@ -326,10 +331,12 @@ function sameLine(a: LogLine, b: LogLine): boolean {
   return a.id === b.id && a.ts === b.ts && a.level === b.level && a.message === b.message && a.vmName === b.vmName;
 }
 
-/** One line. Memoized on its content, so a refresh that brings the same
- *  entries back (as new objects) re-renders none of them. */
+/** One line. Memoized on its content and on how times read (`clock`), so a
+ *  refresh that brings the same entries back (as new objects) re-renders
+ *  none of them, and every line reads again once the server's zone is known
+ *  or the time format changes (ABR-615). */
 const LogRow = memo(
-  function LogRow({ line: l }: { line: LogLine }) {
+  function LogRow({ line: l }: { line: LogLine; clock: string }) {
     return (
       <div data-line-id={l.id} data-line-time={timeOf(l)} className="flex gap-2 whitespace-pre-wrap py-0.5 animate-fade-up">
         {/* The timestamp is small text and has to clear AA on BOTH grounds
@@ -357,5 +364,5 @@ const LogRow = memo(
       </div>
     );
   },
-  (prev, next) => sameLine(prev.line, next.line),
+  (prev, next) => prev.clock === next.clock && sameLine(prev.line, next.line),
 );

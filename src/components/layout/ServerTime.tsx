@@ -70,6 +70,8 @@ function useServerClockReading() {
  */
 export function ServerTime() {
   const { t } = useTranslation("layout");
+  const mode = useWorldStore((s) => s.mode);
+  const serverZone = useServerClockStore((s) => s.zone);
   useServerClockReading();
   // Re-renders when the zone becomes known or the time format changes.
   useDateTimeFormat();
@@ -80,6 +82,11 @@ export function ServerTime() {
   useEffect(() => {
     setDisplayPreferences({ localSuffix: t("serverTime.onYourComputer") });
   }, [t]);
+
+  // Until the appliance has named its zone, the time here would be the
+  // browser's under the words "Server time": say nothing instead. The demo
+  // world has no appliance, so its server time is the browser's.
+  if (mode !== "sim" && serverZone === null) return null;
 
   const zone = displayTimeZone();
   const offset = utcOffsetLabel(offsetMinutes(zone, at));

@@ -16,6 +16,7 @@
 import { useEffect } from "react";
 import { checkForUpdates, inBackground } from "@/services/api.http";
 import { useAuthStore } from "@/store/auth";
+import { useCan } from "@/store/permissions";
 import { useSettingsStore } from "@/store/settings";
 import { useWorldStore } from "@/store/world";
 import { useUpdatesStore } from "@/store/updates";
@@ -31,9 +32,14 @@ export function useAutoUpdateCheck(): void {
   const autoCheck = useSettingsStore((s) => s.updates.autoCheck);
   const mode = useWorldStore((s) => s.mode);
   const authStatus = useAuthStore((s) => s.status);
+  // The check reads GET /system/version, which needs system.view: asked
+  // without it, it is only refused, and the refusal goes into the audit log
+  // as the user's (ABR-614). `ready` means the role is known.
+  const ready = useWorldStore((s) => s.ready);
+  const canRead = useCan("system.view");
 
   useEffect(() => {
-    if (!autoCheck || mode !== "live" || authStatus !== "signed-in") return;
+    if (!autoCheck || mode !== "live" || authStatus !== "signed-in" || !ready || !canRead) return;
 
     let cancelled = false;
     let inFlight = false;
@@ -58,5 +64,5 @@ export function useAutoUpdateCheck(): void {
       cancelled = true;
       window.clearInterval(id);
     };
-  }, [autoCheck, mode, authStatus]);
+  }, [autoCheck, mode, authStatus, ready, canRead]);
 }
