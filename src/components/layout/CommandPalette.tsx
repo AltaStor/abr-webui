@@ -9,7 +9,7 @@ import {
   Activity,
   DatabaseBackup,
   Globe,
-  HardDrive,
+  RepositoryDrive,
   LayoutDashboard,
   Moon,
   Play,
@@ -164,7 +164,7 @@ export function CommandPalette() {
                 <Item onSelect={() => go("/inventory")} icon={<Server className="h-4 w-4" />} label={t("nav:inventory")} />
               )}
               {canSeeRepositories && (
-                <Item onSelect={() => go("/repositories")} icon={<HardDrive className="h-4 w-4" />} label={t("nav:repositories")} />
+                <Item onSelect={() => go("/repositories")} icon={<RepositoryDrive className="h-4 w-4" />} label={t("nav:repositories")} />
               )}
               {canSeeLogs && (
                 <Item onSelect={() => go("/logs")} icon={<Terminal className="h-4 w-4" />} label={t("nav:logs")} />

@@ -3,7 +3,7 @@
 
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Database, HardDrive, ShieldCheck, Trash2, type LucideIcon } from "@/lib/icons";
+import { Database, RepositoryDrive, ShieldCheck, Trash2, type LucideIcon } from "@/lib/icons";
 import { PageHeader } from "@/components/PageHeader";
 import { EmptyState } from "@/components/EmptyState";
 import { KpiCard } from "@/components/KpiCard";
@@ -111,7 +111,7 @@ export default function RepositoriesPage() {
           label={t("kpi.totalCapacity")}
           value={summary.capacityGB}
           format={(n) => formatStorage(n, 0)}
-          icon={HardDrive}
+          icon={Database}
           tone="neutral"
           hint={t("kpi.totalCapacityHint", { count: repositories.length })}
         />
@@ -151,7 +151,7 @@ export default function RepositoriesPage() {
       {repositories.length === 0 ? (
         <div className="border border-dashed border-border bg-card">
           <EmptyState
-            icon={HardDrive}
+            icon={RepositoryDrive}
             title={t("empty.title")}
             description={t("empty.description")}
             action={<AddRepositoryDialog />}

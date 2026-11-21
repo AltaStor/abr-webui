@@ -4,13 +4,12 @@
 import {
   AlertTriangle,
   CheckCircle2,
-  Cloud,
-  HardDrive,
   HelpCircle,
   Loader2,
-  Network,
+  RepositoryDrive,
   Server,
   ShieldCheck,
+  SmbShare,
   type LucideIcon,
 } from "@/lib/icons";
 import type { Repository, RepositoryType } from "@/types";
@@ -18,7 +17,9 @@ import type { Tone } from "@/lib/status";
 import i18n from "@/i18n";
 import { countOf } from "@/lib/count";
 
-/** Friendly label + icon for each repository backend type.
+/** Friendly label + icon for each repository backend type. Local and S3
+ *  repositories wear the repository mark and SMB ones the share, as the
+ *  Repositories page design draws them (ABR-609).
  *  `label`/`short` are getters resolving through i18next at access time, so every
  *  consumer picks up the current language with no call-site change. */
 export const REPO_TYPE_META: Record<
@@ -33,7 +34,7 @@ export const REPO_TYPE_META: Record<
   "object-lock-s3": {
     get label() { return i18n.t("repositories:type.objectLockS3.label"); },
     get short() { return i18n.t("repositories:type.objectLockS3.short"); },
-    icon: Cloud,
+    icon: RepositoryDrive,
   },
   nfs: {
     get label() { return i18n.t("repositories:type.nfs.label"); },
@@ -43,12 +44,12 @@ export const REPO_TYPE_META: Record<
   local: {
     get label() { return i18n.t("repositories:type.local.label"); },
     get short() { return i18n.t("repositories:type.local.short"); },
-    icon: HardDrive,
+    icon: RepositoryDrive,
   },
   smb: {
     get label() { return i18n.t("repositories:type.smb.label"); },
     get short() { return i18n.t("repositories:type.smb.short"); },
-    icon: Network,
+    icon: SmbShare,
   },
 };
 

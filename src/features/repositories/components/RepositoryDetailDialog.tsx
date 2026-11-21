@@ -9,12 +9,13 @@ import {
   Loader2,
   Lock,
   RefreshCw,
+  RestorePoint,
   ServerCog,
   ShieldAlert,
   ShieldCheck,
   Trash2,
   X,
-  Network,
+  SmbShare,
   type LucideIcon,
 } from "@/lib/icons";
 import {
@@ -38,7 +39,7 @@ import type { BackupJob, Repository, RepositoryValidationResult } from "@/types"
 import { immutabilityLabel, REPO_STATUS_META, REPO_TYPE_META } from "./repoMeta";
 import { RepositoryActionsMenu, type RepositoryActions } from "./RepositoryActionsMenu";
 import { ValidationResultPanel } from "./ValidationResultPanel";
-import { formatUnc, reachableFromHyperV } from "./share";
+import { formatUnc } from "./share";
 import { DateTime } from "@/components/DateTime";
 
 interface RepositoryDetailDialogProps {
@@ -136,14 +137,7 @@ function RepositoryDetailBody({
           <div className="min-w-0 flex-1">
             <DialogTitle className="truncate">{repo.name}</DialogTitle>
             <DialogDescription className="mt-1">
-              {[
-                typeMeta.label,
-                repo.isDefault && t("default.chip"),
-                repo.shared && t("card.shared"),
-                reachableFromHyperV(repo) && t("card.hyperV"),
-              ]
-                .filter(Boolean)
-                .join(" · ")}
+              {[typeMeta.label, repo.isDefault && t("default.chip")].filter(Boolean).join(" · ")}
             </DialogDescription>
           </div>
           <div className="flex shrink-0 items-center gap-1">
@@ -190,17 +184,16 @@ function RepositoryDetailBody({
             <code className="nums bg-muted/60 px-2 py-1 text-xs">{repo.path}</code>
           </Field>
 
-          {/* A local repository's share is the appliance's own, made and
-              removed by the switch in its settings; say whether it is on
-              either way. */}
+          {/* A local repository's share is the appliance's own, made when the
+              repository is added; say whether there is one either way. */}
           {repo.type === "local" && !repo.shared && (
-            <Field icon={Network} label={t("detail.smbShare")}>
+            <Field icon={SmbShare} label={t("detail.smbShare")}>
               <span className="text-xs text-muted-foreground">{t("detail.notShared")}</span>
             </Field>
           )}
 
           {repo.share && (
-            <Field icon={Network} label={repo.shared ? t("detail.smbShare") : t("detail.hypervShare")}>
+            <Field icon={SmbShare} label={repo.shared ? t("detail.smbShare") : t("detail.hypervShare")}>
               <code className="nums bg-muted/60 px-2 py-1 text-xs">{formatUnc(repo.share)}</code>
               <span className="ml-2 text-xs text-muted-foreground">
                 {repo.share.username
@@ -300,7 +293,7 @@ function RepositoryDetailBody({
           {/* Quick stats */}
           <KpiCard
             density="compact"
-            icon={Database}
+            icon={RestorePoint}
             label={t("card.metric.restorePoints")}
             value={formatInt(restorePointCount)}
           />

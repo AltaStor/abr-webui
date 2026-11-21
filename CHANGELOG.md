@@ -166,16 +166,23 @@ All notable changes to the AltaStor WebUI are documented in this file.
   jobs list and on the job page, with the appliance's warning in a tooltip.
 
 ### Changed
+- Repositories carry one label of their own, Default, in the primary colour;
+  the Shared and Hyper-V tags are gone from the cards and the details, and a
+  local repository's Edit settings no longer has the "Share over SMB"
+  switch. The cards follow the design (ABR-609): the repository mark in the
+  sidebar and on local and S3 repositories, the SMB share mark, a restore
+  point mark for "Restore points" and the backup mark for "Jobs writing
+  here", the database mark on both capacity tiles, "Used capacity" with
+  "N% of total" under it, and no usage trend line on the cards (the details
+  still draw it).
 - Repositories: "Set as default" in a repository's menu (with Edit settings
   and Delete) makes it the default repository, tagged Default on its card;
   a new backup job starts with it picked. The appliance moves the mark off
   the previous default (`PATCH /repositories/{id}` with `default: true`).
 - Local repositories are shared over SMB by the appliance as soon as they
   are added, so Hyper-V hosts can back up into them; the Add dialog says so,
-  and warns when the appliance could not share the new one. A shared one is
-  tagged Shared and keeps showing as Local storage, and its Edit settings
-  has a "Share over SMB" switch (with the share and its account) that adds
-  or removes the share on Save. The details show the share, or "Not
+  and warns when the appliance could not share the new one. A shared one
+  keeps showing as Local storage; its details show the share, or "Not
   shared". Needs abr-core with `share_error`, `initial` and `default` on
   repositories.
 - Settings → Storage is gone with the Default repository card: the

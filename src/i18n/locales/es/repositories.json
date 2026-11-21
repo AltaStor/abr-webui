@@ -7,8 +7,8 @@
     "totalCapacity": "Capacidad total",
     "totalCapacityHint_one": "En {{count}} repositorio",
     "totalCapacityHint_other": "En {{count}} repositorios",
-    "used": "Utilizado",
-    "usedHint": "{{pct}} % de la capacidad total"
+    "used": "Capacidad utilizada",
+    "usedHint": "{{pct}} % del total"
   },
   "health": {
     "title": "Estado del almacenamiento",
@@ -205,10 +205,6 @@
   "card": {
     "openDetails": "Abrir detalles de {{name}}",
     "importedSubtitle": "Copias de seguridad importadas · solo lectura",
-    "hyperV": "Hyper-V",
-    "shared": "Compartido",
-    "hyperVTitle": "Los trabajos de Hyper-V pueden hacer copias en este repositorio y restaurar desde él",
-    "sharedTitle": "Este appliance comparte la carpeta del repositorio por SMB, para que los hosts Hyper-V puedan hacer copias en ella",
     "threatLockedTitle": "Sellado por respuesta a amenazas — conserva puntos de restauración para {{names}}",
     "threatLocked": "Bloqueado por amenaza",
     "maintenance": "Mantenimiento",
@@ -232,7 +228,7 @@
     "mountPath": "Montado en",
     "hypervShare": "Recurso de Hyper-V",
     "smbShare": "Recurso SMB",
-    "notShared": "Sin compartir: actívelo en los ajustes del repositorio",
+    "notShared": "Sin compartir",
     "hypervShareAccount": "como {{account}}",
     "hypervShareInventoryAccount": "con la cuenta del inventario de Hyper-V",
     "immutability": "Inmutabilidad",
@@ -296,7 +292,7 @@
     "pathLabel": "Ruta",
     "mountPathLabel": "Montado en este appliance en",
     "mountPathHint": "La carpeta donde este appliance tiene montado el mismo recurso compartido. Allí guarda los manifiestos, fusiona las cadenas y verifica las copias.",
-    "sharedHint": "Este appliance comparte enseguida por SMB la carpeta de un repositorio local, para que los hosts Hyper-V puedan hacer copias en ella. Puede desactivarlo en los ajustes del repositorio.",
+    "sharedHint": "Este appliance comparte enseguida por SMB la carpeta de un repositorio local, para que los hosts Hyper-V puedan hacer copias en ella.",
     "mountPathRequired": "Introduzca la carpeta donde este appliance monta el recurso compartido.",
     "shareCredentials": "Credenciales del recurso compartido",
     "username": "Nombre de usuario",
@@ -385,24 +381,13 @@
       "failed": {
         "title": "No se pudieron guardar los ajustes del repositorio",
         "description": "Los cambios de {{name}} no se aplicaron. Vuelva a intentarlo en un momento."
-      },
-      "shareFailed": "No se pudo compartir el repositorio",
-      "unshareFailed": "No se pudo dejar de compartir el repositorio"
+      }
     },
     "title": "Editar repositorio",
     "description": {
       "name": "Cambie el nombre de este repositorio.",
-      "local": "Cambie el nombre de este repositorio y si este appliance comparte su carpeta por SMB.",
       "smb": "Cambie el nombre de este repositorio, la ruta del recurso compartido por la que lo alcanzan los hosts Hyper-V y la cuenta con la que lo abren.",
       "s3": "Cambie el nombre de este repositorio y su configuración de Object Lock."
-    },
-    "share": {
-      "label": "Compartir por SMB",
-      "hint": "Los hosts Hyper-V hacen copias a través de un recurso SMB oculto de esta carpeta, que solo puede abrir una cuenta generada por el appliance. Su contraseña permanece en el appliance.",
-      "share": "Recurso",
-      "account": "Cuenta",
-      "willShare": "Al guardar se crean el recurso compartido y su cuenta.",
-      "willUnshare": "Al guardar se eliminan el recurso compartido y su cuenta; las copias se conservan. El appliance lo rechaza mientras haya trabajos de Hyper-V que hagan copias aquí."
     },
     "saving": "Guardando…",
     "saveSettings": "Guardar ajustes",

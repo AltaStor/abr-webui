@@ -549,6 +549,48 @@ export const IconActivity = makeGlyph([
 ], "IconActivity");
 
 
+/* ----- Repositories page glyphs (ABR-609) -----
+   The repository mark, the SMB share and the restore point of the
+   Repositories page. Drawn on 20 px (the first two) and 14 px frames with a
+   1.5 and 1.05 stroke, which is this set's 1.8 on 24; the capacity tiles and
+   "Jobs writing here" use Database and DatabaseBackup as they are.
+   Figma: Altastore-UI, Repositories (node 471:660) — geometry exported from
+   the file, not redrawn. */
+
+/** A drive: a sloped top over a box with two lights. The repository mark,
+ *  in the sidebar and on local and S3 repositories. Figma: `Used`. */
+export const RepositoryDrive = makeSvg(
+  "RepositoryDrive",
+  els([
+    ["path", { d: "M21.36 12.67L18.28 3.47H5.73L2.64 12.69" }],
+    ["path", { d: "M21.59 14.13H2.4V20.53H21.59V14.13Z" }],
+    ["path", { d: "M8.86 17.39H8.87" }],
+    ["path", { d: "M4.86 17.39H4.87" }],
+  ]),
+);
+
+/** A folder on a network line: an SMB / CIFS share. Figma: `Frame`. */
+export const SmbShare = makeSvg(
+  "SmbShare",
+  els([
+    ["path", { d: "M11.99 16V19", strokeMiterlimit: 10 }],
+    ["path", { d: "M11.99 23C13.09 23 13.99 22.1 13.99 21C13.99 19.9 13.09 19 11.99 19C10.89 19 9.99 19.9 9.99 21C9.99 22.1 10.89 23 11.99 23Z", strokeMiterlimit: 10 }],
+    ["path", { d: "M20.61 21H13.99", strokeMiterlimit: 10 }],
+    ["path", { d: "M9.99 21L3.36 21", strokeMiterlimit: 10 }],
+    ["path", { d: "M18.99 4.8V16H4.99V2H9.99L13.39 4.8H18.99Z", strokeMiterlimit: 10 }],
+  ]),
+);
+
+/** A turn-back arrow around a dot: a point a VM can be restored to.
+ *  Figma: `Restore point`. */
+export const RestorePoint = makeSvg(
+  "RestorePoint",
+  els([
+    ["path", { d: "M3 12C3 13.78 3.53 15.52 4.52 17C5.51 18.48 6.91 19.63 8.56 20.31C10.2 21 12.01 21.17 13.76 20.83C15.5 20.48 17.11 19.62 18.36 18.36C19.62 17.11 20.48 15.5 20.83 13.76C21.17 12.01 21 10.2 20.31 8.56C19.63 6.91 18.48 5.51 17 4.52C15.52 3.53 13.78 3 12 3C9.48 3.01 7.07 3.99 5.26 5.74L3 8M8 8H3V3" }],
+    ["circle", { cx: 12, cy: 12, r: 1.77, fill: "currentColor", stroke: "none" }],
+  ]),
+);
+
 /* ----- OS brand logos (react-icons / Font Awesome brands), for VM glyphs ----- */
 export { FaWindows as WindowsLogo, FaLinux as LinuxLogo, FaApple as AppleLogo } from "react-icons/fa6";
 

@@ -17,7 +17,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
 import { toast } from "@/components/ui/sonner";
 import { useWorldStore } from "@/store/world";
@@ -32,7 +31,7 @@ import { ImmutabilityFields } from "./ImmutabilityFields";
 import { ImmutabilityEffectPanel } from "./ImmutabilityEffectPanel";
 import { ValidationResultPanel } from "./ValidationResultPanel";
 import { ShareFields } from "./ShareFields";
-import { draftToShare, formatUnc, shareDraftChanged, shareDraftProblem, shareToDraft, type ShareDraft } from "./share";
+import { draftToShare, shareDraftChanged, shareDraftProblem, shareToDraft, type ShareDraft } from "./share";
 import {
   RESOURCE_NAME_MAX_LENGTH,
   resourceNameErrorKey,
@@ -107,7 +106,6 @@ function EditRepositoryForm({
   const { t } = useTranslation("repositories");
   const { t: tCommon } = useTranslation("common");
   const editRepository = useWorldStore((s) => s.editRepository);
-  const setRepositoryShared = useWorldStore((s) => s.setRepositoryShared);
   const verifyRepositoryImmutability = useWorldStore((s) => s.verifyRepositoryImmutability);
   const applyRepositoryImmutability = useWorldStore((s) => s.applyRepositoryImmutability);
   const canValidateLock = useCan("repository.verify");
@@ -116,7 +114,6 @@ function EditRepositoryForm({
   const [name, setName] = useState(repo.name);
   const [lock, setLock] = useState<ImmutabilityDraft>(() => immutabilityToDraft(repo.immutability));
   const [shareDraft, setShareDraft] = useState<ShareDraft>(() => shareToDraft(repo.share));
-  const [shared, setShared] = useState(Boolean(repo.shared));
   const [saving, setSaving] = useState(false);
   const [validating, setValidating] = useState(false);
   const [applying, setApplying] = useState(false);
@@ -143,13 +140,11 @@ function EditRepositoryForm({
   const nameDirty = name !== "" && name !== repo.name;
   const lockValid = draftValid(lock);
   const isSmb = repo.type === "smb";
-  // A local repository's share is the appliance's own: the switch makes or
-  // removes it (with its account) on save, and nothing in it is edited by hand.
-  const isLocal = repo.type === "local";
-  const sharedDirty = isLocal && shared !== Boolean(repo.shared);
+  // A local repository's share is the appliance's own, made when the
+  // repository is added; nothing in it is edited here.
   const shareDirty = isSmb && shareDraftChanged(shareDraft, repo.share);
   const shareValid = !isSmb || shareDraftProblem(shareDraft, repo.share) === null;
-  const dirty = nameDirty || lockDirty || shareDirty || sharedDirty;
+  const dirty = nameDirty || lockDirty || shareDirty;
   const canSave = dirty && lockValid && shareValid && nameProblem === null && !saving;
   /* Placing stored backups under the lock only makes sense once the lock is
    * saved: the appliance reads the repository's persisted setting, not the
@@ -233,19 +228,6 @@ function EditRepositoryForm({
         savedName = result.repository.name;
         effectReport = result.immutabilityEffect;
       }
-      if (sharedDirty) {
-        // Refused while Hyper-V jobs back up into it, or a run uses it; the
-        // appliance's reason names them.
-        const result = await setRepositoryShared(repo.id, shared);
-        if (!result.ok) {
-          setSaveError({ message: result.message, checks: result.checks });
-          toast.error(t(shared ? "edit.toast.shareFailed" : "edit.toast.unshareFailed"), {
-            description: result.message,
-          });
-          return;
-        }
-        savedName = result.repository.name;
-      }
       toast.success(t("edit.toast.saved.title"), {
         description: t("edit.toast.saved.descriptionGeneric", { name: savedName }),
       });
@@ -290,9 +272,7 @@ function EditRepositoryForm({
               ? "edit.description.smb"
               : supportsLock
                 ? "edit.description.s3"
-                : isLocal
-                  ? "edit.description.local"
-                  : "edit.description.name",
+                : "edit.description.name",
           )}
         </DialogDescription>
       </DialogHeader>
@@ -312,48 +292,6 @@ function EditRepositoryForm({
             />
             {nameErrorKey && <p className="text-xs text-danger">{tCommon(nameErrorKey)}</p>}
           </div>
-
-          {isLocal && (
-            <div className="space-y-2.5 border border-border p-3">
-              <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0 space-y-0.5">
-                  <Label htmlFor="edit-repo-shared">{t("edit.share.label")}</Label>
-                  <p className="text-[11px] leading-relaxed text-muted-foreground">{t("edit.share.hint")}</p>
-                </div>
-                <Switch
-                  id="edit-repo-shared"
-                  checked={shared}
-                  onCheckedChange={(on) => {
-                    setShared(on);
-                    setSaveError(null);
-                  }}
-                  disabled={saving}
-                  aria-label={t("edit.share.label")}
-                />
-              </div>
-              {shared && repo.shared && repo.share && (
-                <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-xs">
-                  <dt className="text-muted-foreground">{t("edit.share.share")}</dt>
-                  <dd>
-                    <code className="nums break-all">{formatUnc(repo.share)}</code>
-                  </dd>
-                  {repo.share.username && (
-                    <>
-                      <dt className="text-muted-foreground">{t("edit.share.account")}</dt>
-                      <dd>
-                        <code className="nums">{repo.share.username}</code>
-                      </dd>
-                    </>
-                  )}
-                </dl>
-              )}
-              {sharedDirty && (
-                <p className="bg-info-subtle px-3 py-2 text-[11px] leading-relaxed text-info-text">
-                  {t(shared ? "edit.share.willShare" : "edit.share.willUnshare")}
-                </p>
-              )}
-            </div>
-          )}
 
           {isSmb && (
             <ShareFields

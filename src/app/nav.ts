@@ -4,8 +4,8 @@
 import {
   Activity,
   DatabaseBackup,
-  HardDrive,
   LayoutDashboard,
+  RepositoryDrive,
   RotateCcw,
   Server,
   Terminal,
@@ -64,7 +64,7 @@ export const SECONDARY_NAV: NavItem[] = [
   {
     labelKey: "repositories",
     href: "/repositories",
-    icon: HardDrive,
+    icon: RepositoryDrive,
     match: (p) => p.startsWith("/repositories"),
     functions: ["repository.view"],
   },

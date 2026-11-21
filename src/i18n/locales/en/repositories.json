@@ -7,8 +7,8 @@
     "totalCapacity": "Total capacity",
     "totalCapacityHint_one": "Across {{count}} repository",
     "totalCapacityHint_other": "Across {{count}} repositories",
-    "used": "Used",
-    "usedHint": "{{pct}}% of total capacity"
+    "used": "Used capacity",
+    "usedHint": "{{pct}}% of total"
   },
   "health": {
     "title": "Storage health",
@@ -205,10 +205,6 @@
   "card": {
     "openDetails": "Open {{name}} details",
     "importedSubtitle": "Imported backups · read-only",
-    "hyperV": "Hyper-V",
-    "shared": "Shared",
-    "hyperVTitle": "Hyper-V jobs can back up into this repository and restore from it",
-    "sharedTitle": "This appliance shares the repository's folder over SMB, so Hyper-V hosts can back up into it",
     "threatLockedTitle": "Sealed by threat response — holds restore points for {{names}}",
     "threatLocked": "Threat-locked",
     "maintenance": "Maintenance",
@@ -232,7 +228,7 @@
     "mountPath": "Mounted at",
     "hypervShare": "Hyper-V share",
     "smbShare": "SMB share",
-    "notShared": "Not shared — turn it on in the repository's settings",
+    "notShared": "Not shared",
     "hypervShareAccount": "as {{account}}",
     "hypervShareInventoryAccount": "with the Hyper-V inventory's account",
     "immutability": "Immutability",
@@ -296,7 +292,7 @@
     "pathLabel": "Path",
     "mountPathLabel": "Mounted on this appliance at",
     "mountPathHint": "The folder where this appliance has the same share mounted. It keeps the manifests, merges chains and verifies backups there.",
-    "sharedHint": "This appliance shares a local repository's folder over SMB right away, so Hyper-V hosts can back up into it. You can turn that off in the repository's settings.",
+    "sharedHint": "This appliance shares a local repository's folder over SMB right away, so Hyper-V hosts can back up into it.",
     "mountPathRequired": "Enter the folder this appliance mounts the share at.",
     "shareCredentials": "Share credentials",
     "username": "Username",
@@ -385,24 +381,13 @@
       "failed": {
         "title": "Couldn't save repository settings",
         "description": "{{name}}'s changes were not applied. Try again in a moment."
-      },
-      "shareFailed": "Couldn't share the repository",
-      "unshareFailed": "Couldn't stop sharing the repository"
+      }
     },
     "title": "Edit repository",
     "description": {
       "name": "Change this repository's name.",
-      "local": "Change this repository's name, and whether this appliance shares its folder over SMB.",
       "smb": "Change this repository's name, the share path the Hyper-V hosts reach it by, and the account they open the share with.",
       "s3": "Change this repository's name and its Object Lock setting."
-    },
-    "share": {
-      "label": "Share over SMB",
-      "hint": "Hyper-V hosts back up through a hidden SMB share of this folder, which only an account the appliance generates can open. Its password stays on the appliance.",
-      "share": "Share",
-      "account": "Account",
-      "willShare": "Saving creates the share and its account.",
-      "willUnshare": "Saving removes the share and its account; the backups stay. The appliance refuses while Hyper-V jobs back up here."
     },
     "saving": "Saving…",
     "saveSettings": "Save settings",

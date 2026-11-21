@@ -2,10 +2,9 @@
 // Copyright © 2026 Norvitex OÜ
 
 import { useTranslation } from "react-i18next";
-import { Database, Layers, Lock, ShieldAlert } from "@/lib/icons";
+import { Database, DatabaseBackup, Lock, RestorePoint, ShieldAlert } from "@/lib/icons";
 import { cn } from "@/lib/utils";
 import { Metric } from "@/components/Metric";
-import { Sparkline } from "@/components/Sparkline";
 import { StatusPill } from "@/components/StatusPill";
 import { useCapacityLevel } from "@/lib/capacity";
 import type { RepoThreatLock } from "@/lib/threatLock";
@@ -13,7 +12,6 @@ import { formatStorage, usagePercent } from "@/lib/format";
 import type { Repository } from "@/types";
 import { immutabilityLabel, REPO_STATUS_META, REPO_TYPE_META } from "./repoMeta";
 import { RepositoryActionsMenu, type RepositoryActions } from "./RepositoryActionsMenu";
-import { reachableFromHyperV } from "./share";
 
 interface RepositoryCardProps {
   repo: Repository;
@@ -49,17 +47,9 @@ export function RepositoryCard({
   // Object Lock is the one repository setting that changes what happens to data
   // after it is written, so it belongs on the card rather than two clicks in.
   const lockLabel = immutabilityLabel(repo);
-  const hyperV = reachableFromHyperV(repo);
   const pct = usagePercent(repo.usedGB, repo.capacityGB);
   const freeGB = Math.max(0, repo.capacityGB - repo.usedGB);
   const level = useCapacityLevel(pct);
-
-  const sparkColor =
-    level === "critical"
-      ? "hsl(var(--danger))"
-      : level === "warn"
-        ? "hsl(var(--warning))"
-        : "hsl(var(--muted-foreground))";
 
   return (
     <div className="group relative flex flex-col overflow-hidden border border-border bg-card transition-colors duration-250 hover:border-primary/60 hover:shadow-pop">
@@ -98,31 +88,18 @@ export function RepositoryCard({
           <StatusPill meta={{ ...statusMeta, icon: Database }} size="sm" />
         </div>
 
-        {/* Status chips row: default / shared / Hyper-V / immutability / threat-lock / scanning */}
-        {(repo.isDefault || repo.shared || hyperV || lockLabel || threatLock || scanning || verifying) && (
+        {/* Status chips row: default / immutability / threat-lock / scanning.
+            Default is the one label a repository carries for itself, and it
+            stands out: it is where new backup jobs go. */}
+        {(repo.isDefault || lockLabel || threatLock || scanning || verifying) && (
           <div className="mt-3 flex flex-wrap items-center gap-1.5">
             {repo.isDefault && (
               <span
-                className="inline-flex items-center gap-1 bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground"
+                className="inline-flex items-center gap-1 bg-primary px-2 py-0.5 text-[11px] font-semibold text-primary-foreground"
                 title={t("default.chipTitle")}
+                data-testid="repository-default-chip"
               >
                 {t("default.chip")}
-              </span>
-            )}
-            {repo.shared && (
-              <span
-                className="inline-flex items-center gap-1 bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground"
-                title={t("card.sharedTitle")}
-              >
-                {t("card.shared")}
-              </span>
-            )}
-            {hyperV && (
-              <span
-                className="inline-flex items-center gap-1 bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground"
-                title={t("card.hyperVTitle")}
-              >
-                {t("card.hyperV")}
               </span>
             )}
             {lockLabel && (
@@ -183,7 +160,7 @@ export function RepositoryCard({
                   style={{ width: `${Math.max(2, pct)}%` }}
                 />
               </div>
-              <div className="mt-1.5 flex items-center justify-between">
+              <div className="mt-1.5 flex items-center">
                 <span
                   className={cn(
                     "nums text-[11px] font-medium",
@@ -201,12 +178,8 @@ export function RepositoryCard({
                       ? t("card.runningLow")
                       : ""}
                 </span>
-                {/* Fewer than two daily samples is not a trend — drawing a flat line
-                    would invent a usage history the repository never accumulated
-                    (a freshly imported repo has none). */}
-                {repo.usageTrend.length > 1 && (
-                  <Sparkline data={repo.usageTrend} width={72} height={20} color={sparkColor} />
-                )}
+                {/* The usage trend line is hidden for now (ABR-609): the
+                    detail dialog still draws it. */}
               </div>
             </>
           )}
@@ -215,11 +188,11 @@ export function RepositoryCard({
         {/* Metric chips: restore points · jobs */}
         <div className="mt-4 grid grid-cols-2 gap-2 border-t border-border pt-3 text-xs">
           <Metric
-            icon={Database}
+            icon={RestorePoint}
             label={t("card.metric.restorePoints")}
             value={restorePointCount.toLocaleString()}
           />
-          <Metric icon={Layers} label={t("card.metric.jobsWritingHere")} value={jobCount.toString()} />
+          <Metric icon={DatabaseBackup} label={t("card.metric.jobsWritingHere")} value={jobCount.toString()} />
         </div>
       </button>
     </div>

@@ -7,8 +7,8 @@
     "totalCapacity": "Capacité totale",
     "totalCapacityHint_one": "Sur {{count}} référentiel",
     "totalCapacityHint_other": "Sur {{count}} référentiels",
-    "used": "Utilisé",
-    "usedHint": "{{pct}} % de la capacité totale"
+    "used": "Capacité utilisée",
+    "usedHint": "{{pct}} % du total"
   },
   "health": {
     "title": "État du stockage",
@@ -205,10 +205,6 @@
   "card": {
     "openDetails": "Ouvrir les détails de {{name}}",
     "importedSubtitle": "Sauvegardes importées · lecture seule",
-    "hyperV": "Hyper-V",
-    "shared": "Partagé",
-    "hyperVTitle": "Les tâches Hyper-V peuvent sauvegarder dans ce référentiel et y restaurer",
-    "sharedTitle": "Cette appliance partage le dossier du référentiel en SMB, pour que les hôtes Hyper-V puissent y sauvegarder",
     "threatLockedTitle": "Scellé par la réponse aux menaces — conserve les points de restauration pour {{names}}",
     "threatLocked": "Verrouillé par menace",
     "maintenance": "Maintenance",
@@ -232,7 +228,7 @@
     "mountPath": "Monté dans",
     "hypervShare": "Partage Hyper-V",
     "smbShare": "Partage SMB",
-    "notShared": "Non partagé — activez-le dans les paramètres du référentiel",
+    "notShared": "Non partagé",
     "hypervShareAccount": "en tant que {{account}}",
     "hypervShareInventoryAccount": "avec le compte de l’inventaire Hyper-V",
     "immutability": "Immuabilité",
@@ -296,7 +292,7 @@
     "pathLabel": "Chemin",
     "mountPathLabel": "Monté sur cette appliance dans",
     "mountPathHint": "Le dossier où cette appliance a monté ce même partage. Elle y tient les manifestes, fusionne les chaînes et vérifie les sauvegardes.",
-    "sharedHint": "Cette appliance partage aussitôt en SMB le dossier d’un référentiel local, pour que les hôtes Hyper-V puissent y sauvegarder. Vous pouvez le désactiver dans les paramètres du référentiel.",
+    "sharedHint": "Cette appliance partage aussitôt en SMB le dossier d’un référentiel local, pour que les hôtes Hyper-V puissent y sauvegarder.",
     "mountPathRequired": "Saisissez le dossier où cette appliance monte le partage.",
     "shareCredentials": "Identifiants du partage",
     "username": "Nom d'utilisateur",
@@ -385,24 +381,13 @@
       "failed": {
         "title": "Impossible d'enregistrer les paramètres du référentiel",
         "description": "Les modifications de {{name}} n'ont pas été appliquées. Réessayez dans un instant."
-      },
-      "shareFailed": "Impossible de partager le référentiel",
-      "unshareFailed": "Impossible d’arrêter le partage du référentiel"
+      }
     },
     "title": "Modifier le référentiel",
     "description": {
       "name": "Modifiez le nom de ce référentiel.",
-      "local": "Modifiez le nom de ce référentiel, et choisissez si cette appliance partage son dossier en SMB.",
       "smb": "Modifiez le nom de ce référentiel, le chemin du partage par lequel les hôtes Hyper-V l’atteignent et le compte avec lequel ils ouvrent le partage.",
       "s3": "Modifiez le nom de ce référentiel et son paramètre Object Lock."
-    },
-    "share": {
-      "label": "Partager en SMB",
-      "hint": "Les hôtes Hyper-V sauvegardent par un partage SMB masqué de ce dossier, que seul un compte généré par l’appliance peut ouvrir. Son mot de passe reste sur l’appliance.",
-      "share": "Partage",
-      "account": "Compte",
-      "willShare": "L’enregistrement crée le partage et son compte.",
-      "willUnshare": "L’enregistrement supprime le partage et son compte ; les sauvegardes restent. L’appliance refuse tant que des tâches Hyper-V y sauvegardent."
     },
     "saving": "Enregistrement en cours…",
     "saveSettings": "Enregistrer les paramètres",
