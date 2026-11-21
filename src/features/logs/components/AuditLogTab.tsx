@@ -19,14 +19,25 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { formatInt } from "@/lib/format";
 import { qk } from "@/lib/query";
-import { apiErrorMessage, listAuditRecords, listRoles, type AuditRecord, type AuditResult } from "@/services/api.http";
+import {
+  apiErrorMessage,
+  listAuditRecords,
+  listFunctions,
+  listRoles,
+  type AuditRecord,
+  type AuditResult,
+  type ProductFunction,
+} from "@/services/api.http";
 import { ROLE_NAMES, useCan } from "@/store/permissions";
 import { useWorldStore } from "@/store/world";
 import { DateTime } from "@/components/DateTime";
 
 const PAGE_SIZE = 100;
-/** The product areas a function ID starts with, for the area filter. */
-const AREAS = [
+/** The product areas a function ID starts with, for the area filter: those
+ *  of the functions catalogue (GET /functions) when the role may read it,
+ *  these otherwise. Reading it without role.view would only be refused, and
+ *  the refusal recorded in this very log. */
+const KNOWN_AREAS = [
   "auth",
   "user",
   "role",
@@ -37,15 +48,33 @@ const AREAS = [
   "restore",
   "repository",
   "inventory",
+  "notification",
   "system",
   "tls",
   "dashboard",
-] as const;
+];
+
+/** The areas of a functions catalogue, in the order it lists them. */
+function areasOf(functions: ProductFunction[]): string[] {
+  const areas: string[] = [];
+  for (const fn of functions) {
+    const area = fn.id.split(".")[0];
+    if (area && !areas.includes(area)) areas.push(area);
+  }
+  return areas;
+}
 const RESULT_VARIANT: Record<AuditResult, "success" | "danger" | "warning"> = {
   allowed: "success",
   denied: "danger",
   failed: "warning",
 };
+
+/** `details.trigger` of a record the scheduler wrote: "schedule",
+ *  "copy-window", "after-job" and the like. */
+function triggerOf(record: AuditRecord): string | null {
+  const trigger = record.details?.trigger;
+  return typeof trigger === "string" && trigger ? trigger : null;
+}
 
 function targetText(record: AuditRecord): string {
   const target = record.target;
@@ -83,6 +112,13 @@ export function AuditLogTab() {
   const canViewRoles = useCan("role.view");
   const roles = useQuery({ queryKey: qk.roles, queryFn: listRoles, enabled: live && canViewRoles });
   const roleLabel = (id: string) => roles.data?.find((role) => role.id === id)?.name ?? ROLE_NAMES[id] ?? id;
+  const functions = useQuery({
+    queryKey: qk.functions,
+    queryFn: listFunctions,
+    enabled: live && canViewRoles,
+    staleTime: Infinity,
+  });
+  const areas = functions.data?.length ? areasOf(functions.data) : KNOWN_AREAS;
 
   const total = audit.data?.total ?? 0;
   const items = audit.data?.items ?? [];
@@ -128,7 +164,7 @@ export function AuditLogTab() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">{t("audit.allAreas")}</SelectItem>
-            {AREAS.map((a) => (
+            {areas.map((a) => (
               <SelectItem key={a} value={a}>
                 {a}
               </SelectItem>
@@ -216,6 +252,10 @@ export function AuditLogTab() {
                   <TableCell className="hidden text-xs text-muted-foreground md:table-cell">
                     {t(`audit.interface.${record.interface}`, { defaultValue: record.interface })}
                     {record.command && <div className="font-mono">abr {record.command}</div>}
+                    {/* What started a run the appliance began by itself. */}
+                    {!record.command && triggerOf(record) && (
+                      <div>{t(`audit.trigger.${triggerOf(record)}`, { defaultValue: triggerOf(record) })}</div>
+                    )}
                   </TableCell>
                 </TableRow>
               ))}

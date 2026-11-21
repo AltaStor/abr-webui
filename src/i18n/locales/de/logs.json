@@ -69,7 +69,17 @@
     "interface": {
       "web": "Webkonsole",
       "cli": "CLI",
-      "api": "API"
+      "api": "API",
+      "scheduler": "Planer"
+    },
+    "trigger": {
+      "schedule": "Nach Zeitplan",
+      "after-job": "Nach einem anderen Job",
+      "after-source": "Nach seiner Quellsicherung",
+      "immediate": "Nach einer neuen Sicherung",
+      "copy-window": "Kopierfenster",
+      "copy-backlog": "Noch zu kopierende Sicherungen",
+      "manual": "Von Hand gestartet"
     },
     "range": "{{from}}–{{to}} von {{total}}",
     "newer": "Neuere Einträge",

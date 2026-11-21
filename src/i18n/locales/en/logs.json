@@ -69,7 +69,17 @@
     "interface": {
       "web": "Web console",
       "cli": "CLI",
-      "api": "API"
+      "api": "API",
+      "scheduler": "Scheduler"
+    },
+    "trigger": {
+      "schedule": "On its schedule",
+      "after-job": "After another job",
+      "after-source": "After its source backup",
+      "immediate": "After a new backup",
+      "copy-window": "Copy window",
+      "copy-backlog": "Backups left to copy",
+      "manual": "Started by hand"
     },
     "range": "{{from}}–{{to}} of {{total}}",
     "newer": "Newer records",

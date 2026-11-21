@@ -69,7 +69,17 @@
     "interface": {
       "web": "Console web",
       "cli": "CLI",
-      "api": "API"
+      "api": "API",
+      "scheduler": "Planificateur"
+    },
+    "trigger": {
+      "schedule": "Selon sa planification",
+      "after-job": "Après une autre tâche",
+      "after-source": "Après sa sauvegarde source",
+      "immediate": "Après une nouvelle sauvegarde",
+      "copy-window": "Fenêtre de copie",
+      "copy-backlog": "Sauvegardes restant à copier",
+      "manual": "Lancée à la main"
     },
     "range": "{{from}}–{{to}} sur {{total}}",
     "newer": "Entrées plus récentes",

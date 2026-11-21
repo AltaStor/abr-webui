@@ -69,7 +69,17 @@
     "interface": {
       "web": "Consola web",
       "cli": "CLI",
-      "api": "API"
+      "api": "API",
+      "scheduler": "Programador"
+    },
+    "trigger": {
+      "schedule": "Según su programación",
+      "after-job": "Después de otro trabajo",
+      "after-source": "Después de su copia de origen",
+      "immediate": "Después de una copia nueva",
+      "copy-window": "Ventana de copia",
+      "copy-backlog": "Copias pendientes de copiar",
+      "manual": "Iniciado a mano"
     },
     "range": "{{from}}–{{to}} de {{total}}",
     "newer": "Registros más recientes",

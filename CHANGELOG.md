@@ -186,6 +186,11 @@ All notable changes to the AltaStor WebUI are documented in this file.
   settings and the run details use the same names.
 - A backup job can run only when started: "Manual only" in the schedule
   card of the job form (backup jobs; full backup schedules still run).
+- Logs → Audit log: the area filter lists the areas of the functions
+  catalogue (`GET /functions`) when the role may read it, notification
+  included (ABR-578); records the scheduler wrote say "Scheduler" under Via,
+  with what started them (on its schedule, copy window, after another job…)
+  (ABR-613).
 - Repositories: "Set as default" in a repository's menu (with Edit settings
   and Delete) makes it the default repository, tagged Default on its card;
   a new backup job starts with it picked. The appliance moves the mark off
