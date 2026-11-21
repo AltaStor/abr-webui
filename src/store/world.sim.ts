@@ -783,6 +783,7 @@ export function createSimDriver(handle: WorldHandle): WorldDriver {
         scopeSummary: input.scopeSummary,
         repositoryId: input.repositoryId,
         schedule: input.schedule,
+        ...(input.manual ? { manual: true } : {}),
         activeFullSchedule: input.activeFullSchedule ?? null,
         syntheticFullSchedule: input.syntheticFullSchedule ?? null,
         activeFullNextRunAt: fullNextRun(input.activeFullSchedule),
@@ -792,7 +793,7 @@ export function createSimDriver(handle: WorldHandle): WorldDriver {
         state: "idle",
         lastStatus: null,
         lastRunAt: null,
-        nextRunAt: computeNextRun(input.schedule),
+        nextRunAt: input.manual ? null : computeNextRun(input.schedule),
         createdAt: nowIso(),
         successRate: 100,
         recentRuns: [],
@@ -832,6 +833,8 @@ export function createSimDriver(handle: WorldHandle): WorldDriver {
           // Like the appliance, only a schedule that was sent gets a new next
           // run, and a disabled job keeps none.
           const live = next.state !== "disabled";
+          if (patch.manual === true) next.nextRunAt = null;
+          else if (patch.schedule !== undefined) next.nextRunAt = live ? computeNextRun(patch.schedule) : null;
           if (patch.activeFullSchedule !== undefined) {
             next.activeFullNextRunAt = live ? fullNextRun(patch.activeFullSchedule) : null;
           }
@@ -858,7 +861,7 @@ export function createSimDriver(handle: WorldHandle): WorldDriver {
             ? {
                 ...j,
                 state: enabled ? "idle" : "disabled",
-                nextRunAt: enabled ? computeNextRun(j.schedule) : null,
+                nextRunAt: enabled && !j.manual ? computeNextRun(j.schedule) : null,
                 // The full schedules ride along with the job's own switch.
                 activeFullNextRunAt: enabled ? fullNextRun(j.activeFullSchedule) : null,
                 syntheticFullNextRunAt: enabled ? fullNextRun(j.syntheticFullSchedule) : null,

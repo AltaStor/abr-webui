@@ -21,6 +21,7 @@
   },
   "schedule": {
     "disabled": "Deaktiviert",
+    "manual": "Bei manuellem Start",
     "hourly_one": "Stündlich",
     "hourly_other": "Alle {{count}} h",
     "weekly": "Wöchentlich · {{day}} {{time}}",
@@ -841,7 +842,8 @@
     "firstRun": {
       "hourly": "innerhalb der Stunde",
       "every4h": "innerhalb von 4 Stunden",
-      "weeklyNoDay": "sobald Sie einen Tag wählen"
+      "weeklyNoDay": "sobald Sie einen Tag wählen",
+      "manual": "wenn Sie ihn starten"
     },
     "errors": {
       "name": "Geben Sie dem Job einen Namen.",
@@ -911,7 +913,9 @@
       "every4hSub": "Alle 4 Stunden",
       "dailySub": "Einmal täglich",
       "weeklySub_one": "Einmal pro Woche",
-      "weeklySub_other": "{{count}} Tage pro Woche"
+      "weeklySub_other": "{{count}} Tage pro Woche",
+      "manual": "Nur manuell",
+      "manualSub": "Wenn Sie ihn starten"
     },
     "atTime": "Um Uhrzeit",
     "onDays": "An Tagen",
@@ -1025,7 +1029,8 @@
       "explainSame": "{{time}} ist auf Ihrer Uhr dieselbe Uhrzeit.",
       "explainNextDay": "{{time}} ist auf Ihrer Uhr {{viewer}} am Folgetag.",
       "explainPreviousDay": "{{time}} ist auf Ihrer Uhr {{viewer}} am Vortag."
-    }
+    },
+    "manualNote": "Der Job läuft nur, wenn ihn jemand startet, und nach den Vollsicherungsplänen unten, solange sie eingeschaltet sind."
   },
   "hyperv": {
     "consistency": {

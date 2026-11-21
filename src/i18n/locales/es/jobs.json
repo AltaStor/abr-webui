@@ -21,6 +21,7 @@
   },
   "schedule": {
     "disabled": "Deshabilitado",
+    "manual": "Al iniciarlo a mano",
     "hourly_one": "Cada hora",
     "hourly_other": "Cada {{count}} h",
     "weekly": "Semanal · {{day}} {{time}}",
@@ -841,7 +842,8 @@
     "firstRun": {
       "hourly": "dentro de la hora",
       "every4h": "dentro de 4 horas",
-      "weeklyNoDay": "en cuanto elija un día"
+      "weeklyNoDay": "en cuanto elija un día",
+      "manual": "cuando lo inicie"
     },
     "errors": {
       "name": "Ponle un nombre al trabajo.",
@@ -911,7 +913,9 @@
       "every4hSub": "Cada 4 horas",
       "dailySub": "Una vez al día",
       "weeklySub_one": "Una vez por semana",
-      "weeklySub_other": "{{count}} días por semana"
+      "weeklySub_other": "{{count}} días por semana",
+      "manual": "Solo manual",
+      "manualSub": "Cuando lo inicie"
     },
     "atTime": "A la hora",
     "onDays": "En los días",
@@ -1025,7 +1029,8 @@
       "explainSame": "{{time}} es la misma hora en su reloj.",
       "explainNextDay": "{{time}} son las {{viewer}} del día siguiente en su reloj.",
       "explainPreviousDay": "{{time}} son las {{viewer}} del día anterior en su reloj."
-    }
+    },
+    "manualNote": "El trabajo se ejecuta solo cuando alguien lo inicia, y según las programaciones de copia completa de abajo mientras estén activadas."
   },
   "hyperv": {
     "consistency": {

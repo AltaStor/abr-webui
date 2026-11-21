@@ -184,6 +184,8 @@ All notable changes to the AltaStor WebUI are documented in this file.
   directory shows as that directory's path. Without AltaVDDK on the
   appliance an empty field cannot be saved. The environment's Advanced
   settings and the run details use the same names.
+- A backup job can run only when started: "Manual only" in the schedule
+  card of the job form (backup jobs; full backup schedules still run).
 - Repositories: "Set as default" in a repository's menu (with Edit settings
   and Delete) makes it the default repository, tagged Default on its card;
   a new backup job starts with it picked. The appliance moves the mark off
@@ -236,6 +238,11 @@ All notable changes to the AltaStor WebUI are documented in this file.
   platform.
 
 ### Fixed
+- Editing a backup job without a regular schedule kept it so (ABR-596): the
+  console showed such a job as "Daily · 00:00" and saving its edit form,
+  even after a rename only, gave it a daily schedule at 00:00. It now reads
+  "When started by hand", the form opens on "Manual only", and the schedule
+  is sent only when it changed (`schedule: null` takes it away).
 - A new job stays on server time when its time is typed (ABR-575). On a
   computer on another zone, a console that had not yet heard the appliance's
   zone opened the form on the browser's zone; typing a time then showed

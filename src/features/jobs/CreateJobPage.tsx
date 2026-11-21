@@ -9,6 +9,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import {
   AlertTriangle,
   CalendarDays,
+  Hand,
   ChevronDown,
   Clock,
   Database,
@@ -98,7 +99,9 @@ import { defaultReplicaName, replicaCreated, sourceJobProblem, sourcePoints } fr
 import { validateRestoredVmName } from "@/features/restore/components/ChooseModeStep";
 import { LockedSetting, NetworkMapFields, ReplicationSourcePicker, StartPointSelect } from "./components/ReplicationFields";
 
-type Preset = "hourly" | "every4h" | "daily" | "weekly";
+/** "manual": a backup job with no regular schedule, which runs only when
+ *  started (and on its full schedules), ABR-596. */
+type Preset = "hourly" | "every4h" | "daily" | "weekly" | "manual";
 type JobTypeChoice = "backup" | "replication" | "backup-copy";
 const RETENTION_PRESETS = [7, 14, 30, 90];
 const DAY_KEYS = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
@@ -295,6 +298,8 @@ function scheduleToPreset(schedule: Schedule): Preset {
  *  clock and, when that reads differently, on the viewer's. */
 function firstRunLabel(form: FormState): string {
   switch (form.preset) {
+    case "manual":
+      return i18n.t("jobs:create.firstRun.manual");
     case "hourly":
       return i18n.t("jobs:create.firstRun.hourly");
     case "every4h":
@@ -464,7 +469,7 @@ function JobWizard({
     if (existingJob) {
       return {
         name: existingJob.name,
-        preset: scheduleToPreset(existingJob.schedule),
+        preset: existingJob.manual ? "manual" : scheduleToPreset(existingJob.schedule),
         atTime,
         timezone,
         daysOfWeek: existingJob.schedule.daysOfWeek?.length ? [...existingJob.schedule.daysOfWeek] : [0],
@@ -1010,7 +1015,9 @@ function JobWizard({
             sourceJob: replSourceJob ? { id: replSourceJob.id, name: replSourceJob.name } : storedRepl?.sourceJob ?? null,
           },
         })
-      : scheduleLabel(schedule);
+      : form.preset === "manual"
+        ? t("schedule.manual")
+        : scheduleLabel(schedule);
   /* A replication job's settings as the form sends them. Host and datastore
    * go by id; the appliance resolves them and reports names back. */
   const replicationInput: ReplicationInput | undefined = isReplication
@@ -1031,6 +1038,18 @@ function JobWizard({
   /** The VMs the job covers, as a count or "every VM of the sources". */
   const objectsLabel = (count: number) =>
     isCopy && form.copyAllVms ? t("copy.scope.allVms") : t("create.scope.vmSummary", { count });
+
+  /** A backup job with no regular schedule. */
+  const manual = !isCopy && !isReplication && form.preset === "manual";
+  /* On edit the regular schedule is sent only as a change: a job that stays
+   * manual sends nothing, one made manual loses its schedule, and one that
+   * gets a schedule back sends it (ABR-596). Copy and replication jobs keep
+   * their own rules for it. */
+  const scheduleEdit = (): { schedule?: Schedule; manual?: boolean } => {
+    if (isCopy || isReplication) return { schedule };
+    if (manual) return existingJob?.manual ? {} : { manual: true };
+    return existingJob?.manual ? { schedule, manual: false } : { schedule };
+  };
 
   const buildInput = (runNow: boolean): CreateJobInput => {
     // A copy job that copies every VM of its sources names none; a
@@ -1062,6 +1081,7 @@ function JobWizard({
       scopeSummary,
       repositoryId,
       schedule,
+      ...(manual ? { manual: true } : {}),
       activeFullSchedule: fullScheduleInput(form.activeFull, existingJob?.activeFullSchedule),
       syntheticFullSchedule: fullScheduleInput(form.syntheticFull, existingJob?.syntheticFullSchedule),
       retention: isReplication ? { keepDays: form.keepDays, gfs } : { keepDays: form.keepDays, gfs, minFulls: form.minFulls },
@@ -1093,7 +1113,7 @@ function JobWizard({
           vmIds: input.vmIds,
           scopeSummary: input.scopeSummary,
           repositoryId: input.repositoryId,
-          schedule: input.schedule,
+          ...scheduleEdit(),
           // Left out when unchanged: the sim driver spreads the patch over the
           // job, so an explicit undefined would wipe the stored schedule.
           ...(input.activeFullSchedule !== undefined ? { activeFullSchedule: input.activeFullSchedule } : {}),
@@ -1212,6 +1232,9 @@ function JobWizard({
 
   const showNameError = nameTouched && nameProblem !== null;
   const needsTime = form.preset === "daily" || form.preset === "weekly";
+  // Only a backup job is offered no regular schedule here: a copy or a
+  // replication job has its own switch for it.
+  const offersManual = !isCopy && !isReplication;
 
   return (
     <div className="space-y-4">
@@ -1677,12 +1700,18 @@ function JobWizard({
               )}
               {showSchedule && (
               <>
-              <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+              <div className={cn("grid grid-cols-2 gap-2", offersManual ? "sm:grid-cols-5" : "sm:grid-cols-4")}>
                 <PresetChip icon={Clock} label={t("create.preset.hourly")} sub={t("create.preset.hourlySub")} active={form.preset === "hourly"} onClick={() => set("preset", "hourly")} />
                 <PresetChip icon={Clock} label={t("create.preset.every4h")} sub={t("create.preset.every4hSub")} active={form.preset === "every4h"} onClick={() => set("preset", "every4h")} />
                 <PresetChip icon={CalendarDays} label={t("create.preset.daily")} sub={t("create.preset.dailySub")} active={form.preset === "daily"} onClick={() => set("preset", "daily")} />
                 <PresetChip icon={CalendarDays} label={t("create.preset.weekly")} sub={t("create.preset.weeklySub", { count: form.preset === "weekly" ? Math.max(form.daysOfWeek.length, 1) : 1 })} active={form.preset === "weekly"} onClick={() => set("preset", "weekly")} />
+                {offersManual && (
+                  <PresetChip icon={Hand} label={t("create.preset.manual")} sub={t("create.preset.manualSub")} active={form.preset === "manual"} onClick={() => set("preset", "manual")} />
+                )}
               </div>
+              {form.preset === "manual" && offersManual && (
+                <p className="text-xs text-muted-foreground">{t("create.manualNote")}</p>
+              )}
               {needsTime && (
                 <div className="flex flex-wrap items-end gap-3">
                   <div className="space-y-1.5">

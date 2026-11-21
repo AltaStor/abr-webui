@@ -186,7 +186,10 @@ function toJobPatchPayload(patch: JobPatch): Partial<api.CreateJobPayload> {
   if (patch.vmIds !== undefined) out.vmIds = patch.vmIds;
   if (patch.scopeSummary !== undefined) out.scopeSummary = patch.scopeSummary;
   if (patch.repositoryId !== undefined) out.repositoryId = patch.repositoryId;
-  if (patch.schedule !== undefined) out.schedule = patch.schedule;
+  // `manual: true` takes the regular schedule away (schedule: null); a job
+  // that stays manual sends neither.
+  if (patch.manual === true) out.schedule = null;
+  else if (patch.schedule !== undefined) out.schedule = patch.schedule;
   if (patch.activeFullSchedule !== undefined) out.activeFullSchedule = patch.activeFullSchedule;
   if (patch.syntheticFullSchedule !== undefined) out.syntheticFullSchedule = patch.syntheticFullSchedule;
   if (patch.retention !== undefined) out.retention = patch.retention;
@@ -867,7 +870,8 @@ export function createLiveDriver(handle: WorldHandle): WorldDriver {
     },
 
     createJob: async (input) => {
-      const job = await api.createJob(input); // payload = input verbatim (incl. runNow)
+      // payload = input verbatim (incl. runNow); a manual job sends no schedule.
+      const job = await api.createJob(input.manual ? { ...input, schedule: undefined } : input);
       if (stopped) return job;
       handle.set((s) => ({
         jobs: [job, ...s.jobs.filter((j) => j.id !== job.id)],

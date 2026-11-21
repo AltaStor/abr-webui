@@ -216,6 +216,9 @@ export interface CreateJobInput {
   scopeSummary: string;
   repositoryId: string;
   schedule: Schedule;
+  /** Backup jobs only: no regular schedule, so `schedule` is not sent and the
+   *  job runs only when started (besides its full schedules). */
+  manual?: boolean;
   /** Backup jobs only. Omitted or null: the job has no such schedule. */
   activeFullSchedule?: FullBackupSchedule | null;
   syntheticFullSchedule?: FullBackupSchedule | null;

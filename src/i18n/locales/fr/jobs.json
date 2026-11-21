@@ -21,6 +21,7 @@
   },
   "schedule": {
     "disabled": "Désactivée",
+    "manual": "Lancée à la main",
     "hourly_one": "Toutes les heures",
     "hourly_other": "Toutes les {{count}} h",
     "weekly": "Hebdomadaire · {{day}} {{time}}",
@@ -841,7 +842,8 @@
     "firstRun": {
       "hourly": "dans l’heure",
       "every4h": "dans les 4 heures",
-      "weeklyNoDay": "dès que vous choisissez un jour"
+      "weeklyNoDay": "dès que vous choisissez un jour",
+      "manual": "quand vous la lancez"
     },
     "errors": {
       "name": "Donnez un nom à la tâche.",
@@ -911,7 +913,9 @@
       "every4hSub": "Toutes les 4 heures",
       "dailySub": "Une fois par jour",
       "weeklySub_one": "Une fois par semaine",
-      "weeklySub_other": "{{count}} jours par semaine"
+      "weeklySub_other": "{{count}} jours par semaine",
+      "manual": "Manuelle seulement",
+      "manualSub": "Quand vous la lancez"
     },
     "atTime": "À l’heure",
     "onDays": "Les jours",
@@ -1025,7 +1029,8 @@
       "explainSame": "{{time}} est la même heure sur votre horloge.",
       "explainNextDay": "{{time}} correspond à {{viewer}} le lendemain sur votre horloge.",
       "explainPreviousDay": "{{time}} correspond à {{viewer}} la veille sur votre horloge."
-    }
+    },
+    "manualNote": "La tâche ne s’exécute que lorsque quelqu’un la lance, et selon les planifications de sauvegarde complète ci-dessous tant qu’elles sont activées."
   },
   "hyperv": {
     "consistency": {

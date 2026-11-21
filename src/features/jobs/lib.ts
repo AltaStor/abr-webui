@@ -107,11 +107,13 @@ export function scheduleLabel(schedule: Schedule, disabled = false): string {
  * only when started by hand.
  */
 export function jobScheduleLabel(
-  job: Pick<BackupJob, "schedule" | "state" | "copy"> & {
+  job: Pick<BackupJob, "schedule" | "state" | "copy" | "manual"> & {
     replication?: Pick<ReplicationSettings, "scheduled" | "runAfterSource" | "sourceJob">;
   },
 ): string {
   const disabled = job.state === "disabled";
+  // A backup job without a regular schedule (ABR-596).
+  if (job.manual && !disabled) return i18n.t("jobs:schedule.manual");
   const repl = job.replication;
   if (repl && !disabled) {
     const after = repl.runAfterSource

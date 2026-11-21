@@ -21,6 +21,7 @@
   },
   "schedule": {
     "disabled": "Disabled",
+    "manual": "When started by hand",
     "hourly_one": "Every hour",
     "hourly_other": "Every {{count}}h",
     "weekly": "Weekly · {{day}} {{time}}",
@@ -862,7 +863,8 @@
     "firstRun": {
       "hourly": "within the hour",
       "every4h": "within 4 hours",
-      "weeklyNoDay": "once you pick a day"
+      "weeklyNoDay": "once you pick a day",
+      "manual": "when you start it"
     },
     "errors": {
       "name": "Give the job a name.",
@@ -914,7 +916,9 @@
       "dailySub": "Once a day",
       "weekly": "Weekly",
       "weeklySub_one": "Once a week",
-      "weeklySub_other": "{{count}} days a week"
+      "weeklySub_other": "{{count}} days a week",
+      "manual": "Manual only",
+      "manualSub": "When you start it"
     },
     "atTime": "At time",
     "onDays": "On days",
@@ -1027,7 +1031,8 @@
       "otherZone": "This schedule runs on {{zone}}, not server time, so its runs move against server time when the two zones change to or from daylight saving time.",
       "moveToServerTime": "Use server time",
       "inZone": "({{zone}})"
-    }
+    },
+    "manualNote": "The job runs only when someone starts it, and on the full backup schedules below while they are on."
   },
   "hyperv": {
     "consistency": {

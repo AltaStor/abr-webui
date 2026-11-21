@@ -916,6 +916,7 @@ function mapJob(job: Dict, sessions: Session[]): BackupJob {
     scopeSummary,
     repositoryId: str(repo.id),
     schedule: mapSchedule(asDict(job.schedule)),
+    ...(type === "backup" && job.schedule == null ? { manual: true } : {}),
     activeFullSchedule: mapFullSchedule(job.active_full_schedule),
     syntheticFullSchedule: mapFullSchedule(job.synthetic_full_schedule),
     // The appliance keeps these stamps while the job is disabled, but nothing
@@ -1841,7 +1842,9 @@ export interface CreateJobPayload {
   vmIds: string[];
   scopeSummary: string;
   repositoryId: string;
-  schedule: Schedule;
+  /** A backup job's regular schedule. On edit, omitted leaves it as it is and
+   *  null removes it, so the job runs only when started (ABR-563, ABR-596). */
+  schedule?: Schedule | null;
   /** Omitted: leave the job's schedule as it is. null: remove it. */
   activeFullSchedule?: FullBackupSchedule | null;
   syntheticFullSchedule?: FullBackupSchedule | null;
@@ -1970,6 +1973,7 @@ function createJobBody(payload: Partial<CreateJobPayload>): Dict {
   if (inventoryId) body.inventory_id = inventoryId;
   if (payload.repositoryId) body.repo_id = payload.repositoryId;
   if (payload.schedule) body.schedule = scheduleToWire(payload.schedule);
+  else if (payload.schedule === null) body.schedule = null;
   // null is meaningful here: it removes the schedule (and any legacy
   // `*_full_days` behind it). Only an omitted key leaves the job's schedule alone.
   if (payload.activeFullSchedule !== undefined) {

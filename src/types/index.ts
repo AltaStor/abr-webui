@@ -556,6 +556,10 @@ export interface BackupJob {
   scopeSummary: string;
   repositoryId: string;
   schedule: Schedule;
+  /** A backup job with no regular schedule (`schedule: null` on the
+   *  appliance): it runs only when started, besides any full schedules.
+   *  `schedule` is then only what the form offers, never shown or sent. */
+  manual?: boolean;
   /** Full backups that run on their own schedules alongside `schedule`
    *  (backup jobs only). When several fall due at once, the appliance runs one
    *  session and picks active full over synthetic full over incremental. */
