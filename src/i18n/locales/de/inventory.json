@@ -440,7 +440,7 @@
       "inheritUnknown": "Global übernehmen",
       "libraryLabel": "VDDK-Bibliothek",
       "libraryHint": "Vollständiger Pfad der vixDiskLib-Bibliotheksdatei auf der Appliance. Leer lassen, um sie zu übernehmen.",
-      "libraryNotUsed": "Es wird keine VDDK-Bibliothek verwendet: Diese Umgebung erreicht ihre Datenträger über vSphere SOAP.",
+      "libraryNotUsed": "Es wird keine VDDK-Bibliothek verwendet: Diese Umgebung erreicht ihre Datenträger über SOAP.",
       "libraryUnsupported": "Das abr-vmdk-tool dieser Appliance kann keine benannte Bibliotheksdatei laden.",
       "reset": "Auf Standard zurücksetzen",
       "inEffect": "Wirksam"

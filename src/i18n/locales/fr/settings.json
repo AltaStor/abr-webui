@@ -30,7 +30,7 @@
     },
     "vmware": {
       "label": "VMware",
-      "blurb": "VDDK ou vSphere SOAP et bibliothèque VDDK"
+      "blurb": "AltaVDDK ou SOAP et bibliothèque VDDK"
     },
     "users": {
       "label": "Utilisateurs",
@@ -374,21 +374,23 @@
     "unconfirmedReadOnly": "Ce sont les valeurs avec lesquelles l’appliance a démarré ; un administrateur ne les a pas encore choisies.",
     "api": {
       "label": "API par défaut",
-      "hint": "VDDK charge le Virtual Disk Development Kit de VMware, ou une bibliothèque compatible comme openVDDK. vSphere SOAP ne demande aucune bibliothèque sur l’appliance.",
+      "hint": "AltaVDDK lit et écrit les disques par une bibliothèque VDDK : celle fournie avec AltaStor, ou le VDDK de VMware lorsque vous indiquez sa bibliothèque ci-dessous. SOAP ne demande aucune bibliothèque sur l’appliance.",
       "optionUnavailable": "{{api}} (non disponible)"
     },
     "library": {
       "label": "Bibliothèque VDDK par défaut",
-      "hint": "Chemin complet du fichier de bibliothèque vixDiskLib sur l’appliance. Laissez vide pour utiliser la bibliothèque du répertoire VDDK.",
-      "reset": "Rétablir la valeur par défaut",
+      "hint": "Laissez vide pour utiliser la bibliothèque d’AltaVDDK. Pour utiliser le VDDK original de VMware, saisissez le chemin complet de sa libvixDiskLib.so sur l’appliance.",
+      "placeholder": "AltaVDDK · {{path}}",
+      "useAlta": "Utiliser AltaVDDK",
+      "altaMissing": "AltaVDDK n’est pas installé sur cette appliance. Saisissez le chemin complet d’une bibliothèque VDDK.",
       "inEffect": "En vigueur",
       "missing": "fichier introuvable sur l’appliance",
       "unsupported": "L’abr-vmdk-tool de cette appliance ne peut pas charger un fichier de bibliothèque nommé. Installez une version plus récente d’AltaStor pour en choisir un ; d’ici là, la bibliothèque du répertoire VDDK est utilisée."
     },
     "directory": {
       "label": "Répertoire VDDK",
-      "environment": "Défini par ABR_VMDK_TOOL_VDDK_DIR sur l’appliance. Une bibliothèque laissée par défaut est lib64/libvixDiskLib.so dans ce répertoire.",
-      "default": "Le dossier vddk à côté d’abr-vmdk-tool. Une bibliothèque laissée par défaut est lib64/libvixDiskLib.so dans ce dossier."
+      "environment": "Défini par ABR_VMDK_TOOL_VDDK_DIR sur l’appliance. Le VDDK de VMware installé là a sa bibliothèque dans lib64/libvixDiskLib.so.",
+      "default": "Le dossier vddk à côté d’abr-vmdk-tool. Le VDDK de VMware installé là a sa bibliothèque dans lib64/libvixDiskLib.so."
     },
     "updateAll": {
       "label": "Mettre à jour les paramètres de tous les environnements existants",

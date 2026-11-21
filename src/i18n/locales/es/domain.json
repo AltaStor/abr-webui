@@ -104,8 +104,8 @@
   },
   "vsphere": {
     "api": {
-      "vddk": "VDDK",
-      "soap": "vSphere SOAP"
+      "vddk": "AltaVDDK",
+      "soap": "SOAP"
     },
     "source": {
       "job": "definido para el trabajo",
@@ -116,6 +116,11 @@
     "diskAccess": "Acceso a los discos",
     "apiLabel": "API",
     "libraryLabel": "Biblioteca VDDK",
+    "libraryKind": {
+      "ovddk": "AltaVDDK",
+      "vmware_vddk": "VMware VDDK",
+      "system": "Biblioteca del sistema"
+    },
     "override": "Sobrescrito"
   }
 }

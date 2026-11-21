@@ -8,11 +8,12 @@ All notable changes to the AltaStor WebUI are documented in this file.
 - VMware access is asked after sign-in while nobody has chosen it: on a new
   appliance, right after the first sign-in's password change (admin/admin), a
   user who may change environments gets "Choose how to reach VMware disks"
-  with the API (VDDK or vSphere SOAP, an unavailable one with the appliance's
-  reason) and, for VDDK, the libraries the appliance found (oVDDK, VMware
-  VDDK, system), "Follow the VDDK directory" or another file. oVDDK is
-  preselected when it is installed, as `abr settings vsphere set` offers it.
-  "Save and continue" saves the choice, even unchanged, which confirms it;
+  with the API (AltaVDDK or SOAP, an unavailable one with the appliance's
+  reason) and, for AltaVDDK, its own library or a full path (VMware's
+  original VDDK; the libraries the appliance found fill it with a click).
+  What the appliance uses now is preselected and marked In use (ABR-595).
+  "Save and continue" saves the choice, even unchanged, which confirms it
+  and sends the library only when it was changed;
   "Decide later" leaves it for this browser session, and the next session
   asks again. Settings → VMware says when the values are still the ones the
   appliance started with and saves them unchanged too. Needs `confirmed` and
@@ -175,6 +176,14 @@ All notable changes to the AltaStor WebUI are documented in this file.
   here", the database mark on both capacity tiles, "Used capacity" with
   "N% of total" under it, and no usage trend line on the cards (the details
   still draw it).
+- VMware access names its two APIs AltaVDDK and SOAP. AltaVDDK is the VDDK
+  library that comes with AltaStor (oVDDK to the appliance and the CLI).
+  Settings → VMware → Default VDDK library left empty uses it ("Use
+  AltaVDDK" empties it); a full path there uses that library instead, which
+  is how VMware's original VDDK is chosen. A library that follows the VDDK
+  directory shows as that directory's path. Without AltaVDDK on the
+  appliance an empty field cannot be saved. The environment's Advanced
+  settings and the run details use the same names.
 - Repositories: "Set as default" in a repository's menu (with Edit settings
   and Delete) makes it the default repository, tagged Default on its card;
   a new backup job starts with it picked. The appliance moves the mark off

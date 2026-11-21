@@ -5,17 +5,18 @@
  * VMware access, asked after sign-in while nobody has chosen it.
  *
  * A new appliance starts with the server-wide API and VDDK library of its
- * server.conf (VDDK and oVDDK as shipped) and reports them as not confirmed
- * until someone saves them. The CLI then prints a note at sign-in and asks in
- * `abr settings vsphere set`; the console sends a user who may change
- * environments here instead: after the forced password change of the first
- * sign-in, and before the setup wizard. It offers what the appliance has
- * found: VDDK or vSphere SOAP, and for VDDK each library on the appliance,
- * the VDDK directory's, or another file. The choice preselected is the one
- * the CLI offers: oVDDK when it is installed, else what is in use.
+ * server.conf and reports them as not confirmed until someone saves them. The
+ * CLI then prints a note at sign-in and asks in `abr settings vsphere set`;
+ * the console sends a user who may change environments here instead: after
+ * the forced password change of the first sign-in, and before the setup
+ * wizard. It offers AltaVDDK or SOAP, and for AltaVDDK its own library or a
+ * library named by its full path, which is how VMware's original VDDK is
+ * chosen (lib/vsphereLibrary.ts).
  *
- * Saving, even the values as they were, confirms them. "Decide later" leaves
- * them for this browser session. Settings → VMware changes them afterwards.
+ * What is preselected is what the appliance uses now (ABR-595), and only what
+ * the user changed is sent, so saving the values as they are confirms them
+ * and changes nothing else. "Decide later" leaves them for this browser
+ * session. Settings → VMware changes them afterwards.
  */
 import { useEffect, useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
@@ -32,42 +33,29 @@ import { useAuthStore } from "@/store/auth";
 import { useCan } from "@/store/permissions";
 import { useWorldStore } from "@/store/world";
 import type { VsphereApi, VsphereSettings, VsphereSettingsPatch } from "@/types";
+import { altaVddkLibrary, libraryChange, libraryFieldOf } from "@/lib/vsphereLibrary";
 import { AuthLayout } from "./components/AuthLayout";
 import { markVmwareChoiceSkipped } from "./vmwareChoice";
 
-/** The library choice: a path the appliance found, its VDDK directory's, or
- *  a file typed in. Paths start with "/", so neither word can be one. */
-const DIRECTORY = "directory";
-const OTHER = "other";
+/** AltaVDDK's own library, or a library named by its full path. */
+type LibraryChoice = "alta" | "path";
 
 interface Choice {
   api: VsphereApi;
-  library: string;
-  otherPath: string;
+  library: LibraryChoice;
+  path: string;
 }
 
-/** The libraries to offer by name: those found, less the VDDK directory's
- *  own, which "Follow the VDDK directory" already is. */
-const foundLibraries = (s: VsphereSettings) => s.detectedLibraries.filter((lib) => lib.path !== s.defaultLibrary);
-
+/** The choice as the appliance stands: the API and library it uses now. */
 function initialChoice(s: VsphereSettings): Choice {
-  const found = foundLibraries(s);
-  const keep = { api: s.api, otherPath: "" };
-  if (!s.libraryFileSupported) return { ...keep, library: DIRECTORY };
-  const ovddk = found.find((lib) => lib.kind === "ovddk");
-  if (ovddk) return { ...keep, library: ovddk.path };
-  if (s.library === null) return { ...keep, library: DIRECTORY };
-  if (found.some((lib) => lib.path === s.library)) return { ...keep, library: s.library };
-  return { api: s.api, library: OTHER, otherPath: s.library };
+  const field = libraryFieldOf(s);
+  // While SOAP is in use no library is, and AltaVDDK is the one to offer.
+  const alta = altaVddkLibrary(s) !== null && s.libraryFileSupported && (field === "" || s.api === "soap");
+  return { api: s.api, library: alta ? "alta" : "path", path: field };
 }
 
-/** The value the choice names, as `vddk_library` takes it: null follows the
- *  VDDK directory. */
-function libraryOf(choice: Choice): string | null {
-  if (choice.library === DIRECTORY) return null;
-  if (choice.library === OTHER) return choice.otherPath.trim();
-  return choice.library;
-}
+/** The library field the choice amounts to: empty for AltaVDDK. */
+const fieldOf = (choice: Choice) => (choice.library === "alta" ? "" : choice.path);
 
 export default function VmwareAccessPage() {
   const { t } = useTranslation("auth");
@@ -102,8 +90,10 @@ export default function VmwareAccessPage() {
   const save = useMutation({
     mutationFn: (c: Choice) => {
       // The API is always sent: saving the values as they are confirms them.
+      // The library only when it changed, so an unchanged save keeps it.
       const patch: VsphereSettingsPatch = { api: c.api };
-      if (c.api === "vddk") patch.library = libraryOf(c);
+      const library = c.api === "vddk" && settings ? libraryChange(fieldOf(c), settings) : undefined;
+      if (library !== undefined) patch.library = library;
       return updateVsphereSettings(patch);
     },
     onSuccess: ({ settings: next }) => {
@@ -163,16 +153,20 @@ export default function VmwareAccessPage() {
     );
   }
 
-  const found = foundLibraries(settings);
-  const chosenLibrary = libraryOf(choice);
-  // The appliance's reason against VDDK holds for the library in use; a
+  const alta = altaVddkLibrary(settings);
+  const inUseField = libraryFieldOf(settings);
+  const chosenField = fieldOf(choice);
+  // The appliance's reason against AltaVDDK holds for the library in use; a
   // different one is checked when it is saved.
-  const vddkProblem = chosenLibrary === settings.library ? settings.unavailable.vddk : null;
-  const missingPath = choice.api === "vddk" && choice.library === OTHER && choice.otherPath.trim() === "";
-  const current = (library: string | null) => settings.api === "vddk" && settings.library === library;
-  // A library in use that the appliance did not find by itself.
-  const otherInUse =
-    settings.api === "vddk" && settings.library !== null && !found.some((lib) => lib.path === settings.library);
+  const vddkProblem = chosenField.trim() === inUseField.trim() ? settings.unavailable.vddk : null;
+  const missingPath = choice.api === "vddk" && choice.library === "path" && choice.path.trim() === "";
+  const vddkInUse = settings.api === "vddk";
+  // Libraries found on the appliance other than AltaVDDK's, to fill the path.
+  const others = settings.detectedLibraries.filter((lib) => lib.kind !== "ovddk");
+  const strip = (p: string) => p.trim().replace(/\/+$/, "");
+  const fileOfPath = (path: string) =>
+    settings.detectedLibraries.find((lib) => strip(lib.path) === strip(path))?.file ??
+    (strip(path) === strip(settings.defaultLibrary) ? settings.defaultLibraryFile : null);
 
   return (
     <AuthLayout
@@ -217,52 +211,64 @@ export default function VmwareAccessPage() {
           <fieldset className="space-y-2">
             <legend className="mb-2 text-sm font-medium">{t("vmwareAccess.libraryLabel")}</legend>
             <ChoiceList label={t("vmwareAccess.libraryLabel")}>
-              {found.map((lib) => (
-                <ChoiceRow
-                  key={lib.path}
-                  checked={choice.library === lib.path}
-                  disabled={!settings.libraryFileSupported}
-                  onSelect={() => update({ library: lib.path })}
-                  title={t(`vmwareAccess.kind.${lib.kind}`)}
-                  tag={current(lib.path) ? t("vmwareAccess.current") : undefined}
-                  path={lib.path}
-                  file={lib.file}
-                  testId={`vmware-library-${lib.kind}`}
-                />
-              ))}
               <ChoiceRow
-                checked={choice.library === DIRECTORY}
-                onSelect={() => update({ library: DIRECTORY })}
-                title={t("vmwareAccess.directory")}
-                tag={current(null) ? t("vmwareAccess.current") : undefined}
-                path={settings.defaultLibrary}
-                file={settings.defaultLibraryFile}
-                warning={settings.defaultLibraryFile === null ? t("vmwareAccess.directoryMissing") : undefined}
-                testId="vmware-library-directory"
+                checked={choice.library === "alta"}
+                disabled={alta === null || !settings.libraryFileSupported}
+                onSelect={() => update({ library: "alta" })}
+                title={tDomain("vsphere.libraryKind.ovddk")}
+                tag={vddkInUse && inUseField === "" ? t("vmwareAccess.current") : undefined}
+                detail={t("vmwareAccess.altaDetail")}
+                path={alta?.path}
+                file={alta?.file}
+                warning={alta === null ? t("vmwareAccess.altaMissing") : undefined}
+                testId="vmware-library-alta"
               />
               <ChoiceRow
-                checked={choice.library === OTHER}
-                disabled={!settings.libraryFileSupported}
-                onSelect={() => update({ library: OTHER })}
-                title={t("vmwareAccess.other")}
-                tag={otherInUse ? t("vmwareAccess.current") : undefined}
-                testId="vmware-library-other"
+                checked={choice.library === "path"}
+                onSelect={() => update({ library: "path" })}
+                title={t("vmwareAccess.pathTitle")}
+                tag={vddkInUse && inUseField !== "" ? t("vmwareAccess.current") : undefined}
+                detail={t("vmwareAccess.pathDetail")}
+                testId="vmware-library-path"
               />
             </ChoiceList>
-            {choice.library === OTHER && (
+            {choice.library === "path" && (
               <div className="space-y-1.5">
                 <Input
-                  value={choice.otherPath}
-                  onChange={(e) => update({ otherPath: e.target.value })}
+                  value={choice.path}
+                  onChange={(e) => update({ path: e.target.value })}
                   placeholder="/opt/vmware-vix-disklib-distrib/lib64/libvixDiskLib.so"
-                  aria-label={t("vmwareAccess.otherLabel")}
+                  aria-label={t("vmwareAccess.pathLabel")}
                   aria-invalid={Boolean(errors.vddk_library)}
+                  disabled={!settings.libraryFileSupported}
                   autoComplete="off"
                   spellCheck={false}
-                  autoFocus
+                  autoFocus={choice.path === ""}
                   className={cn("nums font-mono text-xs", errors.vddk_library && "border-danger")}
                 />
-                <p className="text-xs text-muted-foreground">{t("vmwareAccess.otherHint")}</p>
+                {choice.path.trim() !== "" && fileOfPath(choice.path) && (
+                  <p className="nums break-all font-mono text-[11px] text-muted-foreground">
+                    → {fileOfPath(choice.path)}
+                  </p>
+                )}
+                {others.length > 0 && (
+                  <div className="flex flex-wrap items-center gap-1.5 text-[11px] text-muted-foreground">
+                    <span>{t("vmwareAccess.found")}</span>
+                    {others.map((lib) => (
+                      <button
+                        key={lib.path}
+                        type="button"
+                        onClick={() => update({ path: lib.path })}
+                        disabled={!settings.libraryFileSupported}
+                        title={lib.file ?? undefined}
+                        className="nums break-all border border-border px-1.5 py-0.5 text-left font-mono transition-colors hover:bg-muted/40 hover:text-foreground"
+                      >
+                        {lib.path}
+                      </button>
+                    ))}
+                  </div>
+                )}
+                <p className="text-xs text-muted-foreground">{t("vmwareAccess.pathHint")}</p>
               </div>
             )}
             {errors.vddk_library && <p className="text-xs text-danger-text">{errors.vddk_library}</p>}

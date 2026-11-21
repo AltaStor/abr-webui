@@ -24,6 +24,7 @@ import { apiErrorFields, apiErrorMessage, getVsphereSettings, updateVsphereSetti
 import { useCan } from "@/store/permissions";
 import { useWorldStore } from "@/store/world";
 import type { VsphereApi, VsphereSettings, VsphereSettingsPatch } from "@/types";
+import { altaVddkLibrary, libraryChange, libraryFieldOf, libraryOfField } from "@/lib/vsphereLibrary";
 import { SettingRow } from "../SettingRow";
 import { SettingDivider, SettingsSection } from "../SettingsSection";
 
@@ -37,37 +38,36 @@ export function VmwareSection() {
 
 interface Draft {
   api: VsphereApi;
-  /** Empty follows the VDDK directory. */
+  /** Empty is AltaVDDK; a full path is any other library (lib/vsphereLibrary.ts). */
   library: string;
   updateAll: boolean;
 }
 
 const draftOf = (settings: VsphereSettings): Draft => ({
   api: settings.api,
-  library: settings.library ?? "",
+  library: libraryFieldOf(settings),
   updateAll: false,
 });
 
-/** The change a draft makes; a library equal to the VDDK directory's own is
- *  the default, which the appliance stores as no library at all. While nobody
- *  has confirmed the values, the API is always sent: saving them as they are
- *  confirms them. */
+/** The change a draft makes. While nobody has confirmed the values, the API
+ *  is always sent: saving them as they are confirms them. */
 function patchOf(draft: Draft, settings: VsphereSettings): VsphereSettingsPatch {
   const patch: VsphereSettingsPatch = {};
   if (draft.api !== settings.api || !settings.confirmed) patch.api = draft.api;
-  const library = draft.library.trim();
-  if (library !== (settings.library ?? "")) patch.library = library === "" ? null : library;
+  const library = libraryChange(draft.library, settings);
+  if (library !== undefined) patch.library = library;
   if (draft.updateAll) patch.applyToExistingEnvironments = true;
   return patch;
 }
 
 /**
  * The server-wide API and VDDK library (ABR-497, ABR-552): what every vCenter
- * and ESXi environment without its own uses. The library, when left empty,
- * follows the VDDK directory — the appliance names it and the file it
- * resolves to, which is what support asks for. "Update all existing
- * environment settings" removes every environment's own values on save,
- * after a confirmation that names them, so they all follow these.
+ * and ESXi environment without its own uses. The API is AltaVDDK or SOAP.
+ * AltaVDDK loads the VDDK library that comes with AltaStor while the library
+ * field is empty, and the library named there otherwise: that is how VMware's
+ * original VDDK is chosen. "Update all existing environment settings" removes
+ * every environment's own values on save, after a confirmation that names
+ * them, so they all follow these.
  */
 function VmwareAccessCard() {
   const { t } = useTranslation("settings");
@@ -145,6 +145,9 @@ function VmwareAccessCard() {
   const apiName = (api: VsphereApi) => tDomain(`vsphere.api.${api}`);
   const unavailable = settings.unavailable[draft.api];
   const library = draft.library.trim();
+  const alta = altaVddkLibrary(settings);
+  // Empty is AltaVDDK, which this appliance may not have: then a path is needed.
+  const libraryMissing = draft.api === "vddk" && library === "" && alta === null;
   const overriding = settings.overriding;
   const names = overriding.map((e) => e.name).join(", ");
 
@@ -155,7 +158,7 @@ function VmwareAccessCard() {
 
   const footer = canEdit ? (
     <div className="flex w-full justify-end">
-      <Button size="sm" onClick={onSave} disabled={!dirty || save.isPending}>
+      <Button size="sm" onClick={onSave} disabled={!dirty || libraryMissing || save.isPending}>
         {save.isPending && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
         {save.isPending ? t("vmware.saving") : t("vmware.save")}
       </Button>
@@ -213,31 +216,26 @@ function VmwareAccessCard() {
                       id="vmware-library"
                       value={draft.library}
                       onChange={(e) => update({ library: e.target.value })}
-                      placeholder={settings.defaultLibrary}
-                      disabled={readOnly}
+                      placeholder={alta ? t("vmware.library.placeholder", { path: alta.path }) : VMWARE_VDDK_EXAMPLE}
+                      disabled={readOnly || !settings.libraryFileSupported}
                       autoComplete="off"
                       spellCheck={false}
-                      aria-invalid={Boolean(errors.vddk_library)}
-                      className={cn("nums font-mono text-xs", errors.vddk_library && "border-danger")}
+                      aria-invalid={Boolean(errors.vddk_library) || libraryMissing}
+                      className={cn("nums font-mono text-xs", (errors.vddk_library || libraryMissing) && "border-danger")}
                     />
-                    {library !== "" && !readOnly && (
+                    {library !== "" && alta && !readOnly && settings.libraryFileSupported && (
                       <Button variant="outline" size="sm" className="h-9 shrink-0" onClick={() => update({ library: "" })}>
                         <RotateCcw className="h-3.5 w-3.5" />
-                        {t("vmware.library.reset")}
+                        {t("vmware.library.useAlta")}
                       </Button>
                     )}
                   </div>
                   {errors.vddk_library ? (
                     <p className="text-xs text-danger">{errors.vddk_library}</p>
+                  ) : libraryMissing ? (
+                    <p className="text-xs text-danger">{t("vmware.library.altaMissing")}</p>
                   ) : (
-                    <LibraryInEffect
-                      path={library || settings.defaultLibrary}
-                      // Known only for what the appliance has looked at: its
-                      // default and the saved library, not a path being typed.
-                      known={library === "" || library === settings.library}
-                      file={library === "" ? settings.defaultLibraryFile : settings.libraryFile}
-                      source={tDomain(`vsphere.source.${library === "" ? "vddk_directory" : "global"}`)}
-                    />
+                    <LibraryInEffect settings={settings} field={draft.library} />
                   )}
                   {!settings.libraryFileSupported && (
                     <p className="text-xs text-warning-text">{t("vmware.library.unsupported")}</p>
@@ -308,18 +306,31 @@ function VmwareAccessCard() {
   );
 }
 
-function LibraryInEffect({
-  path,
-  known,
-  file,
-  source,
-}: {
-  path: string;
-  known: boolean;
-  file: string | null;
-  source: string;
-}) {
+/** A VMware VDDK library where its bundle installs it, as an example path. */
+const VMWARE_VDDK_EXAMPLE = "/opt/vmware-vix-disklib-distrib/lib64/libvixDiskLib.so";
+
+/**
+ * "In effect: <path> → <file> · <what it is>" for the library the field
+ * names. The file and the kind are known for what the appliance has looked
+ * at (AltaVDDK, the libraries it found, the one saved and the VDDK
+ * directory's), not for a path being typed.
+ */
+function LibraryInEffect({ settings, field }: { settings: VsphereSettings; field: string }) {
   const { t } = useTranslation("settings");
+  const { t: tDomain } = useTranslation("domain");
+  const path = libraryOfField(field, settings);
+  if (path === null) return null;
+  const strip = (p: string) => p.replace(/\/+$/, "");
+  const found = settings.detectedLibraries.find((lib) => strip(lib.path) === strip(path));
+  const file =
+    found !== undefined
+      ? found.file
+      : strip(path) === strip(settings.effectiveLibrary)
+        ? settings.libraryFile
+        : strip(path) === strip(settings.defaultLibrary)
+          ? settings.defaultLibraryFile
+          : undefined;
+  const known = file !== undefined;
   const showFile = known && file !== null && path.split("/").pop() !== file;
   return (
     <p className="min-w-0 text-xs text-muted-foreground">
@@ -331,8 +342,7 @@ function LibraryInEffect({
           <code className="nums break-all text-foreground">{file}</code>
         </>
       )}
-      {" · "}
-      {source}
+      {found && <> · {tDomain(`vsphere.libraryKind.${found.kind}`)}</>}
       {known && file === null && <span className="text-warning-text"> · {t("vmware.library.missing")}</span>}
     </p>
   );

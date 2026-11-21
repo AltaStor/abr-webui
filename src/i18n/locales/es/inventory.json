@@ -440,7 +440,7 @@
       "inheritUnknown": "Heredar del global",
       "libraryLabel": "Biblioteca VDDK",
       "libraryHint": "Ruta completa del archivo de biblioteca vixDiskLib en el appliance. Déjela vacía para heredarla.",
-      "libraryNotUsed": "No se usa ninguna biblioteca VDDK: este entorno accede a sus discos por vSphere SOAP.",
+      "libraryNotUsed": "No se usa ninguna biblioteca VDDK: este entorno accede a sus discos por SOAP.",
       "libraryUnsupported": "El abr-vmdk-tool de este appliance no puede cargar un archivo de biblioteca con nombre.",
       "reset": "Restablecer valor predeterminado",
       "inEffect": "En vigor"
