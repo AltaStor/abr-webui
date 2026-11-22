@@ -93,24 +93,16 @@ All notable changes to the AltaStor WebUI are documented in this file.
   Security.
 - Settings → Notifications → E-mail notifications: the appliance's SMTP
   server and connection security (STARTTLS, SSL/TLS, none; certificate
-  verification), sign-in with a username and password or OAuth 2.0
-  (Microsoft 365, Google Workspace or any provider; client credentials or
-  refresh token), sender, recipients, the events that send e-mail and the
+  verification), sign-in with a username and password or none, sender,
+  recipients, the events that send e-mail and the
   repository space threshold. The appliance's checks run in the form, and
   whatever it still refuses is shown on the field it concerns. Send test
   e-mail uses the unsaved changes and says why a message did not go
-  (connection, TLS, sign-in, OAuth token, sender or recipients refused).
+  (connection, TLS, sign-in, sender or recipients refused).
   Secrets are write-only: shown as stored, kept when left empty, removed on
   request. Recent deliveries, with failures and retries. Read-only for an
   Auditor. The browser's own pop-up notifications are the card below,
   "In-console notifications".
-- Settings → Notifications → Custom script: upload a script the appliance
-  runs on chosen events, view it, replace or remove it, switch it on, set its
-  time limit and its own events (apart from those that send e-mail), run a test
-  and see its exit code and output, and read its recent runs. The card says
-  plainly that the script runs on the appliance as the service account and what
-  it receives. Read-only for an Auditor, without the output; switched off with
-  an explanation where the appliance has `ABR_NOTIFICATION_SCRIPTS=0`.
 - Settings → Storage → Default repository: the folder of the appliance's own
   repository, and the Support Hyper-V backups switch, which has the appliance
   make (or remove) a hidden SMB share and an account for it and then shows the
@@ -275,8 +267,8 @@ All notable changes to the AltaStor WebUI are documented in this file.
   clock on server time, as the top bar reads it, and draws again when the
   appliance's zone arrives (ABR-576); it showed the computer's time. The note
   and the top bar's clock both turn over with the appliance's minute.
-- The On/Off badge beside Settings → Notifications → E-mail notifications
-  and Custom script follows the switch, with "Not saved" until it is saved;
+- The On/Off badge beside each channel's switch in Settings → Notifications
+  follows the switch, with "Not saved" until it is saved;
   it showed the saved setting only, so turning the switch on still read Off.
   A card also takes up a change another console made while it has no edits
   of its own, and looks again when its tab comes back to the front; it used

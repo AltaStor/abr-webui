@@ -1,14 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 // Copyright © 2026 Norvitex OÜ
 
-import type {
-  EmailNotificationPatch,
-  EmailNotificationState,
-  OAuthGrant,
-  OAuthProvider,
-  SmtpAuth,
-  SmtpSecurity,
-} from "@/services/api.http";
+import type { EmailNotificationPatch, EmailNotificationState, SmtpAuth, SmtpSecurity } from "@/services/api.http";
 
 /* The e-mail settings form without its view: the draft, how it maps from and
  * to the appliance's settings, and the appliance's own checks. */
@@ -30,14 +23,6 @@ export interface Draft {
   auth: SmtpAuth;
   username: string;
   password: Secret;
-  provider: OAuthProvider;
-  grant: OAuthGrant;
-  tenantId: string;
-  clientId: string;
-  clientSecret: Secret;
-  refreshToken: Secret;
-  tokenUrl: string;
-  scope: string;
   senderAddress: string;
   senderName: string;
   recipients: string[];
@@ -57,14 +42,6 @@ export function draftOf(state: EmailNotificationState): Draft {
     auth: smtp.auth,
     username: smtp.username,
     password: undefined,
-    provider: smtp.oauth2.provider,
-    grant: smtp.oauth2.grant,
-    tenantId: smtp.oauth2.tenantId,
-    clientId: smtp.oauth2.clientId,
-    clientSecret: undefined,
-    refreshToken: undefined,
-    tokenUrl: smtp.oauth2.tokenUrl,
-    scope: smtp.oauth2.scope,
     senderAddress: state.sender.address,
     senderName: state.sender.name,
     recipients: [...state.recipients],
@@ -87,16 +64,6 @@ export function patchOf(d: Draft): EmailNotificationPatch {
       auth: d.auth,
       username: d.username.trim(),
       ...(d.password !== undefined ? { password: d.password } : {}),
-      oauth2: {
-        provider: d.provider,
-        grant: d.grant,
-        tenantId: d.tenantId.trim(),
-        clientId: d.clientId.trim(),
-        tokenUrl: d.tokenUrl.trim(),
-        scope: d.scope.trim(),
-        ...(d.clientSecret !== undefined ? { clientSecret: d.clientSecret } : {}),
-        ...(d.refreshToken !== undefined ? { refreshToken: d.refreshToken } : {}),
-      },
     },
     sender: { address: d.senderAddress.trim(), name: d.senderName.trim() },
     recipients: d.recipients,
@@ -123,25 +90,6 @@ export function problemsOf(d: Draft, state: EmailNotificationState, complete: bo
   if (d.auth === "password" && complete) {
     if (!d.username.trim()) p["smtp.username"] = t("email.error.usernameRequired");
     if (d.password === "" || (d.password === undefined && !stored.passwordSet)) p["smtp.password"] = t("email.error.passwordRequired");
-  }
-  if (d.auth === "oauth2") {
-    if (d.provider === "google" && d.grant === "client_credentials") p["smtp.oauth2.grant"] = t("email.error.googleGrant");
-    if (d.tenantId.trim() && !/^[A-Za-z0-9.-]+$/.test(d.tenantId.trim())) p["smtp.oauth2.tenant_id"] = t("email.error.tenant");
-    if (d.provider === "custom" && d.tokenUrl.trim() && !/^https:\/\/[^\s/]+/.test(d.tokenUrl.trim())) {
-      p["smtp.oauth2.token_url"] = t("email.error.tokenUrl");
-    }
-    if (complete) {
-      if (!d.username.trim()) p["smtp.username"] = t("email.error.mailboxRequired");
-      if (!d.clientId.trim()) p["smtp.oauth2.client_id"] = t("email.error.clientIdRequired");
-      if (d.provider === "microsoft" && d.grant === "client_credentials" && !d.tenantId.trim()) {
-        p["smtp.oauth2.tenant_id"] = t("email.error.tenantRequired");
-      }
-      if (d.provider === "custom" && !d.tokenUrl.trim()) p["smtp.oauth2.token_url"] = t("email.error.tokenUrlRequired");
-      const secretMissing = d.clientSecret === "" || (d.clientSecret === undefined && !stored.oauth2.clientSecretSet);
-      if (d.grant === "client_credentials" && secretMissing) p["smtp.oauth2.client_secret"] = t("email.error.clientSecretRequired");
-      const tokenMissing = d.refreshToken === "" || (d.refreshToken === undefined && !stored.oauth2.refreshTokenSet);
-      if (d.grant === "refresh_token" && tokenMissing) p["smtp.oauth2.refresh_token"] = t("email.error.refreshTokenRequired");
-    }
   }
   const sender = d.senderAddress.trim();
   if (sender && !ADDRESS.test(sender)) p["sender.address"] = t("email.error.address");

@@ -22,7 +22,7 @@
     },
     "notifications": {
       "label": "Notifications",
-      "blurb": "Notifications par e-mail, script et console"
+      "blurb": "Notifications par e-mail et console"
     },
     "security": {
       "label": "Sécurité",
@@ -665,38 +665,11 @@
     "auth": {
       "title": "Authentification",
       "password": "Nom d’utilisateur et mot de passe",
-      "oauth2": "OAuth 2.0",
       "none": "Aucune",
       "noneHint": "Pour un relais qui accepte les e-mails de l’appliance sans authentification.",
       "unencryptedWarning": "La connexion n’est pas chiffrée : l’authentification circule en clair. Choisissez STARTTLS ou SSL/TLS.",
       "username": "Nom d’utilisateur",
       "passwordLabel": "Mot de passe"
-    },
-    "oauth": {
-      "provider": "Fournisseur",
-      "providers": {
-        "microsoft": "Microsoft 365 (Exchange Online)",
-        "google": "Google Workspace",
-        "custom": "Autre fournisseur OAuth 2.0"
-      },
-      "grant": "Type d’autorisation",
-      "clientCredentials": "Identifiants client",
-      "refreshToken": "Jeton d’actualisation",
-      "grantHint": {
-        "client_credentials": "L’application s’authentifie seule et envoie au nom de la boîte aux lettres (Microsoft 365).",
-        "refresh_token": "Un utilisateur a consenti une fois ; l’appliance renouvelle le jeton d’accès au besoin."
-      },
-      "mailbox": "Boîte aux lettres",
-      "mailboxHint": "Le compte au nom duquel le jeton envoie.",
-      "tenant": "ID de l’annuaire (locataire)",
-      "tokenUrl": "Point de terminaison des jetons",
-      "clientId": "ID d’application (client)",
-      "clientSecret": "Secret client",
-      "refreshTokenLabel": "Jeton d’actualisation",
-      "refreshTokenHint": "Issu du consentement ; un jeton remplacé par le fournisseur est enregistré automatiquement.",
-      "scope": "Portée",
-      "scopeHint": "Laissez vide pour la portée SMTP du fournisseur.",
-      "endpoint": "Les jetons sont demandés à"
     },
     "secret": {
       "stored": "Enregistré sur l’appliance. Laissez vide pour le conserver.",
@@ -753,7 +726,6 @@
         "smtp_connection_failed": "Connexion au serveur SMTP impossible",
         "smtp_tls_failed": "La connexion sécurisée a échoué",
         "smtp_auth_failed": "Le serveur SMTP a refusé l’authentification",
-        "oauth_token_failed": "Impossible d’obtenir un jeton d’accès OAuth 2.0",
         "smtp_sender_refused": "Le serveur SMTP a refusé l’adresse de l’expéditeur",
         "smtp_recipients_refused": "Le serveur SMTP a refusé les destinataires",
         "smtp_error": "Le serveur SMTP n’a pas accepté le message",
@@ -781,78 +753,11 @@
       "timeout": "Saisissez de 5 à 300 secondes.",
       "usernameRequired": "Saisissez le nom d’utilisateur de l’authentification.",
       "passwordRequired": "Saisissez le mot de passe de cet utilisateur.",
-      "mailboxRequired": "Saisissez la boîte aux lettres au nom de laquelle le jeton envoie.",
-      "googleGrant": "Google ne délivre pas de jetons à identifiants client pour l’e-mail ; utilisez un jeton d’actualisation.",
-      "tenant": "Saisissez un ID de locataire (GUID) ou un nom de domaine.",
-      "tenantRequired": "Saisissez l’ID de l’annuaire (locataire).",
-      "tokenUrl": "Saisissez une URL https://.",
-      "tokenUrlRequired": "Saisissez l’URL du point de terminaison des jetons.",
-      "clientIdRequired": "Saisissez l’ID d’application (client).",
-      "clientSecretRequired": "Saisissez le secret client.",
-      "refreshTokenRequired": "Saisissez le jeton d’actualisation.",
       "address": "Ce n’est pas une adresse e-mail.",
       "senderRequired": "Saisissez l’adresse d’envoi des notifications.",
       "recipients": "Pas une adresse e-mail : {{list}}.",
       "recipientsRequired": "Ajoutez au moins un destinataire.",
       "threshold": "Saisissez de 50 à 99."
-    }
-  },
-  "script": {
-    "title": "Script personnalisé",
-    "description": "Exécutez votre propre script quand un événement choisi se produit, pour joindre une messagerie, une file de tickets ou tout ce que l’e-mail n’atteint pas.",
-    "enable": "Exécuter le script sur ses événements",
-    "warning": "Le script s’exécute sur l’appliance avec le compte du service de sauvegarde : il peut faire tout ce que ce compte peut faire, lire le catalogue et les identifiants enregistrés, modifier ou supprimer des sauvegardes. Ne téléversez que du code que vous avez lu et auquel vous faites confiance.",
-    "unavailable": "Les scripts sont désactivés sur cette appliance (ABR_NOTIFICATION_SCRIPTS=0). Un script enregistré ne s’exécute pas.",
-    "loadFailed": "Impossible de lire les réglages du script sur l’appliance.",
-    "file": "Fichier du script",
-    "none": "Aucun script téléversé.",
-    "size": "{{size}} octets",
-    "uploadedBy": "Téléversé par {{user}},",
-    "upload": "Téléverser un script",
-    "replace": "Remplacer",
-    "view": "Voir",
-    "viewDescription": "Le script tel qu’il est enregistré et exécuté. Sa lecture est consignée dans le journal d’audit.",
-    "remove": "Supprimer",
-    "uploaded": "{{name}} téléversé.",
-    "uploadFailed": "L’appliance n’a pas accepté le script.",
-    "tooLarge": "{{name}} dépasse 256 Kio.",
-    "noInterpreter": "{{name}} ne commence pas par une ligne #! nommant son interpréteur, comme #!/bin/sh.",
-    "removed": "Script supprimé.",
-    "removeFailed": "Script non supprimé",
-    "removeDialog": {
-      "title": "Supprimer ce script ?",
-      "description": "{{name}} est supprimé de l’appliance et ne s’exécute plus. Son historique est conservé."
-    },
-    "saved": "Réglages du script enregistrés.",
-    "saveFailed": "Réglages du script non enregistrés",
-    "timeout": "Durée limite (secondes)",
-    "timeoutHint": "Une exécution plus longue est arrêtée, avec tout ce qu’elle a lancé. {{min}}–{{max}}.",
-    "timeoutRange": "Saisissez de {{min}} à {{max}} secondes.",
-    "events": "Événements qui exécutent le script",
-    "eventsHint": "Choisis indépendamment des événements envoyés par e-mail. Le script s’exécute même si l’e-mail est désactivé.",
-    "test": "Lancer un test",
-    "running": "Exécution…",
-    "testPassed": "Le script s’est terminé sans erreur.",
-    "testFailed": "Le test a échoué",
-    "exitCode": "sortie {{code}}",
-    "duration": "{{ms}} ms",
-    "receives": {
-      "title": "Ce que reçoit le script",
-      "stdin": "L’événement en JSON sur l’entrée standard et dans le fichier désigné par ABR_EVENT_FILE : event, name, severity, subject, body, time, host, version et details, les faits de l’événement (par exemple la tâche, ses VM et leurs résultats).",
-      "variables": "Les champs principaux en variables d’environnement. Aucune variable du serveur n’atteint le script, et le PATH est un chemin système fixe.",
-      "outcome": "Le code de sortie 0 vaut succès. Une exécution en échec est consignée et n’est pas répétée. Traitez chaque valeur comme une donnée : le nom d’une VM, par exemple, vient de l’extérieur de l’appliance."
-    },
-    "history": {
-      "title": "Exécutions récentes",
-      "empty": "Le script n’a pas encore été exécuté.",
-      "output": "Sortie",
-      "status": {
-        "sent": "Réussie",
-        "failed": "Échec",
-        "retrying": "Nouvelle tentative",
-        "queued": "En file",
-        "cancelled": "Annulée"
-      }
     }
   }
 }

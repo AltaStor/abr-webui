@@ -3382,23 +3382,7 @@ export async function probeAppliance(): Promise<void> {
 /* ====================================================================== */
 
 export type SmtpSecurity = "starttls" | "ssl" | "none";
-export type SmtpAuth = "password" | "oauth2" | "none";
-export type OAuthProvider = "microsoft" | "google" | "custom";
-export type OAuthGrant = "client_credentials" | "refresh_token";
-
-export interface EmailOAuthSettings {
-  provider: OAuthProvider;
-  tenantId: string;
-  clientId: string;
-  clientSecretSet: boolean;
-  grant: OAuthGrant;
-  refreshTokenSet: boolean;
-  tokenUrl: string;
-  scope: string;
-  /** What a Microsoft or Google provider resolves to; empty for custom. */
-  effectiveTokenUrl: string;
-  effectiveScope: string;
-}
+export type SmtpAuth = "password" | "none";
 
 export interface EmailSmtpSettings {
   host: string;
@@ -3409,7 +3393,6 @@ export interface EmailSmtpSettings {
   username: string;
   passwordSet: boolean;
   timeoutSeconds: number;
-  oauth2: EmailOAuthSettings;
 }
 
 export interface NotificationEventSetting {
@@ -3456,12 +3439,7 @@ export interface EmailNotificationState {
  *  an empty string clears it. */
 export interface EmailNotificationPatch {
   enabled?: boolean;
-  smtp?: Partial<Omit<EmailSmtpSettings, "passwordSet" | "oauth2">> & {
-    password?: string;
-    oauth2?: Partial<
-      Omit<EmailOAuthSettings, "clientSecretSet" | "refreshTokenSet" | "effectiveTokenUrl" | "effectiveScope">
-    > & { clientSecret?: string; refreshToken?: string };
-  };
+  smtp?: Partial<Omit<EmailSmtpSettings, "passwordSet">> & { password?: string };
   sender?: { address?: string; name?: string };
   recipients?: string[];
   events?: Record<string, boolean>;
@@ -3480,7 +3458,6 @@ function mapNotificationEvent(e: Dict): NotificationEventSetting {
 
 function mapEmailState(res: Dict): EmailNotificationState {
   const smtp = asDict(res.smtp);
-  const oauth = asDict(smtp.oauth2);
   const sender = asDict(res.sender);
   return {
     enabled: res.enabled === true,
@@ -3489,22 +3466,10 @@ function mapEmailState(res: Dict): EmailNotificationState {
       port: num(smtp.port, 587),
       security: (["starttls", "ssl", "none"].includes(str(smtp.security)) ? str(smtp.security) : "starttls") as SmtpSecurity,
       verifyTls: smtp.verify_tls !== false,
-      auth: (["password", "oauth2", "none"].includes(str(smtp.auth)) ? str(smtp.auth) : "password") as SmtpAuth,
+      auth: (str(smtp.auth) === "none" ? "none" : "password") as SmtpAuth,
       username: str(smtp.username),
       passwordSet: smtp.password_set === true,
       timeoutSeconds: num(smtp.timeout_seconds, 30),
-      oauth2: {
-        provider: (["microsoft", "google", "custom"].includes(str(oauth.provider)) ? str(oauth.provider) : "microsoft") as OAuthProvider,
-        tenantId: str(oauth.tenant_id),
-        clientId: str(oauth.client_id),
-        clientSecretSet: oauth.client_secret_set === true,
-        grant: (str(oauth.grant) === "refresh_token" ? "refresh_token" : "client_credentials") as OAuthGrant,
-        refreshTokenSet: oauth.refresh_token_set === true,
-        tokenUrl: str(oauth.token_url),
-        scope: str(oauth.scope),
-        effectiveTokenUrl: str(oauth.effective_token_url),
-        effectiveScope: str(oauth.effective_scope),
-      },
     },
     sender: { address: str(sender.address), name: str(sender.name) },
     recipients: strList(res.recipients),
@@ -3538,21 +3503,10 @@ function emailPatchToWire(p: EmailNotificationPatch): Dict {
   const out: Dict = {};
   if (p.enabled !== undefined) out.enabled = p.enabled;
   if (p.smtp) {
-    const { oauth2, verifyTls, timeoutSeconds, ...rest } = p.smtp;
+    const { verifyTls, timeoutSeconds, ...rest } = p.smtp;
     const smtp: Dict = { ...rest };
     if (verifyTls !== undefined) smtp.verify_tls = verifyTls;
     if (timeoutSeconds !== undefined) smtp.timeout_seconds = timeoutSeconds;
-    if (oauth2) {
-      const { tenantId, clientId, clientSecret, refreshToken, tokenUrl, ...plain } = oauth2;
-      smtp.oauth2 = {
-        ...plain,
-        ...(tenantId !== undefined ? { tenant_id: tenantId } : {}),
-        ...(clientId !== undefined ? { client_id: clientId } : {}),
-        ...(clientSecret !== undefined ? { client_secret: clientSecret } : {}),
-        ...(refreshToken !== undefined ? { refresh_token: refreshToken } : {}),
-        ...(tokenUrl !== undefined ? { token_url: tokenUrl } : {}),
-      };
-    }
     out.smtp = smtp;
   }
   if (p.sender) out.sender = p.sender;
@@ -3591,122 +3545,6 @@ export async function testEmailNotifications(patch?: EmailNotificationPatch, to?
   if (to?.length) body.to = to;
   const res = asDict(await request<Dict>("/notifications/email/test", { method: "POST", body: JSON.stringify(body) }));
   return { recipients: strList(res.recipients), refused: strList(res.refused), durationMs: num(res.duration_ms) };
-}
-
-/* ---- The notification script (Settings -> Notifications) ---- */
-
-export interface NotificationScriptFile {
-  name: string;
-  size: number;
-  sha256: string;
-  uploadedAt: string | null;
-  uploadedBy: string | null;
-}
-
-export interface NotificationScriptRun {
-  id: string;
-  event: string;
-  subject: string;
-  queuedAt: string | null;
-  sentAt: string | null;
-  status: EmailDelivery["status"];
-  exitCode: number | null;
-  durationMs: number | null;
-  /** Absent for a role that may not read the script. */
-  output: string | null;
-  error: EmailDeliveryError | null;
-}
-
-export interface NotificationScriptState {
-  /** False where the appliance has the feature switched off. */
-  available: boolean;
-  enabled: boolean;
-  timeoutSeconds: number;
-  file: NotificationScriptFile | null;
-  events: NotificationEventSetting[];
-  runs: NotificationScriptRun[];
-}
-
-export interface NotificationScriptPatch {
-  enabled?: boolean;
-  timeoutSeconds?: number;
-  events?: Record<string, boolean>;
-}
-
-function mapScriptRun(r: Dict): NotificationScriptRun {
-  const delivery = mapEmailDelivery(r);
-  return {
-    id: delivery.id,
-    event: delivery.event,
-    subject: delivery.subject,
-    queuedAt: delivery.queuedAt,
-    sentAt: delivery.sentAt,
-    status: delivery.status,
-    error: delivery.error,
-    exitCode: typeof r.exit_code === "number" ? r.exit_code : null,
-    durationMs: typeof r.duration_ms === "number" ? r.duration_ms : null,
-    output: strOrNull(r.output),
-  };
-}
-
-function mapNotificationScript(res: Dict): NotificationScriptState {
-  const file = res.file && typeof res.file === "object" ? asDict(res.file) : null;
-  return {
-    available: res.available !== false,
-    enabled: res.enabled === true,
-    timeoutSeconds: num(res.timeout_seconds, 60),
-    file: file && {
-      name: str(file.name),
-      size: num(file.size),
-      sha256: str(file.sha256),
-      uploadedAt: strOrNull(file.uploaded_at),
-      uploadedBy: strOrNull(file.uploaded_by),
-    },
-    events: (Array.isArray(res.events) ? res.events : []).map((raw) => mapNotificationEvent(asDict(raw))),
-    runs: (Array.isArray(res.runs) ? res.runs : []).map((raw) => mapScriptRun(asDict(raw))),
-  };
-}
-
-export async function getNotificationScript(): Promise<NotificationScriptState> {
-  return mapNotificationScript(asDict(await request<Dict>("/notifications/script")));
-}
-
-/** Rejects with a 422 whose problems `apiErrorFields` returns by field. */
-export async function updateNotificationScript(patch: NotificationScriptPatch): Promise<NotificationScriptState> {
-  const body: Dict = {};
-  if (patch.enabled !== undefined) body.enabled = patch.enabled;
-  if (patch.timeoutSeconds !== undefined) body.timeout_seconds = patch.timeoutSeconds;
-  if (patch.events) body.events = patch.events;
-  return mapNotificationScript(
-    asDict(await request<Dict>("/notifications/script", { method: "PUT", body: JSON.stringify(body) })),
-  );
-}
-
-/** Stores the script in place of any earlier one. */
-export async function uploadNotificationScript(name: string, content: string): Promise<NotificationScriptState> {
-  return mapNotificationScript(
-    asDict(
-      await request<Dict>("/notifications/script/file", {
-        method: "PUT",
-        body: JSON.stringify({ name, script_content: content }),
-      }),
-    ),
-  );
-}
-
-/** The stored script, to review it. The appliance audits every read. */
-export async function getNotificationScriptContent(): Promise<string> {
-  return str(asDict(await request<Dict>("/notifications/script/file")).script_content);
-}
-
-export async function deleteNotificationScript(): Promise<NotificationScriptState> {
-  return mapNotificationScript(asDict(await request<Dict>("/notifications/script/file", { method: "DELETE" })));
-}
-
-/** Runs the script on a sample event and resolves with how it went, a failed
- *  script included. */
-export async function testNotificationScript(): Promise<NotificationScriptRun> {
-  return mapScriptRun(asDict(await request<Dict>("/notifications/script/test", { method: "POST", body: "{}" })));
 }
 
 /** The per-field problems of a 422 (`error.details.fields`). */

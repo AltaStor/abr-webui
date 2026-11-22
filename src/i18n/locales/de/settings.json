@@ -22,7 +22,7 @@
     },
     "notifications": {
       "label": "Benachrichtigungen",
-      "blurb": "E-Mail-, Skript- und Konsolenbenachrichtigungen"
+      "blurb": "E-Mail- und Konsolenbenachrichtigungen"
     },
     "security": {
       "label": "Sicherheit",
@@ -665,38 +665,11 @@
     "auth": {
       "title": "Authentifizierung",
       "password": "Benutzername und Passwort",
-      "oauth2": "OAuth 2.0",
       "none": "Keine",
       "noneHint": "Für ein Relay, das Mails der Appliance ohne Anmeldung annimmt.",
       "unencryptedWarning": "Die Verbindung ist nicht verschlüsselt, die Anmeldung geht also im Klartext über das Netz. Wählen Sie STARTTLS oder SSL/TLS.",
       "username": "Benutzername",
       "passwordLabel": "Passwort"
-    },
-    "oauth": {
-      "provider": "Anbieter",
-      "providers": {
-        "microsoft": "Microsoft 365 (Exchange Online)",
-        "google": "Google Workspace",
-        "custom": "Anderer OAuth-2.0-Anbieter"
-      },
-      "grant": "Grant",
-      "clientCredentials": "Client Credentials",
-      "refreshToken": "Refresh-Token",
-      "grantHint": {
-        "client_credentials": "Die Anwendung meldet sich selbst an und sendet als das Postfach (Microsoft 365).",
-        "refresh_token": "Ein Benutzer hat einmal zugestimmt; die Appliance erneuert das Zugriffstoken bei Bedarf."
-      },
-      "mailbox": "Postfach",
-      "mailboxHint": "Das Konto, als das das Token sendet.",
-      "tenant": "Verzeichnis-ID (Mandant)",
-      "tokenUrl": "Token-Endpunkt",
-      "clientId": "Anwendungs-ID (Client)",
-      "clientSecret": "Geheimer Clientschlüssel",
-      "refreshTokenLabel": "Refresh-Token",
-      "refreshTokenHint": "Aus dem Zustimmungsablauf; ein vom Anbieter ersetztes Token wird automatisch gespeichert.",
-      "scope": "Bereich (Scope)",
-      "scopeHint": "Leer lassen für den SMTP-Bereich des Anbieters.",
-      "endpoint": "Tokens werden angefordert bei"
     },
     "secret": {
       "stored": "Auf der Appliance gespeichert. Leer lassen, um es zu behalten.",
@@ -753,7 +726,6 @@
         "smtp_connection_failed": "Keine Verbindung zum SMTP-Server",
         "smtp_tls_failed": "Die sichere Verbindung schlug fehl",
         "smtp_auth_failed": "Der SMTP-Server lehnte die Anmeldung ab",
-        "oauth_token_failed": "Kein OAuth-2.0-Zugriffstoken erhalten",
         "smtp_sender_refused": "Der SMTP-Server lehnte die Absenderadresse ab",
         "smtp_recipients_refused": "Der SMTP-Server lehnte die Empfänger ab",
         "smtp_error": "Der SMTP-Server nahm die Nachricht nicht an",
@@ -781,78 +753,11 @@
       "timeout": "Geben Sie 5 bis 300 Sekunden ein.",
       "usernameRequired": "Geben Sie den Benutzernamen für die Anmeldung ein.",
       "passwordRequired": "Geben Sie das Passwort dieses Benutzers ein.",
-      "mailboxRequired": "Geben Sie das Postfach ein, als das das Token sendet.",
-      "googleGrant": "Google stellt für Mail keine Client-Credentials-Tokens aus; verwenden Sie ein Refresh-Token.",
-      "tenant": "Geben Sie eine Mandanten-ID (GUID) oder einen Domänennamen ein.",
-      "tenantRequired": "Geben Sie die Verzeichnis-ID (Mandant) ein.",
-      "tokenUrl": "Geben Sie eine https://-URL ein.",
-      "tokenUrlRequired": "Geben Sie die URL des Token-Endpunkts ein.",
-      "clientIdRequired": "Geben Sie die Anwendungs-ID (Client) ein.",
-      "clientSecretRequired": "Geben Sie den geheimen Clientschlüssel ein.",
-      "refreshTokenRequired": "Geben Sie das Refresh-Token ein.",
       "address": "Keine E-Mail-Adresse.",
       "senderRequired": "Geben Sie die Absenderadresse der Benachrichtigungen ein.",
       "recipients": "Keine E-Mail-Adresse: {{list}}.",
       "recipientsRequired": "Fügen Sie mindestens einen Empfänger hinzu.",
       "threshold": "Geben Sie 50 bis 99 ein."
-    }
-  },
-  "script": {
-    "title": "Eigenes Skript",
-    "description": "Führen Sie ein eigenes Skript aus, wenn ein gewähltes Ereignis eintritt, um ein Chatsystem, eine Ticket-Warteschlange oder alles andere zu erreichen, was E-Mail nicht erreicht.",
-    "enable": "Skript bei seinen Ereignissen ausführen",
-    "warning": "Das Skript läuft auf der Appliance unter dem Konto des Sicherungsdienstes und kann alles, was dieses Konto kann: den Katalog und die gespeicherten Zugangsdaten lesen sowie Sicherungen ändern oder löschen. Laden Sie nur Code hoch, den Sie gelesen haben und dem Sie vertrauen.",
-    "unavailable": "Skripte sind auf dieser Appliance ausgeschaltet (ABR_NOTIFICATION_SCRIPTS=0). Ein gespeichertes Skript läuft nicht.",
-    "loadFailed": "Die Skripteinstellungen konnten nicht von der Appliance gelesen werden.",
-    "file": "Skriptdatei",
-    "none": "Kein Skript hochgeladen.",
-    "size": "{{size}} Byte",
-    "uploadedBy": "Hochgeladen von {{user}},",
-    "upload": "Skript hochladen",
-    "replace": "Ersetzen",
-    "view": "Anzeigen",
-    "viewDescription": "Das Skript, wie es gespeichert ist und ausgeführt wird. Das Lesen wird im Audit-Log festgehalten.",
-    "remove": "Entfernen",
-    "uploaded": "{{name}} hochgeladen.",
-    "uploadFailed": "Die Appliance hat das Skript nicht angenommen.",
-    "tooLarge": "{{name}} ist größer als 256 KiB.",
-    "noInterpreter": "{{name}} beginnt nicht mit einer #!-Zeile, die den Interpreter nennt, etwa #!/bin/sh.",
-    "removed": "Skript entfernt.",
-    "removeFailed": "Skript nicht entfernt",
-    "removeDialog": {
-      "title": "Dieses Skript entfernen?",
-      "description": "{{name}} wird von der Appliance gelöscht und läuft nicht mehr. Der Verlauf bleibt erhalten."
-    },
-    "saved": "Skripteinstellungen gespeichert.",
-    "saveFailed": "Skripteinstellungen nicht gespeichert",
-    "timeout": "Zeitlimit (Sekunden)",
-    "timeoutHint": "Ein längerer Lauf wird gestoppt, mit allem, was er gestartet hat. {{min}}–{{max}}.",
-    "timeoutRange": "Geben Sie {{min}} bis {{max}} Sekunden ein.",
-    "events": "Ereignisse, die das Skript ausführen",
-    "eventsHint": "Unabhängig von den Ereignissen mit E-Mail gewählt. Das Skript läuft auch bei ausgeschalteter E-Mail.",
-    "test": "Testlauf",
-    "running": "Läuft …",
-    "testPassed": "Das Skript wurde ohne Fehler beendet.",
-    "testFailed": "Der Testlauf schlug fehl",
-    "exitCode": "Exit {{code}}",
-    "duration": "{{ms}} ms",
-    "receives": {
-      "title": "Was das Skript erhält",
-      "stdin": "Das Ereignis als JSON auf der Standardeingabe und in der Datei aus ABR_EVENT_FILE: event, name, severity, subject, body, time, host, version und details, die Fakten des Ereignisses (etwa der Job, seine VMs und deren Ergebnisse).",
-      "variables": "Die wichtigsten Felder als Umgebungsvariablen. Keine Variable des Servers erreicht das Skript, und PATH ist ein fester Systempfad.",
-      "outcome": "Exit-Code 0 gilt als Erfolg. Ein fehlgeschlagener Lauf wird festgehalten und nicht wiederholt. Behandeln Sie jeden Wert als Daten: Der Name einer VM etwa stammt von außerhalb der Appliance."
-    },
-    "history": {
-      "title": "Letzte Läufe",
-      "empty": "Das Skript ist noch nicht gelaufen.",
-      "output": "Ausgabe",
-      "status": {
-        "sent": "Erfolgreich",
-        "failed": "Fehlgeschlagen",
-        "retrying": "Neuer Versuch",
-        "queued": "Wartend",
-        "cancelled": "Abgebrochen"
-      }
     }
   }
 }
