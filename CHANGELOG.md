@@ -103,6 +103,22 @@ All notable changes to the AltaStor WebUI are documented in this file.
   request. Recent deliveries, with failures and retries. Read-only for an
   Auditor. The browser's own pop-up notifications are the card below,
   "In-console notifications".
+- Settings → Notifications → Messaging platforms: Telegram, Slack, Discord
+  and ntfy, which the appliance sends through Apprise. Add a platform
+  picks from the ones not set up yet; each one set up is a column with its
+  On/Off switch (saved at once), a summary (bot and chats, or where its webhook
+  goes; its events; its last delivery), Edit and Remove (with a confirmation;
+  its history stays). Edit opens the whole form: Telegram's bot token
+  (write-only, shown with the bot's number) and up to ten chats, the webhook
+  URL of Slack or Discord, or ntfy's topic URL and optional access token (all
+  write-only, the URL shown with its host),
+  the platform's own events, Send test message with the unsaved changes and
+  the reason a message did not go, and recent deliveries. A platform chosen
+  but not saved is a dashed "Not saved" column until it is saved or removed.
+  Wrong URLs and tokens are caught in the form. Without Apprise on the
+  appliance the card says so and
+  nothing can be switched on or tested. Read-only for an Auditor (Edit
+  becomes View).
 - Settings → Storage → Default repository: the folder of the appliance's own
   repository, and the Support Hyper-V backups switch, which has the appliance
   make (or remove) a hidden SMB share and an account for it and then shows the

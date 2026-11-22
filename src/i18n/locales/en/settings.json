@@ -22,7 +22,7 @@
     },
     "notifications": {
       "label": "Notifications",
-      "blurb": "E-mail and in-console notifications"
+      "blurb": "E-mail, messaging and in-console notifications"
     },
     "security": {
       "label": "Security",
@@ -745,7 +745,7 @@
       "willClear": "Removed when you save.",
       "remove": "Remove",
       "keep": "Keep",
-      "optional": "{{label}} (if the provider asks for one)"
+      "optional": "{{label}} (optional)"
     },
     "addresses": {
       "title": "Sender and recipients",
@@ -826,6 +826,163 @@
       "recipients": "Not an e-mail address: {{list}}.",
       "recipientsRequired": "Add at least one recipient.",
       "threshold": "Enter 50 to 99."
+    }
+  },
+  "chat": {
+    "saved": "{{name}} settings saved.",
+    "saveFailed": "{{name}} settings not saved",
+    "setup": "How to set it up",
+    "apprise": {
+      "via": "Messages go out through Apprise {{version}} on the appliance.",
+      "missing": "Apprise isn't installed on the appliance (the apprise package), so no messages can be sent. Ask for it to be installed; until then platforms can be set up but not switched on or tested."
+    },
+    "events": {
+      "title": "Events that send a message",
+      "hint": "Chosen apart from the events that send e-mail. Messages go out even with e-mail switched off."
+    },
+    "test": {
+      "send": "Send test message",
+      "sending": "Sending…",
+      "sent": "Test message sent to {{to}} ({{ms}} ms).",
+      "check": "Check that it arrived. Unsaved changes were used but not saved.",
+      "partly": "It did reach: {{list}}.",
+      "failure": {
+        "connection_failed": "Couldn't connect to the service",
+        "tls_failed": "The secure connection failed",
+        "delivery_refused": "The service refused the message",
+        "delivery_failed": "The service didn't take the message",
+        "timed_out": "Sending took too long and was stopped",
+        "apprise_missing": "Apprise isn't installed on the appliance",
+        "apprise_not_started": "Apprise couldn't be started",
+        "apprise_url_refused": "Apprise can't read these settings",
+        "apprise_failed": "Apprise failed",
+        "other": "The test message was not sent"
+      }
+    },
+    "history": {
+      "to": "to {{list}}"
+    },
+    "storedHost": "The stored URL goes to {{host}}."
+  },
+  "telegram": {
+    "title": "Telegram",
+    "description": "A Telegram bot posts to the chats below when a chosen event happens.",
+    "settings": "Bot and chats",
+    "botToken": "Bot token",
+    "botTokenHint": "The token @BotFather gave when the bot was made.",
+    "botId": "Bot {{id}}.",
+    "chats": "Chats",
+    "addChat": "Add chat",
+    "chatsHint": "Up to {{max}}. A group's or channel's ID is negative, such as -1001234567890; a public channel can be given as @name. Press Enter to add one.",
+    "setup": {
+      "bot": "In Telegram, ask @BotFather for a new bot (/newbot) and copy the token it gives.",
+      "add": "Add the bot to each group or channel it should post to (in a channel, as an administrator that may post). For a private chat, start a chat with the bot.",
+      "chatId": "Find each chat's ID: send a message there, open https://api.telegram.org/bot<token>/getUpdates and read chat.id."
+    },
+    "error": {
+      "token": "Not a bot token: it looks like 123456789:AAE…, as @BotFather gives it.",
+      "tokenRequired": "Enter the bot token.",
+      "chats": "Not a chat ID: {{list}}.",
+      "chatsRequired": "Add at least one chat.",
+      "tooMany": "At most {{max}} chats."
+    }
+  },
+  "messaging": {
+    "title": "Messaging platforms",
+    "description": "Messages to Telegram, Slack, Discord or ntfy when a chosen event happens, sent through Apprise on the appliance.",
+    "liveOnly": "Connect to a live appliance to set up messaging platforms.",
+    "loading": "Reading the messaging platforms…",
+    "loadFailed": "Couldn't read the messaging platforms from the appliance.",
+    "add": "Add a platform",
+    "addPlaceholder": "Choose a platform…",
+    "allAdded": "Every platform is added",
+    "addTitle": "Add {{name}}",
+    "addSave": "Add",
+    "empty": "No messaging platform is set up. Choose one above to add it.",
+    "emptyReadOnly": "No messaging platform is set up.",
+    "notSaved": "Not saved",
+    "pending": "Not set up yet: Edit to finish it, or Remove.",
+    "summary": {
+      "bot": "Bot {{id}}",
+      "chats_one": "{{count}} chat",
+      "chats_other": "{{count}} chats",
+      "host": "To {{host}}",
+      "events": "{{on}} of {{total}} events",
+      "never": "Nothing sent yet."
+    },
+    "enable": "Send messages",
+    "enableNamed": "Send {{name}} messages",
+    "edit": "Edit",
+    "view": "View",
+    "remove": "Remove",
+    "close": "Close",
+    "switchedOn": "{{name}} switched on.",
+    "switchedOff": "{{name}} switched off.",
+    "toggleFailed": "{{name}} not switched",
+    "removed": "{{name}} removed.",
+    "removeFailed": "{{name}} not removed",
+    "removeDialog": {
+      "title": "Remove {{name}}?",
+      "description": "Its settings and {{secret}} are deleted from the appliance, and it sends nothing until it's added again. Its delivery history stays."
+    },
+    "secret": {
+      "telegram": "bot token",
+      "slack": "webhook URL",
+      "discord": "webhook URL",
+      "ntfy": "topic URL"
+    }
+  },
+  "slack": {
+    "title": "Slack",
+    "description": "A Slack incoming webhook posts each chosen event to its channel.",
+    "settings": "Webhook",
+    "url": "Webhook URL",
+    "urlPlaceholder": "https://hooks.slack.com/services/…",
+    "urlHint": "The incoming webhook's URL.",
+    "target": "the webhook",
+    "setup": {
+      "steps": "In Slack, open your app at api.slack.com/apps (or create one), turn on Incoming Webhooks, add a webhook to the channel and copy its URL."
+    },
+    "error": {
+      "url": "Not a Slack incoming webhook URL: it looks like https://hooks.slack.com/services/T…/B…/….",
+      "urlRequired": "Enter the webhook URL."
+    }
+  },
+  "discord": {
+    "title": "Discord",
+    "description": "A Discord webhook posts each chosen event to its channel.",
+    "settings": "Webhook",
+    "url": "Webhook URL",
+    "urlPlaceholder": "https://discord.com/api/webhooks/…",
+    "urlHint": "The channel webhook's URL.",
+    "target": "the webhook",
+    "setup": {
+      "steps": "In Discord, open the channel's settings, Integrations, Webhooks; create a webhook and use Copy Webhook URL."
+    },
+    "error": {
+      "url": "Not a Discord webhook URL: it looks like https://discord.com/api/webhooks/123…/….",
+      "urlRequired": "Enter the webhook URL."
+    }
+  },
+  "ntfy": {
+    "title": "ntfy",
+    "description": "Publishes each chosen event to an ntfy topic, on ntfy.sh or a server of your own; the ntfy apps show it as a push notification.",
+    "settings": "Topic",
+    "url": "Topic URL",
+    "urlPlaceholder": "https://ntfy.sh/…",
+    "urlHint": "https://ntfy.sh/<topic> or https://<your server>/<topic>.",
+    "target": "the topic",
+    "token": "Access token",
+    "tokenHint": "Only for a server with access control: a token that may publish to the topic.",
+    "setup": {
+      "topic": "Pick a topic name: letters, digits, - and _. On ntfy.sh anyone who knows a topic can read it, so make it long and hard to guess.",
+      "server": "On a server of your own with access control, make a token (ntfy token add <user>, or Account > Access tokens in its web app) for a user that may publish to the topic.",
+      "app": "Subscribe to the same topic in the ntfy app on your phone or in its web app. Failures arrive at high priority."
+    },
+    "error": {
+      "url": "Not an ntfy topic URL: it looks like https://ntfy.sh/<topic> or https://<your server>/<topic>.",
+      "urlRequired": "Enter the topic URL.",
+      "token": "Not an ntfy access token: it starts with tk_."
     }
   }
 }

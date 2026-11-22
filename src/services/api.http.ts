@@ -3547,6 +3547,157 @@ export async function testEmailNotifications(patch?: EmailNotificationPatch, to?
   return { recipients: strList(res.recipients), refused: strList(res.refused), durationMs: num(res.duration_ms) };
 }
 
+/* ---- Messaging platforms (Settings -> Notifications) ---- */
+
+export type MessagingPlatformId = "telegram" | "slack" | "discord" | "ntfy";
+export const MESSAGING_PLATFORM_IDS: MessagingPlatformId[] = ["telegram", "slack", "discord", "ntfy"];
+
+/** Apprise, the program the appliance sends messaging notifications through. */
+export interface AppriseState {
+  available: boolean;
+  version: string | null;
+}
+
+export interface ChatDelivery {
+  id: string;
+  event: string;
+  subject: string;
+  queuedAt: string | null;
+  sentAt: string | null;
+  status: EmailDelivery["status"];
+  attempts: number;
+  nextAttemptAt: string | null;
+  /** Telegram: the chats it goes to. */
+  recipients: string[];
+  /** The chats (Telegram) or the webhook that got it. */
+  deliveredTo: string[];
+  error: EmailDeliveryError | null;
+}
+
+export interface MessagingPlatformState {
+  id: MessagingPlatformId;
+  name: string;
+  /** Set up: its settings were saved, and it was not removed since. */
+  added: boolean;
+  enabled: boolean;
+  updatedAt: string | null;
+  updatedBy: string | null;
+  events: NotificationEventSetting[];
+  deliveries: ChatDelivery[];
+  /** Telegram. */
+  botTokenSet: boolean;
+  /** Telegram: the number before the colon of the token, which names the bot. */
+  botId: string | null;
+  chatIds: string[];
+  /** Slack, Discord and ntfy (its topic URL). */
+  webhookUrlSet: boolean;
+  webhookHost: string | null;
+  /** ntfy: an access token for a server with access control. */
+  accessTokenSet: boolean;
+}
+
+export interface MessagingState {
+  apprise: AppriseState;
+  platforms: MessagingPlatformState[];
+}
+
+/** A change to a platform. A secret left undefined keeps the stored one; an
+ *  empty string clears it. */
+export interface MessagingPatch {
+  enabled?: boolean;
+  botToken?: string;
+  chatIds?: string[];
+  webhookUrl?: string;
+  accessToken?: string;
+  events?: Record<string, boolean>;
+}
+
+function mapChatDelivery(d: Dict): ChatDelivery {
+  const delivery = mapEmailDelivery(d);
+  return {
+    id: delivery.id,
+    event: delivery.event,
+    subject: delivery.subject,
+    queuedAt: delivery.queuedAt,
+    sentAt: delivery.sentAt,
+    status: delivery.status,
+    attempts: delivery.attempts,
+    nextAttemptAt: delivery.nextAttemptAt,
+    recipients: delivery.recipients,
+    deliveredTo: strList(d.delivered_to),
+    error: delivery.error,
+  };
+}
+
+function mapPlatform(res: Dict): MessagingPlatformState {
+  return {
+    id: str(res.id) as MessagingPlatformId,
+    name: str(res.name),
+    added: res.added === true,
+    enabled: res.enabled === true,
+    updatedAt: strOrNull(res.updated_at),
+    updatedBy: strOrNull(res.updated_by),
+    events: (Array.isArray(res.events) ? res.events : []).map((raw) => mapNotificationEvent(asDict(raw))),
+    deliveries: (Array.isArray(res.deliveries) ? res.deliveries : []).map((raw) => mapChatDelivery(asDict(raw))),
+    botTokenSet: res.bot_token_set === true,
+    botId: strOrNull(res.bot_id),
+    chatIds: strList(res.chat_ids),
+    webhookUrlSet: res.webhook_url_set === true,
+    webhookHost: strOrNull(res.webhook_host),
+    accessTokenSet: res.access_token_set === true,
+  };
+}
+
+function messagingPatchToWire(p: MessagingPatch): Dict {
+  const out: Dict = {};
+  if (p.enabled !== undefined) out.enabled = p.enabled;
+  if (p.botToken !== undefined) out.bot_token = p.botToken;
+  if (p.chatIds) out.chat_ids = p.chatIds;
+  if (p.webhookUrl !== undefined) out.webhook_url = p.webhookUrl;
+  if (p.accessToken !== undefined) out.access_token = p.accessToken;
+  if (p.events) out.events = p.events;
+  return out;
+}
+
+export interface ChatTestResult {
+  deliveredTo: string[];
+  durationMs: number;
+}
+
+/** Every platform, set up or not, and whether Apprise is installed. */
+export async function getMessaging(): Promise<MessagingState> {
+  const res = asDict(await request<Dict>("/notifications/messaging"));
+  const apprise = asDict(res.apprise);
+  return {
+    apprise: { available: apprise.available === true, version: strOrNull(apprise.version) },
+    platforms: (Array.isArray(res.items) ? res.items : [])
+      .map((raw) => mapPlatform(asDict(raw)))
+      .filter((p) => MESSAGING_PLATFORM_IDS.includes(p.id)),
+  };
+}
+
+/** Saves the change, which sets the platform up when it was not; rejects with
+ *  a 422 whose problems `apiErrorFields` returns by field ("bot_token",
+ *  "chat_ids", "webhook_url", ...). */
+export async function updateMessagingPlatform(id: MessagingPlatformId, patch: MessagingPatch): Promise<MessagingPlatformState> {
+  return mapPlatform(
+    asDict(await request<Dict>(`/notifications/${id}`, { method: "PUT", body: JSON.stringify(messagingPatchToWire(patch)) })),
+  );
+}
+
+/** Takes the platform off: its settings and secret go; its history stays. */
+export async function removeMessagingPlatform(id: MessagingPlatformId): Promise<MessagingPlatformState> {
+  return mapPlatform(asDict(await request<Dict>(`/notifications/${id}`, { method: "DELETE" })));
+}
+
+/** Sends a test message with the stored settings and `patch` over them (not
+ *  saved). One that did not go rejects with the reason as the error code. */
+export async function testMessagingPlatform(id: MessagingPlatformId, patch?: MessagingPatch): Promise<ChatTestResult> {
+  const body = patch ? { settings: messagingPatchToWire(patch) } : {};
+  const res = asDict(await request<Dict>(`/notifications/${id}/test`, { method: "POST", body: JSON.stringify(body) }));
+  return { deliveredTo: strList(res.delivered_to), durationMs: num(res.duration_ms) };
+}
+
 /** The per-field problems of a 422 (`error.details.fields`). */
 export function apiErrorFields(err: unknown): Record<string, string> | null {
   if (!(err instanceof ApiError)) return null;
@@ -3561,6 +3712,12 @@ export function apiErrorFields(err: unknown): Record<string, string> | null {
 export function apiErrorStage(err: unknown): string | null {
   if (!(err instanceof ApiError)) return null;
   return strOrNull(asDict(asDict(asDict(err.body).error).details).stage);
+}
+
+/** The targets a failed messaging-platform test did reach (`error.details.delivered_to`). */
+export function apiErrorDeliveredTo(err: unknown): string[] {
+  if (!(err instanceof ApiError)) return [];
+  return strList(asDict(asDict(asDict(err.body).error).details).delivered_to);
 }
 
 /* ====================================================================== */
