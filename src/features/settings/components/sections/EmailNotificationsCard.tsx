@@ -7,8 +7,6 @@ import { useTranslation } from "react-i18next";
 import { AlertTriangle, CheckCircle2, Loader2, Mail, XCircle } from "@/lib/icons";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { PasswordInput } from "@/components/ui/password-input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "@/components/ui/sonner";
 import { DateTime } from "@/components/DateTime";
@@ -23,7 +21,6 @@ import {
   testEmailNotifications,
   updateEmailNotifications,
   type EmailNotificationState,
-  type OAuthProvider,
   type SmtpSecurity,
 } from "@/services/api.http";
 import { useCan } from "@/store/permissions";
@@ -31,8 +28,8 @@ import { useWorldStore } from "@/store/world";
 import { SettingsSection } from "../SettingsSection";
 import { Field } from "../FormField";
 import { ChipList, Segmented } from "../controls";
-import { ADDRESS, DEFAULT_PORTS, draftOf, patchOf, problemsOf, type Draft, type Secret } from "./emailForm";
-import { EnabledSwitch, EventSwitches, HistoryList, useSettingsDraft } from "./notificationParts";
+import { ADDRESS, DEFAULT_PORTS, draftOf, patchOf, problemsOf, type Draft } from "./emailForm";
+import { EnabledSwitch, EventSwitches, HistoryList, SecretField, useSettingsDraft } from "./notificationParts";
 
 /**
  * Settings → Notifications → E-mail: the SMTP server, how the appliance signs
@@ -56,7 +53,6 @@ const FAILURE_CODES = new Set([
   "smtp_connection_failed",
   "smtp_tls_failed",
   "smtp_auth_failed",
-  "oauth_token_failed",
   "smtp_sender_refused",
   "smtp_recipients_refused",
   "smtp_error",
@@ -174,8 +170,6 @@ export function EmailNotificationsCard() {
       // Follow the conventional port while the operator kept the previous one.
       port: draft.port === String(DEFAULT_PORTS[draft.security]) ? String(DEFAULT_PORTS[security]) : draft.port,
     });
-  const setProvider = (provider: OAuthProvider) =>
-    update({ provider, grant: provider === "google" ? "refresh_token" : draft.grant });
 
   const onSave = () => {
     setShowErrors(true);
@@ -196,22 +190,6 @@ export function EmailNotificationsCard() {
     }
     test.mutate(draft);
   };
-
-  const oauth = state.smtp.oauth2;
-  const endpoint =
-    draft.provider === "microsoft"
-      ? `https://login.microsoftonline.com/${draft.tenantId.trim() || "organizations"}/oauth2/v2.0/token`
-      : draft.provider === "google"
-        ? "https://oauth2.googleapis.com/token"
-        : draft.tokenUrl.trim();
-  const defaultScope =
-    draft.provider === "microsoft"
-      ? draft.grant === "client_credentials"
-        ? "https://outlook.office365.com/.default"
-        : "https://outlook.office365.com/SMTP.Send offline_access"
-      : draft.provider === "google"
-        ? "https://mail.google.com/"
-        : "";
 
   return (
     <SettingsSection
@@ -348,7 +326,6 @@ export function EmailNotificationsCard() {
             disabled={readOnly}
             options={[
               { value: "password", label: t("email.auth.password") },
-              { value: "oauth2", label: t("email.auth.oauth2") },
               { value: "none", label: t("email.auth.none") },
             ]}
           />
@@ -380,116 +357,6 @@ export function EmailNotificationsCard() {
                 error={err("smtp.password")}
                 readOnly={readOnly}
               />
-            </div>
-          )}
-
-          {draft.auth === "oauth2" && (
-            <div className="space-y-3">
-              <div className="grid gap-3 sm:grid-cols-2">
-                <Field id="oauth-provider" label={t("email.oauth.provider")}>
-                  <Select value={draft.provider} onValueChange={(v) => setProvider(v as OAuthProvider)} disabled={readOnly}>
-                    <SelectTrigger id="oauth-provider">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="microsoft">{t("email.oauth.providers.microsoft")}</SelectItem>
-                      <SelectItem value="google">{t("email.oauth.providers.google")}</SelectItem>
-                      <SelectItem value="custom">{t("email.oauth.providers.custom")}</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </Field>
-                <Field id="oauth-grant" label={t("email.oauth.grant")} error={err("smtp.oauth2.grant")} hint={t(`email.oauth.grantHint.${draft.grant}`)}>
-                  <Segmented
-                    aria-label={t("email.oauth.grant")}
-                    value={draft.grant}
-                    onChange={(grant) => update({ grant })}
-                    disabled={readOnly || draft.provider === "google"}
-                    size="sm"
-                    options={[
-                      { value: "client_credentials", label: t("email.oauth.clientCredentials") },
-                      { value: "refresh_token", label: t("email.oauth.refreshToken") },
-                    ]}
-                  />
-                </Field>
-              </div>
-              <div className="grid gap-3 sm:grid-cols-2">
-                <Field id="oauth-mailbox" label={t("email.oauth.mailbox")} error={err("smtp.username")} hint={t("email.oauth.mailboxHint")}>
-                  <Input
-                    id="oauth-mailbox"
-                    autoComplete="off"
-                    value={draft.username}
-                    onChange={(e) => update({ username: e.target.value })}
-                    placeholder="backup@example.com"
-                    aria-invalid={!!err("smtp.username")}
-                  />
-                </Field>
-                {draft.provider === "microsoft" && (
-                  <Field id="oauth-tenant" label={t("email.oauth.tenant")} error={err("smtp.oauth2.tenant_id")}>
-                    <Input
-                      id="oauth-tenant"
-                      value={draft.tenantId}
-                      onChange={(e) => update({ tenantId: e.target.value })}
-                      placeholder="contoso.onmicrosoft.com"
-                      aria-invalid={!!err("smtp.oauth2.tenant_id")}
-                    />
-                  </Field>
-                )}
-                {draft.provider === "custom" && (
-                  <Field id="oauth-token-url" label={t("email.oauth.tokenUrl")} error={err("smtp.oauth2.token_url")}>
-                    <Input
-                      id="oauth-token-url"
-                      value={draft.tokenUrl}
-                      onChange={(e) => update({ tokenUrl: e.target.value })}
-                      placeholder="https://idp.example.com/oauth2/token"
-                      aria-invalid={!!err("smtp.oauth2.token_url")}
-                    />
-                  </Field>
-                )}
-                <Field id="oauth-client-id" label={t("email.oauth.clientId")} error={err("smtp.oauth2.client_id")}>
-                  <Input
-                    id="oauth-client-id"
-                    autoComplete="off"
-                    value={draft.clientId}
-                    onChange={(e) => update({ clientId: e.target.value })}
-                    aria-invalid={!!err("smtp.oauth2.client_id")}
-                  />
-                </Field>
-                <SecretField
-                  id="oauth-client-secret"
-                  label={t("email.oauth.clientSecret")}
-                  stored={oauth.clientSecretSet}
-                  value={draft.clientSecret}
-                  onChange={(clientSecret) => update({ clientSecret })}
-                  error={err("smtp.oauth2.client_secret")}
-                  readOnly={readOnly}
-                  optional={draft.grant === "refresh_token"}
-                />
-                {draft.grant === "refresh_token" && (
-                  <SecretField
-                    id="oauth-refresh-token"
-                    label={t("email.oauth.refreshTokenLabel")}
-                    stored={oauth.refreshTokenSet}
-                    value={draft.refreshToken}
-                    onChange={(refreshToken) => update({ refreshToken })}
-                    error={err("smtp.oauth2.refresh_token")}
-                    readOnly={readOnly}
-                    hint={t("email.oauth.refreshTokenHint")}
-                  />
-                )}
-                <Field id="oauth-scope" label={t("email.oauth.scope")} hint={t("email.oauth.scopeHint")}>
-                  <Input
-                    id="oauth-scope"
-                    value={draft.scope}
-                    onChange={(e) => update({ scope: e.target.value })}
-                    placeholder={defaultScope}
-                  />
-                </Field>
-              </div>
-              {endpoint && (
-                <p className="break-all text-xs text-muted-foreground">
-                  {t("email.oauth.endpoint")} <span className="font-mono">{endpoint}</span>
-                </p>
-              )}
             </div>
           )}
         </fieldset>
@@ -575,56 +442,6 @@ export function EmailNotificationsCard() {
         )}
       </div>
     </SettingsSection>
-  );
-}
-
-/** A write-only secret: "stored" while the appliance holds one and nothing new
- *  was typed; Remove clears it on Save. */
-function SecretField({
-  id,
-  label,
-  stored,
-  value,
-  onChange,
-  error,
-  readOnly,
-  hint,
-  optional,
-}: {
-  id: string;
-  label: string;
-  stored: boolean;
-  value: Secret;
-  onChange: (value: Secret) => void;
-  error: string | null;
-  readOnly: boolean;
-  hint?: string;
-  optional?: boolean;
-}) {
-  const { t } = useTranslation("settings");
-  const cleared = value === "" && stored;
-  const status = cleared ? t("email.secret.willClear") : stored && value === undefined ? t("email.secret.stored") : hint;
-  return (
-    <Field id={id} label={optional ? t("email.secret.optional", { label }) : label} error={error} hint={status}>
-      <div className="flex items-center gap-2">
-        <div className="min-w-0 flex-1">
-          <PasswordInput
-            id={id}
-            autoComplete="new-password"
-            value={value ?? ""}
-            placeholder={stored ? t("email.secret.keepPlaceholder") : ""}
-            onChange={(e) => onChange(e.target.value === "" ? undefined : e.target.value)}
-            aria-invalid={!!error}
-            disabled={readOnly}
-          />
-        </div>
-        {stored && !readOnly && (
-          <Button type="button" variant="ghost" size="sm" onClick={() => onChange(cleared ? undefined : "")}>
-            {cleared ? t("email.secret.keep") : t("email.secret.remove")}
-          </Button>
-        )}
-      </div>
-    </Field>
   );
 }
 

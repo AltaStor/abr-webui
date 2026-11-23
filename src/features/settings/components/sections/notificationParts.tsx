@@ -5,12 +5,17 @@ import { useEffect, useRef, useState, type Dispatch, type ReactNode, type SetSta
 import { useTranslation } from "react-i18next";
 import { History } from "@/lib/icons";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Switch } from "@/components/ui/switch";
 import { DateTime } from "@/components/DateTime";
 import type { NotificationEventSetting } from "@/services/api.http";
+import { Field } from "../FormField";
+import type { Secret } from "./emailForm";
 
-/* What the e-mail and script cards have in common: the form's draft, the
- * on/off switch, choosing events, and the list of what was delivered. */
+/* What the notification cards have in common: the form's draft, the on/off
+ * switch, a write-only secret, choosing events, and the list of what was
+ * delivered. */
 
 /**
  * The form's draft of the appliance's settings: seeded from the first answer,
@@ -128,8 +133,6 @@ export interface HistoryItem {
   aside?: string;
   error: { code: string; message: string } | null;
   retryAt?: string | null;
-  /** What a script printed. */
-  output?: string | null;
 }
 
 const STATUS_VARIANT = { sent: "success", failed: "danger", retrying: "warning", queued: "info", cancelled: "outline" } as const;
@@ -165,18 +168,62 @@ export function HistoryList({ title, empty, items }: { title: string; empty: str
                   )}
                 </span>
               )}
-              {item.output && (
-                <details className="basis-full">
-                  <summary className="cursor-pointer text-muted-foreground">{t("script.history.output")}</summary>
-                  <pre className="mt-1 max-h-48 overflow-auto whitespace-pre-wrap break-words bg-muted/30 p-2 font-mono text-[11px]">
-                    {item.output}
-                  </pre>
-                </details>
-              )}
             </li>
           ))}
         </ul>
       )}
     </div>
+  );
+}
+
+/** A write-only secret: "stored" while the appliance holds one and nothing new
+ *  was typed; Remove clears it on Save. */
+export function SecretField({
+  id,
+  label,
+  stored,
+  value,
+  onChange,
+  error,
+  readOnly,
+  hint,
+  optional,
+  placeholder,
+}: {
+  id: string;
+  label: string;
+  stored: boolean;
+  value: Secret;
+  onChange: (value: Secret) => void;
+  error: string | null;
+  readOnly: boolean;
+  hint?: string;
+  optional?: boolean;
+  placeholder?: string;
+}) {
+  const { t } = useTranslation("settings");
+  const cleared = value === "" && stored;
+  const status = cleared ? t("email.secret.willClear") : stored && value === undefined ? t("email.secret.stored") : hint;
+  return (
+    <Field id={id} label={optional ? t("email.secret.optional", { label }) : label} error={error} hint={status}>
+      <div className="flex items-center gap-2">
+        <div className="min-w-0 flex-1">
+          <PasswordInput
+            id={id}
+            autoComplete="new-password"
+            value={value ?? ""}
+            placeholder={stored ? t("email.secret.keepPlaceholder") : placeholder ?? ""}
+            onChange={(e) => onChange(e.target.value === "" ? undefined : e.target.value)}
+            aria-invalid={!!error}
+            disabled={readOnly}
+          />
+        </div>
+        {stored && !readOnly && (
+          <Button type="button" variant="ghost" size="sm" onClick={() => onChange(cleared ? undefined : "")}>
+            {cleared ? t("email.secret.keep") : t("email.secret.remove")}
+          </Button>
+        )}
+      </div>
+    </Field>
   );
 }

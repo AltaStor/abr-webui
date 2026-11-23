@@ -3382,23 +3382,7 @@ export async function probeAppliance(): Promise<void> {
 /* ====================================================================== */
 
 export type SmtpSecurity = "starttls" | "ssl" | "none";
-export type SmtpAuth = "password" | "oauth2" | "none";
-export type OAuthProvider = "microsoft" | "google" | "custom";
-export type OAuthGrant = "client_credentials" | "refresh_token";
-
-export interface EmailOAuthSettings {
-  provider: OAuthProvider;
-  tenantId: string;
-  clientId: string;
-  clientSecretSet: boolean;
-  grant: OAuthGrant;
-  refreshTokenSet: boolean;
-  tokenUrl: string;
-  scope: string;
-  /** What a Microsoft or Google provider resolves to; empty for custom. */
-  effectiveTokenUrl: string;
-  effectiveScope: string;
-}
+export type SmtpAuth = "password" | "none";
 
 export interface EmailSmtpSettings {
   host: string;
@@ -3409,7 +3393,6 @@ export interface EmailSmtpSettings {
   username: string;
   passwordSet: boolean;
   timeoutSeconds: number;
-  oauth2: EmailOAuthSettings;
 }
 
 export interface NotificationEventSetting {
@@ -3456,12 +3439,7 @@ export interface EmailNotificationState {
  *  an empty string clears it. */
 export interface EmailNotificationPatch {
   enabled?: boolean;
-  smtp?: Partial<Omit<EmailSmtpSettings, "passwordSet" | "oauth2">> & {
-    password?: string;
-    oauth2?: Partial<
-      Omit<EmailOAuthSettings, "clientSecretSet" | "refreshTokenSet" | "effectiveTokenUrl" | "effectiveScope">
-    > & { clientSecret?: string; refreshToken?: string };
-  };
+  smtp?: Partial<Omit<EmailSmtpSettings, "passwordSet">> & { password?: string };
   sender?: { address?: string; name?: string };
   recipients?: string[];
   events?: Record<string, boolean>;
@@ -3480,7 +3458,6 @@ function mapNotificationEvent(e: Dict): NotificationEventSetting {
 
 function mapEmailState(res: Dict): EmailNotificationState {
   const smtp = asDict(res.smtp);
-  const oauth = asDict(smtp.oauth2);
   const sender = asDict(res.sender);
   return {
     enabled: res.enabled === true,
@@ -3489,22 +3466,10 @@ function mapEmailState(res: Dict): EmailNotificationState {
       port: num(smtp.port, 587),
       security: (["starttls", "ssl", "none"].includes(str(smtp.security)) ? str(smtp.security) : "starttls") as SmtpSecurity,
       verifyTls: smtp.verify_tls !== false,
-      auth: (["password", "oauth2", "none"].includes(str(smtp.auth)) ? str(smtp.auth) : "password") as SmtpAuth,
+      auth: (str(smtp.auth) === "none" ? "none" : "password") as SmtpAuth,
       username: str(smtp.username),
       passwordSet: smtp.password_set === true,
       timeoutSeconds: num(smtp.timeout_seconds, 30),
-      oauth2: {
-        provider: (["microsoft", "google", "custom"].includes(str(oauth.provider)) ? str(oauth.provider) : "microsoft") as OAuthProvider,
-        tenantId: str(oauth.tenant_id),
-        clientId: str(oauth.client_id),
-        clientSecretSet: oauth.client_secret_set === true,
-        grant: (str(oauth.grant) === "refresh_token" ? "refresh_token" : "client_credentials") as OAuthGrant,
-        refreshTokenSet: oauth.refresh_token_set === true,
-        tokenUrl: str(oauth.token_url),
-        scope: str(oauth.scope),
-        effectiveTokenUrl: str(oauth.effective_token_url),
-        effectiveScope: str(oauth.effective_scope),
-      },
     },
     sender: { address: str(sender.address), name: str(sender.name) },
     recipients: strList(res.recipients),
@@ -3538,21 +3503,10 @@ function emailPatchToWire(p: EmailNotificationPatch): Dict {
   const out: Dict = {};
   if (p.enabled !== undefined) out.enabled = p.enabled;
   if (p.smtp) {
-    const { oauth2, verifyTls, timeoutSeconds, ...rest } = p.smtp;
+    const { verifyTls, timeoutSeconds, ...rest } = p.smtp;
     const smtp: Dict = { ...rest };
     if (verifyTls !== undefined) smtp.verify_tls = verifyTls;
     if (timeoutSeconds !== undefined) smtp.timeout_seconds = timeoutSeconds;
-    if (oauth2) {
-      const { tenantId, clientId, clientSecret, refreshToken, tokenUrl, ...plain } = oauth2;
-      smtp.oauth2 = {
-        ...plain,
-        ...(tenantId !== undefined ? { tenant_id: tenantId } : {}),
-        ...(clientId !== undefined ? { client_id: clientId } : {}),
-        ...(clientSecret !== undefined ? { client_secret: clientSecret } : {}),
-        ...(refreshToken !== undefined ? { refresh_token: refreshToken } : {}),
-        ...(tokenUrl !== undefined ? { token_url: tokenUrl } : {}),
-      };
-    }
     out.smtp = smtp;
   }
   if (p.sender) out.sender = p.sender;
@@ -3593,48 +3547,73 @@ export async function testEmailNotifications(patch?: EmailNotificationPatch, to?
   return { recipients: strList(res.recipients), refused: strList(res.refused), durationMs: num(res.duration_ms) };
 }
 
-/* ---- The notification script (Settings -> Notifications) ---- */
+/* ---- Messaging platforms (Settings -> Notifications) ---- */
 
-export interface NotificationScriptFile {
-  name: string;
-  size: number;
-  sha256: string;
-  uploadedAt: string | null;
-  uploadedBy: string | null;
+export type MessagingPlatformId = "telegram" | "slack" | "discord" | "ntfy";
+export const MESSAGING_PLATFORM_IDS: MessagingPlatformId[] = ["telegram", "slack", "discord", "ntfy"];
+
+/** Apprise, the program the appliance sends messaging notifications through. */
+export interface AppriseState {
+  available: boolean;
+  version: string | null;
 }
 
-export interface NotificationScriptRun {
+export interface ChatDelivery {
   id: string;
   event: string;
   subject: string;
   queuedAt: string | null;
   sentAt: string | null;
   status: EmailDelivery["status"];
-  exitCode: number | null;
-  durationMs: number | null;
-  /** Absent for a role that may not read the script. */
-  output: string | null;
+  attempts: number;
+  nextAttemptAt: string | null;
+  /** Telegram: the chats it goes to. */
+  recipients: string[];
+  /** The chats (Telegram) or the webhook that got it. */
+  deliveredTo: string[];
   error: EmailDeliveryError | null;
 }
 
-export interface NotificationScriptState {
-  /** False where the appliance has the feature switched off. */
-  available: boolean;
+export interface MessagingPlatformState {
+  id: MessagingPlatformId;
+  name: string;
+  /** Set up: its settings were saved, and it was not removed since. */
+  added: boolean;
   enabled: boolean;
-  timeoutSeconds: number;
-  file: NotificationScriptFile | null;
+  updatedAt: string | null;
+  updatedBy: string | null;
   events: NotificationEventSetting[];
-  runs: NotificationScriptRun[];
+  deliveries: ChatDelivery[];
+  /** Telegram. */
+  botTokenSet: boolean;
+  /** Telegram: the number before the colon of the token, which names the bot. */
+  botId: string | null;
+  chatIds: string[];
+  /** Slack, Discord and ntfy (its topic URL). */
+  webhookUrlSet: boolean;
+  webhookHost: string | null;
+  /** ntfy: an access token for a server with access control. */
+  accessTokenSet: boolean;
 }
 
-export interface NotificationScriptPatch {
+export interface MessagingState {
+  apprise: AppriseState;
+  platforms: MessagingPlatformState[];
+}
+
+/** A change to a platform. A secret left undefined keeps the stored one; an
+ *  empty string clears it. */
+export interface MessagingPatch {
   enabled?: boolean;
-  timeoutSeconds?: number;
+  botToken?: string;
+  chatIds?: string[];
+  webhookUrl?: string;
+  accessToken?: string;
   events?: Record<string, boolean>;
 }
 
-function mapScriptRun(r: Dict): NotificationScriptRun {
-  const delivery = mapEmailDelivery(r);
+function mapChatDelivery(d: Dict): ChatDelivery {
+  const delivery = mapEmailDelivery(d);
   return {
     id: delivery.id,
     event: delivery.event,
@@ -3642,71 +3621,81 @@ function mapScriptRun(r: Dict): NotificationScriptRun {
     queuedAt: delivery.queuedAt,
     sentAt: delivery.sentAt,
     status: delivery.status,
+    attempts: delivery.attempts,
+    nextAttemptAt: delivery.nextAttemptAt,
+    recipients: delivery.recipients,
+    deliveredTo: strList(d.delivered_to),
     error: delivery.error,
-    exitCode: typeof r.exit_code === "number" ? r.exit_code : null,
-    durationMs: typeof r.duration_ms === "number" ? r.duration_ms : null,
-    output: strOrNull(r.output),
   };
 }
 
-function mapNotificationScript(res: Dict): NotificationScriptState {
-  const file = res.file && typeof res.file === "object" ? asDict(res.file) : null;
+function mapPlatform(res: Dict): MessagingPlatformState {
   return {
-    available: res.available !== false,
+    id: str(res.id) as MessagingPlatformId,
+    name: str(res.name),
+    added: res.added === true,
     enabled: res.enabled === true,
-    timeoutSeconds: num(res.timeout_seconds, 60),
-    file: file && {
-      name: str(file.name),
-      size: num(file.size),
-      sha256: str(file.sha256),
-      uploadedAt: strOrNull(file.uploaded_at),
-      uploadedBy: strOrNull(file.uploaded_by),
-    },
+    updatedAt: strOrNull(res.updated_at),
+    updatedBy: strOrNull(res.updated_by),
     events: (Array.isArray(res.events) ? res.events : []).map((raw) => mapNotificationEvent(asDict(raw))),
-    runs: (Array.isArray(res.runs) ? res.runs : []).map((raw) => mapScriptRun(asDict(raw))),
+    deliveries: (Array.isArray(res.deliveries) ? res.deliveries : []).map((raw) => mapChatDelivery(asDict(raw))),
+    botTokenSet: res.bot_token_set === true,
+    botId: strOrNull(res.bot_id),
+    chatIds: strList(res.chat_ids),
+    webhookUrlSet: res.webhook_url_set === true,
+    webhookHost: strOrNull(res.webhook_host),
+    accessTokenSet: res.access_token_set === true,
   };
 }
 
-export async function getNotificationScript(): Promise<NotificationScriptState> {
-  return mapNotificationScript(asDict(await request<Dict>("/notifications/script")));
+function messagingPatchToWire(p: MessagingPatch): Dict {
+  const out: Dict = {};
+  if (p.enabled !== undefined) out.enabled = p.enabled;
+  if (p.botToken !== undefined) out.bot_token = p.botToken;
+  if (p.chatIds) out.chat_ids = p.chatIds;
+  if (p.webhookUrl !== undefined) out.webhook_url = p.webhookUrl;
+  if (p.accessToken !== undefined) out.access_token = p.accessToken;
+  if (p.events) out.events = p.events;
+  return out;
 }
 
-/** Rejects with a 422 whose problems `apiErrorFields` returns by field. */
-export async function updateNotificationScript(patch: NotificationScriptPatch): Promise<NotificationScriptState> {
-  const body: Dict = {};
-  if (patch.enabled !== undefined) body.enabled = patch.enabled;
-  if (patch.timeoutSeconds !== undefined) body.timeout_seconds = patch.timeoutSeconds;
-  if (patch.events) body.events = patch.events;
-  return mapNotificationScript(
-    asDict(await request<Dict>("/notifications/script", { method: "PUT", body: JSON.stringify(body) })),
+export interface ChatTestResult {
+  deliveredTo: string[];
+  durationMs: number;
+}
+
+/** Every platform, set up or not, and whether Apprise is installed. */
+export async function getMessaging(): Promise<MessagingState> {
+  const res = asDict(await request<Dict>("/notifications/messaging"));
+  const apprise = asDict(res.apprise);
+  return {
+    apprise: { available: apprise.available === true, version: strOrNull(apprise.version) },
+    platforms: (Array.isArray(res.items) ? res.items : [])
+      .map((raw) => mapPlatform(asDict(raw)))
+      .filter((p) => MESSAGING_PLATFORM_IDS.includes(p.id)),
+  };
+}
+
+/** Saves the change, which sets the platform up when it was not; rejects with
+ *  a 422 whose problems `apiErrorFields` returns by field ("bot_token",
+ *  "chat_ids", "webhook_url", ...). */
+export async function updateMessagingPlatform(id: MessagingPlatformId, patch: MessagingPatch): Promise<MessagingPlatformState> {
+  return mapPlatform(
+    asDict(await request<Dict>(`/notifications/${id}`, { method: "PUT", body: JSON.stringify(messagingPatchToWire(patch)) })),
   );
 }
 
-/** Stores the script in place of any earlier one. */
-export async function uploadNotificationScript(name: string, content: string): Promise<NotificationScriptState> {
-  return mapNotificationScript(
-    asDict(
-      await request<Dict>("/notifications/script/file", {
-        method: "PUT",
-        body: JSON.stringify({ name, script_content: content }),
-      }),
-    ),
-  );
+/** Takes the platform off: its settings and secret go; its history stays. */
+export async function removeMessagingPlatform(id: MessagingPlatformId): Promise<MessagingPlatformState> {
+  return mapPlatform(asDict(await request<Dict>(`/notifications/${id}`, { method: "DELETE" })));
 }
 
-/** The stored script, to review it. The appliance audits every read. */
-export async function getNotificationScriptContent(): Promise<string> {
-  return str(asDict(await request<Dict>("/notifications/script/file")).script_content);
-}
-
-export async function deleteNotificationScript(): Promise<NotificationScriptState> {
-  return mapNotificationScript(asDict(await request<Dict>("/notifications/script/file", { method: "DELETE" })));
-}
-
-/** Runs the script on a sample event and resolves with how it went, a failed
- *  script included. */
-export async function testNotificationScript(): Promise<NotificationScriptRun> {
-  return mapScriptRun(asDict(await request<Dict>("/notifications/script/test", { method: "POST", body: "{}" })));
+/** Sends a test message with the stored settings and `patch` over them (not
+ *  saved). One that did not go rejects with the reason as the error code. */
+export async function testMessagingPlatform(id: MessagingPlatformId, patch?: MessagingPatch): Promise<ChatTestResult> {
+  const body = patch ? { settings: messagingPatchToWire(patch) } : {};
+  const res = asDict(await request<Dict>(`/notifications/${id}/test`, { method: "POST", body: JSON.stringify(body) }));
+  return { deliveredTo: strList(res.delivered_to), durationMs: num(res.duration_ms) };
 }
 
 /** The per-field problems of a 422 (`error.details.fields`). */
@@ -3723,6 +3712,12 @@ export function apiErrorFields(err: unknown): Record<string, string> | null {
 export function apiErrorStage(err: unknown): string | null {
   if (!(err instanceof ApiError)) return null;
   return strOrNull(asDict(asDict(asDict(err.body).error).details).stage);
+}
+
+/** The targets a failed messaging-platform test did reach (`error.details.delivered_to`). */
+export function apiErrorDeliveredTo(err: unknown): string[] {
+  if (!(err instanceof ApiError)) return [];
+  return strList(asDict(asDict(asDict(err.body).error).details).delivered_to);
 }
 
 /* ====================================================================== */

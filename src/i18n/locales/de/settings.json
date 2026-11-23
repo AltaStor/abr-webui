@@ -22,7 +22,7 @@
     },
     "notifications": {
       "label": "Benachrichtigungen",
-      "blurb": "E-Mail-, Skript- und Konsolenbenachrichtigungen"
+      "blurb": "E-Mail-, Messaging- und Konsolenbenachrichtigungen"
     },
     "security": {
       "label": "Sicherheit",
@@ -665,38 +665,11 @@
     "auth": {
       "title": "Authentifizierung",
       "password": "Benutzername und Passwort",
-      "oauth2": "OAuth 2.0",
       "none": "Keine",
       "noneHint": "Für ein Relay, das Mails der Appliance ohne Anmeldung annimmt.",
       "unencryptedWarning": "Die Verbindung ist nicht verschlüsselt, die Anmeldung geht also im Klartext über das Netz. Wählen Sie STARTTLS oder SSL/TLS.",
       "username": "Benutzername",
       "passwordLabel": "Passwort"
-    },
-    "oauth": {
-      "provider": "Anbieter",
-      "providers": {
-        "microsoft": "Microsoft 365 (Exchange Online)",
-        "google": "Google Workspace",
-        "custom": "Anderer OAuth-2.0-Anbieter"
-      },
-      "grant": "Grant",
-      "clientCredentials": "Client Credentials",
-      "refreshToken": "Refresh-Token",
-      "grantHint": {
-        "client_credentials": "Die Anwendung meldet sich selbst an und sendet als das Postfach (Microsoft 365).",
-        "refresh_token": "Ein Benutzer hat einmal zugestimmt; die Appliance erneuert das Zugriffstoken bei Bedarf."
-      },
-      "mailbox": "Postfach",
-      "mailboxHint": "Das Konto, als das das Token sendet.",
-      "tenant": "Verzeichnis-ID (Mandant)",
-      "tokenUrl": "Token-Endpunkt",
-      "clientId": "Anwendungs-ID (Client)",
-      "clientSecret": "Geheimer Clientschlüssel",
-      "refreshTokenLabel": "Refresh-Token",
-      "refreshTokenHint": "Aus dem Zustimmungsablauf; ein vom Anbieter ersetztes Token wird automatisch gespeichert.",
-      "scope": "Bereich (Scope)",
-      "scopeHint": "Leer lassen für den SMTP-Bereich des Anbieters.",
-      "endpoint": "Tokens werden angefordert bei"
     },
     "secret": {
       "stored": "Auf der Appliance gespeichert. Leer lassen, um es zu behalten.",
@@ -704,7 +677,7 @@
       "willClear": "Wird beim Speichern entfernt.",
       "remove": "Entfernen",
       "keep": "Behalten",
-      "optional": "{{label}} (falls der Anbieter es verlangt)"
+      "optional": "{{label}} (optional)"
     },
     "addresses": {
       "title": "Absender und Empfänger",
@@ -753,7 +726,6 @@
         "smtp_connection_failed": "Keine Verbindung zum SMTP-Server",
         "smtp_tls_failed": "Die sichere Verbindung schlug fehl",
         "smtp_auth_failed": "Der SMTP-Server lehnte die Anmeldung ab",
-        "oauth_token_failed": "Kein OAuth-2.0-Zugriffstoken erhalten",
         "smtp_sender_refused": "Der SMTP-Server lehnte die Absenderadresse ab",
         "smtp_recipients_refused": "Der SMTP-Server lehnte die Empfänger ab",
         "smtp_error": "Der SMTP-Server nahm die Nachricht nicht an",
@@ -781,15 +753,6 @@
       "timeout": "Geben Sie 5 bis 300 Sekunden ein.",
       "usernameRequired": "Geben Sie den Benutzernamen für die Anmeldung ein.",
       "passwordRequired": "Geben Sie das Passwort dieses Benutzers ein.",
-      "mailboxRequired": "Geben Sie das Postfach ein, als das das Token sendet.",
-      "googleGrant": "Google stellt für Mail keine Client-Credentials-Tokens aus; verwenden Sie ein Refresh-Token.",
-      "tenant": "Geben Sie eine Mandanten-ID (GUID) oder einen Domänennamen ein.",
-      "tenantRequired": "Geben Sie die Verzeichnis-ID (Mandant) ein.",
-      "tokenUrl": "Geben Sie eine https://-URL ein.",
-      "tokenUrlRequired": "Geben Sie die URL des Token-Endpunkts ein.",
-      "clientIdRequired": "Geben Sie die Anwendungs-ID (Client) ein.",
-      "clientSecretRequired": "Geben Sie den geheimen Clientschlüssel ein.",
-      "refreshTokenRequired": "Geben Sie das Refresh-Token ein.",
       "address": "Keine E-Mail-Adresse.",
       "senderRequired": "Geben Sie die Absenderadresse der Benachrichtigungen ein.",
       "recipients": "Keine E-Mail-Adresse: {{list}}.",
@@ -797,62 +760,161 @@
       "threshold": "Geben Sie 50 bis 99 ein."
     }
   },
-  "script": {
-    "title": "Eigenes Skript",
-    "description": "Führen Sie ein eigenes Skript aus, wenn ein gewähltes Ereignis eintritt, um ein Chatsystem, eine Ticket-Warteschlange oder alles andere zu erreichen, was E-Mail nicht erreicht.",
-    "enable": "Skript bei seinen Ereignissen ausführen",
-    "warning": "Das Skript läuft auf der Appliance unter dem Konto des Sicherungsdienstes und kann alles, was dieses Konto kann: den Katalog und die gespeicherten Zugangsdaten lesen sowie Sicherungen ändern oder löschen. Laden Sie nur Code hoch, den Sie gelesen haben und dem Sie vertrauen.",
-    "unavailable": "Skripte sind auf dieser Appliance ausgeschaltet (ABR_NOTIFICATION_SCRIPTS=0). Ein gespeichertes Skript läuft nicht.",
-    "loadFailed": "Die Skripteinstellungen konnten nicht von der Appliance gelesen werden.",
-    "file": "Skriptdatei",
-    "none": "Kein Skript hochgeladen.",
-    "size": "{{size}} Byte",
-    "uploadedBy": "Hochgeladen von {{user}},",
-    "upload": "Skript hochladen",
-    "replace": "Ersetzen",
-    "view": "Anzeigen",
-    "viewDescription": "Das Skript, wie es gespeichert ist und ausgeführt wird. Das Lesen wird im Audit-Log festgehalten.",
-    "remove": "Entfernen",
-    "uploaded": "{{name}} hochgeladen.",
-    "uploadFailed": "Die Appliance hat das Skript nicht angenommen.",
-    "tooLarge": "{{name}} ist größer als 256 KiB.",
-    "noInterpreter": "{{name}} beginnt nicht mit einer #!-Zeile, die den Interpreter nennt, etwa #!/bin/sh.",
-    "removed": "Skript entfernt.",
-    "removeFailed": "Skript nicht entfernt",
-    "removeDialog": {
-      "title": "Dieses Skript entfernen?",
-      "description": "{{name}} wird von der Appliance gelöscht und läuft nicht mehr. Der Verlauf bleibt erhalten."
+  "chat": {
+    "saved": "{{name}}-Einstellungen gespeichert.",
+    "saveFailed": "{{name}}-Einstellungen nicht gespeichert",
+    "setup": "So richten Sie es ein",
+    "apprise": {
+      "via": "Nachrichten gehen über Apprise {{version}} auf der Appliance hinaus.",
+      "missing": "Apprise ist auf der Appliance nicht installiert (das Paket apprise), daher können keine Nachrichten gesendet werden. Lassen Sie es installieren; bis dahin lassen sich Plattformen einrichten, aber nicht einschalten oder testen."
     },
-    "saved": "Skripteinstellungen gespeichert.",
-    "saveFailed": "Skripteinstellungen nicht gespeichert",
-    "timeout": "Zeitlimit (Sekunden)",
-    "timeoutHint": "Ein längerer Lauf wird gestoppt, mit allem, was er gestartet hat. {{min}}–{{max}}.",
-    "timeoutRange": "Geben Sie {{min}} bis {{max}} Sekunden ein.",
-    "events": "Ereignisse, die das Skript ausführen",
-    "eventsHint": "Unabhängig von den Ereignissen mit E-Mail gewählt. Das Skript läuft auch bei ausgeschalteter E-Mail.",
-    "test": "Testlauf",
-    "running": "Läuft …",
-    "testPassed": "Das Skript wurde ohne Fehler beendet.",
-    "testFailed": "Der Testlauf schlug fehl",
-    "exitCode": "Exit {{code}}",
-    "duration": "{{ms}} ms",
-    "receives": {
-      "title": "Was das Skript erhält",
-      "stdin": "Das Ereignis als JSON auf der Standardeingabe und in der Datei aus ABR_EVENT_FILE: event, name, severity, subject, body, time, host, version und details, die Fakten des Ereignisses (etwa der Job, seine VMs und deren Ergebnisse).",
-      "variables": "Die wichtigsten Felder als Umgebungsvariablen. Keine Variable des Servers erreicht das Skript, und PATH ist ein fester Systempfad.",
-      "outcome": "Exit-Code 0 gilt als Erfolg. Ein fehlgeschlagener Lauf wird festgehalten und nicht wiederholt. Behandeln Sie jeden Wert als Daten: Der Name einer VM etwa stammt von außerhalb der Appliance."
+    "events": {
+      "title": "Ereignisse mit Nachricht",
+      "hint": "Unabhängig von den Ereignissen mit E-Mail gewählt. Nachrichten gehen auch bei ausgeschalteter E-Mail hinaus."
+    },
+    "test": {
+      "send": "Testnachricht senden",
+      "sending": "Wird gesendet …",
+      "sent": "Testnachricht an {{to}} gesendet ({{ms}} ms).",
+      "check": "Prüfen Sie, ob sie ankam. Ungespeicherte Änderungen wurden verwendet, aber nicht gespeichert.",
+      "partly": "Angekommen ist sie bei: {{list}}.",
+      "failure": {
+        "connection_failed": "Keine Verbindung zum Dienst",
+        "tls_failed": "Die sichere Verbindung schlug fehl",
+        "delivery_refused": "Der Dienst lehnte die Nachricht ab",
+        "delivery_failed": "Der Dienst nahm die Nachricht nicht an",
+        "timed_out": "Das Senden dauerte zu lange und wurde abgebrochen",
+        "apprise_missing": "Apprise ist auf der Appliance nicht installiert",
+        "apprise_not_started": "Apprise ließ sich nicht starten",
+        "apprise_url_refused": "Apprise kann diese Einstellungen nicht lesen",
+        "apprise_failed": "Apprise schlug fehl",
+        "other": "Die Testnachricht wurde nicht gesendet"
+      }
     },
     "history": {
-      "title": "Letzte Läufe",
-      "empty": "Das Skript ist noch nicht gelaufen.",
-      "output": "Ausgabe",
-      "status": {
-        "sent": "Erfolgreich",
-        "failed": "Fehlgeschlagen",
-        "retrying": "Neuer Versuch",
-        "queued": "Wartend",
-        "cancelled": "Abgebrochen"
-      }
+      "to": "an {{list}}"
+    },
+    "storedHost": "Die gespeicherte URL führt zu {{host}}."
+  },
+  "telegram": {
+    "title": "Telegram",
+    "description": "Ein Telegram-Bot schreibt in die Chats unten, wenn ein gewähltes Ereignis eintritt.",
+    "settings": "Bot und Chats",
+    "botToken": "Bot-Token",
+    "botTokenHint": "Das Token, das @BotFather beim Anlegen des Bots ausgab.",
+    "botId": "Bot {{id}}.",
+    "chats": "Chats",
+    "addChat": "Chat hinzufügen",
+    "chatsHint": "Bis zu {{max}}. Die ID einer Gruppe oder eines Kanals ist negativ, etwa -1001234567890; ein öffentlicher Kanal geht auch als @name. Mit Enter hinzufügen.",
+    "setup": {
+      "bot": "Bitten Sie in Telegram @BotFather um einen neuen Bot (/newbot) und kopieren Sie das Token.",
+      "add": "Fügen Sie den Bot jeder Gruppe und jedem Kanal hinzu, in die er schreiben soll (in einem Kanal als Administrator, der posten darf). Für einen privaten Chat starten Sie einen Chat mit dem Bot.",
+      "chatId": "Die ID eines Chats: Schreiben Sie dort eine Nachricht, öffnen Sie https://api.telegram.org/bot<token>/getUpdates und lesen Sie chat.id."
+    },
+    "error": {
+      "token": "Kein Bot-Token: Es sieht aus wie 123456789:AAE…, so wie @BotFather es ausgibt.",
+      "tokenRequired": "Geben Sie das Bot-Token ein.",
+      "chats": "Keine Chat-ID: {{list}}.",
+      "chatsRequired": "Fügen Sie mindestens einen Chat hinzu.",
+      "tooMany": "Höchstens {{max}} Chats."
+    }
+  },
+  "messaging": {
+    "title": "Messaging-Plattformen",
+    "description": "Nachrichten an Telegram, Slack, Discord oder ntfy, wenn ein gewähltes Ereignis eintritt, gesendet über Apprise auf der Appliance.",
+    "liveOnly": "Verbinden Sie sich mit einer Live-Appliance, um Messaging-Plattformen einzurichten.",
+    "loading": "Messaging-Plattformen werden gelesen …",
+    "loadFailed": "Die Messaging-Plattformen konnten nicht von der Appliance gelesen werden.",
+    "add": "Plattform hinzufügen",
+    "addPlaceholder": "Plattform wählen …",
+    "allAdded": "Alle Plattformen sind hinzugefügt",
+    "addTitle": "{{name}} hinzufügen",
+    "addSave": "Hinzufügen",
+    "empty": "Keine Messaging-Plattform eingerichtet. Wählen Sie oben eine, um sie hinzuzufügen.",
+    "emptyReadOnly": "Keine Messaging-Plattform eingerichtet.",
+    "notSaved": "Nicht gespeichert",
+    "pending": "Noch nicht eingerichtet: Mit Bearbeiten abschließen oder Entfernen.",
+    "summary": {
+      "bot": "Bot {{id}}",
+      "chats_one": "{{count}} Chat",
+      "chats_other": "{{count}} Chats",
+      "host": "An {{host}}",
+      "events": "{{on}} von {{total}} Ereignissen",
+      "never": "Noch nichts gesendet."
+    },
+    "enable": "Nachrichten senden",
+    "enableNamed": "{{name}}-Nachrichten senden",
+    "edit": "Bearbeiten",
+    "view": "Ansehen",
+    "remove": "Entfernen",
+    "close": "Schließen",
+    "switchedOn": "{{name}} eingeschaltet.",
+    "switchedOff": "{{name}} ausgeschaltet.",
+    "toggleFailed": "{{name}} nicht umgeschaltet",
+    "removed": "{{name}} entfernt.",
+    "removeFailed": "{{name}} nicht entfernt",
+    "removeDialog": {
+      "title": "{{name}} entfernen?",
+      "description": "Die Einstellungen und das {{secret}} werden von der Appliance gelöscht, und es geht nichts mehr hinaus, bis die Plattform wieder hinzugefügt wird. Der Zustellverlauf bleibt."
+    },
+    "secret": {
+      "telegram": "Bot-Token",
+      "slack": "Webhook-URL",
+      "discord": "Webhook-URL",
+      "ntfy": "Topic-URL"
+    }
+  },
+  "slack": {
+    "title": "Slack",
+    "description": "Ein eingehender Slack-Webhook schreibt jedes gewählte Ereignis in seinen Kanal.",
+    "settings": "Webhook",
+    "url": "Webhook-URL",
+    "urlPlaceholder": "https://hooks.slack.com/services/…",
+    "urlHint": "Die URL des eingehenden Webhooks.",
+    "target": "den Webhook",
+    "setup": {
+      "steps": "Öffnen Sie in Slack Ihre App unter api.slack.com/apps (oder legen Sie eine an), schalten Sie Incoming Webhooks ein, fügen Sie dem Kanal einen Webhook hinzu und kopieren Sie seine URL."
+    },
+    "error": {
+      "url": "Keine Slack-Webhook-URL: Sie sieht aus wie https://hooks.slack.com/services/T…/B…/….",
+      "urlRequired": "Geben Sie die Webhook-URL ein."
+    }
+  },
+  "discord": {
+    "title": "Discord",
+    "description": "Ein Discord-Webhook schreibt jedes gewählte Ereignis in seinen Kanal.",
+    "settings": "Webhook",
+    "url": "Webhook-URL",
+    "urlPlaceholder": "https://discord.com/api/webhooks/…",
+    "urlHint": "Die URL des Kanal-Webhooks.",
+    "target": "den Webhook",
+    "setup": {
+      "steps": "Öffnen Sie in Discord die Kanaleinstellungen, Integrationen, Webhooks; legen Sie einen Webhook an und wählen Sie Webhook-URL kopieren."
+    },
+    "error": {
+      "url": "Keine Discord-Webhook-URL: Sie sieht aus wie https://discord.com/api/webhooks/123…/….",
+      "urlRequired": "Geben Sie die Webhook-URL ein."
+    }
+  },
+  "ntfy": {
+    "title": "ntfy",
+    "description": "Veröffentlicht jedes gewählte Ereignis in einem ntfy-Topic, auf ntfy.sh oder einem eigenen Server; die ntfy-Apps zeigen es als Push-Benachrichtigung.",
+    "settings": "Topic",
+    "url": "Topic-URL",
+    "urlPlaceholder": "https://ntfy.sh/…",
+    "urlHint": "https://ntfy.sh/<topic> oder https://<ihr server>/<topic>.",
+    "target": "das Topic",
+    "token": "Zugriffstoken",
+    "tokenHint": "Nur für einen Server mit Zugriffskontrolle: ein Token, das in das Topic veröffentlichen darf.",
+    "setup": {
+      "topic": "Wählen Sie einen Topic-Namen aus Buchstaben, Ziffern, - und _. Auf ntfy.sh kann jeder ein Topic lesen, der seinen Namen kennt: Machen Sie ihn lang und schwer zu erraten.",
+      "server": "Auf einem eigenen Server mit Zugriffskontrolle legen Sie ein Token an (ntfy token add <user>, oder Konto > Zugriffstokens in der Web-App) für einen Benutzer, der in das Topic veröffentlichen darf.",
+      "app": "Abonnieren Sie dasselbe Topic in der ntfy-App auf dem Telefon oder in der Web-App. Fehler kommen mit hoher Priorität."
+    },
+    "error": {
+      "url": "Keine ntfy-Topic-URL: Sie sieht aus wie https://ntfy.sh/<topic> oder https://<ihr server>/<topic>.",
+      "urlRequired": "Geben Sie die Topic-URL ein.",
+      "token": "Kein ntfy-Zugriffstoken: Es beginnt mit tk_."
     }
   }
 }

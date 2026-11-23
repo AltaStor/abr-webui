@@ -37,6 +37,6 @@ export const qk = {
   audit: (query: object) => ["audit", query] as const,
   systemClock: ["system-clock"] as const,
   emailNotifications: ["email-notifications"] as const,
-  notificationScript: ["notification-script"] as const,
+  messaging: ["messaging-notifications"] as const,
   vsphereSettings: ["vsphere-settings"] as const,
 };

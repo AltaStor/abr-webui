@@ -22,7 +22,7 @@
     },
     "notifications": {
       "label": "Notifications",
-      "blurb": "Notifications par e-mail, script et console"
+      "blurb": "Notifications par e-mail, messagerie et console"
     },
     "security": {
       "label": "Sécurité",
@@ -665,38 +665,11 @@
     "auth": {
       "title": "Authentification",
       "password": "Nom d’utilisateur et mot de passe",
-      "oauth2": "OAuth 2.0",
       "none": "Aucune",
       "noneHint": "Pour un relais qui accepte les e-mails de l’appliance sans authentification.",
       "unencryptedWarning": "La connexion n’est pas chiffrée : l’authentification circule en clair. Choisissez STARTTLS ou SSL/TLS.",
       "username": "Nom d’utilisateur",
       "passwordLabel": "Mot de passe"
-    },
-    "oauth": {
-      "provider": "Fournisseur",
-      "providers": {
-        "microsoft": "Microsoft 365 (Exchange Online)",
-        "google": "Google Workspace",
-        "custom": "Autre fournisseur OAuth 2.0"
-      },
-      "grant": "Type d’autorisation",
-      "clientCredentials": "Identifiants client",
-      "refreshToken": "Jeton d’actualisation",
-      "grantHint": {
-        "client_credentials": "L’application s’authentifie seule et envoie au nom de la boîte aux lettres (Microsoft 365).",
-        "refresh_token": "Un utilisateur a consenti une fois ; l’appliance renouvelle le jeton d’accès au besoin."
-      },
-      "mailbox": "Boîte aux lettres",
-      "mailboxHint": "Le compte au nom duquel le jeton envoie.",
-      "tenant": "ID de l’annuaire (locataire)",
-      "tokenUrl": "Point de terminaison des jetons",
-      "clientId": "ID d’application (client)",
-      "clientSecret": "Secret client",
-      "refreshTokenLabel": "Jeton d’actualisation",
-      "refreshTokenHint": "Issu du consentement ; un jeton remplacé par le fournisseur est enregistré automatiquement.",
-      "scope": "Portée",
-      "scopeHint": "Laissez vide pour la portée SMTP du fournisseur.",
-      "endpoint": "Les jetons sont demandés à"
     },
     "secret": {
       "stored": "Enregistré sur l’appliance. Laissez vide pour le conserver.",
@@ -704,7 +677,7 @@
       "willClear": "Supprimé à l’enregistrement.",
       "remove": "Supprimer",
       "keep": "Conserver",
-      "optional": "{{label}} (si le fournisseur l’exige)"
+      "optional": "{{label}} (facultatif)"
     },
     "addresses": {
       "title": "Expéditeur et destinataires",
@@ -753,7 +726,6 @@
         "smtp_connection_failed": "Connexion au serveur SMTP impossible",
         "smtp_tls_failed": "La connexion sécurisée a échoué",
         "smtp_auth_failed": "Le serveur SMTP a refusé l’authentification",
-        "oauth_token_failed": "Impossible d’obtenir un jeton d’accès OAuth 2.0",
         "smtp_sender_refused": "Le serveur SMTP a refusé l’adresse de l’expéditeur",
         "smtp_recipients_refused": "Le serveur SMTP a refusé les destinataires",
         "smtp_error": "Le serveur SMTP n’a pas accepté le message",
@@ -781,15 +753,6 @@
       "timeout": "Saisissez de 5 à 300 secondes.",
       "usernameRequired": "Saisissez le nom d’utilisateur de l’authentification.",
       "passwordRequired": "Saisissez le mot de passe de cet utilisateur.",
-      "mailboxRequired": "Saisissez la boîte aux lettres au nom de laquelle le jeton envoie.",
-      "googleGrant": "Google ne délivre pas de jetons à identifiants client pour l’e-mail ; utilisez un jeton d’actualisation.",
-      "tenant": "Saisissez un ID de locataire (GUID) ou un nom de domaine.",
-      "tenantRequired": "Saisissez l’ID de l’annuaire (locataire).",
-      "tokenUrl": "Saisissez une URL https://.",
-      "tokenUrlRequired": "Saisissez l’URL du point de terminaison des jetons.",
-      "clientIdRequired": "Saisissez l’ID d’application (client).",
-      "clientSecretRequired": "Saisissez le secret client.",
-      "refreshTokenRequired": "Saisissez le jeton d’actualisation.",
       "address": "Ce n’est pas une adresse e-mail.",
       "senderRequired": "Saisissez l’adresse d’envoi des notifications.",
       "recipients": "Pas une adresse e-mail : {{list}}.",
@@ -797,62 +760,161 @@
       "threshold": "Saisissez de 50 à 99."
     }
   },
-  "script": {
-    "title": "Script personnalisé",
-    "description": "Exécutez votre propre script quand un événement choisi se produit, pour joindre une messagerie, une file de tickets ou tout ce que l’e-mail n’atteint pas.",
-    "enable": "Exécuter le script sur ses événements",
-    "warning": "Le script s’exécute sur l’appliance avec le compte du service de sauvegarde : il peut faire tout ce que ce compte peut faire, lire le catalogue et les identifiants enregistrés, modifier ou supprimer des sauvegardes. Ne téléversez que du code que vous avez lu et auquel vous faites confiance.",
-    "unavailable": "Les scripts sont désactivés sur cette appliance (ABR_NOTIFICATION_SCRIPTS=0). Un script enregistré ne s’exécute pas.",
-    "loadFailed": "Impossible de lire les réglages du script sur l’appliance.",
-    "file": "Fichier du script",
-    "none": "Aucun script téléversé.",
-    "size": "{{size}} octets",
-    "uploadedBy": "Téléversé par {{user}},",
-    "upload": "Téléverser un script",
-    "replace": "Remplacer",
-    "view": "Voir",
-    "viewDescription": "Le script tel qu’il est enregistré et exécuté. Sa lecture est consignée dans le journal d’audit.",
-    "remove": "Supprimer",
-    "uploaded": "{{name}} téléversé.",
-    "uploadFailed": "L’appliance n’a pas accepté le script.",
-    "tooLarge": "{{name}} dépasse 256 Kio.",
-    "noInterpreter": "{{name}} ne commence pas par une ligne #! nommant son interpréteur, comme #!/bin/sh.",
-    "removed": "Script supprimé.",
-    "removeFailed": "Script non supprimé",
-    "removeDialog": {
-      "title": "Supprimer ce script ?",
-      "description": "{{name}} est supprimé de l’appliance et ne s’exécute plus. Son historique est conservé."
+  "chat": {
+    "saved": "Réglages {{name}} enregistrés.",
+    "saveFailed": "Réglages {{name}} non enregistrés",
+    "setup": "Comment le configurer",
+    "apprise": {
+      "via": "Les messages partent via Apprise {{version}} sur l’appliance.",
+      "missing": "Apprise n’est pas installé sur l’appliance (le paquet apprise) : aucun message ne peut partir. Demandez son installation ; d’ici là, les plateformes peuvent être configurées mais pas activées ni testées."
     },
-    "saved": "Réglages du script enregistrés.",
-    "saveFailed": "Réglages du script non enregistrés",
-    "timeout": "Durée limite (secondes)",
-    "timeoutHint": "Une exécution plus longue est arrêtée, avec tout ce qu’elle a lancé. {{min}}–{{max}}.",
-    "timeoutRange": "Saisissez de {{min}} à {{max}} secondes.",
-    "events": "Événements qui exécutent le script",
-    "eventsHint": "Choisis indépendamment des événements envoyés par e-mail. Le script s’exécute même si l’e-mail est désactivé.",
-    "test": "Lancer un test",
-    "running": "Exécution…",
-    "testPassed": "Le script s’est terminé sans erreur.",
-    "testFailed": "Le test a échoué",
-    "exitCode": "sortie {{code}}",
-    "duration": "{{ms}} ms",
-    "receives": {
-      "title": "Ce que reçoit le script",
-      "stdin": "L’événement en JSON sur l’entrée standard et dans le fichier désigné par ABR_EVENT_FILE : event, name, severity, subject, body, time, host, version et details, les faits de l’événement (par exemple la tâche, ses VM et leurs résultats).",
-      "variables": "Les champs principaux en variables d’environnement. Aucune variable du serveur n’atteint le script, et le PATH est un chemin système fixe.",
-      "outcome": "Le code de sortie 0 vaut succès. Une exécution en échec est consignée et n’est pas répétée. Traitez chaque valeur comme une donnée : le nom d’une VM, par exemple, vient de l’extérieur de l’appliance."
+    "events": {
+      "title": "Événements qui envoient un message",
+      "hint": "Choisis indépendamment des événements envoyés par e-mail. Les messages partent même si l’e-mail est désactivé."
+    },
+    "test": {
+      "send": "Envoyer un message de test",
+      "sending": "Envoi…",
+      "sent": "Message de test envoyé à {{to}} ({{ms}} ms).",
+      "check": "Vérifiez qu’il est arrivé. Les modifications non enregistrées ont été utilisées sans être enregistrées.",
+      "partly": "Il est bien arrivé à : {{list}}.",
+      "failure": {
+        "connection_failed": "Connexion au service impossible",
+        "tls_failed": "La connexion sécurisée a échoué",
+        "delivery_refused": "Le service a refusé le message",
+        "delivery_failed": "Le service n’a pas pris le message",
+        "timed_out": "L’envoi a pris trop de temps et a été arrêté",
+        "apprise_missing": "Apprise n’est pas installé sur l’appliance",
+        "apprise_not_started": "Apprise n’a pas pu démarrer",
+        "apprise_url_refused": "Apprise ne sait pas lire ces réglages",
+        "apprise_failed": "Apprise a échoué",
+        "other": "Le message de test n’a pas été envoyé"
+      }
     },
     "history": {
-      "title": "Exécutions récentes",
-      "empty": "Le script n’a pas encore été exécuté.",
-      "output": "Sortie",
-      "status": {
-        "sent": "Réussie",
-        "failed": "Échec",
-        "retrying": "Nouvelle tentative",
-        "queued": "En file",
-        "cancelled": "Annulée"
-      }
+      "to": "à {{list}}"
+    },
+    "storedHost": "L’URL enregistrée mène à {{host}}."
+  },
+  "telegram": {
+    "title": "Telegram",
+    "description": "Un bot Telegram écrit dans les discussions ci-dessous quand un événement choisi se produit.",
+    "settings": "Bot et discussions",
+    "botToken": "Jeton du bot",
+    "botTokenHint": "Le jeton donné par @BotFather à la création du bot.",
+    "botId": "Bot {{id}}.",
+    "chats": "Discussions",
+    "addChat": "Ajouter une discussion",
+    "chatsHint": "Jusqu’à {{max}}. L’ID d’un groupe ou d’un canal est négatif, par exemple -1001234567890 ; un canal public peut s’écrire @nom. Appuyez sur Entrée pour l’ajouter.",
+    "setup": {
+      "bot": "Dans Telegram, demandez un nouveau bot à @BotFather (/newbot) et copiez le jeton qu’il donne.",
+      "add": "Ajoutez le bot à chaque groupe ou canal où il doit écrire (dans un canal, comme administrateur autorisé à publier). Pour une discussion privée, ouvrez une discussion avec le bot.",
+      "chatId": "L’ID d’une discussion : envoyez-y un message, ouvrez https://api.telegram.org/bot<token>/getUpdates et lisez chat.id."
+    },
+    "error": {
+      "token": "Ce n’est pas un jeton de bot : il ressemble à 123456789:AAE…, tel que @BotFather le donne.",
+      "tokenRequired": "Saisissez le jeton du bot.",
+      "chats": "Ce n’est pas un ID de discussion : {{list}}.",
+      "chatsRequired": "Ajoutez au moins une discussion.",
+      "tooMany": "{{max}} discussions au plus."
+    }
+  },
+  "messaging": {
+    "title": "Plateformes de messagerie",
+    "description": "Des messages vers Telegram, Slack, Discord ou ntfy quand un événement choisi se produit, envoyés via Apprise sur l’appliance.",
+    "liveOnly": "Connectez-vous à une appliance réelle pour configurer les plateformes de messagerie.",
+    "loading": "Lecture des plateformes de messagerie…",
+    "loadFailed": "Impossible de lire les plateformes de messagerie sur l’appliance.",
+    "add": "Ajouter une plateforme",
+    "addPlaceholder": "Choisir une plateforme…",
+    "allAdded": "Toutes les plateformes sont ajoutées",
+    "addTitle": "Ajouter {{name}}",
+    "addSave": "Ajouter",
+    "empty": "Aucune plateforme de messagerie n’est configurée. Choisissez-en une ci-dessus pour l’ajouter.",
+    "emptyReadOnly": "Aucune plateforme de messagerie n’est configurée.",
+    "notSaved": "Non enregistrée",
+    "pending": "Pas encore configurée : Modifier pour la terminer, ou Retirer.",
+    "summary": {
+      "bot": "Bot {{id}}",
+      "chats_one": "{{count}} discussion",
+      "chats_other": "{{count}} discussions",
+      "host": "Vers {{host}}",
+      "events": "{{on}} événements sur {{total}}",
+      "never": "Rien d’envoyé pour l’instant."
+    },
+    "enable": "Envoyer des messages",
+    "enableNamed": "Envoyer les messages {{name}}",
+    "edit": "Modifier",
+    "view": "Voir",
+    "remove": "Retirer",
+    "close": "Fermer",
+    "switchedOn": "{{name}} activé.",
+    "switchedOff": "{{name}} désactivé.",
+    "toggleFailed": "{{name}} non basculé",
+    "removed": "{{name}} retiré.",
+    "removeFailed": "{{name}} non retiré",
+    "removeDialog": {
+      "title": "Retirer {{name}} ?",
+      "description": "Ses réglages et son {{secret}} sont supprimés de l’appliance, et plus rien ne part tant qu’elle n’est pas ajoutée à nouveau. Son historique d’envois est conservé."
+    },
+    "secret": {
+      "telegram": "jeton du bot",
+      "slack": "URL de webhook",
+      "discord": "URL de webhook",
+      "ntfy": "URL de topic"
+    }
+  },
+  "slack": {
+    "title": "Slack",
+    "description": "Un webhook entrant Slack publie chaque événement choisi dans son canal.",
+    "settings": "Webhook",
+    "url": "URL du webhook",
+    "urlPlaceholder": "https://hooks.slack.com/services/…",
+    "urlHint": "L’URL du webhook entrant.",
+    "target": "le webhook",
+    "setup": {
+      "steps": "Dans Slack, ouvrez votre app sur api.slack.com/apps (ou créez-en une), activez Incoming Webhooks, ajoutez un webhook au canal et copiez son URL."
+    },
+    "error": {
+      "url": "Ce n’est pas une URL de webhook Slack : elle ressemble à https://hooks.slack.com/services/T…/B…/….",
+      "urlRequired": "Saisissez l’URL du webhook."
+    }
+  },
+  "discord": {
+    "title": "Discord",
+    "description": "Un webhook Discord publie chaque événement choisi dans son salon.",
+    "settings": "Webhook",
+    "url": "URL du webhook",
+    "urlPlaceholder": "https://discord.com/api/webhooks/…",
+    "urlHint": "L’URL du webhook du salon.",
+    "target": "le webhook",
+    "setup": {
+      "steps": "Dans Discord, ouvrez les paramètres du salon, Intégrations, Webhooks ; créez un webhook et utilisez Copier l’URL du webhook."
+    },
+    "error": {
+      "url": "Ce n’est pas une URL de webhook Discord : elle ressemble à https://discord.com/api/webhooks/123…/….",
+      "urlRequired": "Saisissez l’URL du webhook."
+    }
+  },
+  "ntfy": {
+    "title": "ntfy",
+    "description": "Publie chaque événement choisi dans un topic ntfy, sur ntfy.sh ou sur votre propre serveur ; les apps ntfy l’affichent en notification push.",
+    "settings": "Topic",
+    "url": "URL du topic",
+    "urlPlaceholder": "https://ntfy.sh/…",
+    "urlHint": "https://ntfy.sh/<topic> ou https://<votre serveur>/<topic>.",
+    "target": "le topic",
+    "token": "Jeton d’accès",
+    "tokenHint": "Seulement pour un serveur avec contrôle d’accès : un jeton autorisé à publier dans le topic.",
+    "setup": {
+      "topic": "Choisissez un nom de topic : lettres, chiffres, - et _. Sur ntfy.sh, quiconque connaît un topic peut le lire : prenez un nom long et difficile à deviner.",
+      "server": "Sur votre propre serveur avec contrôle d’accès, créez un jeton (ntfy token add <user>, ou Compte > Jetons d’accès dans son app web) pour un utilisateur autorisé à publier dans le topic.",
+      "app": "Abonnez-vous au même topic dans l’app ntfy de votre téléphone ou dans son app web. Les échecs arrivent en priorité haute."
+    },
+    "error": {
+      "url": "Ce n’est pas une URL de topic ntfy : elle ressemble à https://ntfy.sh/<topic> ou https://<votre serveur>/<topic>.",
+      "urlRequired": "Saisissez l’URL du topic.",
+      "token": "Ce n’est pas un jeton d’accès ntfy : il commence par tk_."
     }
   }
 }
