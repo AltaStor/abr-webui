@@ -1023,7 +1023,7 @@
       "term": "sauvegarde Hyper-V",
       "help": "Les VMs Hyper-V sont sauvegardées depuis un point de contrôle de récupération, qui fige leurs disques pendant qu’abr-vhdx-tool les lit sur l’hôte. Le point de contrôle devient ensuite un point de référence : la sauvegarde suivante ne lit que ce que le suivi des modifications résilient (RCT) signale comme modifié.",
       "consistencyHint": {
-        "application": "Un invité en cours d’exécution est mis au repos via VSS ; si c’est impossible, le point de contrôle est cohérent en cas de panne, et l’exécution le signale.",
+        "application": "Un invité en cours d’exécution est mis au repos via VSS ; si c’est impossible, la sauvegarde est cohérente en cas de panne (avec un avertissement) ou échoue, selon le réglage de la tâche.",
         "crash": "L’invité n’intervient jamais — comme si l’on débranchait la machine au moment du point de contrôle."
       }
     },

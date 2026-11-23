@@ -1006,7 +1006,8 @@
       "quiesceFallback": "Crash-consistent backup if quiescing fails",
       "quiesceFallbackHint": "Off: a VM whose guest cannot be quiesced fails its backup. On: it is backed up crash-consistent, with a warning.",
       "quiesceFallbackTerm": "quiescing",
-      "quiesceFallbackHelp": "Before the snapshot, VMware Tools quiesces the guest: it runs the pre-freeze scripts in /etc/vmware-tools/backupScripts.d/ (Linux) or the VSS writers (Windows) so applications and databases flush their data. If that fails, the backup either fails, so nobody gets a crash-consistent copy of a database by surprise, or is taken again without quiescing, so the VM keeps getting restore points while the guest is fixed."
+      "quiesceFallbackHelp": "Before the snapshot, VMware Tools quiesces the guest: it runs the pre-freeze scripts in /etc/vmware-tools/backupScripts.d/ (Linux) or the VSS writers (Windows) so applications and databases flush their data. If that fails, the backup either fails, so nobody gets a crash-consistent copy of a database by surprise, or is taken again without quiescing, so the VM keeps getting restore points while the guest is fixed.",
+      "quiesceFallbackHelpHyperV": "Hyper-V takes an application-consistent checkpoint through the Backup (volume shadow copy) integration service in the guest, so applications and databases flush their data. If the guest cannot do it (no integration services, a VSS writer failing), the backup either fails, so nobody gets a crash-consistent copy of a database by surprise, or takes a crash-consistent checkpoint instead, with a warning. On is the default for Hyper-V jobs."
     },
     "syncWindow": "Sync window",
     "throttleLabel": "Throttle (MB/s)",
@@ -1030,7 +1031,7 @@
       "term": "Hyper-V backup",
       "help": "Hyper-V VMs are backed up from a recovery checkpoint, which freezes their disks while abr-vhdx-tool reads them on the host. The checkpoint then becomes a reference point, so the next backup reads only what resilient change tracking (RCT) reports as changed.",
       "consistencyHint": {
-        "application": "A running guest is quiesced through VSS; if it cannot be, the checkpoint is crash-consistent and the run says so.",
+        "application": "A running guest is quiesced through VSS; if it cannot be, the backup is crash-consistent (with a warning) or fails, as the job is set.",
         "crash": "The guest is never involved — like pulling the plug at the moment of the checkpoint."
       }
     },

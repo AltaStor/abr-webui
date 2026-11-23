@@ -1023,7 +1023,7 @@
       "term": "Hyper-V-Backup",
       "help": "Hyper-V-VMs werden aus einem Wiederherstellungsprüfpunkt gesichert, der ihre Datenträger einfriert, während abr-vhdx-tool sie auf dem Host liest. Danach wird der Prüfpunkt zu einem Referenzpunkt, sodass das nächste Backup nur liest, was die robuste Änderungsnachverfolgung (RCT) als geändert meldet.",
       "consistencyHint": {
-        "application": "Ein laufender Gast wird über VSS stillgelegt; gelingt das nicht, ist der Prüfpunkt absturzkonsistent, und die Ausführung meldet es.",
+        "application": "Ein laufender Gast wird über VSS stillgelegt; gelingt das nicht, ist die Sicherung absturzkonsistent (mit Warnung) oder schlägt fehl, je nach Einstellung des Jobs.",
         "crash": "Der Gast wird nie einbezogen — als würde im Moment des Prüfpunkts der Stecker gezogen."
       }
     },

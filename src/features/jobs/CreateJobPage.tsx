@@ -62,6 +62,7 @@ import type {
   CopyWindowRule,
   FullBackupSchedule,
   JobOptions,
+  QuiesceFailureAction,
   ReplicaNetworkMapping,
   ReplicationInput,
   Schedule,
@@ -563,6 +564,17 @@ function JobWizard({
 
   const setOption = <K extends keyof JobOptions>(key: K, value: JobOptions[K]) =>
     setForm((f) => ({ ...f, options: { ...f.options, [key]: value } }));
+
+  /* What a backup does when the guest cannot be quiesced. The appliance's
+   * default differs by platform (fail on VMware, crash-consistent on Hyper-V),
+   * so a new job follows the platform of its VMs until the operator picks a
+   * value; an edited job keeps the value it has. */
+  const [quiesceTouched, setQuiesceTouched] = useState(Boolean(existingJob));
+  const quiesceFailure: QuiesceFailureAction = quiesceTouched
+    ? (form.options.onQuiesceFailure ?? "fail")
+    : hypervSelected
+      ? "crash_consistent"
+      : "fail";
   /* A new job is on server time and has no zone to choose. A job saved on
    * another zone (older, or set from the CLI) keeps it unless moved to server
    * time; its full schedules and copy window rules on that zone move with it,
@@ -1088,7 +1100,9 @@ function JobWizard({
       // The key rides with the options only when the operator entered one — see
       // `optionsToTaskParams`, where omitting it is what carries a job's stored
       // key through an edit untouched.
-      options: keyEntered ? { ...form.options, encryptionKey } : form.options,
+      options: keyEntered
+        ? { ...form.options, onQuiesceFailure: quiesceFailure, encryptionKey }
+        : { ...form.options, onQuiesceFailure: quiesceFailure },
       accent: existingJob?.accent ?? pickAccent(jobCount),
       runNow,
       copy: copySettings,
@@ -2017,14 +2031,17 @@ function JobWizard({
                     </div>
 
                     {/* A copy reads stored backups and never quiesces anything. */}
-                    {!isCopy && !hypervSelected && (
+                    {!isCopy && (!hypervSelected || (form.options.guestConsistency ?? "application") === "application") && (
                       <ToggleRow
                         label={t("create.opt.quiesceFallback")}
                         hint={t("create.opt.quiesceFallbackHint")}
-                        help={t("create.opt.quiesceFallbackHelp")}
+                        help={t(hypervSelected ? "create.opt.quiesceFallbackHelpHyperV" : "create.opt.quiesceFallbackHelp")}
                         helpTerm={t("create.opt.quiesceFallbackTerm")}
-                        checked={form.options.onQuiesceFailure === "crash_consistent"}
-                        onChange={(v) => setOption("onQuiesceFailure", v ? "crash_consistent" : "fail")}
+                        checked={quiesceFailure === "crash_consistent"}
+                        onChange={(v) => {
+                          setQuiesceTouched(true);
+                          setOption("onQuiesceFailure", v ? "crash_consistent" : "fail");
+                        }}
                       />
                     )}
 

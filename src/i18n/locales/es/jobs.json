@@ -1023,7 +1023,7 @@
       "term": "copia de Hyper-V",
       "help": "Las VMs de Hyper-V se copian desde un punto de control de recuperación, que congela sus discos mientras abr-vhdx-tool los lee en el host. Después, el punto de control pasa a ser un punto de referencia, de modo que la siguiente copia solo lee lo que el seguimiento de cambios resistente (RCT) indica como cambiado.",
       "consistencyHint": {
-        "application": "Un invitado en ejecución se pone en reposo mediante VSS; si no es posible, el punto de control es coherente ante fallos y la ejecución lo indica.",
+        "application": "Un invitado en ejecución se pone en reposo mediante VSS; si no es posible, la copia es coherente ante fallos (con un aviso) o falla, según la configuración del trabajo.",
         "crash": "El invitado nunca interviene: como desenchufarlo en el momento del punto de control."
       }
     },

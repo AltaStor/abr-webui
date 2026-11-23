@@ -199,7 +199,7 @@ export function JobSettingsTab({ job, repository, onApplyRetention }: Props) {
               value={t(`hyperv.consistency.${options.guestConsistency ?? "application"}`)}
             />
           )}
-          {job.type === "backup" && !hyperv && (
+          {job.type === "backup" && (!hyperv || (options.guestConsistency ?? "application") === "application") && (
             <Value
               label={t("settings.onQuiesceFailure")}
               value={
