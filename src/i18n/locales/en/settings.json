@@ -30,7 +30,7 @@
     },
     "vmware": {
       "label": "VMware",
-      "blurb": "AltaVDDK or SOAP & VDDK library"
+      "blurb": "LibreVDDK, VDDK or SOAP"
     },
     "users": {
       "label": "Users",
@@ -432,15 +432,16 @@
     "loadFailed": "The VMware access settings could not be read.",
     "api": {
       "label": "Default API",
-      "hint": "AltaVDDK reads and writes disks through a VDDK library: the one that comes with AltaStor, or VMware's own VDDK when you name its library below. SOAP needs no library on the appliance.",
-      "optionUnavailable": "{{api}} (not available)"
+      "hint": "LibreVDDK reads and writes disks through the VDDK library that comes with AltaStor. VDDK uses VMware's own VDDK, named by the full path of its library below. SOAP needs no library on the appliance.",
+      "optionUnavailable": "{{api}} (not available)",
+      "optionNotInstalled": "{{api}} (not installed)"
     },
     "library": {
       "label": "Default VDDK library",
-      "hint": "Leave it empty to use AltaVDDK's own library. To use VMware's original VDDK, type the full path of its libvixDiskLib.so on the appliance.",
-      "placeholder": "AltaVDDK · {{path}}",
-      "useAlta": "Use AltaVDDK",
-      "altaMissing": "AltaVDDK is not installed on this appliance. Type the full path of a VDDK library.",
+      "hint": "The full path of VMware's libvixDiskLib.so on the appliance. It must stay in the lib64 folder of its VDDK bundle: its transport plugins are found only through that folder.",
+      "found": "Found on this appliance:",
+      "pathMissing": "Type the full path of VMware's VDDK library.",
+      "libreMissing": "LibreVDDK is not installed on this appliance. Choose VDDK and type the full path of VMware's library, or choose SOAP.",
       "inEffect": "In effect",
       "missing": "no such file on the appliance",
       "unsupported": "This appliance's abr-vmdk-tool cannot load a named library file. Install a newer AltaStor build to choose one; until then the library of the VDDK directory is used."

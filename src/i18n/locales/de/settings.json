@@ -30,7 +30,7 @@
     },
     "vmware": {
       "label": "VMware",
-      "blurb": "AltaVDDK oder SOAP & VDDK-Bibliothek"
+      "blurb": "LibreVDDK, VDDK oder SOAP"
     },
     "users": {
       "label": "Benutzer",
@@ -372,15 +372,16 @@
     "loadFailed": "Die VMware-Zugriffseinstellungen konnten nicht gelesen werden.",
     "api": {
       "label": "Standard-API",
-      "hint": "AltaVDDK liest und schreibt Datenträger über eine VDDK-Bibliothek: die mit AltaStor gelieferte oder das VDDK von VMware, wenn Sie dessen Bibliothek unten angeben. SOAP benötigt keine Bibliothek auf der Appliance.",
-      "optionUnavailable": "{{api}} (nicht verfügbar)"
+      "hint": "LibreVDDK liest und schreibt Datenträger über die mit AltaStor gelieferte VDDK-Bibliothek. VDDK verwendet das VDDK von VMware, dessen Bibliothek Sie unten mit vollständigem Pfad angeben. SOAP benötigt keine Bibliothek auf der Appliance.",
+      "optionUnavailable": "{{api}} (nicht verfügbar)",
+      "optionNotInstalled": "{{api}} (nicht installiert)"
     },
     "library": {
       "label": "Standard-VDDK-Bibliothek",
-      "hint": "Leer lassen, um die eigene Bibliothek von AltaVDDK zu verwenden. Für das originale VDDK von VMware den vollständigen Pfad seiner libvixDiskLib.so auf der Appliance eingeben.",
-      "placeholder": "AltaVDDK · {{path}}",
-      "useAlta": "AltaVDDK verwenden",
-      "altaMissing": "AltaVDDK ist auf dieser Appliance nicht installiert. Geben Sie den vollständigen Pfad einer VDDK-Bibliothek ein.",
+      "hint": "Der vollständige Pfad der libvixDiskLib.so von VMware auf der Appliance. Sie muss im Ordner lib64 ihres VDDK-Pakets bleiben: Nur über diesen Ordner werden ihre Transport-Plugins gefunden.",
+      "found": "Auf dieser Appliance gefunden:",
+      "pathMissing": "Geben Sie den vollständigen Pfad der VDDK-Bibliothek von VMware ein.",
+      "libreMissing": "LibreVDDK ist auf dieser Appliance nicht installiert. Wählen Sie VDDK und geben Sie den vollständigen Pfad der Bibliothek von VMware ein, oder wählen Sie SOAP.",
       "inEffect": "Wirksam",
       "missing": "Datei existiert nicht auf der Appliance",
       "unsupported": "Das abr-vmdk-tool dieser Appliance kann keine benannte Bibliotheksdatei laden. Installieren Sie einen neueren AltaStor-Build, um eine zu wählen; bis dahin wird die Bibliothek des VDDK-Verzeichnisses verwendet."

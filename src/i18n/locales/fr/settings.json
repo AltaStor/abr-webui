@@ -30,7 +30,7 @@
     },
     "vmware": {
       "label": "VMware",
-      "blurb": "AltaVDDK ou SOAP et bibliothèque VDDK"
+      "blurb": "LibreVDDK, VDDK ou SOAP"
     },
     "users": {
       "label": "Utilisateurs",
@@ -372,15 +372,16 @@
     "loadFailed": "Les paramètres d’accès VMware n’ont pas pu être lus.",
     "api": {
       "label": "API par défaut",
-      "hint": "AltaVDDK lit et écrit les disques par une bibliothèque VDDK : celle fournie avec AltaStor, ou le VDDK de VMware lorsque vous indiquez sa bibliothèque ci-dessous. SOAP ne demande aucune bibliothèque sur l’appliance.",
-      "optionUnavailable": "{{api}} (non disponible)"
+      "hint": "LibreVDDK lit et écrit les disques par la bibliothèque VDDK fournie avec AltaStor. VDDK utilise le VDDK de VMware, dont vous indiquez le chemin complet de la bibliothèque ci-dessous. SOAP ne demande aucune bibliothèque sur l’appliance.",
+      "optionUnavailable": "{{api}} (non disponible)",
+      "optionNotInstalled": "{{api}} (non installé)"
     },
     "library": {
       "label": "Bibliothèque VDDK par défaut",
-      "hint": "Laissez vide pour utiliser la bibliothèque d’AltaVDDK. Pour utiliser le VDDK original de VMware, saisissez le chemin complet de sa libvixDiskLib.so sur l’appliance.",
-      "placeholder": "AltaVDDK · {{path}}",
-      "useAlta": "Utiliser AltaVDDK",
-      "altaMissing": "AltaVDDK n’est pas installé sur cette appliance. Saisissez le chemin complet d’une bibliothèque VDDK.",
+      "hint": "Le chemin complet de la libvixDiskLib.so de VMware sur l’appliance. Elle doit rester dans le dossier lib64 de son paquet VDDK : ses plugins de transport ne sont trouvés que par ce dossier.",
+      "found": "Trouvées sur cette appliance :",
+      "pathMissing": "Saisissez le chemin complet de la bibliothèque VDDK de VMware.",
+      "libreMissing": "LibreVDDK n’est pas installé sur cette appliance. Choisissez VDDK et saisissez le chemin complet de la bibliothèque de VMware, ou choisissez SOAP.",
       "inEffect": "En vigueur",
       "missing": "fichier introuvable sur l’appliance",
       "unsupported": "L’abr-vmdk-tool de cette appliance ne peut pas charger un fichier de bibliothèque nommé. Installez une version plus récente d’AltaStor pour en choisir un ; d’ici là, la bibliothèque du répertoire VDDK est utilisée."

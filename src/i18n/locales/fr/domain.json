@@ -104,7 +104,12 @@
   },
   "vsphere": {
     "api": {
-      "vddk": "AltaVDDK",
+      "vddk": "VDDK",
+      "soap": "SOAP"
+    },
+    "choice": {
+      "libre": "LibreVDDK",
+      "vddk": "VDDK",
       "soap": "SOAP"
     },
     "source": {
@@ -117,7 +122,7 @@
     "apiLabel": "API",
     "libraryLabel": "Bibliothèque VDDK",
     "libraryKind": {
-      "ovddk": "AltaVDDK",
+      "ovddk": "LibreVDDK",
       "vmware_vddk": "VMware VDDK",
       "system": "Bibliothèque système"
     },

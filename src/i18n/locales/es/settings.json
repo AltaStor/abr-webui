@@ -30,7 +30,7 @@
     },
     "vmware": {
       "label": "VMware",
-      "blurb": "AltaVDDK o SOAP y biblioteca VDDK"
+      "blurb": "LibreVDDK, VDDK o SOAP"
     },
     "users": {
       "label": "Usuarios",
@@ -372,15 +372,16 @@
     "loadFailed": "No se pudo leer la configuración de acceso a VMware.",
     "api": {
       "label": "API predeterminada",
-      "hint": "AltaVDDK lee y escribe los discos mediante una biblioteca VDDK: la que incluye AltaStor, o el VDDK de VMware cuando indica su biblioteca abajo. SOAP no necesita ninguna biblioteca en el appliance.",
-      "optionUnavailable": "{{api}} (no disponible)"
+      "hint": "LibreVDDK lee y escribe los discos mediante la biblioteca VDDK que incluye AltaStor. VDDK usa el VDDK de VMware, cuya biblioteca indica abajo por su ruta completa. SOAP no necesita ninguna biblioteca en el appliance.",
+      "optionUnavailable": "{{api}} (no disponible)",
+      "optionNotInstalled": "{{api}} (no instalado)"
     },
     "library": {
       "label": "Biblioteca VDDK predeterminada",
-      "hint": "Déjela vacía para usar la biblioteca propia de AltaVDDK. Para usar el VDDK original de VMware, escriba la ruta completa de su libvixDiskLib.so en el appliance.",
-      "placeholder": "AltaVDDK · {{path}}",
-      "useAlta": "Usar AltaVDDK",
-      "altaMissing": "AltaVDDK no está instalado en este appliance. Escriba la ruta completa de una biblioteca VDDK.",
+      "hint": "La ruta completa de la libvixDiskLib.so de VMware en el appliance. Debe quedarse en la carpeta lib64 de su paquete VDDK: sus plugins de transporte solo se encuentran a través de esa carpeta.",
+      "found": "Encontradas en este appliance:",
+      "pathMissing": "Escriba la ruta completa de la biblioteca VDDK de VMware.",
+      "libreMissing": "LibreVDDK no está instalado en este appliance. Elija VDDK y escriba la ruta completa de la biblioteca de VMware, o elija SOAP.",
       "inEffect": "En vigor",
       "missing": "el archivo no existe en el appliance",
       "unsupported": "El abr-vmdk-tool de este appliance no puede cargar un archivo de biblioteca con nombre. Instale una versión más reciente de AltaStor para elegir uno; mientras tanto se usa la biblioteca del directorio VDDK."

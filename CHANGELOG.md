@@ -170,14 +170,18 @@ All notable changes to the AltaStor WebUI are documented in this file.
   here", the database mark on both capacity tiles, "Used capacity" with
   "N% of total" under it, and no usage trend line on the cards (the details
   still draw it).
-- VMware access names its two APIs AltaVDDK and SOAP. AltaVDDK is the VDDK
-  library that comes with AltaStor (oVDDK to the appliance and the CLI).
-  Settings → VMware → Default VDDK library left empty uses it ("Use
-  AltaVDDK" empties it); a full path there uses that library instead, which
-  is how VMware's original VDDK is chosen. A library that follows the VDDK
-  directory shows as that directory's path. Without AltaVDDK on the
-  appliance an empty field cannot be saved. The environment's Advanced
-  settings and the run details use the same names.
+- Settings → VMware → Default API offers LibreVDDK, VDDK and SOAP.
+  LibreVDDK, listed first and the appliance's default, is the VDDK library
+  that comes with AltaStor (oVDDK to the appliance and the CLI); it shows
+  the library in effect and is marked "not installed" when the appliance
+  lacks it. VDDK is VMware's own VDDK: Default VDDK library takes the full
+  path of its libvixDiskLib.so (the libraries the appliance found fill it
+  with a click, and Save waits for a path), with the VDDK directory under
+  it; a library that follows the VDDK directory shows as VDDK with that
+  directory's path. SOAP needs no library. Nothing asks for them after the
+  first sign-in: a new appliance starts on LibreVDDK, and an unchanged Save
+  sends nothing. An environment's Advanced settings say which of them it
+  inherits, and the run details name the API VDDK.
 - A backup job can run only when started: "Manual only" in the schedule
   card of the job form (backup jobs; full backup schedules still run).
 - Logs → Audit log: the area filter lists the areas of the functions

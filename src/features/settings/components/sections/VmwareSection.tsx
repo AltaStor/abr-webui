@@ -4,7 +4,7 @@
 import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
-import { AlertTriangle, Loader2, RotateCcw, ServerCog } from "@/lib/icons";
+import { AlertTriangle, Loader2, ServerCog } from "@/lib/icons";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -23,8 +23,19 @@ import { cn } from "@/lib/utils";
 import { apiErrorFields, apiErrorMessage, getVsphereSettings, updateVsphereSettings } from "@/services/api.http";
 import { useCan } from "@/store/permissions";
 import { useWorldStore } from "@/store/world";
-import type { VsphereApi, VsphereSettings, VsphereSettingsPatch } from "@/types";
-import { altaVddkLibrary, libraryChange, libraryFieldOf, libraryOfField } from "@/lib/vsphereLibrary";
+import type { VsphereSettings, VsphereSettingsPatch } from "@/types";
+import {
+  VMWARE_CHOICES,
+  apiOfChoice,
+  choiceOf,
+  libraryChange,
+  libraryOfChoice,
+  libreVddkLibrary,
+  otherVddkLibraries,
+  usesLibreVddk,
+  vddkPathOf,
+  type VmwareChoice,
+} from "@/lib/vsphereLibrary";
 import { SettingRow } from "../SettingRow";
 import { SettingDivider, SettingsSection } from "../SettingsSection";
 
@@ -37,23 +48,24 @@ export function VmwareSection() {
 }
 
 interface Draft {
-  api: VsphereApi;
-  /** Empty is AltaVDDK; a full path is any other library (lib/vsphereLibrary.ts). */
-  library: string;
+  choice: VmwareChoice;
+  /** VMware's VDDK library, by its full path; only VDDK uses it. */
+  path: string;
   updateAll: boolean;
 }
 
 const draftOf = (settings: VsphereSettings): Draft => ({
-  api: settings.api,
-  library: libraryFieldOf(settings),
+  choice: choiceOf(settings),
+  path: vddkPathOf(settings),
   updateAll: false,
 });
 
 /** The change a draft makes: only what differs from the saved values. */
 function patchOf(draft: Draft, settings: VsphereSettings): VsphereSettingsPatch {
   const patch: VsphereSettingsPatch = {};
-  if (draft.api !== settings.api) patch.api = draft.api;
-  const library = libraryChange(draft.library, settings);
+  const api = apiOfChoice(draft.choice);
+  if (api !== settings.api) patch.api = api;
+  const library = libraryChange(draft.choice, draft.path, settings);
   if (library !== undefined) patch.library = library;
   if (draft.updateAll) patch.applyToExistingEnvironments = true;
   return patch;
@@ -61,12 +73,12 @@ function patchOf(draft: Draft, settings: VsphereSettings): VsphereSettingsPatch 
 
 /**
  * The server-wide API and VDDK library (ABR-497, ABR-552): what every vCenter
- * and ESXi environment without its own uses. The API is AltaVDDK or SOAP.
- * AltaVDDK loads the VDDK library that comes with AltaStor while the library
- * field is empty, and the library named there otherwise: that is how VMware's
- * original VDDK is chosen. "Update all existing environment settings" removes
- * every environment's own values on save, after a confirmation that names
- * them, so they all follow these.
+ * and ESXi environment without its own uses. The Default API is LibreVDDK
+ * (the VDDK library that comes with AltaStor), VDDK (VMware's own, named by
+ * the full path of its library) or SOAP; lib/vsphereLibrary.ts maps them to
+ * the appliance's API and library. "Update all existing environment
+ * settings" removes every environment's own values on save, after a
+ * confirmation that names them, so they all follow these.
  */
 function VmwareAccessCard() {
   const { t } = useTranslation("settings");
@@ -141,12 +153,25 @@ function VmwareAccessCard() {
     setDraft((d) => (d ? { ...d, ...change } : d));
     setErrors({});
   };
-  const apiName = (api: VsphereApi) => tDomain(`vsphere.api.${api}`);
-  const unavailable = settings.unavailable[draft.api];
-  const library = draft.library.trim();
-  const alta = altaVddkLibrary(settings);
-  // Empty is AltaVDDK, which this appliance may not have: then a path is needed.
-  const libraryMissing = draft.api === "vddk" && library === "" && alta === null;
+  const choiceName = (choice: VmwareChoice) => tDomain(`vsphere.choice.${choice}`);
+  const libre = libreVddkLibrary(settings);
+  // LibreVDDK is a library file: it needs to be installed, and a tool that loads one.
+  const libreOffered = libre !== null && settings.libraryFileSupported;
+  // The appliance's reason against the VDDK API holds for the library it has
+  // saved, even while SOAP is in use; another library is checked when it is
+  // saved. SOAP loads none, so its reason holds whatever the library.
+  const savedLibrary: VmwareChoice = usesLibreVddk(settings) ? "libre" : "vddk";
+  const pathChanged = libraryChange("vddk", draft.path, settings) !== undefined;
+  const problemOf = (choice: VmwareChoice) =>
+    choice === "soap"
+      ? settings.unavailable.soap
+      : choice === savedLibrary && !(choice === "vddk" && pathChanged)
+        ? settings.unavailable.vddk
+        : null;
+  const unavailable = problemOf(draft.choice);
+  const libreMissing = draft.choice === "libre" && libre === null;
+  const pathMissing = draft.choice === "vddk" && draft.path.trim() === "";
+  const others = otherVddkLibraries(settings);
   const overriding = settings.overriding;
   const names = overriding.map((e) => e.name).join(", ");
 
@@ -157,7 +182,7 @@ function VmwareAccessCard() {
 
   const footer = canEdit ? (
     <div className="flex w-full justify-end">
-      <Button size="sm" onClick={onSave} disabled={!dirty || libraryMissing || save.isPending}>
+      <Button size="sm" onClick={onSave} disabled={!dirty || libreMissing || pathMissing || save.isPending}>
         {save.isPending && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
         {save.isPending ? t("vmware.saving") : t("vmware.save")}
       </Button>
@@ -170,16 +195,22 @@ function VmwareAccessCard() {
         <>
           <SettingRow label={t("vmware.api.label")} description={t("vmware.api.hint")} htmlFor="vmware-api">
             <div className="space-y-1.5">
-              <Select value={draft.api} onValueChange={(v) => update({ api: v as VsphereApi })} disabled={readOnly}>
+              <Select
+                value={draft.choice}
+                onValueChange={(v) => update({ choice: v as VmwareChoice })}
+                disabled={readOnly}
+              >
                 <SelectTrigger id="vmware-api">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {(["vddk", "soap"] as const).map((api) => (
-                    <SelectItem key={api} value={api}>
-                      {settings.unavailable[api] !== null
-                        ? t("vmware.api.optionUnavailable", { api: apiName(api) })
-                        : apiName(api)}
+                  {VMWARE_CHOICES.map((choice) => (
+                    <SelectItem key={choice} value={choice} disabled={choice === "libre" && !libreOffered}>
+                      {choice === "libre" && libre === null
+                        ? t("vmware.api.optionNotInstalled", { api: choiceName(choice) })
+                        : (choice === "libre" && !libreOffered) || problemOf(choice) !== null
+                          ? t("vmware.api.optionUnavailable", { api: choiceName(choice) })
+                          : choiceName(choice)}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -191,10 +222,18 @@ function VmwareAccessCard() {
                   <span>{errors.api ?? unavailable}</span>
                 </p>
               )}
+              {draft.choice === "libre" &&
+                (libreMissing ? (
+                  <p className="text-xs text-danger">{t("vmware.library.libreMissing")}</p>
+                ) : errors.vddk_library ? (
+                  <p className="text-xs text-danger">{errors.vddk_library}</p>
+                ) : (
+                  <LibraryInEffect settings={settings} path={libraryOfChoice("libre", "", settings)} />
+                ))}
             </div>
           </SettingRow>
 
-          {draft.api === "vddk" && (
+          {draft.choice === "vddk" && (
             <>
               <SettingDivider />
               <SettingRow
@@ -204,43 +243,47 @@ function VmwareAccessCard() {
                 stacked
               >
                 <div className="space-y-1.5">
-                  <div className="flex gap-2">
-                    <Input
-                      id="vmware-library"
-                      value={draft.library}
-                      onChange={(e) => update({ library: e.target.value })}
-                      placeholder={alta ? t("vmware.library.placeholder", { path: alta.path }) : VMWARE_VDDK_EXAMPLE}
-                      disabled={readOnly || !settings.libraryFileSupported}
-                      autoComplete="off"
-                      spellCheck={false}
-                      aria-invalid={Boolean(errors.vddk_library) || libraryMissing}
-                      className={cn("nums font-mono text-xs", (errors.vddk_library || libraryMissing) && "border-danger")}
-                    />
-                    {library !== "" && alta && !readOnly && settings.libraryFileSupported && (
-                      <Button variant="outline" size="sm" className="h-9 shrink-0" onClick={() => update({ library: "" })}>
-                        <RotateCcw className="h-3.5 w-3.5" />
-                        {t("vmware.library.useAlta")}
-                      </Button>
-                    )}
-                  </div>
+                  <Input
+                    id="vmware-library"
+                    value={draft.path}
+                    onChange={(e) => update({ path: e.target.value })}
+                    placeholder={VMWARE_VDDK_EXAMPLE}
+                    disabled={readOnly || !settings.libraryFileSupported}
+                    autoComplete="off"
+                    spellCheck={false}
+                    aria-invalid={Boolean(errors.vddk_library) || pathMissing}
+                    className={cn("nums font-mono text-xs", (errors.vddk_library || pathMissing) && "border-danger")}
+                  />
+                  {others.length > 0 && !readOnly && settings.libraryFileSupported && (
+                    <div className="flex flex-wrap items-center gap-1.5 text-[11px] text-muted-foreground">
+                      <span>{t("vmware.library.found")}</span>
+                      {others.map((lib) => (
+                        <button
+                          key={lib.path}
+                          type="button"
+                          onClick={() => update({ path: lib.path })}
+                          title={lib.file ?? undefined}
+                          className="nums break-all border border-border px-1.5 py-0.5 text-left font-mono transition-colors hover:bg-muted/40 hover:text-foreground"
+                        >
+                          {lib.path}
+                        </button>
+                      ))}
+                    </div>
+                  )}
                   {errors.vddk_library ? (
                     <p className="text-xs text-danger">{errors.vddk_library}</p>
-                  ) : libraryMissing ? (
-                    <p className="text-xs text-danger">{t("vmware.library.altaMissing")}</p>
+                  ) : pathMissing ? (
+                    <p className="text-xs text-danger">{t("vmware.library.pathMissing")}</p>
                   ) : (
-                    <LibraryInEffect settings={settings} field={draft.library} />
+                    <LibraryInEffect settings={settings} path={libraryOfChoice("vddk", draft.path, settings)} />
                   )}
                   {!settings.libraryFileSupported && (
                     <p className="text-xs text-warning-text">{t("vmware.library.unsupported")}</p>
                   )}
                 </div>
               </SettingRow>
-            </>
-          )}
 
-          {/* SOAP reads disks without VDDK, so its folder means nothing here. */}
-          {draft.api === "vddk" && (
-            <>
+              {/* Where VMware's VDDK is looked for; LibreVDDK and SOAP do not use it. */}
               <SettingDivider />
               <SettingRow
                 label={t("vmware.directory.label")}
@@ -303,15 +346,14 @@ function VmwareAccessCard() {
 const VMWARE_VDDK_EXAMPLE = "/opt/vmware-vix-disklib-distrib/lib64/libvixDiskLib.so";
 
 /**
- * "In effect: <path> → <file> · <what it is>" for the library the field
- * names. The file and the kind are known for what the appliance has looked
- * at (AltaVDDK, the libraries it found, the one saved and the VDDK
+ * "In effect: <path> → <file> · <what it is>" for the library a choice
+ * loads. The file and the kind are known for what the appliance has looked
+ * at (LibreVDDK, the libraries it found, the one saved and the VDDK
  * directory's), not for a path being typed.
  */
-function LibraryInEffect({ settings, field }: { settings: VsphereSettings; field: string }) {
+function LibraryInEffect({ settings, path }: { settings: VsphereSettings; path: string | null }) {
   const { t } = useTranslation("settings");
   const { t: tDomain } = useTranslation("domain");
-  const path = libraryOfField(field, settings);
   if (path === null) return null;
   const strip = (p: string) => p.replace(/\/+$/, "");
   const found = settings.detectedLibraries.find((lib) => strip(lib.path) === strip(path));

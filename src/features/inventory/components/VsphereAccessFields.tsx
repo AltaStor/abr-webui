@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
+import { choiceOf } from "@/lib/vsphereLibrary";
 import type { EnvironmentVsphereAccess, VsphereApi, VsphereSettings, VsphereSettingSource } from "@/types";
 
 export interface VsphereAccessDraft {
@@ -65,6 +66,12 @@ export function VsphereAccessFields({
   const parent = inherited(access, settings);
   const apiName = (api: VsphereApi) => tDomain(`vsphere.api.${api}`);
   const sourceName = (source: VsphereSettingSource) => tDomain(`vsphere.source.${source}`);
+  // The server-wide choice by its Settings name (LibreVDDK, VDDK or SOAP) when it was read.
+  const parentName = settings
+    ? tDomain(`vsphere.choice.${choiceOf(settings)}`)
+    : parent.api
+      ? apiName(parent.api)
+      : undefined;
 
   const effectiveApi: VsphereApi | undefined = draft.api === "inherit" ? parent.api : draft.api;
   const unavailable = effectiveApi ? settings?.unavailable[effectiveApi] : null;
@@ -97,8 +104,8 @@ export function VsphereAccessFields({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="inherit">
-                  {parent.api
-                    ? t("editEnvironment.advanced.inherit", { api: apiName(parent.api) })
+                  {parentName
+                    ? t("editEnvironment.advanced.inherit", { api: parentName })
                     : t("editEnvironment.advanced.inheritUnknown")}
                 </SelectItem>
                 <SelectItem value="vddk">{apiName("vddk")}</SelectItem>
@@ -107,7 +114,8 @@ export function VsphereAccessFields({
             </Select>
             {effectiveApi && (
               <InEffect>
-                {apiName(effectiveApi)} · {sourceName(draft.api === "inherit" ? "global" : "hypervisor")}
+                {draft.api === "inherit" ? (parentName ?? apiName(effectiveApi)) : apiName(effectiveApi)} ·{" "}
+                {sourceName(draft.api === "inherit" ? "global" : "hypervisor")}
               </InEffect>
             )}
             {unavailable && (
