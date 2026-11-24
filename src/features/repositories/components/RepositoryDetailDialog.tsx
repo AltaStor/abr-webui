@@ -30,7 +30,6 @@ import { KpiCard } from "@/components/KpiCard";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { StatusPill } from "@/components/StatusPill";
-import { Sparkline } from "@/components/Sparkline";
 import { cn } from "@/lib/utils";
 import { useCapacityLevel } from "@/lib/capacity";
 import { formatInt, formatRelative, formatStorage, usagePercent } from "@/lib/format";
@@ -125,7 +124,6 @@ function RepositoryDetailBody({
   const pct = usagePercent(repo.usedGB, repo.capacityGB);
   const freeGB = Math.max(0, repo.capacityGB - repo.usedGB);
   const level = useCapacityLevel(pct);
-  const hasUsageTrend = repo.usageTrend.length > 1;
 
   return (
     <>
@@ -192,9 +190,13 @@ function RepositoryDetailBody({
             </Field>
           )}
 
+          {/* A local repository's share is on this appliance, so its name is
+              what tells it apart; an SMB repository's names its server too. */}
           {repo.share && (
             <Field icon={SmbShare} label={repo.shared ? t("detail.smbShare") : t("detail.hypervShare")}>
-              <code className="nums bg-muted/60 px-2 py-1 text-xs">{formatUnc(repo.share)}</code>
+              <code className="nums bg-muted/60 px-2 py-1 text-xs">
+                {repo.type === "local" ? repo.share.share : formatUnc(repo.share)}
+              </code>
               <span className="ml-2 text-xs text-muted-foreground">
                 {repo.share.username
                   ? t("detail.hypervShareAccount", { account: repo.share.username })
@@ -260,32 +262,19 @@ function RepositoryDetailBody({
                     style={{ width: `${Math.max(2, pct)}%` }}
                   />
                 </div>
-                <div className="mt-1.5 flex items-center justify-between">
-                  <span
-                    className={cn(
-                      "nums text-[11px] font-medium",
-                      level === "critical"
-                        ? "text-danger"
-                        : level === "warn"
-                          ? "text-warning"
-                          : "text-muted-foreground",
-                    )}
-                  >
-                    {hasUsageTrend
-                      ? t("detail.percentUsedTrend", { pct: Math.round(pct) })
-                      : t("detail.percentUsedNoTrend", { pct: Math.round(pct) })}
-                  </span>
-                  {/* One sample (or none) is not a trend — a flat line would read as
-                      14 days of steady usage that were never recorded. */}
-                  {hasUsageTrend && (
-                    <Sparkline
-                      data={repo.usageTrend}
-                      width={96}
-                      height={22}
-                      color="hsl(var(--muted-foreground))"
-                    />
+                {/* No usage trend line, as on the cards (ABR-609). */}
+                <p
+                  className={cn(
+                    "nums mt-1.5 text-[11px] font-medium",
+                    level === "critical"
+                      ? "text-danger"
+                      : level === "warn"
+                        ? "text-warning"
+                        : "text-muted-foreground",
                   )}
-                </div>
+                >
+                  {t("card.percentUsed", { pct: Math.round(pct) })}
+                </p>
               </>
             )}
           </div>

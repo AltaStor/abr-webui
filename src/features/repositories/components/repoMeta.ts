@@ -4,6 +4,7 @@
 import {
   AlertTriangle,
   CheckCircle2,
+  Cloud,
   HelpCircle,
   Loader2,
   RepositoryDrive,
@@ -17,9 +18,10 @@ import type { Tone } from "@/lib/status";
 import i18n from "@/i18n";
 import { countOf } from "@/lib/count";
 
-/** Friendly label + icon for each repository backend type. Local and S3
+/** Friendly label + icon for each repository backend type. Local
  *  repositories wear the repository mark and SMB ones the share, as the
- *  Repositories page design draws them (ABR-609).
+ *  Repositories page design draws them (ABR-609); S3 keeps the cloud, so
+ *  object storage is told from local storage at a glance.
  *  `label`/`short` are getters resolving through i18next at access time, so every
  *  consumer picks up the current language with no call-site change. */
 export const REPO_TYPE_META: Record<
@@ -34,7 +36,7 @@ export const REPO_TYPE_META: Record<
   "object-lock-s3": {
     get label() { return i18n.t("repositories:type.objectLockS3.label"); },
     get short() { return i18n.t("repositories:type.objectLockS3.short"); },
-    icon: RepositoryDrive,
+    icon: Cloud,
   },
   nfs: {
     get label() { return i18n.t("repositories:type.nfs.label"); },

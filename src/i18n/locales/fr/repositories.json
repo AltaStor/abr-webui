@@ -247,8 +247,6 @@
     "usedOfFree": "{{used}} sur {{capacity}} · {{free}} libres",
     "usedElastic": "{{used}} utilisés",
     "elasticNote": "Stockage élastique · pas de capacité fixe",
-    "percentUsedTrend": "{{pct}} % utilisés · tendance sur 14 jours",
-    "percentUsedNoTrend": "{{pct}} % utilisés · pas encore d'historique",
     "lastScan": "Dernière analyse",
     "jobsWriting": "Tâches écrivant dans ce référentiel",
     "noJobsTarget": "Aucune tâche ne cible actuellement ce référentiel.",

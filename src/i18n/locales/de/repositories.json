@@ -247,8 +247,6 @@
     "usedOfFree": "{{used}} von {{capacity}} · {{free}} frei",
     "usedElastic": "{{used}} belegt",
     "elasticNote": "Elastischer Speicher · keine feste Kapazität",
-    "percentUsedTrend": "{{pct}} % belegt · 14-Tage-Trend",
-    "percentUsedNoTrend": "{{pct}} % belegt · noch kein Verlauf",
     "lastScan": "Letzte Prüfung",
     "jobsWriting": "Jobs, die in dieses Repository schreiben",
     "noJobsTarget": "Derzeit zielt kein Job auf dieses Repository.",

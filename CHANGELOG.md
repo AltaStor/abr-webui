@@ -161,6 +161,10 @@ All notable changes to the AltaStor WebUI are documented in this file.
   jobs list and on the job page, with the appliance's warning in a tooltip.
 
 ### Changed
+- A repository's details no longer draw the usage trend line under the
+  capacity bar (the cards dropped it with ABR-609); they say "N% used". A
+  local repository's SMB share shows only the share's name, not the
+  appliance's address; an SMB repository's share keeps its server.
 - Settings → Notifications → Messaging platforms is marked Experimental: a
   badge with a flask next to the section's name, once, whose click says the
   feature is still being developed, may change or be removed, and that a
@@ -182,9 +186,9 @@ All notable changes to the AltaStor WebUI are documented in this file.
   the Shared and Hyper-V tags are gone from the cards and the details, and a
   local repository's Edit settings no longer has the "Share over SMB"
   switch. The cards follow the design (ABR-609): the repository mark in the
-  sidebar and on local and S3 repositories, the SMB share mark, a restore
-  point mark for "Restore points" and the backup mark for "Jobs writing
-  here", the database mark on both capacity tiles, "Used capacity" with
+  sidebar and on local repositories (S3 repositories keep the cloud), the
+  SMB share mark, a restore point mark for "Restore points" and the backup
+  mark for "Jobs writing here", the database mark on both capacity tiles, "Used capacity" with
   "N% of total" under it, and no usage trend line on the cards (the details
   still draw it).
 - Settings → VMware → Default API offers LibreVDDK, VDDK and SOAP.

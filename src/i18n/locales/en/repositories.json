@@ -247,8 +247,6 @@
     "usedOfFree": "{{used}} of {{capacity}} · {{free}} free",
     "usedElastic": "{{used}} used",
     "elasticNote": "Elastic storage · no fixed capacity",
-    "percentUsedTrend": "{{pct}}% used · 14-day trend",
-    "percentUsedNoTrend": "{{pct}}% used · no history yet",
     "lastScan": "Last scan",
     "jobsWriting": "Jobs writing to this repository",
     "noJobsTarget": "No jobs currently target this repository.",

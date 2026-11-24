@@ -247,8 +247,6 @@
     "usedOfFree": "{{used}} de {{capacity}} · {{free}} libres",
     "usedElastic": "{{used}} usados",
     "elasticNote": "Almacenamiento elástico · sin capacidad fija",
-    "percentUsedTrend": "{{pct}} % usado · tendencia de 14 días",
-    "percentUsedNoTrend": "{{pct}} % usado · sin historial todavía",
     "lastScan": "Último análisis",
     "jobsWriting": "Trabajos que escriben en este repositorio",
     "noJobsTarget": "Actualmente ningún trabajo tiene como destino este repositorio.",
