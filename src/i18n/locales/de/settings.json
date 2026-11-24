@@ -370,8 +370,6 @@
     "liveOnly": "Verbinden Sie sich mit einer Live-Appliance, um zu sehen und zu ändern, wie sie VMware-Datenträger erreicht.",
     "loading": "VMware-Zugriffseinstellungen werden gelesen …",
     "loadFailed": "Die VMware-Zugriffseinstellungen konnten nicht gelesen werden.",
-    "unconfirmed": "Dies sind die Werte, mit denen die Appliance gestartet ist; noch niemand hat sie gewählt. Speichern Sie sie unverändert oder ändern Sie sie zuerst.",
-    "unconfirmedReadOnly": "Dies sind die Werte, mit denen die Appliance gestartet ist; ein Administrator hat sie noch nicht gewählt.",
     "api": {
       "label": "Standard-API",
       "hint": "AltaVDDK liest und schreibt Datenträger über eine VDDK-Bibliothek: die mit AltaStor gelieferte oder das VDDK von VMware, wenn Sie dessen Bibliothek unten angeben. SOAP benötigt keine Bibliothek auf der Appliance.",

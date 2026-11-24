@@ -430,8 +430,6 @@
     "liveOnly": "Connect to a live appliance to see and change how it reaches VMware disks.",
     "loading": "Reading the VMware access settings…",
     "loadFailed": "The VMware access settings could not be read.",
-    "unconfirmed": "These are the values the appliance started with, and nobody has chosen them yet. Save them as they are, or change them first.",
-    "unconfirmedReadOnly": "These are the values the appliance started with; an administrator has not chosen them yet.",
     "api": {
       "label": "Default API",
       "hint": "AltaVDDK reads and writes disks through a VDDK library: the one that comes with AltaStor, or VMware's own VDDK when you name its library below. SOAP needs no library on the appliance.",

@@ -14,8 +14,7 @@ import { ConnectionLostBanner } from "@/components/layout/ConnectionLostBanner";
 import { IntroOverlay } from "@/components/brand/IntroOverlay";
 import { Skeleton } from "@/components/ui/skeleton";
 import { isSetupSkipped } from "@/features/setup/skip";
-import { VMWARE_CHOICE_PATH, isVmwareChoiceSkipped } from "@/features/auth/vmwareChoice";
-import { getProvisioning, getVsphereSettings, inBackground } from "@/services/api.http";
+import { getProvisioning } from "@/services/api.http";
 import { useAuthStore } from "@/store/auth";
 import { useWorldStore } from "@/store/world";
 import { useServerClockStore } from "@/store/serverClock";
@@ -28,7 +27,7 @@ import { useEventNotifications } from "@/app/useEventNotifications";
 import { useSessionKeepAlive } from "@/app/useSessionKeepAlive";
 import { navItemFor } from "@/app/nav";
 import { NotPermitted } from "@/components/FeatureUnavailable";
-import { useCan, usePermissionsStore } from "@/store/permissions";
+import { usePermissionsStore } from "@/store/permissions";
 
 function PageFallback() {
   /* Shape-agnostic placeholder: a title bar (every page has one) plus a single
@@ -115,31 +114,15 @@ export function AppShell() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mode, authStatus, mustChangePassword, navigate]);
 
-  /* First-boot gates — live appliances only, never in sim mode (the demo
-   * world is always "configured").
-   *
-   * 1. VMware access: while nobody has chosen the server-wide API and VDDK
-   *    library (the appliance reports `confirmed: false`), a user who may
-   *    change environments is asked for them first — after the forced
-   *    password change of the first sign-in, as `abr auth login` reminds.
-   * 2. An unconfigured appliance has no world worth showing, so the session
-   *    goes on to the setup wizard.
-   * Each honors its own "Decide later" / "Skip" for this session. */
-  const canEditInventory = useCan("inventory.edit");
+  /* First-boot gate — live appliances only, never in sim mode (the demo
+   * world is always "configured"). An unconfigured appliance has no world
+   * worth showing, so the session goes on to the setup wizard, unless it was
+   * skipped in this session. The VMware API and VDDK library are not asked:
+   * a new appliance starts on LibreVDDK, and Settings → VMware changes it. */
   useEffect(() => {
     if (mode !== "live" || !ready || authStatus !== "signed-in" || mustChangePassword) return;
     let cancelled = false;
     void (async () => {
-      if (canEditInventory && !isVmwareChoiceSkipped()) {
-        // A role that may not read it, or an appliance from before the
-        // setting, just goes on to the next gate.
-        const vsphere = await inBackground(getVsphereSettings).catch(() => null);
-        if (cancelled) return;
-        if (vsphere && !vsphere.confirmed) {
-          navigate(VMWARE_CHOICE_PATH, { replace: true });
-          return;
-        }
-      }
       if (isSetupSkipped()) return;
       // Appliance unreachable — the world driver surfaces that itself.
       const provisioning = await getProvisioning().catch(() => null);
@@ -148,7 +131,7 @@ export function AppShell() {
     return () => {
       cancelled = true;
     };
-  }, [mode, ready, authStatus, mustChangePassword, canEditInventory, navigate]);
+  }, [mode, ready, authStatus, mustChangePassword, navigate]);
 
   return (
     /* `dvh`, not `vh`: on mobile browsers `100vh` is the viewport *with the URL

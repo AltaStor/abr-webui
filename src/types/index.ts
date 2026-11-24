@@ -89,9 +89,6 @@ export interface VsphereSettings {
   overriding: { id: string; name: string }[];
   updatedAt: string | null;
   updatedBy: string | null;
-  /** False while these are the values the appliance started with and nobody
-   *  has saved them yet; the console then offers the choice after sign-in. */
-  confirmed: boolean;
   /** The VDDK libraries found on the appliance. */
   detectedLibraries: DetectedVddkLibrary[];
 }

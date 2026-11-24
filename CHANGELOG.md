@@ -5,20 +5,6 @@ All notable changes to the AltaStor WebUI are documented in this file.
 ## Unreleased
 
 ### Added
-- VMware access is asked after sign-in while nobody has chosen it: on a new
-  appliance, right after the first sign-in's password change (admin/admin), a
-  user who may change environments gets "Choose how to reach VMware disks"
-  with the API (AltaVDDK or SOAP, an unavailable one with the appliance's
-  reason) and, for AltaVDDK, its own library or a full path (VMware's
-  original VDDK; the libraries the appliance found fill it with a click).
-  What the appliance uses now is preselected and marked In use (ABR-595).
-  "Save and continue" saves the choice, even unchanged, which confirms it
-  and sends the library only when it was changed;
-  "Decide later" leaves it for this browser session, and the next session
-  asks again. Settings → VMware says when the values are still the ones the
-  appliance started with and saves them unchanged too. Needs `confirmed` and
-  `detected_vddk_libraries` in `GET /api/v1/system/vsphere` (abr-core
-  7e1b035); an appliance without them is never asked.
 - Settings → Security → Encryption key escrow imports an archive too
   ("Import archive…"): the archive file and its password bring its jobs,
   restore points with their encryption keys, repositories, environments and

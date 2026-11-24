@@ -523,8 +523,6 @@ function mapVsphereSettings(res: Dict): VsphereSettings {
       .map((inv) => ({ id: str(inv.id), name: str(inv.name) })),
     updatedAt: strOrNull(res.updated_at),
     updatedBy: strOrNull(res.updated_by),
-    // An appliance from before the flag never asks for a confirmation.
-    confirmed: res.confirmed !== false,
     detectedLibraries: (Array.isArray(res.detected_vddk_libraries) ? (res.detected_vddk_libraries as Dict[]) : [])
       .map(asDict)
       .filter((lib) => str(lib.path) !== "")
