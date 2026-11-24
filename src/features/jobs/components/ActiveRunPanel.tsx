@@ -100,20 +100,16 @@ export function ActiveRunPanel({ session }: { session: Session }) {
   const replication = session.type === "replication";
   // A backup copy reads stored backups, never the guest (ABR-590).
   const copyRun = session.type === "backup-copy";
+  // What the run is called in its headline: a replication, a copy or a backup.
+  const runKind = replication ? "replication" : copyRun ? "copy" : "backup";
   const headline = terminal
     ? session.status === "success"
-      ? replication
-        ? t("run.headline.replicationCompleted")
-        : t("run.headline.backupCompleted")
+      ? t(`run.headline.${runKind}Completed`)
       : session.status === "warning"
         ? t("run.headline.completedWithWarnings")
         : session.status === "stopped"
-          ? replication
-            ? t("run.headline.replicationStopped")
-            : t("run.headline.backupStopped")
-          : replication
-            ? t("run.headline.replicationFailed")
-            : t("run.headline.backupFailed")
+          ? t(`run.headline.${runKind}Stopped`)
+          : t(`run.headline.${runKind}Failed`)
     : storing
       ? t("run.headline.streamingToRepository")
       : t("run.headline.inProgress");
@@ -181,7 +177,12 @@ export function ActiveRunPanel({ session }: { session: Session }) {
               ) : storing ? (
                 <Trans i18nKey="run.storingBackup" ns="jobs" components={{ 1: <span className="font-medium text-foreground" /> }} />
               ) : (
-                <Trans i18nKey="run.reading" ns="jobs" values={{ name: current }} components={{ 1: <span className="font-medium text-foreground" /> }} />
+                <Trans
+                  i18nKey={copyRun ? "run.copying" : "run.reading"}
+                  ns="jobs"
+                  values={{ name: current }}
+                  components={{ 1: <span className="font-medium text-foreground" /> }}
+                />
               )}
             </span>
             <span className={cn("nums shrink-0 text-2xl font-semibold", tc.text)}>{Math.round(session.progress)}%</span>
@@ -189,7 +190,9 @@ export function ActiveRunPanel({ session }: { session: Session }) {
           <ProgressBar value={session.progress} tone={tone} active={!terminal} label={
             replication
               ? t("run.progressLabelReplication", { job: session.jobName })
-              : t("run.progressLabelBackup", { job: session.jobName })
+              : copyRun
+                ? t("run.progressLabelCopy", { job: session.jobName })
+                : t("run.progressLabelBackup", { job: session.jobName })
           } />
         </div>
 
@@ -200,13 +203,15 @@ export function ActiveRunPanel({ session }: { session: Session }) {
         {hasPipeline && <PipelineStages session={session} />}
 
         {verify ? null : preparing ? (
-          /* Agent-backed run before the real read starts — no honest rate yet. */
+          /* Before the first bytes move — no honest rate yet. A backup is
+             snapshotting the guest; a copy is opening the restore points it
+             copies, and never touches the guest (ABR-590). */
           <div className="flex items-center gap-2 border border-info/20 bg-info/[0.04] px-3 py-2.5 text-sm text-muted-foreground">
             <span className="relative flex h-2 w-2">
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-info opacity-75" />
               <span className="relative inline-flex h-2 w-2 rounded-full bg-info" />
             </span>
-            {t("run.preparing")}
+            {t(copyRun ? "run.preparingCopy" : "run.preparing")}
           </div>
         ) : (
           /* Rate meter — phase-labeled. In storing it tracks the repository's
@@ -229,7 +234,7 @@ export function ActiveRunPanel({ session }: { session: Session }) {
           <Metric className="bg-muted/30 px-3 py-2" icon={Timer} label={t("run.metrics.elapsed")} value={formatDuration(session.durationSec)} />
           {!verify && (
             <>
-              <Metric className="bg-muted/30 px-3 py-2" label={t("run.metrics.readGuest")} value={<CountUp value={session.processedGB} format={(n) => formatStorage(n)} durationMs={1100} />} />
+              <Metric className="bg-muted/30 px-3 py-2" label={t(copyRun ? "run.metrics.readSource" : "run.metrics.readGuest")} value={<CountUp value={session.processedGB} format={(n) => formatStorage(n)} durationMs={1100} />} />
               <Metric className="bg-muted/30 px-3 py-2" label={t("run.metrics.storedRepo")} value={<CountUp value={session.transferredGB} format={(n) => formatStorage(n)} durationMs={1100} />} />
             </>
           )}

@@ -267,6 +267,10 @@ All notable changes to the AltaStor WebUI are documented in this file.
   load (ABR-615): the appliance's zone is read as soon as there is a session,
   not after the first load of jobs, sessions and the rest, and a failed
   reading is tried again within seconds instead of ten minutes.
+- A running backup copy's job page speaks of a copy (ABR-590): "Preparing —
+  opening the restore points to copy…", "Copying <VM>", "Read · source repo"
+  and "Copy completed", "Copy failed" or "Copy stopped", not the guest
+  snapshot and guest read of a backup.
 - Editing a backup job without a regular schedule kept it so (ABR-596): the
   console showed such a job as "Daily · 00:00" and saving its edit form,
   even after a rename only, gave it a daily schedule at 00:00. It now reads
