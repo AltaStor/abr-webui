@@ -54,6 +54,7 @@ import {
 } from "@/services/api.http";
 import { useCan } from "@/store/permissions";
 import { useWorldStore } from "@/store/world";
+import { ExperimentalBadge } from "@/components/ExperimentalBadge";
 import { SettingsSection } from "../SettingsSection";
 import { ChipList } from "../controls";
 import type { Secret } from "./emailForm";
@@ -239,8 +240,15 @@ export function MessagingPlatformsSection() {
       toast.error(t("messaging.removeFailed", { name: t(`${id}.title`) }), { description: apiErrorMessage(err) ?? undefined }),
   });
 
+  // Experimental: marked once, at the section's name, not on each platform.
+  const title = (
+    <span className="inline-flex flex-wrap items-center gap-2">
+      {t("messaging.title")}
+      <ExperimentalBadge>{t("messaging.experimental")}</ExperimentalBadge>
+    </span>
+  );
   const shell = (body: ReactNode) => (
-    <SettingsSection title={t("messaging.title")} description={t("messaging.description")} icon={MessagesSquare}>
+    <SettingsSection title={title} description={t("messaging.description")} icon={MessagesSquare}>
       {body}
     </SettingsSection>
   );
@@ -282,7 +290,7 @@ export function MessagingPlatformsSection() {
   };
 
   return (
-    <SettingsSection title={t("messaging.title")} description={t("messaging.description")} icon={MessagesSquare}>
+    <SettingsSection title={title} description={t("messaging.description")} icon={MessagesSquare}>
       <div className="space-y-4 py-4">
         <AppriseNote apprise={state.apprise} />
 

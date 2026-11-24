@@ -96,6 +96,10 @@
       "description": "The appliance only lets each role use the functions assigned to it, and none of what this page shows is assigned to yours. If you need it, ask an Administrator to change your role."
     }
   },
+  "experimental": {
+    "label": "Experimental",
+    "title": "Experimental feature"
+  },
   "resize": {
     "hint": "Drag to resize · double-click to reset"
   },

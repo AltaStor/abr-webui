@@ -96,6 +96,10 @@
       "description": "L’appliance ne permet à chaque rôle que les fonctions qui lui sont attribuées, et rien de ce que montre cette page n’est attribué au vôtre. Si vous en avez besoin, demandez à un administrateur de changer votre rôle."
     }
   },
+  "experimental": {
+    "label": "Expérimental",
+    "title": "Fonctionnalité expérimentale"
+  },
   "resize": {
     "hint": "Glisser pour redimensionner · double-cliquer pour réinitialiser"
   },

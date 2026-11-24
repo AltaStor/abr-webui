@@ -161,6 +161,12 @@ All notable changes to the AltaStor WebUI are documented in this file.
   jobs list and on the job page, with the appliance's warning in a tooltip.
 
 ### Changed
+- Settings → Notifications → Messaging platforms is marked Experimental: a
+  badge with a flask next to the section's name, once, whose click says the
+  feature is still being developed, may change or be removed, and that a
+  message can be late or lost, so e-mail should stay on for alerts that
+  matter. The badge (`components/ExperimentalBadge.tsx`) is for any feature
+  that is not finished yet.
 - Settings → Appearance → Date format offers MMM D, YYYY ("Nov 4, 2026")
   too, and lists D MMM YYYY, MMM D, YYYY, YYYY-MM-DD, DD/MM/YYYY and
   MM/DD/YYYY in that order. Each option shows today as it reads in that

@@ -821,6 +821,7 @@
   "messaging": {
     "title": "Messaging-Plattformen",
     "description": "Nachrichten an Telegram, Slack, Discord oder ntfy, wenn ein gewähltes Ereignis eintritt, gesendet über Apprise auf der Appliance.",
+    "experimental": "Messaging-Plattformen sind noch in Entwicklung. Ihre Einrichtung kann sich in einer späteren Version ändern, oder sie werden entfernt, und eine Nachricht kann verspätet oder gar nicht ankommen. Lassen Sie E-Mail für Meldungen eingeschaltet, die Sie nicht verpassen dürfen.",
     "liveOnly": "Verbinden Sie sich mit einer Live-Appliance, um Messaging-Plattformen einzurichten.",
     "loading": "Messaging-Plattformen werden gelesen …",
     "loadFailed": "Die Messaging-Plattformen konnten nicht von der Appliance gelesen werden.",

@@ -96,6 +96,10 @@
       "description": "La appliance solo permite a cada rol las funciones que tiene asignadas, y nada de lo que muestra esta página está asignado al tuyo. Si lo necesitas, pide a un administrador que cambie tu rol."
     }
   },
+  "experimental": {
+    "label": "Experimental",
+    "title": "Función experimental"
+  },
   "resize": {
     "hint": "Arrastre para cambiar el ancho · doble clic para restablecer"
   },

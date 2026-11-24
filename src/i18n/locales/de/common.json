@@ -96,6 +96,10 @@
       "description": "Die Appliance erlaubt jeder Rolle nur die ihr zugewiesenen Funktionen, und nichts von dem, was diese Seite zeigt, ist Ihrer Rolle zugewiesen. Wenn Sie es benötigen, bitten Sie einen Administrator, Ihre Rolle zu ändern."
     }
   },
+  "experimental": {
+    "label": "Experimentell",
+    "title": "Experimentelle Funktion"
+  },
   "resize": {
     "hint": "Zum Ändern der Breite ziehen · Doppelklick setzt zurück"
   },

@@ -885,6 +885,7 @@
   "messaging": {
     "title": "Messaging platforms",
     "description": "Messages to Telegram, Slack, Discord or ntfy when a chosen event happens, sent through Apprise on the appliance.",
+    "experimental": "Messaging platforms are still being developed. How they are set up may change in a later release, or they may be removed, and a message can arrive late or not at all. Keep e-mail on for alerts you cannot miss.",
     "liveOnly": "Connect to a live appliance to set up messaging platforms.",
     "loading": "Reading the messaging platforms…",
     "loadFailed": "Couldn't read the messaging platforms from the appliance.",

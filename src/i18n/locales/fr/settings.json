@@ -821,6 +821,7 @@
   "messaging": {
     "title": "Plateformes de messagerie",
     "description": "Des messages vers Telegram, Slack, Discord ou ntfy quand un événement choisi se produit, envoyés via Apprise sur l’appliance.",
+    "experimental": "Les plateformes de messagerie sont encore en cours de développement. Leur configuration peut changer dans une version ultérieure, ou elles peuvent être retirées, et un message peut arriver en retard ou ne pas arriver. Gardez l’e-mail activé pour les alertes à ne pas manquer.",
     "liveOnly": "Connectez-vous à une appliance réelle pour configurer les plateformes de messagerie.",
     "loading": "Lecture des plateformes de messagerie…",
     "loadFailed": "Impossible de lire les plateformes de messagerie sur l’appliance.",
