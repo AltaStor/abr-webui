@@ -1336,10 +1336,10 @@ export interface GeneralSettings {
  *  `src/i18n/languages.ts`; this mirrors it for typing. */
 export type Language = "en" | "de" | "fr" | "es";
 
-/** How the console writes a calendar day. */
 /** How the console writes a day. "D MMM YYYY" spells the month ("4 Nov
- *  2026"), which no reader can take for another day; it is the default. */
-export type DateFormat = "D MMM YYYY" | "DD/MM/YYYY" | "MM/DD/YYYY" | "YYYY-MM-DD";
+ *  2026"), which no reader can take for another day; it is the default.
+ *  "MMM D, YYYY" spells it first, the American way ("Nov 4, 2026"). */
+export type DateFormat = "D MMM YYYY" | "MMM D, YYYY" | "YYYY-MM-DD" | "DD/MM/YYYY" | "MM/DD/YYYY";
 /** How the console writes a time of day. */
 export type TimeFormat = "24h" | "12h";
 

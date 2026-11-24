@@ -96,17 +96,13 @@
     },
     "dateFormat": {
       "label": "Date format",
-      "description": "How the console writes a day. A time now reads {{example}}, on server time like every time in the console; hover one to see it in UTC and on your computer.",
-      "dMonthY": "D MMM YYYY (4 Nov 2026)",
-      "dmy": "DD/MM/YYYY",
-      "mdy": "MM/DD/YYYY",
-      "ymd": "YYYY-MM-DD"
+      "description": "How the console writes a day. A time now reads {{example}}, on server time like every time in the console; hover one to see it in UTC and on your computer."
     },
     "timeFormat": {
       "label": "Time format",
       "description": "How the console writes a time of day.",
       "h24": "24-hour",
-      "h12": "12-hour (AM/PM)"
+      "h12": "12-hour"
     }
   },
   "notifications": {

@@ -50,9 +50,11 @@ plain call to `lib/time.ts` reads it but is not told of the change.
 
 The date and time formats are stored in the browser with the rest of
 Appearance (`basalt.settings` → `appearance.dateFormat`: `D MMM YYYY`
-(default), `DD/MM/YYYY`, `MM/DD/YYYY` or `YYYY-MM-DD`; `appearance.timeFormat`:
-`24h` (default) or `12h`). `D MMM YYYY` writes the day, the month's short name
-in the console language and the year: "4 Nov 2026", in German "4. Nov. 2026".
+(default), `MMM D, YYYY`, `YYYY-MM-DD`, `DD/MM/YYYY` or `MM/DD/YYYY`;
+`appearance.timeFormat`: `24h` (default) or `12h`). `D MMM YYYY` writes the
+day, the month's short name in the console language and the year: "4 Nov
+2026", in German "4. Nov. 2026". `MMM D, YYYY` writes the month first, in that
+order in every language: "Nov 4, 2026", in German "Nov. 4, 2026".
 It is the default because `04/11/2026` is 4 November to some readers and
 11 April to others (ABR-515).
 
@@ -206,9 +208,11 @@ audit log is UTC. The console parses them as instants.
 - Top bar → **Server time**: hover for the zone, the time in UTC and on your
   computer.
 - Hover any time for UTC (and your computer's reading when it differs).
-- Settings → Appearance → **Date format** (D MMM YYYY, DD/MM/YYYY,
-  MM/DD/YYYY, YYYY-MM-DD) and **Time format** (24-hour, 12-hour); the date
-  format's note shows a time as it will read.
+- Settings → Appearance → **Date format** (D MMM YYYY, MMM D, YYYY,
+  YYYY-MM-DD, DD/MM/YYYY, MM/DD/YYYY) and **Time format** (24-hour, 12-hour);
+  each option shows today, or the time now, as it reads in that format, with
+  the format's name beside it, and the date format's note shows a time as it
+  will read.
 - Job form: "At time (server time)"; on a job saved on another zone, the note
   and **Use server time**.
 - Settings → About: the server's time zone and clock.

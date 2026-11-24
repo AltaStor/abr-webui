@@ -307,14 +307,17 @@ function toDate(value: TimeInput): Date | null {
 
 const pad = (n: number) => String(n).padStart(2, "0");
 
-/** A calendar day in `format`: "23 Oct 2026", "23/10/2026", "10/23/2026",
- *  "2026-10-23"; without the year "23 Oct", "23/10", "10/23", "10-23". */
+/** A calendar day in `format`: "23 Oct 2026", "Oct 23, 2026", "23/10/2026",
+ *  "10/23/2026", "2026-10-23"; without the year "23 Oct", "Oct 23", "23/10",
+ *  "10/23", "10-23". */
 function dayText(w: Pick<WallTime, "year" | "month" | "day">, format: DateFormat, withYear = true): string {
   const d = pad(w.day);
   const m = pad(w.month);
   switch (format) {
     case "D MMM YYYY":
       return spelledDay(w, withYear, preferences.locale);
+    case "MMM D, YYYY":
+      return monthFirstDay(w, withYear, preferences.locale);
     case "MM/DD/YYYY":
       return withYear ? `${m}/${d}/${w.year}` : `${m}/${d}`;
     case "YYYY-MM-DD":
@@ -356,6 +359,28 @@ function spelledDay(w: Pick<WallTime, "year" | "month" | "day">, withYear: boole
     spelledDays.set(key, f);
   }
   return f.format(Date.UTC(w.year, w.month - 1, w.day));
+}
+
+const monthNames = new Map<string, Intl.DateTimeFormat>();
+
+/** The month's short name first, then the day and the year: "Nov 4, 2026",
+ *  "Nov 4" without the year. The month's name is the console language's, as
+ *  it reads in a date ("Okt." in German), and the order is the format's in
+ *  every language, since that is what it promises. */
+function monthFirstDay(w: Pick<WallTime, "year" | "month" | "day">, withYear: boolean, locale: string): string {
+  const tag = /^en(-|$)/i.test(locale) ? "en-US" : locale;
+  let f = monthNames.get(tag);
+  if (!f) {
+    const options: Intl.DateTimeFormatOptions = { day: "numeric", month: "short", year: "numeric", timeZone: UTC };
+    try {
+      f = new Intl.DateTimeFormat(tag, options);
+    } catch {
+      f = new Intl.DateTimeFormat("en-US", options);
+    }
+    monthNames.set(tag, f);
+  }
+  const month = f.formatToParts(Date.UTC(w.year, w.month - 1, w.day)).find((p) => p.type === "month")?.value;
+  return `${month} ${w.day}${withYear ? `, ${w.year}` : ""}`;
 }
 
 const weekdayNames = new Map<string, string[]>();

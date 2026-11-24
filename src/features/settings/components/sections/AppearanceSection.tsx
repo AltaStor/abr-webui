@@ -15,16 +15,34 @@ import { SettingRow } from "../SettingRow";
 import { Switch } from "@/components/ui/switch";
 import { Segmented, SaveBar } from "../controls";
 import { ACCENT_SWATCHES, useDraft } from "../../lib";
-import { formatDateTime } from "@/lib/time";
+import { formatDate, formatDateTime, formatTime } from "@/lib/time";
 import { useDateTimeFormat } from "@/lib/useDateTimeFormat";
 import { useServerNow } from "@/store/serverClock";
 
-const DATE_FORMATS: { value: DateFormat; key: string }[] = [
-  { value: "D MMM YYYY", key: "dMonthY" },
-  { value: "DD/MM/YYYY", key: "dmy" },
-  { value: "MM/DD/YYYY", key: "mdy" },
-  { value: "YYYY-MM-DD", key: "ymd" },
+/** In the order they are offered: the spelled month first, the numeric
+ *  ones after it. The format is its own name. */
+const DATE_FORMATS: DateFormat[] = ["D MMM YYYY", "MMM D, YYYY", "YYYY-MM-DD", "DD/MM/YYYY", "MM/DD/YYYY"];
+const TIME_FORMATS: { value: TimeFormat; key: string }[] = [
+  { value: "24h", key: "h24" },
+  { value: "12h", key: "h12" },
 ];
+
+/** An option as the design has it: how a time reads in the format on the
+ *  left, the format's name on the right, muted; the check after both. The
+ *  trigger shows the same two, side by side. */
+const formatItemClass =
+  "group data-[state=checked]:bg-primary/10 data-[state=checked]:text-primary data-[highlighted]:data-[state=checked]:bg-primary/15 data-[highlighted]:data-[state=checked]:text-primary";
+
+function FormatOption({ sample, name }: { sample: string; name: string }) {
+  return (
+    <span className="flex w-full items-baseline justify-between gap-4">
+      <span className="nums whitespace-nowrap">{sample}</span>
+      <span className="nums whitespace-nowrap text-xs text-muted-foreground group-data-[state=checked]:text-primary/70">
+        {name}
+      </span>
+    </span>
+  );
+}
 
 export function AppearanceSection() {
   const { t } = useTranslation("settings");
@@ -51,7 +69,8 @@ export function AppearanceSection() {
   // draws the note again once the appliance has named its zone — until then
   // the browser's stands in (ABR-576).
   useDateTimeFormat();
-  const example = formatDateTime(useServerNow(), {
+  const now = useServerNow();
+  const example = formatDateTime(now, {
     dateFormat: draft.dateFormat,
     timeFormat: draft.timeFormat,
   });
@@ -101,13 +120,13 @@ export function AppearanceSection() {
           every time is server time, which the top bar names. */}
       <SettingRow label={t("appearance.dateFormat.label")} description={t("appearance.dateFormat.description", { example })}>
         <Select value={draft.dateFormat} onValueChange={(v) => patch({ dateFormat: v as DateFormat })}>
-          <SelectTrigger className="nums w-full" aria-label={t("appearance.dateFormat.label")} data-testid="date-format">
+          <SelectTrigger className="w-full" aria-label={t("appearance.dateFormat.label")} data-testid="date-format">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
             {DATE_FORMATS.map((f) => (
-              <SelectItem key={f.value} value={f.value} className="nums">
-                {t(`appearance.dateFormat.${f.key}`)}
+              <SelectItem key={f} value={f} indicator="end" className={formatItemClass}>
+                <FormatOption sample={formatDate(now, { dateFormat: f })} name={f} />
               </SelectItem>
             ))}
           </SelectContent>
@@ -121,8 +140,14 @@ export function AppearanceSection() {
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="24h">{t("appearance.timeFormat.h24")}</SelectItem>
-            <SelectItem value="12h">{t("appearance.timeFormat.h12")}</SelectItem>
+            {TIME_FORMATS.map((f) => (
+              <SelectItem key={f.value} value={f.value} indicator="end" className={formatItemClass}>
+                <FormatOption
+                  sample={formatTime(now, { timeFormat: f.value })}
+                  name={t(`appearance.timeFormat.${f.key}`)}
+                />
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
       </SettingRow>

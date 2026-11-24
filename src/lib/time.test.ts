@@ -80,6 +80,18 @@ describe("date format", () => {
     assert.equal(spelled("es-ES"), "4 nov 2026");
   });
 
+  test("MMM D, YYYY spells the month first, in the console language", () => {
+    setDisplayPreferences({ timeZone: "UTC", dateFormat: "MMM D, YYYY", locale: "en-GB" });
+    assert.equal(formatDate(MOMENT), "Oct 22, 2026");
+    assert.equal(formatDate(MOMENT, { short: true }), "Oct 22");
+    assert.equal(formatDateTime(MOMENT), "Oct 22, 2026 22:05");
+    assert.equal(formatDateTime(MOMENT, { weekday: true }), "Thu, Oct 22, 2026 22:05");
+    setDisplayPreferences({ timeZone: "UTC", dateFormat: "MMM D, YYYY", locale: "de-DE" });
+    assert.equal(formatDate("2026-11-04T09:41:00Z"), "Nov. 4, 2026");
+    setDisplayPreferences({ timeZone: "UTC", dateFormat: "MMM D, YYYY", locale: "fr-FR" });
+    assert.equal(formatDate(MOMENT), "oct. 22, 2026");
+  });
+
   test("DD/MM/YYYY", () => {
     setDisplayPreferences({ timeZone: "UTC" });
     assert.equal(formatDate(MOMENT), "22/10/2026");

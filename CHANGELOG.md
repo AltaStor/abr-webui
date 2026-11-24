@@ -161,6 +161,12 @@ All notable changes to the AltaStor WebUI are documented in this file.
   jobs list and on the job page, with the appliance's warning in a tooltip.
 
 ### Changed
+- Settings → Appearance → Date format offers MMM D, YYYY ("Nov 4, 2026")
+  too, and lists D MMM YYYY, MMM D, YYYY, YYYY-MM-DD, DD/MM/YYYY and
+  MM/DD/YYYY in that order. Each option shows today as it reads in that
+  format on the left and the format on the right, muted, with the check
+  after it; the field shows both. Time format shows the time now the same
+  way ("14:30 · 24-hour", "2:30 PM · 12-hour").
 - Repositories carry one label of their own, Default, in the primary colour;
   the Shared and Hyper-V tags are gone from the cards and the details, and a
   local repository's Edit settings no longer has the "Share over SMB"
