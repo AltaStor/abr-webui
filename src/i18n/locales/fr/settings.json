@@ -637,6 +637,13 @@
     "enable": "Envoyer les notifications par e-mail",
     "on": "Activées",
     "off": "Désactivées",
+    "folded": {
+      "kept_one": "Désactivé. Les paramètres sont conservés pour la réactivation : {{server}}, {{count}} destinataire.",
+      "kept_other": "Désactivé. Les paramètres sont conservés pour la réactivation : {{server}}, {{count}} destinataires.",
+      "empty": "Désactivé. Activez-le pour configurer le serveur SMTP, l’expéditeur et les destinataires.",
+      "show": "Afficher les paramètres",
+      "hide": "Masquer les paramètres"
+    },
     "unsaved": "Non enregistré",
     "liveOnly": "Connectez-vous à une appliance réelle pour configurer les notifications par e-mail.",
     "loading": "Lecture des réglages e-mail…",

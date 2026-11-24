@@ -701,6 +701,13 @@
     "enable": "Send e-mail notifications",
     "on": "On",
     "off": "Off",
+    "folded": {
+      "kept_one": "Off. Its settings are kept for when you switch it on: {{server}}, {{count}} recipient.",
+      "kept_other": "Off. Its settings are kept for when you switch it on: {{server}}, {{count}} recipients.",
+      "empty": "Off. Switch it on to set up the SMTP server, the sender and the recipients.",
+      "show": "Show settings",
+      "hide": "Hide settings"
+    },
     "unsaved": "Not saved",
     "liveOnly": "Connect to a live appliance to set up e-mail notifications.",
     "loading": "Reading the e-mail settings…",

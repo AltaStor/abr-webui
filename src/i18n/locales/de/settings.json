@@ -637,6 +637,13 @@
     "enable": "E-Mail-Benachrichtigungen senden",
     "on": "Ein",
     "off": "Aus",
+    "folded": {
+      "kept_one": "Aus. Die Einstellungen bleiben für das Einschalten erhalten: {{server}}, {{count}} Empfänger.",
+      "kept_other": "Aus. Die Einstellungen bleiben für das Einschalten erhalten: {{server}}, {{count}} Empfänger.",
+      "empty": "Aus. Schalten Sie es ein, um SMTP-Server, Absender und Empfänger einzurichten.",
+      "show": "Einstellungen anzeigen",
+      "hide": "Einstellungen ausblenden"
+    },
     "unsaved": "Nicht gespeichert",
     "liveOnly": "Verbinden Sie sich mit einer Live-Appliance, um E-Mail-Benachrichtigungen einzurichten.",
     "loading": "E-Mail-Einstellungen werden gelesen …",

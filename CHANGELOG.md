@@ -167,6 +167,11 @@ All notable changes to the AltaStor WebUI are documented in this file.
   message can be late or lost, so e-mail should stay on for alerts that
   matter. The badge (`components/ExperimentalBadge.tsx`) is for any feature
   that is not finished yet.
+- The e-mail card folds its settings while e-mail is off: one line says
+  what is kept for switching it on again (the saved server and the number of
+  recipients) or that nothing is set up, with Show settings / Hide settings.
+  Switching e-mail on opens them, and a setting that needs fixing keeps them
+  open; the test e-mail field shows only with them.
 - Settings → Appearance → Date format offers MMM D, YYYY ("Nov 4, 2026")
   too, and lists D MMM YYYY, MMM D, YYYY, YYYY-MM-DD, DD/MM/YYYY and
   MM/DD/YYYY in that order. Each option shows today as it reads in that

@@ -4,7 +4,7 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
-import { AlertTriangle, CheckCircle2, Loader2, Mail, XCircle } from "@/lib/icons";
+import { AlertTriangle, CheckCircle2, ChevronDown, Loader2, Mail, XCircle } from "@/lib/icons";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
@@ -42,6 +42,10 @@ import { EnabledSwitch, EventSwitches, HistoryList, SecretField, useSettingsDraf
  * first, so the common mistakes show before a round trip. Secrets never come
  * back from the appliance: a stored one shows as "stored", a field left empty
  * keeps it, and Remove clears it.
+ *
+ * While the switch is off the settings fold into one line that says what is
+ * kept; "Show settings" opens them, and switching e-mail on opens them too.
+ * They open by themselves when something in them needs fixing.
  */
 
 /** The test e-mail's outcome, or why it did not go. */
@@ -78,6 +82,8 @@ export function EmailNotificationsCard() {
   const [serverErrors, setServerErrors] = useState<Record<string, string>>({});
   const [testTo, setTestTo] = useState("");
   const [outcome, setOutcome] = useState<TestOutcome | null>(null);
+  /** Opened with "Show settings" while e-mail is off. */
+  const [opened, setOpened] = useState(false);
 
   const save = useMutation({
     mutationFn: (d: Draft) => updateEmailNotifications(patchOf(d)),
@@ -159,7 +165,11 @@ export function EmailNotificationsCard() {
   const errors = showErrors ? { ...serverErrors, ...clientErrors } : {};
   const err = (key: string) => errors[key] ?? null;
   const readOnly = !canEdit;
+  // Off folds the settings away, unless asked for or something there is wrong.
+  const expanded = draft.enabled || opened || Object.keys(errors).length > 0;
   const update = (patch: Partial<Draft>) => {
+    // Switching on or off starts from the switch's own view: on open, off folded.
+    if (patch.enabled !== undefined) setOpened(false);
     setDraft((d) => (d ? { ...d, ...patch } : d));
     // An edit retires the appliance's last verdict; the checks here still run.
     setServerErrors((s) => (Object.keys(s).length ? {} : s));
@@ -208,7 +218,7 @@ export function EmailNotificationsCard() {
       }
       footer={
         <div className="flex w-full flex-wrap items-center justify-end gap-2">
-          {canTest && (
+          {canTest && expanded && (
             <>
               <Input
                 value={testTo}
@@ -257,181 +267,194 @@ export function EmailNotificationsCard() {
 
         {outcome && <TestOutcomePanel outcome={outcome} />}
 
-        {/* ---------------------------------------------------------- server */}
-        <fieldset className="space-y-3" disabled={readOnly}>
-          <legend className="label-overline mb-2">{t("email.server.title")}</legend>
-          <div className="grid gap-3 sm:grid-cols-[1fr_8rem]">
-            <Field id="smtp-host" label={t("email.server.host")} error={err("smtp.host")}>
-              <Input
-                id="smtp-host"
-                value={draft.host}
-                onChange={(e) => update({ host: e.target.value })}
-                placeholder="smtp.example.com"
-                aria-invalid={!!err("smtp.host")}
-              />
-            </Field>
-            <Field id="smtp-port" label={t("email.server.port")} error={err("smtp.port")}>
-              <Input
-                id="smtp-port"
-                inputMode="numeric"
-                value={draft.port}
-                onChange={(e) => update({ port: e.target.value })}
-                aria-invalid={!!err("smtp.port")}
-              />
-            </Field>
-          </div>
-          <Field id="smtp-security" label={t("email.server.security")} hint={t(`email.server.securityHint.${draft.security}`)}>
-            <Segmented
-              aria-label={t("email.server.security")}
-              value={draft.security}
-              onChange={setSecurity}
-              disabled={readOnly}
-              options={[
-                { value: "starttls", label: "STARTTLS" },
-                { value: "ssl", label: "SSL/TLS" },
-                { value: "none", label: t("email.server.noEncryption") },
-              ]}
-            />
-          </Field>
-          {draft.security !== "none" && (
-            <label className="flex items-start justify-between gap-3">
-              <span className="space-y-0.5">
-                <span className="block text-sm font-medium">{t("email.server.verifyTls")}</span>
-                <span className={cn("block text-xs", draft.verifyTls ? "text-muted-foreground" : "text-warning-text")}>
-                  {draft.verifyTls ? t("email.server.verifyTlsOn") : t("email.server.verifyTlsOff")}
-                </span>
-              </span>
-              <Switch checked={draft.verifyTls} onCheckedChange={(verifyTls) => update({ verifyTls })} disabled={readOnly} aria-label={t("email.server.verifyTls")} />
-            </label>
-          )}
-          <Field id="smtp-timeout" label={t("email.server.timeout")} error={err("smtp.timeout_seconds")} hint={t("email.server.timeoutHint")}>
-            <Input
-              id="smtp-timeout"
-              inputMode="numeric"
-              className="w-28"
-              value={draft.timeout}
-              onChange={(e) => update({ timeout: e.target.value })}
-              aria-invalid={!!err("smtp.timeout_seconds")}
-            />
-          </Field>
-        </fieldset>
-
-        {/* ------------------------------------------------------------ auth */}
-        <fieldset className="space-y-3" disabled={readOnly}>
-          <legend className="label-overline mb-2">{t("email.auth.title")}</legend>
-          <Segmented
-            aria-label={t("email.auth.title")}
-            value={draft.auth}
-            onChange={(auth) => update({ auth })}
-            disabled={readOnly}
-            options={[
-              { value: "password", label: t("email.auth.password") },
-              { value: "none", label: t("email.auth.none") },
-            ]}
+        {!draft.enabled && (
+          <EmailOffSummary
+            state={state}
+            expanded={expanded}
+            locked={Object.keys(errors).length > 0}
+            onToggle={() => setOpened((v) => !v)}
           />
-          {draft.auth === "none" && <p className="text-xs text-muted-foreground">{t("email.auth.noneHint")}</p>}
-          {draft.auth !== "none" && draft.security === "none" && (
-            <p className="flex items-start gap-1.5 text-xs text-warning-text">
-              <AlertTriangle className="mt-px h-3.5 w-3.5 shrink-0" />
-              {t("email.auth.unencryptedWarning")}
-            </p>
-          )}
+        )}
 
-          {draft.auth === "password" && (
-            <div className="grid gap-3 sm:grid-cols-2">
-              <Field id="smtp-username" label={t("email.auth.username")} error={err("smtp.username")}>
+        {expanded && (
+          <div id="email-settings" className="space-y-6" data-testid="email-settings">
+          {/* ---------------------------------------------------------- server */}
+          <fieldset className="space-y-3" disabled={readOnly}>
+            <legend className="label-overline mb-2">{t("email.server.title")}</legend>
+            <div className="grid gap-3 sm:grid-cols-[1fr_8rem]">
+              <Field id="smtp-host" label={t("email.server.host")} error={err("smtp.host")}>
                 <Input
-                  id="smtp-username"
-                  autoComplete="off"
-                  value={draft.username}
-                  onChange={(e) => update({ username: e.target.value })}
-                  aria-invalid={!!err("smtp.username")}
+                  id="smtp-host"
+                  value={draft.host}
+                  onChange={(e) => update({ host: e.target.value })}
+                  placeholder="smtp.example.com"
+                  aria-invalid={!!err("smtp.host")}
                 />
               </Field>
-              <SecretField
-                id="smtp-password"
-                label={t("email.auth.passwordLabel")}
-                stored={state.smtp.passwordSet}
-                value={draft.password}
-                onChange={(password) => update({ password })}
-                error={err("smtp.password")}
-                readOnly={readOnly}
-              />
+              <Field id="smtp-port" label={t("email.server.port")} error={err("smtp.port")}>
+                <Input
+                  id="smtp-port"
+                  inputMode="numeric"
+                  value={draft.port}
+                  onChange={(e) => update({ port: e.target.value })}
+                  aria-invalid={!!err("smtp.port")}
+                />
+              </Field>
             </div>
-          )}
-        </fieldset>
-
-        {/* ---------------------------------------------- sender, recipients */}
-        <fieldset className="space-y-3" disabled={readOnly}>
-          <legend className="label-overline mb-2">{t("email.addresses.title")}</legend>
-          <div className="grid gap-3 sm:grid-cols-2">
-            <Field id="sender-address" label={t("email.addresses.sender")} error={err("sender.address")}>
+            <Field id="smtp-security" label={t("email.server.security")} hint={t(`email.server.securityHint.${draft.security}`)}>
+              <Segmented
+                aria-label={t("email.server.security")}
+                value={draft.security}
+                onChange={setSecurity}
+                disabled={readOnly}
+                options={[
+                  { value: "starttls", label: "STARTTLS" },
+                  { value: "ssl", label: "SSL/TLS" },
+                  { value: "none", label: t("email.server.noEncryption") },
+                ]}
+              />
+            </Field>
+            {draft.security !== "none" && (
+              <label className="flex items-start justify-between gap-3">
+                <span className="space-y-0.5">
+                  <span className="block text-sm font-medium">{t("email.server.verifyTls")}</span>
+                  <span className={cn("block text-xs", draft.verifyTls ? "text-muted-foreground" : "text-warning-text")}>
+                    {draft.verifyTls ? t("email.server.verifyTlsOn") : t("email.server.verifyTlsOff")}
+                  </span>
+                </span>
+                <Switch checked={draft.verifyTls} onCheckedChange={(verifyTls) => update({ verifyTls })} disabled={readOnly} aria-label={t("email.server.verifyTls")} />
+              </label>
+            )}
+            <Field id="smtp-timeout" label={t("email.server.timeout")} error={err("smtp.timeout_seconds")} hint={t("email.server.timeoutHint")}>
               <Input
-                id="sender-address"
-                type="email"
-                value={draft.senderAddress}
-                onChange={(e) => update({ senderAddress: e.target.value })}
-                placeholder="backup@example.com"
-                aria-invalid={!!err("sender.address")}
+                id="smtp-timeout"
+                inputMode="numeric"
+                className="w-28"
+                value={draft.timeout}
+                onChange={(e) => update({ timeout: e.target.value })}
+                aria-invalid={!!err("smtp.timeout_seconds")}
               />
             </Field>
-            <Field id="sender-name" label={t("email.addresses.senderName")}>
-              <Input id="sender-name" value={draft.senderName} onChange={(e) => update({ senderName: e.target.value })} />
-            </Field>
-          </div>
-          <div className="space-y-1.5">
-            <span className="text-sm font-medium">{t("email.addresses.recipients")}</span>
-            {readOnly ? (
-              <p className="text-sm">{draft.recipients.join(", ") || "—"}</p>
-            ) : (
-              <ChipList
-                values={draft.recipients}
-                onChange={(recipients) => update({ recipients })}
-                placeholder="ops@example.com"
-                ariaLabel={t("email.addresses.addRecipient")}
-                validate={(v) => ADDRESS.test(v)}
-              />
-            )}
-            {err("recipients") ? (
-              <p className="text-xs text-danger-text">{err("recipients")}</p>
-            ) : (
-              <p className="text-xs text-muted-foreground">{t("email.addresses.recipientsHint")}</p>
-            )}
-          </div>
-        </fieldset>
+          </fieldset>
 
-        {/* ---------------------------------------------------------- events */}
-        <fieldset className="space-y-2" disabled={readOnly}>
-          <legend className="label-overline mb-2">{t("email.events.title")}</legend>
-          <p className="text-xs text-muted-foreground">{t("email.events.hint")}</p>
-          <EventSwitches
-            events={state.events}
-            selected={draft.events}
-            onChange={(events) => update({ events })}
-            readOnly={readOnly}
-            extra={(id) =>
-              id === "repository.low_space" && (
-                <div className="mt-2 flex items-center gap-2">
-                  <label htmlFor="space-threshold" className="text-xs text-muted-foreground">
-                    {t("email.events.threshold")}
-                  </label>
+          {/* ------------------------------------------------------------ auth */}
+          <fieldset className="space-y-3" disabled={readOnly}>
+            <legend className="label-overline mb-2">{t("email.auth.title")}</legend>
+            <Segmented
+              aria-label={t("email.auth.title")}
+              value={draft.auth}
+              onChange={(auth) => update({ auth })}
+              disabled={readOnly}
+              options={[
+                { value: "password", label: t("email.auth.password") },
+                { value: "none", label: t("email.auth.none") },
+              ]}
+            />
+            {draft.auth === "none" && <p className="text-xs text-muted-foreground">{t("email.auth.noneHint")}</p>}
+            {draft.auth !== "none" && draft.security === "none" && (
+              <p className="flex items-start gap-1.5 text-xs text-warning-text">
+                <AlertTriangle className="mt-px h-3.5 w-3.5 shrink-0" />
+                {t("email.auth.unencryptedWarning")}
+              </p>
+            )}
+
+            {draft.auth === "password" && (
+              <div className="grid gap-3 sm:grid-cols-2">
+                <Field id="smtp-username" label={t("email.auth.username")} error={err("smtp.username")}>
                   <Input
-                    id="space-threshold"
-                    inputMode="numeric"
-                    className="h-8 w-20"
-                    value={draft.threshold}
-                    onChange={(e) => update({ threshold: e.target.value })}
-                    aria-invalid={!!err("repository_space_threshold_percent")}
+                    id="smtp-username"
+                    autoComplete="off"
+                    value={draft.username}
+                    onChange={(e) => update({ username: e.target.value })}
+                    aria-invalid={!!err("smtp.username")}
                   />
-                  <span className="text-xs text-muted-foreground">%</span>
-                  {err("repository_space_threshold_percent") && (
-                    <span className="text-xs text-danger-text">{err("repository_space_threshold_percent")}</span>
-                  )}
-                </div>
-              )
-            }
-          />
-        </fieldset>
+                </Field>
+                <SecretField
+                  id="smtp-password"
+                  label={t("email.auth.passwordLabel")}
+                  stored={state.smtp.passwordSet}
+                  value={draft.password}
+                  onChange={(password) => update({ password })}
+                  error={err("smtp.password")}
+                  readOnly={readOnly}
+                />
+              </div>
+            )}
+          </fieldset>
+
+          {/* ---------------------------------------------- sender, recipients */}
+          <fieldset className="space-y-3" disabled={readOnly}>
+            <legend className="label-overline mb-2">{t("email.addresses.title")}</legend>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <Field id="sender-address" label={t("email.addresses.sender")} error={err("sender.address")}>
+                <Input
+                  id="sender-address"
+                  type="email"
+                  value={draft.senderAddress}
+                  onChange={(e) => update({ senderAddress: e.target.value })}
+                  placeholder="backup@example.com"
+                  aria-invalid={!!err("sender.address")}
+                />
+              </Field>
+              <Field id="sender-name" label={t("email.addresses.senderName")}>
+                <Input id="sender-name" value={draft.senderName} onChange={(e) => update({ senderName: e.target.value })} />
+              </Field>
+            </div>
+            <div className="space-y-1.5">
+              <span className="text-sm font-medium">{t("email.addresses.recipients")}</span>
+              {readOnly ? (
+                <p className="text-sm">{draft.recipients.join(", ") || "—"}</p>
+              ) : (
+                <ChipList
+                  values={draft.recipients}
+                  onChange={(recipients) => update({ recipients })}
+                  placeholder="ops@example.com"
+                  ariaLabel={t("email.addresses.addRecipient")}
+                  validate={(v) => ADDRESS.test(v)}
+                />
+              )}
+              {err("recipients") ? (
+                <p className="text-xs text-danger-text">{err("recipients")}</p>
+              ) : (
+                <p className="text-xs text-muted-foreground">{t("email.addresses.recipientsHint")}</p>
+              )}
+            </div>
+          </fieldset>
+
+          {/* ---------------------------------------------------------- events */}
+          <fieldset className="space-y-2" disabled={readOnly}>
+            <legend className="label-overline mb-2">{t("email.events.title")}</legend>
+            <p className="text-xs text-muted-foreground">{t("email.events.hint")}</p>
+            <EventSwitches
+              events={state.events}
+              selected={draft.events}
+              onChange={(events) => update({ events })}
+              readOnly={readOnly}
+              extra={(id) =>
+                id === "repository.low_space" && (
+                  <div className="mt-2 flex items-center gap-2">
+                    <label htmlFor="space-threshold" className="text-xs text-muted-foreground">
+                      {t("email.events.threshold")}
+                    </label>
+                    <Input
+                      id="space-threshold"
+                      inputMode="numeric"
+                      className="h-8 w-20"
+                      value={draft.threshold}
+                      onChange={(e) => update({ threshold: e.target.value })}
+                      aria-invalid={!!err("repository_space_threshold_percent")}
+                    />
+                    <span className="text-xs text-muted-foreground">%</span>
+                    {err("repository_space_threshold_percent") && (
+                      <span className="text-xs text-danger-text">{err("repository_space_threshold_percent")}</span>
+                    )}
+                  </div>
+                )
+              }
+            />
+          </fieldset>
+          </div>
+        )}
 
         <DeliveryHistory state={state} />
 
@@ -442,6 +465,49 @@ export function EmailNotificationsCard() {
         )}
       </div>
     </SettingsSection>
+  );
+}
+
+/**
+ * E-mail switched off, folded to one line: what stays kept for when it is
+ * switched on again (the saved server and recipients), and the button that
+ * opens the settings. While a setting there is wrong they stay open.
+ */
+function EmailOffSummary({
+  state,
+  expanded,
+  locked,
+  onToggle,
+}: {
+  state: EmailNotificationState;
+  expanded: boolean;
+  locked: boolean;
+  onToggle: () => void;
+}) {
+  const { t } = useTranslation("settings");
+  const host = state.smtp.host.trim();
+  const count = state.recipients.length;
+  return (
+    <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2" data-testid="email-off-summary">
+      <p className="min-w-0 text-sm text-muted-foreground">
+        {host
+          ? t("email.folded.kept", { server: `${host}:${state.smtp.port}`, count })
+          : t("email.folded.empty")}
+      </p>
+      {!locked && (
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={onToggle}
+          aria-expanded={expanded}
+          aria-controls="email-settings"
+          data-testid="email-settings-toggle"
+        >
+          <ChevronDown className={cn("h-3.5 w-3.5 transition-transform", expanded && "rotate-180")} />
+          {expanded ? t("email.folded.hide") : t("email.folded.show")}
+        </Button>
+      )}
+    </div>
   );
 }
 

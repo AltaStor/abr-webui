@@ -637,6 +637,13 @@
     "enable": "Enviar notificaciones por correo",
     "on": "Activadas",
     "off": "Desactivadas",
+    "folded": {
+      "kept_one": "Desactivado. La configuración se conserva para cuando lo active: {{server}}, {{count}} destinatario.",
+      "kept_other": "Desactivado. La configuración se conserva para cuando lo active: {{server}}, {{count}} destinatarios.",
+      "empty": "Desactivado. Actívelo para configurar el servidor SMTP, el remitente y los destinatarios.",
+      "show": "Mostrar configuración",
+      "hide": "Ocultar configuración"
+    },
     "unsaved": "Sin guardar",
     "liveOnly": "Conéctese a un appliance real para configurar las notificaciones por correo.",
     "loading": "Leyendo la configuración de correo…",
