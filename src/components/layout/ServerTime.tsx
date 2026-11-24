@@ -8,6 +8,7 @@ import { Hint } from "@/components/ui/tooltip";
 import { getSystemClock, inBackground } from "@/services/api.http";
 import { useCan } from "@/store/permissions";
 import { useServerClockStore, useServerNow } from "@/store/serverClock";
+import { useAuthStore } from "@/store/auth";
 import { useWorldStore } from "@/store/world";
 import { useDateTimeFormat } from "@/lib/useDateTimeFormat";
 import {
@@ -26,19 +27,26 @@ import {
 /** How often the appliance's clock is read again: its zone almost never
  *  changes, and the clock ticks here between readings. */
 const READ_EVERY_MS = 10 * 60_000;
+/** After a failed reading, how long until the next try: soon at first, since
+ *  every time on screen waits for the zone. */
+const RETRY_AFTER_MS = [1_000, 2_000, 5_000, 10_000, 30_000];
 
 /**
  * Keeps the console on server time: reads the appliance's zone and clock
- * (`GET /system/clock`) when the console connects and every few minutes, and
- * hands the zone to lib/time.ts through the server clock store. The demo
- * world has no appliance, so it stays on the browser's zone.
+ * (`GET /system/clock`) as soon as there is a session, and every few minutes
+ * after, and hands the zone to lib/time.ts through the server clock store.
+ * It does not wait for the world's first load: on an appliance with much to
+ * load, a page that fetches its own data (Logs → System log) drew it in the
+ * browser's zone until that load ended (ABR-615). A failed reading is tried
+ * again within seconds. The demo world has no appliance, so it stays on the
+ * browser's zone.
  */
 function useServerClockReading() {
   const mode = useWorldStore((s) => s.mode);
-  const ready = useWorldStore((s) => s.ready);
+  const signedIn = useAuthStore((s) => s.status === "signed-in");
   const canRead = useCan("system.view");
   const setReading = useServerClockStore((s) => s.setReading);
-  const live = mode === "live" && ready && canRead;
+  const live = mode === "live" && signedIn && canRead;
 
   useEffect(() => {
     if (mode === "sim") {
@@ -47,17 +55,26 @@ function useServerClockReading() {
     }
     if (!live) return;
     let stopped = false;
+    let timer = 0;
+    let failures = 0;
     const read = () =>
       inBackground(getSystemClock)
         .then((clock) => {
-          if (!stopped) setReading(clock.timezone, clock.serverTime);
+          if (stopped) return;
+          failures = 0;
+          setReading(clock.timezone, clock.serverTime);
+          timer = window.setTimeout(read, READ_EVERY_MS);
         })
-        .catch(() => undefined);
-    read();
-    const id = window.setInterval(read, READ_EVERY_MS);
+        .catch(() => {
+          if (stopped) return;
+          const wait = RETRY_AFTER_MS[Math.min(failures, RETRY_AFTER_MS.length - 1)];
+          failures++;
+          timer = window.setTimeout(read, wait);
+        });
+    void read();
     return () => {
       stopped = true;
-      window.clearInterval(id);
+      window.clearTimeout(timer);
     };
   }, [mode, live, setReading]);
 }

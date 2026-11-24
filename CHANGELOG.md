@@ -262,6 +262,11 @@ All notable changes to the AltaStor WebUI are documented in this file.
   platform.
 
 ### Fixed
+- Logs → System log (and every other time) no longer reads in the
+  computer's time zone while the console loads on an appliance with much to
+  load (ABR-615): the appliance's zone is read as soon as there is a session,
+  not after the first load of jobs, sessions and the rest, and a failed
+  reading is tried again within seconds instead of ten minutes.
 - Editing a backup job without a regular schedule kept it so (ABR-596): the
   console showed such a job as "Daily · 00:00" and saving its edit form,
   even after a rename only, gave it a daily schedule at 00:00. It now reads
