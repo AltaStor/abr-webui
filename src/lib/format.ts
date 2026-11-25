@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-// Copyright © 2026 Norvitex OÜ
+// Copyright © 2026 Norvitex OÜ (AltaStor.com)
 
 import { formatDistanceToNowStrict } from "date-fns";
 import { formatDate as formatCalendarDay, formatDateTime as formatTimeStamp } from "@/lib/time";

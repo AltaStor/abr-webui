@@ -125,4 +125,4 @@ See [doc/WebuiSetup.md](doc/WebuiSetup.md) for more on local setup.
 
 Apache License 2.0 — see [LICENSE](LICENSE).
 
-Copyright © 2026 Norvitex OÜ
+Copyright © 2026 Norvitex OÜ (AltaStor.com)

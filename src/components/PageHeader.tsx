@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-// Copyright © 2026 Norvitex OÜ
+// Copyright © 2026 Norvitex OÜ (AltaStor.com)
 
 import { Link } from "react-router-dom";
 import { ChevronLeft, type LucideIcon } from "@/lib/icons";

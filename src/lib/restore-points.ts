@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-// Copyright © 2026 Norvitex OÜ
+// Copyright © 2026 Norvitex OÜ (AltaStor.com)
 
 import type { BackupJob, RestorePoint, RestorePointType, VM } from "@/types";
 import i18n from "@/i18n";

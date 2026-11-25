@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-// Copyright © 2026 Norvitex OÜ
+// Copyright © 2026 Norvitex OÜ (AltaStor.com)
 
 /** Consistent title block at the top of every wizard step. */
 export function StepHeader({ title, description }: { title: string; description: string }) {

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-// Copyright © 2026 Norvitex OÜ
+// Copyright © 2026 Norvitex OÜ (AltaStor.com)
 
 import { CircleDot, Moon, Power, type LucideIcon } from "@/lib/icons";
 import type { OsFamily, PowerState } from "@/types";

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-// Copyright © 2026 Norvitex OÜ
+// Copyright © 2026 Norvitex OÜ (AltaStor.com)
 
 /* The console's time formatting (lib/time.ts). Run with `npm test`: Node runs
  * the TypeScript as it is, with its own full IANA zone database. */

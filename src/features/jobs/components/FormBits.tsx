@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-// Copyright © 2026 Norvitex OÜ
+// Copyright © 2026 Norvitex OÜ (AltaStor.com)
 
 /* Small pieces of the job forms, shared by the backup job and the backup copy
  * job fields so the two read and behave alike. */

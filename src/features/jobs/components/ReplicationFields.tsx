@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-// Copyright © 2026 Norvitex OÜ
+// Copyright © 2026 Norvitex OÜ (AltaStor.com)
 
 /* The parts of the job form only a replication job has: the backup job it
  * reads, the restore point the replica starts from, where the replica lives

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-// Copyright © 2026 Norvitex OÜ
+// Copyright © 2026 Norvitex OÜ (AltaStor.com)
 
 import { cn } from "@/lib/utils";
 import { toneChip, type StatusMeta } from "@/lib/status";

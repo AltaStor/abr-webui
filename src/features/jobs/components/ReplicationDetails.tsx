@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-// Copyright © 2026 Norvitex OÜ
+// Copyright © 2026 Norvitex OÜ (AltaStor.com)
 
 /* What a replication job's page shows about it: where the replica comes from
  * and lives, the restore point it is at, when it was last brought up to date,

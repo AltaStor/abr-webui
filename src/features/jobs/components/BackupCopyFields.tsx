@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-// Copyright © 2026 Norvitex OÜ
+// Copyright © 2026 Norvitex OÜ (AltaStor.com)
 
 /* The parts of the job form only a backup copy job has: what it copies from,
  * which of the sources' VMs, how it copies, its copy window and its retries.

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-// Copyright © 2026 Norvitex OÜ
+// Copyright © 2026 Norvitex OÜ (AltaStor.com)
 
 /** What Settings → Users needs to know about roles, built-in and custom. */
 import type { RoleInfo } from "@/services/api.http";
