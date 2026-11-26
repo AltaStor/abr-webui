@@ -93,9 +93,9 @@ export interface VsphereSettings {
   detectedLibraries: DetectedVddkLibrary[];
 }
 
-/** oVDDK (the altastor-backup-ovddk package), a VMware VDDK bundle, or a
+/** LibreVDDK (the altastor-backup-librevddk package), a VMware VDDK bundle, or a
  *  library in the system's own folders. */
-export type VddkLibraryKind = "ovddk" | "vmware_vddk" | "system";
+export type VddkLibraryKind = "librevddk" | "vmware_vddk" | "system";
 
 export interface DetectedVddkLibrary {
   path: string;

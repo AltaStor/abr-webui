@@ -528,7 +528,7 @@ function mapVsphereSettings(res: Dict): VsphereSettings {
       .filter((lib) => str(lib.path) !== "")
       .map((lib) => ({
         path: str(lib.path),
-        kind: lib.kind === "ovddk" || lib.kind === "vmware_vddk" ? lib.kind : "system",
+        kind: lib.kind === "librevddk" || lib.kind === "vmware_vddk" ? lib.kind : "system",
         file: strOrNull(lib.file),
       })),
   };

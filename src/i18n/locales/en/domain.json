@@ -133,7 +133,7 @@
     "apiLabel": "API",
     "libraryLabel": "VDDK library",
     "libraryKind": {
-      "ovddk": "LibreVDDK",
+      "librevddk": "LibreVDDK",
       "vmware_vddk": "VMware VDDK",
       "system": "System library"
     },
