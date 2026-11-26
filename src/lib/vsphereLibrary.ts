@@ -6,8 +6,7 @@
  * VMware offers (a new appliance starts on LibreVDDK; nothing asks at setup):
  *
  * - LibreVDDK, the default: the VDDK API with the library that comes with
- *   AltaStor (`vddk_library: "ovddk"`; the appliance and the CLI call it
- *   oVDDK);
+ *   AltaStor (`vddk_library: "librevddk"`);
  * - VDDK: the VDDK API with VMware's own VDDK, named by the full path of its
  *   library (any other library file is named the same way);
  * - SOAP: the vSphere SOAP API, which loads no library.
@@ -26,20 +25,20 @@ export type VmwareChoice = "libre" | "vddk" | "soap";
 export const VMWARE_CHOICES: readonly VmwareChoice[] = ["libre", "vddk", "soap"];
 
 /** The word `vddk_library` takes for LibreVDDK's own library. */
-export const LIBRE_VDDK = "ovddk";
+export const LIBRE_VDDK = "librevddk";
 
 /** The API a choice reads disks over. */
 export const apiOfChoice = (choice: VmwareChoice): VsphereApi => (choice === "soap" ? "soap" : "vddk");
 
 /** LibreVDDK's library when the appliance has it installed. */
 export function libreVddkLibrary(settings: VsphereSettings): DetectedVddkLibrary | null {
-  return settings.detectedLibraries.find((lib) => lib.kind === "ovddk") ?? null;
+  return settings.detectedLibraries.find((lib) => lib.kind === "librevddk") ?? null;
 }
 
 /** The libraries the appliance found besides LibreVDDK's: VMware VDDK
  *  bundles and libraries in the system's own folders. */
 export function otherVddkLibraries(settings: VsphereSettings): DetectedVddkLibrary[] {
-  return settings.detectedLibraries.filter((lib) => lib.kind !== "ovddk");
+  return settings.detectedLibraries.filter((lib) => lib.kind !== "librevddk");
 }
 
 const strip = (p: string) => p.trim().replace(/\/+$/, "");
