@@ -45,7 +45,7 @@
   },
   "status": {
     "healthy": "Correcto",
-    "warning": "Llenándose",
+    "warning": "Advertencia",
     "offline": "Sin conexión"
   },
   "integrity": {
@@ -221,6 +221,7 @@
     }
   },
   "detail": {
+    "warningsTitle": "Requiere atención",
     "inMaintenance": "En mantenimiento · solo lectura, trabajos en pausa",
     "threatLockedTitle": "Bloqueado por amenaza · sellado por respuesta a amenazas",
     "threatLockedBody": "Este repositorio conserva puntos de restauración para {{names}}, actualmente bajo investigación activa de amenazas. Cualquier punto inmutable aquí permanece protegido. El sellado se levanta automáticamente cuando la amenaza se contiene o se descarta.",

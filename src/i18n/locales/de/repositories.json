@@ -45,7 +45,7 @@
   },
   "status": {
     "healthy": "Fehlerfrei",
-    "warning": "Füllt sich",
+    "warning": "Warnung",
     "offline": "Offline"
   },
   "integrity": {
@@ -221,6 +221,7 @@
     }
   },
   "detail": {
+    "warningsTitle": "Erfordert Aufmerksamkeit",
     "inMaintenance": "In Wartung · schreibgeschützt, Jobs pausiert",
     "threatLockedTitle": "Bedrohungsgesperrt · durch Bedrohungsreaktion versiegelt",
     "threatLockedBody": "Dieses Repository hält Wiederherstellungspunkte für {{names}}, die derzeit aktiv auf eine Bedrohung untersucht werden. Alle unveränderlichen Punkte hier bleiben geschützt. Die Versiegelung wird automatisch aufgehoben, sobald die Bedrohung eingedämmt oder verworfen ist.",

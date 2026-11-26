@@ -4,6 +4,7 @@
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import {
+  AlertTriangle,
   ArrowRight,
   Database,
   Loader2,
@@ -167,6 +168,27 @@ function RepositoryDetailBody({
               <p className="mt-0.5 text-[11px] leading-relaxed text-muted-foreground">
                 {t("detail.threatLockedBody", { names: threatLock.sourceNames.join(", ") })}
               </p>
+            </div>
+          </div>
+        )}
+
+        {/* What makes the status a Warning, in the appliance's own words: each
+            one says what is wrong and, where it can, the command that fixes it. */}
+        {repo.status === "warning" && repo.warnings && repo.warnings.length > 0 && (
+          <div
+            className="mt-3 flex items-start gap-2 border border-warning/30 bg-warning/10 px-3 py-2.5"
+            data-testid="repository-warnings"
+          >
+            <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-warning" />
+            <div className="min-w-0">
+              <p className="text-xs font-semibold text-warning-text">{t("detail.warningsTitle")}</p>
+              <ul className="mt-0.5 space-y-1">
+                {repo.warnings.map((warning) => (
+                  <li key={warning} className="break-words text-[11px] leading-relaxed text-muted-foreground">
+                    {warning}
+                  </li>
+                ))}
+              </ul>
             </div>
           </div>
         )}

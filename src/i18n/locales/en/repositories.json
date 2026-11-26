@@ -45,7 +45,7 @@
   },
   "status": {
     "healthy": "Healthy",
-    "warning": "Filling up",
+    "warning": "Warning",
     "offline": "Offline"
   },
   "integrity": {
@@ -221,6 +221,7 @@
     }
   },
   "detail": {
+    "warningsTitle": "Needs attention",
     "inMaintenance": "In maintenance · read-only, jobs paused",
     "threatLockedTitle": "Threat-locked · sealed by threat response",
     "threatLockedBody": "This repository holds restore points for {{names}}, currently under active threat investigation. The seal lifts automatically when the threat is contained or dismissed.",

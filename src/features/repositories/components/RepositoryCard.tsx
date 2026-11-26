@@ -85,7 +85,12 @@ export function RepositoryCard({
               <p className="mt-0.5 truncate text-xs text-muted-foreground">{typeMeta.label}</p>
             </div>
           </div>
-          <StatusPill meta={{ ...statusMeta, icon: Database }} size="sm" />
+          <span
+            className="shrink-0"
+            title={repo.status === "warning" && repo.warnings?.length ? repo.warnings.join("\n") : undefined}
+          >
+            <StatusPill meta={{ ...statusMeta, icon: Database }} size="sm" />
+          </span>
         </div>
 
         {/* Status chips row: default / immutability / threat-lock / scanning.

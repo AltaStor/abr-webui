@@ -949,6 +949,7 @@ function mapRepository(r: Dict): Repository {
   const capacityGB = num(storage.capacity_bytes) / GB;
   const usedGB = num(storage.used_bytes) / GB;
   const status = str(r.status);
+  const warnings = (Array.isArray(r.warnings) ? r.warnings : []).map((w) => str(w)).filter(Boolean);
   return {
     id: str(r.id),
     name: str(r.name) || "Repository",
@@ -959,8 +960,15 @@ function mapRepository(r: Dict): Repository {
     capacityGB,
     usedGB,
     dedupRatio: 1,
+    // Offline wins: an unreachable repository is offline whatever it warns
+    // about. A reachable one with warnings is a Warning, not Healthy.
     status:
-      status === "available" ? "healthy" : status === "unavailable" || status === "error" ? "offline" : "warning",
+      status === "unavailable" || status === "error"
+        ? "offline"
+        : status === "available" && warnings.length === 0
+          ? "healthy"
+          : "warning",
+    warnings,
     usageTrend: [usedGB, usedGB],
     lastScanAt: strOrNull(r.last_scan_at),
     immutability: mapImmutability(r.immutability),

@@ -45,7 +45,7 @@
   },
   "status": {
     "healthy": "Sain",
-    "warning": "Se remplit",
+    "warning": "Avertissement",
     "offline": "Hors ligne"
   },
   "integrity": {
@@ -221,6 +221,7 @@
     }
   },
   "detail": {
+    "warningsTitle": "Nécessite une attention",
     "inMaintenance": "En maintenance · lecture seule, tâches suspendues",
     "threatLockedTitle": "Verrouillé par menace · scellé par la réponse aux menaces",
     "threatLockedBody": "Ce référentiel conserve les points de restauration de {{names}}, actuellement sous investigation active pour menace. Tout point immuable ici reste protégé. Le scellement se lève automatiquement lorsque la menace est contenue ou écartée.",

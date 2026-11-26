@@ -959,6 +959,10 @@ export interface Repository {
   usedGB: number;
   dedupRatio: number;
   status: "healthy" | "warning" | "offline";
+  /** What the appliance warns about a reachable repository (`warnings`), e.g.
+   *  a world-writable path or one the service account cannot write. Any of
+   *  them makes the status "warning". Absent for a world that doesn't report it. */
+  warnings?: string[];
   /** Recent daily usage in GB, oldest→newest, for the trend sparkline. */
   usageTrend: number[];
 
