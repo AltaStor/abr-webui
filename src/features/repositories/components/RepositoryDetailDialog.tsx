@@ -6,7 +6,6 @@ import { Link } from "react-router-dom";
 import {
   AlertTriangle,
   ArrowRight,
-  Database,
   Loader2,
   Lock,
   RefreshCw,
@@ -140,12 +139,7 @@ function RepositoryDetailBody({
             </DialogDescription>
           </div>
           <div className="flex shrink-0 items-center gap-1">
-            <StatusPill
-              meta={{ ...statusMeta, icon: Database }}
-              size="sm"
-              withIcon={false}
-              className="mr-1"
-            />
+            <StatusPill meta={statusMeta} size="sm" className="mr-1" />
             <RepositoryActionsMenu
               {...actions}
               scanning={scanning}

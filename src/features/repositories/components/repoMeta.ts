@@ -11,6 +11,7 @@ import {
   Server,
   ShieldCheck,
   SmbShare,
+  XCircle,
   type LucideIcon,
 } from "@/lib/icons";
 import type { Repository, RepositoryType } from "@/types";
@@ -55,14 +56,15 @@ export const REPO_TYPE_META: Record<
   },
 };
 
-/** Map repo health → status pill tone + label. */
+/** Map repo health → status pill tone + label + icon: the same check / warning
+ *  triangle / cross the job-run pills use for success / warning / failed. */
 export const REPO_STATUS_META: Record<
   "healthy" | "warning" | "offline",
-  { label: string; tone: Tone }
+  { label: string; tone: Tone; icon: LucideIcon }
 > = {
-  healthy: { get label() { return i18n.t("repositories:status.healthy"); }, tone: "success" },
-  warning: { get label() { return i18n.t("repositories:status.warning"); }, tone: "warning" },
-  offline: { get label() { return i18n.t("repositories:status.offline"); }, tone: "danger" },
+  healthy: { get label() { return i18n.t("repositories:status.healthy"); }, tone: "success", icon: CheckCircle2 },
+  warning: { get label() { return i18n.t("repositories:status.warning"); }, tone: "warning", icon: AlertTriangle },
+  offline: { get label() { return i18n.t("repositories:status.offline"); }, tone: "danger", icon: XCircle },
 };
 
 type IntegrityStatus = NonNullable<Repository["integrityStatus"]>;

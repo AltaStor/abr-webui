@@ -2,7 +2,7 @@
 // Copyright © 2026 Norvitex OÜ (AltaStor.com)
 
 import { useTranslation } from "react-i18next";
-import { Database, DatabaseBackup, Lock, RestorePoint, ShieldAlert } from "@/lib/icons";
+import { DatabaseBackup, Lock, RestorePoint, ShieldAlert } from "@/lib/icons";
 import { cn } from "@/lib/utils";
 import { Metric } from "@/components/Metric";
 import { StatusPill } from "@/components/StatusPill";
@@ -89,7 +89,7 @@ export function RepositoryCard({
             className="shrink-0"
             title={repo.status === "warning" && repo.warnings?.length ? repo.warnings.join("\n") : undefined}
           >
-            <StatusPill meta={{ ...statusMeta, icon: Database }} size="sm" />
+            <StatusPill meta={statusMeta} size="sm" />
           </span>
         </div>
 
