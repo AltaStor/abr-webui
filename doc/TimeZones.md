@@ -1,20 +1,22 @@
 # Time zones in the web console: design and implementation
 
-Tickets: ABR-466 "WebUI shows times in mixed time zones with no zone label;
-job schedule form hides the time zone", ABR-484 "Settings > Date and time"
-(the date and time formats), and ABR-515 (the spelled month as the default
-date format, and where the weekday is printed). This document states what was
-built, so QA, support and developers do not have to read it out of the code.
+This document states what was built for times and time zones in the console:
+server time and the zone named once, the date and time formats, the spelled
+month as the default date format, where the weekday is printed, and what the
+console does before the appliance names its zone and for a role without
+`system.view`. It is written so QA, support and developers do not have to read
+it out of the code.
 It is kept in step with the code: a change to the behaviour below changes this
 document in the same commit.
 
 ## 1. Chosen approach
 
-**Server time, named once** (Henry Morgan's design of 2026-11-05 on ABR-466):
+**Server time, named once** (the design of 2026-11-05):
 
 - Every absolute time is printed on **server time**, the appliance's own time
   zone, in one format and **without a zone label**: "4 Nov 2026 01:00".
-- The top bar names that zone once: **"Server time 16:08 · Tallinn (UTC+2)"**.
+- The top bar names that zone once: **"Server time 16:08 · City (UTC+2)"**, the
+  city of the appliance's zone.
   Its tooltip gives the zone by name, the time in UTC and, when the viewer's
   computer is on another clock, the time there.
 - Hovering any time shows the same moment **in UTC**, and **on the viewer's
@@ -29,24 +31,27 @@ History and what was rejected:
 
 | Option | Decision | Why |
 |---|---|---|
-| 1. Label every time with the viewer's zone ("01:00 GMT+3"), schedules in the job zone with the viewer's equivalent, a zone field in the job form (webui #45–#49) | Replaced | Two users in different zones read different times for one event, the labels took room on every row, and a zone per job let a team end up with jobs on several clocks. |
+| 1. Label every time with the viewer's zone ("01:00 GMT+3"), schedules in the job zone with the viewer's equivalent, a zone field in the job form | Replaced | Two users in different zones read different times for one event, the labels took room on every row, and a zone per job let a team end up with jobs on several clocks. |
 | 2. One display zone, the server's, for the whole console | **Implemented**, with the zone named once in the top bar | Every user reads the same time for the same event, which matches the logs, the CLI and the appliance's own scheduler. A user far from the server's zone sees their own reading on hover. |
-| 3. Per-user display zone (Browser / Appliance / UTC / Custom) | Not built; the browser-stored zone setting of ABR-484 was removed | It brings back two readings of one event, which option 2 exists to prevent. |
+| 3. Per-user display zone (Browser / Appliance / UTC / Custom) | Not built; the browser-stored Time zone setting of Settings → Appearance was removed | It brings back two readings of one event, which option 2 exists to prevent. |
 
 ## 2. Time zone model
 
 | Zone | What it is | Where it is stored | Where it is read | Editable |
 |---|---|---|---|---|
-| **Server zone** (appliance zone) | The appliance's operating system zone (`TZ`, else `/etc/localtime`, else `/etc/timezone`, else UTC). **Every time in the console is printed in it.** | The OS | `GET /system/clock` (`timezone`, `server_time`), read by the console when it connects and every 10 minutes (`components/layout/ServerTime.tsx`), held in `store/serverClock.ts` and handed to `lib/time.ts`. Cached in the browser (`localStorage` `abr.serverTimeZone`) so the next visit's first paint is already on server time. | No (read-only) |
+| **Server zone** (appliance zone) | The appliance's operating system zone (`TZ`, else the system's configured zone, else UTC). **Every time in the console is printed in it.** | The OS | `GET /system/clock` (`timezone`, `server_time`), read by the console as soon as there is a session (not after the first load of jobs and sessions), every 10 minutes after, and again within seconds after a failed reading (`components/layout/ServerTime.tsx`); only for a role with `system.view`. Held in `store/serverClock.ts` and handed to `lib/time.ts`. Cached in the browser (`localStorage` `abr.serverTimeZone`) so the next visit's first paint is already on server time. | No (read-only) |
 | **Job zone** | The zone a schedule's wall-clock time ("22:00") and a cron expression are read in. Per schedule: the base schedule, the active full and the synthetic full each carry one, and so does each copy window rule | Job record (catalog) | Job DTO `*.timezone` (never empty, see 5) | A new job gets the server zone. A job on another zone keeps it until "Use server time" in the form moves it. `abr job edit` and the API can still set any zone. |
 | **Viewer's zone** | The zone of the viewer's computer | The browser (`Intl.DateTimeFormat().resolvedOptions().timeZone`) | `browserTimeZone()` in `lib/time.ts`: only for the second tooltip line and the top bar's tooltip, and as the stand-in until the appliance has named its zone | No |
 
 Before the appliance has answered (first visit, or a role without
 `system.view`) and in the demo world, the browser's zone stands in for the
-server zone. Every built-in role holds `system.view`. A screen that computes
-with the zone (the job form, the Date format note) draws again when the
-appliance's arrives, through `useServerClockStore` or `useDateTimeFormat`; a
-plain call to `lib/time.ts` reads it but is not told of the change.
+server zone. The top bar then shows no clock, since it would print the
+browser's time under the words "Server time"; the demo world, which has no
+appliance, shows the browser's. Every built-in role holds `system.view`. A
+screen that computes with the zone (the job form, the Date format note, the
+System log's lines) draws again when the appliance's arrives, through
+`useServerClockStore` or `useDateTimeFormat`; a plain call to `lib/time.ts`
+reads it but is not told of the change.
 
 The date and time formats are stored in the browser with the rest of
 Appearance (`basalt.settings` → `appearance.dateFormat`: `D MMM YYYY`
@@ -56,7 +61,7 @@ day, the month's short name in the console language and the year: "4 Nov
 2026", in German "4. Nov. 2026". `MMM D, YYYY` writes the month first, in that
 order in every language: "Nov 4, 2026", in German "Nov. 4, 2026".
 It is the default because `04/11/2026` is 4 November to some readers and
-11 April to others (ABR-515).
+11 April to others.
 
 ## 3. Display rules
 
@@ -78,13 +83,15 @@ Timestamps stay ISO/UTC everywhere else and are converted only when printed.
   Dashboard, Activity) and a copy window's opening and closing. A moment that
   has happened or a fixed date prints without it: last runs, restore points,
   log lines, certificate dates. The restore point calendar's heading for the
-  picked day keeps it. (ABR-515; `formatFullDateTime` in `lib/format.ts`.)
+  picked day keeps it. (`formatFullDateTime` in `lib/format.ts`.)
 - **Top bar**: "Server time HH:MM · City (UTC±N)", the city from the zone's
   current IANA name (`Europe/Kiev` → Kyiv), the offset at this moment
   (`UTC+2`, `UTC+5:30`, `UTC-4`); "UTC" alone for a server on UTC. The clock is
   the appliance's (this computer's clock corrected by the difference
-  `server_time` showed at the last reading) and moves every 10 seconds. Hidden
-  below the `md` breakpoint, where the bar has no room.
+  `server_time` showed at the last reading) and turns over with the
+  appliance's minute, at the same moment as the Date format note
+  (`useServerNow` in `store/serverClock.ts`). Not shown until the appliance has
+  named its zone. Hidden below the `md` breakpoint, where the bar has no room.
 - **Tooltip of a time**: the same moment in UTC, to the second, in the user's
   formats ("4 Nov 2026 22:00:03 UTC"); when the viewer's computer is on
   another offset at that moment, a second line with its reading
@@ -129,7 +136,7 @@ and `src/features/jobs/lib.ts` (`scheduleLabel`, `fullScheduleLabel`,
     zone (sent explicitly as `timezone`). A form opened before the appliance
     has named its zone starts on the browser's stand-in and moves to the
     appliance's zone when it arrives, as does a job moved with **Use server
-    time** (ABR-575).
+    time**.
   - An edited job keeps its zone. When that is not server time, a note under
     the time says so ("This schedule runs on UTC, not server time, …") with
     **Use server time**, which moves the job and every full schedule and copy
@@ -144,7 +151,8 @@ and `src/features/jobs/lib.ts` (`scheduleLabel`, `fullScheduleLabel`,
 
 ## 5. Backend and API (abr-core)
 
-No change for this design; the console uses what ABR-466's first round added.
+No change for this design; the console uses what the first design (option 1 in
+section 1) added.
 
 | Field | Detail |
 |---|---|
@@ -163,8 +171,9 @@ audit log is UTC. The console parses them as instants.
   running on it and show it ("Daily · 22:00 UTC"); "Use server time" in the
   form moves one. Nothing is migrated automatically, because moving a job's
   zone moves its runs.
-- **Browser settings**: `basalt.settings` → `appearance.timeZone` (ABR-484) is
-  no longer read and no longer written; the date and time formats are kept.
+- **Browser settings**: `basalt.settings` → `appearance.timeZone`, the removed
+  Time zone setting, is no longer read and no longer written; the date and time
+  formats are kept.
 - **Automated tests that compare time strings**: absolute times have no zone
   label any more ("4 Nov 2026 01:00", was "4 Nov 2026 01:00 GMT+3"); they are
   on server time, not the browser's; the restore point headings read
@@ -186,7 +195,7 @@ audit log is UTC. The console parses them as instants.
 | A schedule on another zone across a DST change | Its runs move against server time by the difference; the next run on the job page (server time) shows where it falls. |
 | Non-whole-hour offsets (India UTC+5:30, Nepal UTC+5:45, Chatham UTC+12:45) | The top bar and tooltips print minutes. |
 | Viewer's computer on the server's offset but another zone name | One tooltip line: the readings are the same at that moment. |
-| Server zone not known yet, role without `system.view`, demo world | The browser's zone stands in (the top bar then shows the browser's zone as server time; in the live console that is until the first answer, a second or so, and only on the first visit). |
+| Server zone not known yet, role without `system.view`, demo world | Times are printed in the browser's zone, and the top bar shows no clock (the demo world shows the browser's zone as server time). In the live console that lasts until the first answer, a second or so, and only on the first visit, since the zone is cached; a role without `system.view` stays on it. |
 | Server zone the browser does not know | Printed in the browser's zone (the same fallback). |
 | Zone unknown to the appliance | Refused on save (422). |
 | Disabled job | The schedule reads "Disabled"; no next run. |
@@ -200,7 +209,7 @@ audit log is UTC. The console parses them as instants.
 |---|---|---|
 | Console unit tests (`npm test`: `src/lib/time.test.ts`, Node's own test runner) | 24-hour and 12-hour output, each date format, the spelled month as default and in four languages, the weekday, no zone label by default and the label on request, server-time days, a preview's override, the repeated autumn hour and the skipped spring hour, +05:30, +05:45 and −03:30 offsets in `UTC±N` form, the city of old zone names, the tooltip with one line (computer on server time) and two (on another clock), the browser's zone standing in before the server's is known or when it is unknown, which schedule zones count as server time | UTC, Europe/Kyiv, America/New_York, Australia/Sydney, Asia/Kolkata, Asia/Kathmandu, Asia/Tokyo, America/Los_Angeles, Europe/London |
 | REST (abr-core) | Unchanged: `test_input_limits` (schedule zones, `/system/clock` zone), scheduler DST tests in `test_fall_back_night.py` | appliance Europe/Berlin, Asia/Kolkata, America/New_York |
-| UI (headless Chromium against an in-memory appliance, by hand) | Top bar clock and its tooltip, times without labels on the jobs list, job page, Activity and Restore, the two-line tooltip, the job form without a zone field, a UTC job's note and "Use server time", Appearance without a zone | browser Asia/Kolkata against an appliance on another zone, and browser on the appliance's zone |
+| UI (headless Chromium against an in-memory appliance, by hand) | Top bar clock and its tooltip, times without labels on the jobs list, job page, Activity and Restore, the two-line tooltip, the job form without a zone field, a UTC job's note and "Use server time", Appearance without a zone | browser on a zone other than the appliance's, and browser on the appliance's zone |
 | Type check | `npm run typecheck` | — |
 
 ## 9. User-facing documentation
@@ -216,4 +225,4 @@ audit log is UTC. The console parses them as instants.
 - Job form: "At time (server time)"; on a job saved on another zone, the note
   and **Use server time**.
 - Settings → About: the server's time zone and clock.
-- README → "Times and time zones"; Confluence: "Time zones in the Web UI".
+- README → "Times and time zones".
